@@ -16,11 +16,28 @@ class LoadCSVData:
 
         # Nombre de la tabla en MySQL
         table_name = 'puestos_trabajo_asalariado'
+        
+        # Leer el archivo de csv y hacer transformaciones
+        df = pd.read_csv(file_path)  # Leer el archivo CSV y crear el DataFrame
+        df = df.replace({np.nan: None})  # Reemplazar los valores NaN por None
 
-        # Leer el archivo de csvread_csv
-        df = pd.read_csv(file_path) #Data Frame//Libreria de Panda
-        df = df.replace({np.nan: None})
+        print("columnas -- ", df.columns)
 
+        # Aplicar strip() al nombre de la columna antes de acceder a ella
+        column_name = ' puestos '  # Nombre de la columna con espacios en blanco
+        column_name_stripped = column_name.strip()  # Eliminar espacios en blanco
+
+        # Verificar si la columna existe en el DataFrame
+        if column_name_stripped in df.columns:
+            # Realizar transformaciones en el DataFrame utilizando el nombre de columna sin espacios
+            df.loc[df[column_name_stripped] < 0, column_name_stripped] = 0
+        else:
+            print(f"La columna '{column_name_stripped}' no existe en el DataFrame.")
+
+        # Obtener los nombres y tipos de datos de las columnas
+        column_names = list(df.columns)
+        column_types = df.dtypes.to_dict()
+        
         # Obtener los nombres y tipos de datos de las columnas
         column_names = list(df.columns)
         column_types = df.dtypes.to_dict()
