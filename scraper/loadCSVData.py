@@ -37,10 +37,6 @@ class LoadCSVData:
         # Obtener los nombres y tipos de datos de las columnas
         column_names = list(df.columns)
         column_types = df.dtypes.to_dict()
-        
-        # Obtener los nombres y tipos de datos de las columnas
-        column_names = list(df.columns)
-        column_types = df.dtypes.to_dict()
 
         print("ANTES DEL FOR")
         insert_query = f"INSERT INTO {table_name} VALUES ("
