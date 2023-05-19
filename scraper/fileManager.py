@@ -7,7 +7,7 @@ from pathlib import Path
 class FileManager:
     
     url = ""
-    folder = str(Path.cwd()) + "/files/csv"
+    folder = str(Path.cwd()) + "/scraper/files/csv"
 
     def __init__(self, url):
         self.url = url
