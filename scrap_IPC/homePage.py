@@ -1,27 +1,46 @@
 import requests
-from bs4 import BeautifulSoup
-import urllib3
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.service import Service
 
 class HomePage:
-    #Contiene la URL de la página web desde donde se desea obtener la URL de descarga del archivo.
-    url = "https://www.indec.gob.ar/indec/web/Nivel4-Tema-3-5-31"
     
-    #Se encarga de obtener la URL de descarga del archivo.
-    def getDownloadUrl(self):
-        
-        urllib3.disable_warnings()#Se desactivan las advertencias de verificación de certificados SSL.
-        response = requests.get(self.url, verify=False)#Se realiza una solicitud GET a la URL especificada y se guarda la respuesta 
-        response.raise_for_status()#Verifica si la respuesta de la solicitud tiene un código de estado exitoso
+    # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
+    driver = webdriver.Chrome('C:\\Users\\Usuario\\Desktop\\scraper\\selenium\\chromedriver.exe')  # Reemplaza con la ubicación de tu ChromeDriver
 
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.content, "html.parser")
-            print("", response-conte)
-            tag_a = soup.find("a")
-            #Se obtiene el valor del atributo href del elemento "a", que representa la URL de descarga del archivo.
-            href = tag_a.get("href")
-            print("href:", href)
-            return href
-        else:
-            print("Fallo...")
-            return ""
+    # URL de la página que deseas obtener
+    url_pagina = 'https://www.indec.gob.ar/indec/web/Nivel4-Tema-3-5-31'
 
+    # Cargar la página web
+    driver.get(url_pagina)
+
+    wait = WebDriverWait(driver, 10)
+
+    # Encontrar el enlace al archivo
+    archivo = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div/div[2]/div/div[2]/div[2]/div[2]/div/div/a")))
+
+    # Obtener la URL del archivo
+    url_archivo = archivo.get_attribute('href')
+    # Imprimir la URL del archivo
+    print(url_archivo)
+    
+    # Ruta de la carpeta donde guardar el archivo
+    carpeta_guardado = 'C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_IPC\\files\\xls'
+
+    # Nombre del archivo
+    nombre_archivo = 'archivo.xls'
+
+    # Descargar el archivo
+    response = requests.get(url_archivo)
+
+    # Guardar el archivo en la carpeta especificada
+    ruta_guardado = f'{carpeta_guardado}\\{nombre_archivo}'
+    with open(ruta_guardado, 'wb') as file:
+        file.write(response.content)
+
+    
+
+    # Cerrar el navegador
+    driver.quit()
