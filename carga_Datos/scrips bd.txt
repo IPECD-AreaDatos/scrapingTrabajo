@@ -1,0 +1,64 @@
+USE prueba1;
+-- Tabla de provincias
+CREATE TABLE Provincias(
+id_provincia_indec int primary key not null,
+nombre_provincia_indec varchar(20)
+);
+
+Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (2, 'CABA');
+Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (6, 'Buenos Aires');
+Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (10, 'Catamarca');
+Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (14, 'Cordoba');
+Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (18, 'Corrientes');
+Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (22, 'Chaco');
+Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (23, 'Chubut');
+Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (30, 'Entre Rios');
+Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (34, 'Formosa');
+Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (38, 'Jujuy');
+Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (42, 'La Pampa');
+Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (46, 'La Rioja');
+Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (50, 'Mendoza');
+Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (54, 'Misiones');
+Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (58, 'Neuquen');
+Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (62, 'Rio Negro');
+Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (66, 'Salta');
+Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (70, 'San Juan');
+Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (74, 'San Luis');
+Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (78, 'Santa Cruz');
+Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (82, 'Santa Fe');
+Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (86, 'Santiago Del Estero');
+Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (90, 'Tucuman');
+Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (94, 'Tierra Del Fuego');
+
+Select * from Provincias;
+
+-- Tabla de Localidades
+-- Se ejecuta el script de carga de localidades
+Select * from localidades;
+
+-- Tabla con los puestos de trabajo  
+Select COUNT(*)  from puestos_trabajo_asalariado ;
+Select * from puestos_trabajo_asalariado limit 3000;
+SELECT * FROM puestos_trabajo_asalariado WHERE codigo_departamento_indec IS NULL;
+
+-- Tabla de IPC del NEA
+-- Creacion de la tabla
+CREATE TABLE IPC_regionNEA(
+Fecha date not null,
+Nivel_General int,
+Alimentos_y_bebidas_no_alcoholicas int,
+Bebidas_alcoholicas_y_tabaco int,
+Prendas_de_vestir_y_calzado int,
+Vivienda_agua_electricidad_gas_y_otros_combustibles int,
+Equipamiento_y_mantenimiento_del_hogar int,
+Salud int,
+Transporte int,
+Comunicación int,
+Recreación_y_cultura int,
+Educación int,
+Restaurantes_y_hoteles int,
+Bienes_y_servicios_varios int
+);
+
+-- Ver los datos de la tabla IPC_regionNEA
+SELECT * FROM prueba1.ipc_regionnea;
