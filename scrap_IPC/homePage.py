@@ -8,7 +8,7 @@ from selenium.webdriver.chrome.service import Service
 class HomePage:
     
     # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
-    driver = webdriver.Chrome('C:\\Users\\Usuario\\Desktop\\scraper\\selenium\\chromedriver.exe')  # Reemplaza con la ubicación de tu ChromeDriver
+    driver = webdriver.Chrome('C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_IPC\\chromedriver.exe')  # Reemplaza con la ubicación de tu ChromeDriver
 
     # URL de la página que deseas obtener
     url_pagina = 'https://www.indec.gob.ar/indec/web/Nivel4-Tema-3-5-31'
@@ -39,8 +39,6 @@ class HomePage:
     ruta_guardado = f'{carpeta_guardado}\\{nombre_archivo}'
     with open(ruta_guardado, 'wb') as file:
         file.write(response.content)
-
-    
 
     # Cerrar el navegador
     driver.quit()
