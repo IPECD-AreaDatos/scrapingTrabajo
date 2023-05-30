@@ -45,20 +45,141 @@ SELECT * FROM puestos_trabajo_asalariado WHERE codigo_departamento_indec IS NULL
 -- Creacion de la tabla
 CREATE TABLE IPC_regionNEA(
 Fecha date not null,
-Nivel_General int,
-Alimentos_y_bebidas_no_alcoholicas int,
-Bebidas_alcoholicas_y_tabaco int,
-Prendas_de_vestir_y_calzado int,
-Vivienda_agua_electricidad_gas_y_otros_combustibles int,
-Equipamiento_y_mantenimiento_del_hogar int,
-Salud int,
-Transporte int,
-Comunicación int,
-Recreación_y_cultura int,
-Educación int,
-Restaurantes_y_hoteles int,
-Bienes_y_servicios_varios int
+Nivel_General float,
+Alimentos_y_bebidas_no_alcoholicas float,
+Bebidas_alcoholicas_y_tabaco float,
+Prendas_de_vestir_y_calzado float,
+Vivienda_agua_electricidad_gas_y_otros_combustibles float,
+Equipamiento_y_mantenimiento_del_hogar float,
+Salud float,
+Transporte float,
+Comunicación float,
+Recreación_y_cultura float,
+Educación float,
+Restaurantes_y_hoteles float,
+Bienes_y_servicios_varios float
 );
 
 -- Ver los datos de la tabla IPC_regionNEA
 SELECT * FROM prueba1.ipc_regionnea;
+Select * from prueba1.ipc_regionnea limit 10;
+
+-- Tabla Nacional
+CREATE TABLE IPC_TotalNacion(
+Fecha date not null,
+Nivel_General float,
+Alimentos_y_bebidas_no_alcoholicas float,
+Bebidas_alcoholicas_y_tabaco float,
+Prendas_de_vestir_y_calzado float,
+Vivienda_agua_electricidad_gas_y_otros_combustibles float,
+Equipamiento_y_mantenimiento_del_hogar float,
+Salud float,
+Transporte float,
+Comunicación float,
+Recreación_y_cultura float,
+Educación float,
+Restaurantes_y_hoteles float,
+Bienes_y_servicios_varios float
+);
+
+SELECT * FROM prueba1.ipc_totalnacion;
+
+-- Tabla Region GBA
+CREATE TABLE IPC_RegionGBA(
+Fecha date not null,
+Nivel_General float,
+Alimentos_y_bebidas_no_alcoholicas float,
+Bebidas_alcoholicas_y_tabaco float,
+Prendas_de_vestir_y_calzado float,
+Vivienda_agua_electricidad_gas_y_otros_combustibles float,
+Equipamiento_y_mantenimiento_del_hogar float,
+Salud float,
+Transporte float,
+Comunicación float,
+Recreación_y_cultura float,
+Educación float,
+Restaurantes_y_hoteles float,
+Bienes_y_servicios_varios float
+);
+
+SELECT * FROM prueba1.ipc_regiongba;
+
+-- Tabla Region Pampeana
+CREATE TABLE IPC_RegionPampeana(
+Fecha date not null,
+Nivel_General float,
+Alimentos_y_bebidas_no_alcoholicas float,
+Bebidas_alcoholicas_y_tabaco float,
+Prendas_de_vestir_y_calzado float,
+Vivienda_agua_electricidad_gas_y_otros_combustibles float,
+Equipamiento_y_mantenimiento_del_hogar float,
+Salud float,
+Transporte float,
+Comunicación float,
+Recreación_y_cultura float,
+Educación float,
+Restaurantes_y_hoteles float,
+Bienes_y_servicios_varios float
+);
+
+SELECT * FROM prueba1.ipc_regionpampeana;
+
+-- Tabla Region Noroeste
+CREATE TABLE IPC_RegionNoroeste(
+Fecha date not null,
+Nivel_General float,
+Alimentos_y_bebidas_no_alcoholicas float,
+Bebidas_alcoholicas_y_tabaco float,
+Prendas_de_vestir_y_calzado float,
+Vivienda_agua_electricidad_gas_y_otros_combustibles float,
+Equipamiento_y_mantenimiento_del_hogar float,
+Salud float,
+Transporte float,
+Comunicación float,
+Recreación_y_cultura float,
+Educación float,
+Restaurantes_y_hoteles float,
+Bienes_y_servicios_varios float
+);
+
+SELECT * FROM prueba1.ipc_regionnoroeste;
+
+-- Tabla Region Cuyo
+CREATE TABLE IPC_RegionCuyo(
+Fecha date not null,
+Nivel_General float,
+Alimentos_y_bebidas_no_alcoholicas float,
+Bebidas_alcoholicas_y_tabaco float,
+Prendas_de_vestir_y_calzado float,
+Vivienda_agua_electricidad_gas_y_otros_combustibles float,
+Equipamiento_y_mantenimiento_del_hogar float,
+Salud float,
+Transporte float,
+Comunicación float,
+Recreación_y_cultura float,
+Educación float,
+Restaurantes_y_hoteles float,
+Bienes_y_servicios_varios float
+);
+
+SELECT * FROM prueba1.ipc_regioncuyo;
+
+-- Tabla Region Patagonia
+CREATE TABLE IPC_RegionPatagonia(
+Fecha date not null,
+Nivel_General float,
+Alimentos_y_bebidas_no_alcoholicas float,
+Bebidas_alcoholicas_y_tabaco float,
+Prendas_de_vestir_y_calzado float,
+Vivienda_agua_electricidad_gas_y_otros_combustibles float,
+Equipamiento_y_mantenimiento_del_hogar float,
+Salud float,
+Transporte float,
+Comunicación float,
+Recreación_y_cultura float,
+Educación float,
+Restaurantes_y_hoteles float,
+Bienes_y_servicios_varios float
+);
+
+SELECT * FROM prueba1.ipc_regionpatagonia;
