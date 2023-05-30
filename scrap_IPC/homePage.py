@@ -19,7 +19,7 @@ class HomePage:
     wait = WebDriverWait(driver, 10)
 
     # Encontrar el enlace al archivo
-    archivo = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div/div[2]/div/div[2]/div[2]/div[2]/div/div/a")))
+    archivo = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div/div[2]/div/div[2]/div[1]/div[2]/div/div/a")))
 
     # Obtener la URL del archivo
     url_archivo = archivo.get_attribute('href')
