@@ -6,7 +6,8 @@ from loadXLSDataPampeana import LoadXLSDataPampeana
 from loadXLSDataNoroeste import LoadXLSDataNoroeste
 from loadXLSDataCuyo import LoadXLSDataCuyo
 from loadXLSDataPatagonia import LoadXLSDataPatagonia
-from armadoVariacionIntermensual import armadoVariacionIntermensual
+from armadoVariacionIntermensualNacion import armadoVariacionIntermensualNacion
+from armadoVariacionIntermensualNEA import armadoVariacionIntermensualNEA
 
 if __name__ == '__main__':
    #url =  HomePage()
@@ -19,6 +20,6 @@ if __name__ == '__main__':
    #LoadXLSDataNoroeste().loadInDataBase(file_path)
    #LoadXLSDataCuyo().loadInDataBase(file_path)
    #LoadXLSDataPatagonia().loadInDataBase(file_path)
-   armadoVariacionIntermensual().calculoVariacion()
-   
+   armadoVariacionIntermensualNacion().calculoVariacion()
+   armadoVariacionIntermensualNEA().calculoVariacion()
    
