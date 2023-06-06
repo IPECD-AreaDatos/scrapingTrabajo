@@ -295,6 +295,9 @@ Bienes_y_servicios_varios float
 );
 
 SELECT * FROM prueba1.ipc_regionpatagonia;
+
+
+
 -- variacion nacion
 CREATE TABLE variacion_interanual_nacion(
 Fecha date not null,
@@ -330,3 +333,103 @@ Educación float,
 Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
+
+SELECT * FROM prueba1.variacion_interanual_nea;
+
+-- variacion patagonia
+CREATE TABLE variacion_interanual_patagonia(
+Fecha date not null,
+Nivel_General float,
+Alimentos_y_bebidas_no_alcoholicas float,
+Bebidas_alcoholicas_y_tabaco float,
+Prendas_de_vestir_y_calzado float,
+Vivienda_agua_electricidad_gas_y_otros_combustibles float,
+Equipamiento_y_mantenimiento_del_hogar float,
+Salud float,
+Transporte float,
+Comunicación float,
+Recreación_y_cultura float,
+Educación float,
+Restaurantes_y_hoteles float,
+Bienes_y_servicios_varios float
+);
+SELECT * FROM prueba1.variacion_interanual_patagonia;
+
+-- variacion pampeana
+CREATE TABLE variacion_interanual_pampeana(
+Fecha date not null,
+Nivel_General float,
+Alimentos_y_bebidas_no_alcoholicas float,
+Bebidas_alcoholicas_y_tabaco float,
+Prendas_de_vestir_y_calzado float,
+Vivienda_agua_electricidad_gas_y_otros_combustibles float,
+Equipamiento_y_mantenimiento_del_hogar float,
+Salud float,
+Transporte float,
+Comunicación float,
+Recreación_y_cultura float,
+Educación float,
+Restaurantes_y_hoteles float,
+Bienes_y_servicios_varios float
+);
+SELECT * FROM prueba1.variacion_interanual_pampeana;
+
+
+-- variacion noroeste
+CREATE TABLE variacion_interanual_noroeste(
+Fecha date not null,
+Nivel_General float,
+Alimentos_y_bebidas_no_alcoholicas float,
+Bebidas_alcoholicas_y_tabaco float,
+Prendas_de_vestir_y_calzado float,
+Vivienda_agua_electricidad_gas_y_otros_combustibles float,
+Equipamiento_y_mantenimiento_del_hogar float,
+Salud float,
+Transporte float,
+Comunicación float,
+Recreación_y_cultura float,
+Educación float,
+Restaurantes_y_hoteles float,
+Bienes_y_servicios_varios float
+);
+SELECT * FROM prueba1.variacion_interanual_noroeste;
+
+
+-- variacion gba
+CREATE TABLE variacion_interanual_gba(
+Fecha date not null,
+Nivel_General float,
+Alimentos_y_bebidas_no_alcoholicas float,
+Bebidas_alcoholicas_y_tabaco float,
+Prendas_de_vestir_y_calzado float,
+Vivienda_agua_electricidad_gas_y_otros_combustibles float,
+Equipamiento_y_mantenimiento_del_hogar float,
+Salud float,
+Transporte float,
+Comunicación float,
+Recreación_y_cultura float,
+Educación float,
+Restaurantes_y_hoteles float,
+Bienes_y_servicios_varios float
+);
+SELECT * FROM prueba1.variacion_interanual_gba;
+
+
+-- variacion Cuyo
+CREATE TABLE variacion_interanual_cuyo(
+Fecha date not null,
+Nivel_General float,
+Alimentos_y_bebidas_no_alcoholicas float,
+Bebidas_alcoholicas_y_tabaco float,
+Prendas_de_vestir_y_calzado float,
+Vivienda_agua_electricidad_gas_y_otros_combustibles float,
+Equipamiento_y_mantenimiento_del_hogar float,
+Salud float,
+Transporte float,
+Comunicación float,
+Recreación_y_cultura float,
+Educación float,
+Restaurantes_y_hoteles float,
+Bienes_y_servicios_varios float
+);
+SELECT * FROM prueba1.variacion_interanual_cuyo;
