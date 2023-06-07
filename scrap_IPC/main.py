@@ -15,16 +15,16 @@ from armadoVariacionIntermensualGba import armadoVariacionIntermensualGba
 from armadoVariacionIntermensualCuyo import armadoVariacionIntermensualCuyo
 
 if __name__ == '__main__':
-   #url =  HomePage()
-   #file_path="C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_IPC\\files\\xls\\archivo.xls"
-   #print("---->", file_path)
-   #LoadXLSDataNEA().loadInDataBase(file_path)
-   #LoadXLSDataNacion().loadInDataBase(file_path)
-   #LoadXLSDataGBA().loadInDataBase(file_path)
-   #LoadXLSDataPampeana().loadInDataBase(file_path)
-   #LoadXLSDataNoroeste().loadInDataBase(file_path)
-   #LoadXLSDataCuyo().loadInDataBase(file_path)
-   #LoadXLSDataPatagonia().loadInDataBase(file_path)
+   url =  HomePage()
+   file_path="C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_IPC\\files\\xls\\archivo.xls"
+   print("---->", file_path)
+   LoadXLSDataNEA().loadInDataBase(file_path)
+   LoadXLSDataNacion().loadInDataBase(file_path)
+   LoadXLSDataGBA().loadInDataBase(file_path)
+   LoadXLSDataPampeana().loadInDataBase(file_path)
+   LoadXLSDataNoroeste().loadInDataBase(file_path)
+   LoadXLSDataCuyo().loadInDataBase(file_path)
+   LoadXLSDataPatagonia().loadInDataBase(file_path)
    armadoVariacionIntermensualNacion().calculoVariacion()
    armadoVariacionIntermensualNEA().calculoVariacion()
    armadoVariacionIntermensualPampeana().calculoVariacion()

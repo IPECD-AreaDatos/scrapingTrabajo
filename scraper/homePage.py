@@ -24,6 +24,7 @@ class HomePage:
             print("parent ->", parent_a)
             #Se obtiene el valor del atributo href del elemento "a", que representa la URL de descarga del archivo.
             href = parent_a.get("href")
+            #Descarga el archivo de Puestos de trabajo asalariados registrados por departamento/partido y clae 2, sector privado//1er archivo
             print("href:", href)
             return href
         else:
