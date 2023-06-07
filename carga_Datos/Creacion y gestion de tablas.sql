@@ -389,7 +389,6 @@ Educación float,
 Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
-SELECT * FROM prueba1.variacion_interanual_noroeste;
 
 
 -- variacion gba
@@ -409,7 +408,6 @@ Educación float,
 Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
-SELECT * FROM prueba1.variacion_interanual_gba;
 
 
 -- variacion Cuyo
@@ -429,4 +427,3 @@ Educación float,
 Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
-SELECT * FROM prueba1.variacion_interanual_cuyo;
