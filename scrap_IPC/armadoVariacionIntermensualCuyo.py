@@ -44,10 +44,27 @@ class armadoVariacionIntermensualCuyo:
             variacion_restaurantes = ((restaurantes_actual / restaurantes_anterior) - 1) 
             variacion_bienes_servicios = ((bienes_servicios_actual / bienes_servicios_anterior) - 1) 
 
+            
             # Verificar si la fecha actual ya existe en la tabla variacion_intermensual_cuyo
             if fecha_actual not in existing_dates:
                 # Insertar una nueva fila con la fecha y las variaciones calculadas
                 insert_query = "INSERT INTO variacion_intermensual_cuyo (Fecha, Nivel_General, Alimentos_y_bebidas_no_alcoholicas, Bebidas_alcoholicas_y_tabaco, Prendas_de_vestir_y_calzado, Vivienda_agua_electricidad_gas_y_otros_combustibles, Equipamiento_y_mantenimiento_del_hogar, Salud, Transporte, Comunicación, Recreación_y_cultura, Educación, Restaurantes_y_hoteles, Bienes_y_servicios_varios) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                if fecha_actual == '2016-12-01':
+                    variacion_general = 0
+                    variacion_alimentos_bebidas = 0
+                    variacion_bebidas_alcoholicas = 0
+                    variacion_prendas_vestir = 0
+                    variacion_vivienda = 0
+                    variacion_equipamiento = 0
+                    variacion_salud = 0
+                    variacion_transporte = 0
+                    variacion_comunicacion = 0
+                    variacion_recreacion = 0
+                    variacion_educacion = 0
+                    variacion_restaurantes = 0
+                    variacion_bienes_servicios = 0
+
+                # Crear una tupla con los valores a insertar
                 insert_values = (
                     fecha_actual,
                     variacion_general,
