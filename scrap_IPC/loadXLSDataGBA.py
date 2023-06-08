@@ -8,7 +8,7 @@ class LoadXLSDataGBA:
         #Se toma el tiempo de comienzo
         start_time = time.time()
         
-              # Establecer la conexión a la base de datos
+        # Establecer la conexión a la base de datos
         conn = mysql.connector.connect(
             host="localhost", user="root", password="Estadistica123", database="prueba1"
         )
