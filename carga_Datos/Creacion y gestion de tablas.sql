@@ -296,7 +296,7 @@ Bienes_y_servicios_varios float
 SELECT * FROM prueba1.ipc_regionpatagonia;
 
 
-
+-- VARIACION INTERMENSUAL
 -- variacion nacion
 CREATE TABLE variacion_intermensual_nacion(
 Fecha date not null,
@@ -314,7 +314,6 @@ Educación float,
 Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
-
 -- variacion nea
 CREATE TABLE variacion_intermensual_nea(
 Fecha date not null,
@@ -332,8 +331,6 @@ Educación float,
 Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
-
-
 -- variacion patagonia
 CREATE TABLE variacion_intermensual_patagonia(
 Fecha date not null,
@@ -351,8 +348,6 @@ Educación float,
 Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
-
-
 -- variacion pampeana
 CREATE TABLE variacion_intermensual_pampeana(
 Fecha date not null,
@@ -370,8 +365,6 @@ Educación float,
 Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
-
-
 -- variacion noroeste
 CREATE TABLE variacion_intermensual_noroeste(
 Fecha date not null,
@@ -389,8 +382,6 @@ Educación float,
 Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
-
-
 -- variacion gba
 CREATE TABLE variacion_intermensual_gba(
 Fecha date not null,
@@ -408,8 +399,128 @@ Educación float,
 Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
+-- variacion Cuyo
+CREATE TABLE variacion_intermensual_cuyo(
+Fecha date not null,
+Nivel_General float,
+Alimentos_y_bebidas_no_alcoholicas float,
+Bebidas_alcoholicas_y_tabaco float,
+Prendas_de_vestir_y_calzado float,
+Vivienda_agua_electricidad_gas_y_otros_combustibles float,
+Equipamiento_y_mantenimiento_del_hogar float,
+Salud float,
+Transporte float,
+Comunicación float,
+Recreación_y_cultura float,
+Educación float,
+Restaurantes_y_hoteles float,
+Bienes_y_servicios_varios float
+);
 
 
+-- VARIACION INTERANUAL
+-- variacion nacion
+CREATE TABLE variacion_intermensual_nacion(
+Fecha date not null,
+Nivel_General float,
+Alimentos_y_bebidas_no_alcoholicas float,
+Bebidas_alcoholicas_y_tabaco float,
+Prendas_de_vestir_y_calzado float,
+Vivienda_agua_electricidad_gas_y_otros_combustibles float,
+Equipamiento_y_mantenimiento_del_hogar float,
+Salud float,
+Transporte float,
+Comunicación float,
+Recreación_y_cultura float,
+Educación float,
+Restaurantes_y_hoteles float,
+Bienes_y_servicios_varios float
+);
+-- variacion nea
+CREATE TABLE variacion_intermensual_nea(
+Fecha date not null,
+Nivel_General float,
+Alimentos_y_bebidas_no_alcoholicas float,
+Bebidas_alcoholicas_y_tabaco float,
+Prendas_de_vestir_y_calzado float,
+Vivienda_agua_electricidad_gas_y_otros_combustibles float,
+Equipamiento_y_mantenimiento_del_hogar float,
+Salud float,
+Transporte float,
+Comunicación float,
+Recreación_y_cultura float,
+Educación float,
+Restaurantes_y_hoteles float,
+Bienes_y_servicios_varios float
+);
+-- variacion patagonia
+CREATE TABLE variacion_intermensual_patagonia(
+Fecha date not null,
+Nivel_General float,
+Alimentos_y_bebidas_no_alcoholicas float,
+Bebidas_alcoholicas_y_tabaco float,
+Prendas_de_vestir_y_calzado float,
+Vivienda_agua_electricidad_gas_y_otros_combustibles float,
+Equipamiento_y_mantenimiento_del_hogar float,
+Salud float,
+Transporte float,
+Comunicación float,
+Recreación_y_cultura float,
+Educación float,
+Restaurantes_y_hoteles float,
+Bienes_y_servicios_varios float
+);
+-- variacion pampeana
+CREATE TABLE variacion_intermensual_pampeana(
+Fecha date not null,
+Nivel_General float,
+Alimentos_y_bebidas_no_alcoholicas float,
+Bebidas_alcoholicas_y_tabaco float,
+Prendas_de_vestir_y_calzado float,
+Vivienda_agua_electricidad_gas_y_otros_combustibles float,
+Equipamiento_y_mantenimiento_del_hogar float,
+Salud float,
+Transporte float,
+Comunicación float,
+Recreación_y_cultura float,
+Educación float,
+Restaurantes_y_hoteles float,
+Bienes_y_servicios_varios float
+);
+-- variacion noroeste
+CREATE TABLE variacion_intermensual_noroeste(
+Fecha date not null,
+Nivel_General float,
+Alimentos_y_bebidas_no_alcoholicas float,
+Bebidas_alcoholicas_y_tabaco float,
+Prendas_de_vestir_y_calzado float,
+Vivienda_agua_electricidad_gas_y_otros_combustibles float,
+Equipamiento_y_mantenimiento_del_hogar float,
+Salud float,
+Transporte float,
+Comunicación float,
+Recreación_y_cultura float,
+Educación float,
+Restaurantes_y_hoteles float,
+Bienes_y_servicios_varios float
+);
+-- variacion gba
+CREATE TABLE variacion_intermensual_gba(
+Fecha date not null,
+Nivel_General float,
+Alimentos_y_bebidas_no_alcoholicas float,
+Bebidas_alcoholicas_y_tabaco float,
+Prendas_de_vestir_y_calzado float,
+Vivienda_agua_electricidad_gas_y_otros_combustibles float,
+Equipamiento_y_mantenimiento_del_hogar float,
+Salud float,
+Transporte float,
+Comunicación float,
+Recreación_y_cultura float,
+Educación float,
+Restaurantes_y_hoteles float,
+Bienes_y_servicios_varios float
+);
 -- variacion Cuyo
 CREATE TABLE variacion_intermensual_cuyo(
 Fecha date not null,

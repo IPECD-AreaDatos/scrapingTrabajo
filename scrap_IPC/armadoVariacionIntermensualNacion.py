@@ -27,7 +27,9 @@ class armadoVariacionIntermensualNacion:
         existing_dates = [row[0] for row in cursor.fetchall()]
 
         # Calcular las variaciones y guardarlas en la tabla existente
-        for i in range(1, len(rows)):
+        for i in range(len(rows)):
+            fecha_actual, nivel_general_actual, alimentos_bebidas_actual, bebidas_alcoholicas_actual, prendas_vestir_actual, vivienda_actual, equipamiento_actual, salud_actual, transporte_actual, comunicacion_actual, recreacion_actual, educacion_actual, restaurantes_actual, bienes_servicios_actual = rows[i]
+            fecha_anterior, nivel_general_anterior, alimentos_bebidas_anterior, bebidas_alcoholicas_anterior, prendas_vestir_anterior, vivienda_anterior, equipamiento_anterior, salud_anterior, transporte_anterior, comunicacion_anterior, recreacion_anterior, educacion_anterior, restaurantes_anterior, bienes_servicios_anterior = rows[i - 1]
             if i == 0:
                 variacion_general = 0
                 variacion_alimentos_bebidas = 0
@@ -43,21 +45,19 @@ class armadoVariacionIntermensualNacion:
                 variacion_restaurantes = 0
                 variacion_bienes_servicios = 0
             else:
-                fecha_actual, nivel_general_actual, alimentos_bebidas_actual, bebidas_alcoholicas_actual, prendas_vestir_actual, vivienda_actual, equipamiento_actual, salud_actual, transporte_actual, comunicacion_actual, recreacion_actual, educacion_actual, restaurantes_actual, bienes_servicios_actual = rows[i]
-                fecha_anterior, nivel_general_anterior, alimentos_bebidas_anterior, bebidas_alcoholicas_anterior, prendas_vestir_anterior, vivienda_anterior, equipamiento_anterior, salud_anterior, transporte_anterior, comunicacion_anterior, recreacion_anterior, educacion_anterior, restaurantes_anterior, bienes_servicios_anterior = rows[i - 1]
-                variacion_general = ((nivel_general_actual / nivel_general_anterior) - 1)
-                variacion_alimentos_bebidas = ((alimentos_bebidas_actual / alimentos_bebidas_anterior) - 1)
-                variacion_bebidas_alcoholicas = ((bebidas_alcoholicas_actual / bebidas_alcoholicas_anterior) - 1)
-                variacion_prendas_vestir = ((prendas_vestir_actual / prendas_vestir_anterior) - 1)
-                variacion_vivienda = ((vivienda_actual / vivienda_anterior) - 1)
-                variacion_equipamiento = ((equipamiento_actual / equipamiento_anterior) - 1)
-                variacion_salud = ((salud_actual / salud_anterior) - 1)
-                variacion_transporte = ((transporte_actual / transporte_anterior) - 1)
-                variacion_comunicacion = ((comunicacion_actual / comunicacion_anterior) - 1)
-                variacion_recreacion = ((recreacion_actual / recreacion_anterior) - 1)
-                variacion_educacion = ((educacion_actual / educacion_anterior) - 1)
-                variacion_restaurantes = ((restaurantes_actual / restaurantes_anterior) - 1)
-                variacion_bienes_servicios = ((bienes_servicios_actual / bienes_servicios_anterior) - 1)
+                variacion_general = (nivel_general_actual / nivel_general_anterior) - 1
+                variacion_alimentos_bebidas = (alimentos_bebidas_actual / alimentos_bebidas_anterior) - 1
+                variacion_bebidas_alcoholicas = (bebidas_alcoholicas_actual / bebidas_alcoholicas_anterior) - 1
+                variacion_prendas_vestir = (prendas_vestir_actual / prendas_vestir_anterior) - 1
+                variacion_vivienda = (vivienda_actual / vivienda_anterior) - 1
+                variacion_equipamiento = (equipamiento_actual / equipamiento_anterior) - 1
+                variacion_salud = (salud_actual / salud_anterior) - 1
+                variacion_transporte = (transporte_actual / transporte_anterior) - 1
+                variacion_comunicacion = (comunicacion_actual / comunicacion_anterior) - 1
+                variacion_recreacion = (recreacion_actual / recreacion_anterior) - 1
+                variacion_educacion = (educacion_actual / educacion_anterior) - 1
+                variacion_restaurantes = (restaurantes_actual / restaurantes_anterior) - 1
+                variacion_bienes_servicios = (bienes_servicios_actual / bienes_servicios_anterior) - 1
             
             # Verificar si la fecha actual ya existe en la tabla variacion_intermensual_nacion
             if fecha_actual not in existing_dates:

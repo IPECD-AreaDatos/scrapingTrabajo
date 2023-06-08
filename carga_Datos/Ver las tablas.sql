@@ -38,8 +38,12 @@ SELECT * FROM prueba1.ipc_regionpatagonia;
 -- Ver los datos de las varianzas
 -- Ver los datos de las tablas de varianza intermensual
 -- Nacional
-SELECT * FROM prueba1.variacion_interanual_nacion;
+
 -- Regiones
+SELECT Fecha, CONCAT(FORMAT(Nivel_General * 100, 3), '%') AS porcentaje_formatado
+FROM variacion_intermensual_nacion;
+
+SELECT * FROM prueba1.variacion_intermensual_nacion;
 SELECT * FROM prueba1.variacion_intermensual_cuyo;
 SELECT * FROM prueba1.variacion_intermensual_gba;
 SELECT * FROM prueba1.variacion_intermensual_noroeste;
