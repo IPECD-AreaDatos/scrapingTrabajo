@@ -23,7 +23,7 @@ if __name__ == '__main__':
    #LoadXLSDataGBA().loadInDataBase(file_path)
    #LoadXLSDataPampeana().loadInDataBase(file_path)
    #LoadXLSDataNoroeste().loadInDataBase(file_path)
-   LoadXLSDataCuyo().loadInDataBase(file_path)
+   #LoadXLSDataCuyo().loadInDataBase(file_path)
    #LoadXLSDataPatagonia().loadInDataBase(file_path)
    #armadoVariacionIntermensualNacion().calculoVariacion()
    #armadoVariacionIntermensualNEA().calculoVariacion()
