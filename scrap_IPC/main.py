@@ -56,7 +56,7 @@ if __name__ == '__main__':
       armadoVariacionIntermensualCuyo
     ]
    for regiones in calculo_intermensual:
-        regiones().calculoVariacion()
+        regiones().calculoVariacion(host, user, password, database)
     
     
    calculo_interanual = [
@@ -69,5 +69,5 @@ if __name__ == '__main__':
       armadoVariacionInteranualNEA
     ]
    for regiones in calculo_interanual:
-      regiones().calculoVariacion()
+      regiones().calculoVariacion(host, user, password, database)
    

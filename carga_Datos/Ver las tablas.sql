@@ -51,3 +51,11 @@ SELECT * FROM prueba1.variacion_intermensual_pampeana;
 SELECT * FROM prueba1.variacion_intermensual_patagonia;
 SELECT * FROM prueba1.variacion_intermensual_nea;
 
+-- Variacion Interanual
+SELECT * FROM prueba1.variacion_interanual_nacion;
+SELECT * FROM prueba1.variacion_interanual_cuyo;
+SELECT * FROM prueba1.variacion_interanual_gba;
+SELECT * FROM prueba1.variacion_interanual_noroeste;
+SELECT * FROM prueba1.variacion_interanual_pampeana;
+SELECT * FROM prueba1.variacion_interanual_patagonia;
+SELECT * FROM prueba1.variacion_interanual_nea;

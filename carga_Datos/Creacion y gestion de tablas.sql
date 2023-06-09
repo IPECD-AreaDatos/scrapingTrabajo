@@ -420,7 +420,7 @@ Bienes_y_servicios_varios float
 
 -- VARIACION INTERANUAL
 -- variacion nacion
-CREATE TABLE variacion_intermensual_nacion(
+CREATE TABLE variacion_interanual_nacion(
 Fecha date not null,
 Nivel_General float,
 Alimentos_y_bebidas_no_alcoholicas float,
@@ -437,7 +437,7 @@ Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
 -- variacion nea
-CREATE TABLE variacion_intermensual_nea(
+CREATE TABLE variacion_interanual_nea(
 Fecha date not null,
 Nivel_General float,
 Alimentos_y_bebidas_no_alcoholicas float,
@@ -454,7 +454,7 @@ Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
 -- variacion patagonia
-CREATE TABLE variacion_intermensual_patagonia(
+CREATE TABLE variacion_interanual_patagonia(
 Fecha date not null,
 Nivel_General float,
 Alimentos_y_bebidas_no_alcoholicas float,
@@ -471,7 +471,7 @@ Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
 -- variacion pampeana
-CREATE TABLE variacion_intermensual_pampeana(
+CREATE TABLE variacion_interanual_pampeana(
 Fecha date not null,
 Nivel_General float,
 Alimentos_y_bebidas_no_alcoholicas float,
@@ -488,7 +488,7 @@ Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
 -- variacion noroeste
-CREATE TABLE variacion_intermensual_noroeste(
+CREATE TABLE variacion_interanual_noroeste(
 Fecha date not null,
 Nivel_General float,
 Alimentos_y_bebidas_no_alcoholicas float,
@@ -505,7 +505,7 @@ Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
 -- variacion gba
-CREATE TABLE variacion_intermensual_gba(
+CREATE TABLE variacion_interanual_gba(
 Fecha date not null,
 Nivel_General float,
 Alimentos_y_bebidas_no_alcoholicas float,
@@ -522,7 +522,7 @@ Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
 -- variacion Cuyo
-CREATE TABLE variacion_intermensual_cuyo(
+CREATE TABLE variacion_interanual_cuyo(
 Fecha date not null,
 Nivel_General float,
 Alimentos_y_bebidas_no_alcoholicas float,
