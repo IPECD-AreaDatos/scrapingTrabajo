@@ -1,7 +1,7 @@
 import mysql.connector
 import time
 
-class armadoVariacionInteranualNacion:
+class armadoVariacionInteranualCuyo:
     def calculoVariacion(self):
         #Se toma el tiempo de comienzo
         start_time = time.time()
@@ -17,18 +17,19 @@ class armadoVariacionInteranualNacion:
         cursor = conn.cursor()
 
         # Obtener los datos de la tabla original
-        select_query = "SELECT Fecha, Nivel_General, Alimentos_y_bebidas_no_alcoholicas, Bebidas_alcoholicas_y_tabaco, Prendas_de_vestir_y_calzado, Vivienda_agua_electricidad_gas_y_otros_combustibles, Equipamiento_y_mantenimiento_del_hogar, Salud, Transporte, Comunicación, Recreación_y_cultura, Educación, Restaurantes_y_hoteles, Bienes_y_servicios_varios FROM ipc_totalnacion"
+        select_query = "SELECT Fecha, Nivel_General, Alimentos_y_bebidas_no_alcoholicas, Bebidas_alcoholicas_y_tabaco, Prendas_de_vestir_y_calzado, Vivienda_agua_electricidad_gas_y_otros_combustibles, Equipamiento_y_mantenimiento_del_hogar, Salud, Transporte, Comunicación, Recreación_y_cultura, Educación, Restaurantes_y_hoteles, Bienes_y_servicios_varios FROM ipc_regioncuyo"
         cursor.execute(select_query)
         rows = cursor.fetchall()
 
-        # Obtener las fechas existentes en la tabla variacion_interanual_nacion
-        select_dates_query = "SELECT Fecha FROM variacion_interanual_nacion"
+        # Obtener las fechas existentes en la tabla variacion_interanual_cuyo
+        select_dates_query = "SELECT Fecha FROM variacion_interanual_cuyo"
         cursor.execute(select_dates_query)
         existing_dates = [row[0] for row in cursor.fetchall()]
+
         # Calcular las variaciones y guardarlas en la tabla existente
         for i in range(13, len(rows)):
             fecha_actual, nivel_general_actual, alimentos_bebidas_actual, bebidas_alcoholicas_actual, prendas_vestir_actual, vivienda_actual, equipamiento_actual, salud_actual, transporte_actual, comunicacion_actual, recreacion_actual, educacion_actual, restaurantes_actual, bienes_servicios_actual = rows[i]
-            fecha_anterior, nivel_general_anterior, alimentos_bebidas_anterior, bebidas_alcoholicas_anterior, prendas_vestir_anterior, vivienda_anterior, equipamiento_anterior, salud_anterior, transporte_anterior, comunicacion_anterior, recreacion_anterior, educacion_anterior, restaurantes_anterior, bienes_servicios_anterior = rows[i-12]
+            fecha_anterior, nivel_general_anterior, alimentos_bebidas_anterior, bebidas_alcoholicas_anterior, prendas_vestir_anterior, vivienda_anterior, equipamiento_anterior, salud_anterior, transporte_anterior, comunicacion_anterior, recreacion_anterior, educacion_anterior, restaurantes_anterior, bienes_servicios_anterior = rows[i - 12]
             if i == 0:
                 variacion_general = 0
                 variacion_alimentos_bebidas = 0
@@ -57,12 +58,12 @@ class armadoVariacionInteranualNacion:
                 variacion_educacion = (educacion_actual / educacion_anterior) - 1
                 variacion_restaurantes = (restaurantes_actual / restaurantes_anterior) - 1
                 variacion_bienes_servicios = (bienes_servicios_actual / bienes_servicios_anterior) - 1
+
             
-            
-            # Verificar si la fecha actual ya existe en la tabla variacion_interanual_nacion
+            # Verificar si la fecha actual ya existe en la tabla variacion_interanual_cuyo
             if fecha_actual not in existing_dates:
                 # Insertar una nueva fila con la fecha y las variaciones calculadas
-                insert_query = "INSERT INTO variacion_interanual_nacion (Fecha, Nivel_General, Alimentos_y_bebidas_no_alcoholicas, Bebidas_alcoholicas_y_tabaco, Prendas_de_vestir_y_calzado, Vivienda_agua_electricidad_gas_y_otros_combustibles, Equipamiento_y_mantenimiento_del_hogar, Salud, Transporte, Comunicación, Recreación_y_cultura, Educación, Restaurantes_y_hoteles, Bienes_y_servicios_varios) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                insert_query = "INSERT INTO variacion_interanual_cuyo (Fecha, Nivel_General, Alimentos_y_bebidas_no_alcoholicas, Bebidas_alcoholicas_y_tabaco, Prendas_de_vestir_y_calzado, Vivienda_agua_electricidad_gas_y_otros_combustibles, Equipamiento_y_mantenimiento_del_hogar, Salud, Transporte, Comunicación, Recreación_y_cultura, Educación, Restaurantes_y_hoteles, Bienes_y_servicios_varios) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
                 # Crear una tupla con los valores a insertar
                 insert_values = (
                     fecha_actual,
@@ -85,7 +86,7 @@ class armadoVariacionInteranualNacion:
 
             else:
                 # Actualizar los valores de variación en la fila existente
-                update_query = "UPDATE variacion_interanual_nacion SET Nivel_General = %s, Alimentos_y_bebidas_no_alcoholicas = %s, Bebidas_alcoholicas_y_tabaco = %s, Prendas_de_vestir_y_calzado = %s, Vivienda_agua_electricidad_gas_y_otros_combustibles = %s, Equipamiento_y_mantenimiento_del_hogar = %s, Salud = %s, Transporte = %s, Comunicación = %s, Recreación_y_cultura = %s, Educación = %s, Restaurantes_y_hoteles = %s, Bienes_y_servicios_varios = %s WHERE Fecha = %s"
+                update_query = "UPDATE variacion_interanual_cuyo SET Nivel_General = %s, Alimentos_y_bebidas_no_alcoholicas = %s, Bebidas_alcoholicas_y_tabaco = %s, Prendas_de_vestir_y_calzado = %s, Vivienda_agua_electricidad_gas_y_otros_combustibles = %s, Equipamiento_y_mantenimiento_del_hogar = %s, Salud = %s, Transporte = %s, Comunicación = %s, Recreación_y_cultura = %s, Educación = %s, Restaurantes_y_hoteles = %s, Bienes_y_servicios_varios = %s WHERE Fecha = %s"
                 update_values = (
                     variacion_general,
                     variacion_alimentos_bebidas,
@@ -112,6 +113,7 @@ class armadoVariacionInteranualNacion:
         # Calcular y mostrar el tiempo de ejecución
         end_time = time.time()
         execution_time = end_time - start_time
-        print("Tiempo de ejecución de nacion:", execution_time)
-
-armadoVariacionInteranualNacion().calculoVariacion()  
+        print("Tiempo de ejecución de Cuyo:", execution_time)
+        
+        
+armadoVariacionInteranualCuyo().calculoVariacion()
