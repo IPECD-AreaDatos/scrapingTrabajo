@@ -40,19 +40,19 @@ class LoadXLSDataNEA:
                     target_row_values[i] = dt.date()
                     
             # Leer los datos de las demás filas utilizando el mismo enfoque
-            nivel_general = [cell.value for cell in sheet[9]][1:]
-            alimento_y_bebidas_no_alcoholicas = [cell.value for cell in sheet[10]][1:]
-            bebidas_alcoholicas_y_tabaco = [cell.value for cell in sheet[11]][1:]
-            prendasVestir_y_calzado = [cell.value for cell in sheet[12]][1:]
-            vivienda_agua_electricidad_gas_y_otros_combustibles = [cell.value for cell in sheet[13]][1:]
-            equipamiento_y_mantenimiento_del_hogar = [cell.value for cell in sheet[14]][1:]
-            salud = [cell.value for cell in sheet[15]][1:]
-            transporte = [cell.value for cell in sheet[16]][1:]
-            comunicación = [cell.value for cell in sheet[17]][1:]
-            recreación_y_cultura = [cell.value for cell in sheet[18]][1:]
-            educación = [cell.value for cell in sheet[19]][1:]
-            restaurantes_y_hoteles = [cell.value for cell in sheet[20]][1:]
-            bienes_y_servicios_varios = [cell.value for cell in sheet[21]][1:]
+            nivel_general = [cell.value for cell in sheet[129]][1:]
+            alimento_y_bebidas_no_alcoholicas = [cell.value for cell in sheet[130]][1:]
+            bebidas_alcoholicas_y_tabaco = [cell.value for cell in sheet[131]][1:]
+            prendasVestir_y_calzado = [cell.value for cell in sheet[132]][1:]
+            vivienda_agua_electricidad_gas_y_otros_combustibles = [cell.value for cell in sheet[133]][1:]
+            equipamiento_y_mantenimiento_del_hogar = [cell.value for cell in sheet[134]][1:]
+            salud = [cell.value for cell in sheet[135]][1:]
+            transporte = [cell.value for cell in sheet[136]][1:]
+            comunicación = [cell.value for cell in sheet[137]][1:]
+            recreación_y_cultura = [cell.value for cell in sheet[138]][1:]
+            educación = [cell.value for cell in sheet[139]][1:]
+            restaurantes_y_hoteles = [cell.value for cell in sheet[140]][1:]
+            bienes_y_servicios_varios = [cell.value for cell in sheet[141]][1:]
 
             for (
                 fecha,
