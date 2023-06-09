@@ -15,9 +15,9 @@ from armadoVariacionIntermensualGba import armadoVariacionIntermensualGba
 from armadoVariacionIntermensualCuyo import armadoVariacionIntermensualCuyo
 
 if __name__ == '__main__':
-   #url =  HomePage()
+   url =  HomePage()
    file_path="C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_IPC\\files\\xls\\archivo.xls"
-   #print("---->", file_path)
+   print("---->", file_path)
    LoadXLSDataNEA().loadInDataBase(file_path)
    LoadXLSDataNacion().loadInDataBase(file_path)
    LoadXLSDataGBA().loadInDataBase(file_path)
@@ -25,11 +25,11 @@ if __name__ == '__main__':
    LoadXLSDataNoroeste().loadInDataBase(file_path)
    LoadXLSDataCuyo().loadInDataBase(file_path)
    LoadXLSDataPatagonia().loadInDataBase(file_path)
-   #armadoVariacionIntermensualNacion().calculoVariacion()
-   #armadoVariacionIntermensualNEA().calculoVariacion()
-   #armadoVariacionIntermensualPampeana().calculoVariacion()
-   #armadoVariacionIntermensualPatagonia().calculoVariacion()
-   #armadoVariacionIntermensualNoroeste().calculoVariacion()
-   #armadoVariacionIntermensualGba().calculoVariacion()
-   #armadoVariacionIntermensualCuyo().calculoVariacion()
-   
+   armadoVariacionIntermensualNacion().calculoVariacion()
+   armadoVariacionIntermensualNEA().calculoVariacion()
+   armadoVariacionIntermensualPampeana().calculoVariacion()
+   armadoVariacionIntermensualPatagonia().calculoVariacion()
+   armadoVariacionIntermensualNoroeste().calculoVariacion()
+   armadoVariacionIntermensualGba().calculoVariacion()
+   armadoVariacionIntermensualCuyo().calculoVariacion()
+   armadoVariacionInteranualNacion().calculoVariacion()   
