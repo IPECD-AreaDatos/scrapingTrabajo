@@ -4,13 +4,13 @@ import time
 import xlrd
 
 class LoadXLSDataNacion:
-    def loadInDataBase(self, file_path):
+    def loadInDataBase(self, file_path, host, user, password, database):
         #Se toma el tiempo de comienzo
         start_time = time.time()
         
         # Establecer la conexión a la base de datos
         conn = mysql.connector.connect(
-            host="localhost", user="root", password="Estadistica123", database="prueba1"
+            host=host, user=user, password=password, database=database
         )
         # Crear el cursor para ejecutar consultas
         cursor = conn.cursor()

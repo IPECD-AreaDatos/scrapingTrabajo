@@ -21,6 +21,13 @@ from armadoVariacionInteranualPampeana import armadoVariacionInteranualPampeana
 from armadoVariacionInteranualPatagonia import armadoVariacionInteranualPatagonia
 from armadoVariacionInteranualNea import armadoVariacionInteranualNEA
 
+#Datos de la base de datos
+host = 'localhost'
+user = 'root'
+password = 'Estadistica123'
+database = 'prueba1'
+
+
 if __name__ == '__main__':
    url = HomePage()
    file_path = "C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_IPC\\files\\xls\\archivo.xls"
@@ -36,7 +43,7 @@ if __name__ == '__main__':
       LoadXLSDataPatagonia
     ]
    for regiones in valoresDeIPC:
-      regiones().loadInDataBase(file_path)
+      regiones().loadInDataBase(file_path, host, user, password, database)
     
     
    calculo_intermensual = [

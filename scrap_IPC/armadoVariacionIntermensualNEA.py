@@ -2,15 +2,12 @@ import mysql.connector
 import time
 
 class armadoVariacionIntermensualNEA:
-    def calculoVariacion(self):
+    def calculoVariacion(self, host, user, password, database):
         #Se toma el tiempo de comienzo
         start_time = time.time()
         
         conn = mysql.connector.connect(
-            host='localhost',
-            user='root',
-            password='Estadistica123',
-            database='prueba1'
+            host=host, user=user, password=password, database=database
         )
         
         # Crear el cursor para ejecutar consultas
