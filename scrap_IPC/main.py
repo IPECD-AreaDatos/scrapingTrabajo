@@ -18,6 +18,7 @@ from armadoVariacionInteranualCuyo import armadoVariacionInteranualCuyo
 from armadoVariacionInteranualGBA import armadoVariacionInteranualGBA
 from armadoVariacionInteranualNoroeste import armadoVariacionInteranualNoroeste
 from armadoVariacionInteranualPampeana import armadoVariacionInteranualPampeana
+from armadoVariacionInteranualPatagonia import armadoVariacionInteranualPatagonia
 
 if __name__ == '__main__':
    url =  HomePage()
@@ -42,5 +43,6 @@ if __name__ == '__main__':
    armadoVariacionInteranualGBA().calculoVariacion()
    armadoVariacionInteranualNoroeste().calculoVariacion()
    armadoVariacionInteranualPampeana().calculoVariacion()
+   armadoVariacionInteranualPatagonia().calculoVariacion()
    
    
