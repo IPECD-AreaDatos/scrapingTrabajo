@@ -19,7 +19,7 @@ if __name__ == '__main__':
    file_path="C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_IPC\\files\\xls\\archivo.xls"
    #print("---->", file_path)
    #LoadXLSDataNEA().loadInDataBase(file_path)
-   LoadXLSDataNacion().loadInDataBase(file_path)
+   #LoadXLSDataNacion().loadInDataBase(file_path)
    #LoadXLSDataGBA().loadInDataBase(file_path)
    #LoadXLSDataPampeana().loadInDataBase(file_path)
    #LoadXLSDataNoroeste().loadInDataBase(file_path)
