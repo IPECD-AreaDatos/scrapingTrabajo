@@ -112,4 +112,3 @@ class armadoVariacionInteranualNEA:
         print("Tiempo de ejecución de nea:", execution_time)
 
 
-armadoVariacionInteranualNEA().calculoVariacion()

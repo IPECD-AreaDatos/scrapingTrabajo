@@ -111,5 +111,3 @@ class armadoVariacionInteranualPampeana:
         end_time = time.time()
         execution_time = end_time - start_time
         print("Tiempo de ejecución de pampeana:", execution_time)
-        
-armadoVariacionInteranualPampeana().calculoVariacion()

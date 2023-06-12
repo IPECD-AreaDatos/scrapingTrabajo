@@ -33,6 +33,11 @@ if __name__ == '__main__':
    file_path = "C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_IPC\\files\\xls\\archivo.xls"
    print("---->", file_path)
    
+   host = 'localhost'
+   user = 'root'
+   password = 'Estadistica123'
+   database = 'prueba1'
+   
    valoresDeIPC = [
       LoadXLSDataNEA,
       LoadXLSDataNacion,

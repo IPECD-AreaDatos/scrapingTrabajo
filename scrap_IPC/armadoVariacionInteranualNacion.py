@@ -110,5 +110,3 @@ class armadoVariacionInteranualNacion:
         end_time = time.time()
         execution_time = end_time - start_time
         print("Tiempo de ejecución de nacion:", execution_time)
-
-armadoVariacionInteranualNacion().calculoVariacion()  

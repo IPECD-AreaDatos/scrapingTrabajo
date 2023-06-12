@@ -112,5 +112,4 @@ class armadoVariacionInteranualCuyo:
         execution_time = end_time - start_time
         print("Tiempo de ejecución de Cuyo:", execution_time)
         
-        
-armadoVariacionInteranualCuyo().calculoVariacion()
+    

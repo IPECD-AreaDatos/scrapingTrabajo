@@ -112,7 +112,6 @@ class LoadXLSDataCuyo:
                     # Actualizar los valores de variación en la fila existente
                     update_query = "UPDATE ipc_regioncuyo SET Nivel_General = %s, Alimentos_y_bebidas_no_alcoholicas = %s, Bebidas_alcoholicas_y_tabaco = %s, Prendas_de_vestir_y_calzado = %s, Vivienda_agua_electricidad_gas_y_otros_combustibles = %s, Equipamiento_y_mantenimiento_del_hogar = %s, Salud = %s, Transporte = %s, Comunicación = %s, Recreación_y_cultura = %s, Educación = %s, Restaurantes_y_hoteles = %s, Bienes_y_servicios_varios = %s WHERE Fecha = %s"
                     update_values = (
-                        fecha,
                         float(nivel_general),
                         float(alimento_y_bebidas_no_alcoholicas),
                         float(bebidas_alcoholicas_y_tabaco),
@@ -126,6 +125,7 @@ class LoadXLSDataCuyo:
                         float(educación),
                         float(restaurantes_y_hoteles),
                         float(bienes_y_servicios_varios),
+                        fecha,
                         
                     )
                     cursor.execute(update_query, update_values)
@@ -144,5 +144,5 @@ class LoadXLSDataCuyo:
 
         except Exception as e:
             # Manejar cualquier excepción ocurrida durante la carga de datos
-            print(f"Ocurrió un error durante la carga de datos: {str(e)}")
+            print(f"Data Cuyo: Ocurrió un error durante la carga de datos: {str(e)}")
             conn.close()  # Cerrar la conexión en caso de error
