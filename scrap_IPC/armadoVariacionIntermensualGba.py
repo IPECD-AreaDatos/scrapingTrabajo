@@ -109,4 +109,7 @@ class armadoVariacionIntermensualGba:
         # Calcular y mostrar el tiempo de ejecución
         end_time = time.time()
         execution_time = end_time - start_time
-        print("Tiempo de ejecución de gba:", execution_time)
+        print("-----------------------------------------------")
+        print("Se guardo los datos de Armado Variacion Intermensual de GBA")
+        print("Tiempo de ejecución:", execution_time)
+        

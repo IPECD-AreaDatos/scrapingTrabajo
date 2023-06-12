@@ -131,11 +131,12 @@ class LoadXLSDataNacion:
             # Confirmar los cambios en la base de datos
             conn.commit()
 
-            print("Se guardaron los datos del Nacion")
             # Se toma el tiempo de finalización y se calcula
             end_time = time.time()
             duration = end_time - start_time
-            print(f"Tiempo de ejecución: {duration} segundos")
+            print("-----------------------------------------------")
+            print("Se guardaron los datos de IPC del Total Nacion")
+            print("Tiempo de ejecución:", duration)
 
             # Cerrar la conexión a la base de datos
             conn.close()

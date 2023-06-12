@@ -32,12 +32,8 @@ if __name__ == '__main__':
    url = HomePage()
    file_path = "C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_IPC\\files\\xls\\archivo.xls"
    print("---->", file_path)
-   
-   host = 'localhost'
-   user = 'root'
-   password = 'Estadistica123'
-   database = 'prueba1'
-   
+   print("-------------------------------------------")
+   print("------CARGA DE DATOS DE LA TABLA DE IPC------")
    valoresDeIPC = [
       LoadXLSDataNEA,
       LoadXLSDataNacion,
@@ -49,8 +45,8 @@ if __name__ == '__main__':
     ]
    for regiones in valoresDeIPC:
       regiones().loadInDataBase(file_path, host, user, password, database)
-    
-    
+   print("-------------------------------------------")
+   print("------CALCULO DE VARIACION INTERMENSUAL------")
    calculo_intermensual = [
       armadoVariacionIntermensualNacion,
       armadoVariacionIntermensualNEA,
@@ -62,8 +58,8 @@ if __name__ == '__main__':
     ]
    for regiones in calculo_intermensual:
         regiones().calculoVariacion(host, user, password, database)
-    
-    
+   print("-------------------------------------------")
+   print("------CALCULO DE VARIACION INTERANUAL------")
    calculo_interanual = [
       armadoVariacionInteranualNacion,
       armadoVariacionInteranualCuyo,

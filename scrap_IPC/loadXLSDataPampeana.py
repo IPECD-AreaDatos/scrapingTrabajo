@@ -132,11 +132,12 @@ class LoadXLSDataPampeana:
             conn.commit()
 
 
-            print("Se guardaron los datos de Pampeana")
             # Se toma el tiempo de finalización y se calcula
             end_time = time.time()
             duration = end_time - start_time
-            print(f"Tiempo de ejecución: {duration} segundos")
+            print("-----------------------------------------------")
+            print("Se guardaron los datos de IPC de la Region Pampeana")
+            print("Tiempo de ejecución:", duration)
 
             # Cerrar la conexión a la base de datos
             conn.close()

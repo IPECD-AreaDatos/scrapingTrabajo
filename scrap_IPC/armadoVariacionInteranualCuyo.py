@@ -110,6 +110,8 @@ class armadoVariacionInteranualCuyo:
         # Calcular y mostrar el tiempo de ejecución
         end_time = time.time()
         execution_time = end_time - start_time
-        print("Tiempo de ejecución de Cuyo:", execution_time)
+        print("-----------------------------------------------")
+        print("Se guardo los datos de Armado Variacion Interanual de la Region de Cuyo")
+        print("Tiempo de ejecución:", execution_time)
         
     

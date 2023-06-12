@@ -109,4 +109,6 @@ class armadoVariacionIntermensualPatagonia:
         # Calcular y mostrar el tiempo de ejecución
         end_time = time.time()
         execution_time = end_time - start_time
-        print("Tiempo de ejecución de patagonia:", execution_time)
+        print("-----------------------------------------------")
+        print("Se guardo los datos de Armado Variacion Intermensual de la Region de la Patagonia")
+        print("Tiempo de ejecución:", execution_time)

@@ -110,4 +110,6 @@ class armadoVariacionInteranualNoroeste:
         # Calcular y mostrar el tiempo de ejecución
         end_time = time.time()
         execution_time = end_time - start_time
-        print("Tiempo de ejecución de noroeste:", execution_time)
+        print("-----------------------------------------------")
+        print("Se guardo los datos de Armado Variacion Interanual de la Region del Noroeste")
+        print("Tiempo de ejecución:", execution_time)
