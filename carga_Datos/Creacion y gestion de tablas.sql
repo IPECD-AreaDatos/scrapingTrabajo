@@ -538,3 +538,18 @@ Educación float,
 Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
+
+-- TABLAS SIPA
+-- Tabla 1//Hoja 2.1// Personas con trabajo registrado según modalidad ocupacional principal.Con estacionalidad.
+CREATE TABLE SIPA_nacional(
+Fecha date not null,
+Empleo_Asalariado_Sector_Privado float,
+Empleo_Asalariado_Sector_Publico float,
+Empleo_Casas_Particulares float,
+Trabajo_Independiente_Automomo float,
+Trabajo_Independiente_Monotributo float,
+Trabajo_Independiente_Monotributo_Social float,
+Total float
+)
+
+

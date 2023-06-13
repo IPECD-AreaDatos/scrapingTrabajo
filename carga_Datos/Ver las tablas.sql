@@ -59,3 +59,6 @@ SELECT * FROM prueba1.variacion_interanual_noroeste;
 SELECT * FROM prueba1.variacion_interanual_pampeana;
 SELECT * FROM prueba1.variacion_interanual_patagonia;
 SELECT * FROM prueba1.variacion_interanual_nea;
+
+-- SIPA
+SELECT * FROM prueba1.sipa_nacional;
