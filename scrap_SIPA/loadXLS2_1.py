@@ -23,40 +23,20 @@ class LoadXLS2_1:
             select_dates_query = "SELECT Fecha FROM sipa_nacional"
             cursor.execute(select_dates_query)
             existing_dates = [row[0] for row in cursor.fetchall()]
-                    
+
             # Leer el archivo Excel en un DataFrame de pandas
             df = pd.read_excel(file_path, sheet_name=3, skiprows=2)
 
-            print(df.keys())
-
             # Reemplazar comas por puntos en los valores numéricos
             df = df.replace(',', '.', regex=True)
-            
+            df = df.replace('*', '', regex=True)
+
             # Obtener las columnas de interés
-            fechas = df.iloc[:, 0]  # Primera columna (fechas)
-            datos = df.iloc[:, 1:-1]  # Columnas restantes sin incluir la última columna
-
-            # Iterar sobre las columnas de datos
-            for column_name, column_values in datos.items():
-                # Convertir las fechas a formato de base de datos
-                fechas_db = [fecha.date().strftime('%Y-%m-%d') for fecha in fechas]
-
-                # Obtener los valores de la columna
-                valores = column_values.tolist()
-
-                # Verificar si la columna ya existe en la tabla
-                if column_name not in existing_dates:
-                    # La columna no existe, se crea en la tabla
-                    cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} FLOAT")
-
-                # Preparar la consulta de inserción
-                insert_query = f"INSERT INTO {table_name} (Fecha, {column_name}) VALUES (%s, %s)"
-
-                # Iterar sobre las fechas y los valores correspondientes
-                for fecha, valor in zip(fechas_db, valores):
-                    # Ejecutar la consulta de inserción con la fecha y el valor actual
-                    cursor.execute(insert_query, (fecha, valor))
+            fechas = df.iloc[:134, 0]  # Primera columna (fechas)
+            datos = df.iloc[:, 1:7]  # Columnas restantes sin incluir la última columna
             
+            print("Fechas ", fechas)
+
             # Se toma el tiempo de finalización y se calcula
             end_time = time.time()
             duration = end_time - start_time
@@ -71,5 +51,3 @@ class LoadXLS2_1:
             # Manejar cualquier excepción ocurrida durante la carga de datos
             print(f"Data Cuyo: Ocurrió un error durante la carga de datos: {str(e)}")
             conn.close()  # Cerrar la conexión en caso de error
-
-
