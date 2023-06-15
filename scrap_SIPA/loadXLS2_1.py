@@ -1,6 +1,7 @@
 import datetime
 import mysql.connector
 import time
+import numpy as np
 import pandas as pd
 
 host = 'localhost'
@@ -8,7 +9,7 @@ user = 'root'
 password = 'Estadistica123'
 database = 'prueba1'
 
-file_path = "C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_SIPA\\files\\SIPA.xls"
+file_path = "C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_SIPA\\files\\SIPA.xlsx"
 
 class LoadXLS2_1:
     def loadInDataBase(self, file_path, host, user, password, database):
@@ -31,40 +32,16 @@ class LoadXLS2_1:
             existing_dates = [row[0] for row in cursor.fetchall()]
 
             # Leer el archivo Excel en un DataFrame de pandas
-            df = pd.read_excel(file_path, sheet_name=3)
-            filas_total = len(df)
-            # df.drop([0,1], axis=0, inplace=True)
-            print("Longitud ---->", filas_total)
-            fila = df.iloc[135]
-            print("Fila: ", fila)
+            df = pd.read_excel(file_path)  # Leer el archivo XLSX y crear el DataFrame
+            df = df.replace({np.nan: None})  # Reemplazar los valores NaN(Not a Number) por None
 
             # Reemplazar comas por puntos en los valores numéricos
-            df = df.replace(',', '.', regex=True)
-
-            # Obtener las columnas de interés
-            fechas = df.iloc[:, 0]  # Primera columna (fechas)
-            datos = df.iloc[:, 1:-1]  # Columnas restantes sin incluir la última columna
-
-            # Convertir las fechas a objetos datetime
-            fechas = pd.to_datetime(fechas, format="%b-%y*", errors='coerce')
-
-            # Filtrar las fechas no válidas (NaT)
-            fechas = fechas.dropna()
-
-            # Convertir las fechas al formato deseado para la base de datos
-            fechas_db = fechas.dt.strftime('%Y-%m-%d').tolist()
-
-            print("Fechas: ", fechas_db)
-
-            # Preparar la consulta de inserción
-            for i in fechas_db:
-                if i not in existing_dates:
-                    print("fecha---->", i, "Existente----->", existing_dates)
-                    insert_query = f"INSERT INTO {table_name} (Fecha) VALUES (%s)"
-                    cursor.execute(insert_query, (i,))
-
-                    
-            # Se toma el tiempo de finalización y se calcula
+            df = df.replace(',', '.', regex=True)   
+            
+            fila = df.iloc[4]
+            print("Fila ", fila)
+            
+            # Se toma el tiempo de finalización y se c  alcula
             end_time = time.time()
             duration = end_time - start_time
             print("-----------------------------------------------")

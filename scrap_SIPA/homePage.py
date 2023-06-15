@@ -30,7 +30,7 @@ class HomePage:
     carpeta_guardado = 'C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_SIPA\\files'
 
     # Nombre del archivo
-    nombre_archivo = 'SIPA.xls'
+    nombre_archivo = 'SIPA.xlsx'
 
     # Descargar el archivo
     response = requests.get(url_archivo)
