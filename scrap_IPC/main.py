@@ -30,8 +30,9 @@ database = 'prueba1'
 
 if __name__ == '__main__':
    url = HomePage()
-   file_path = "C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_IPC\\files\\xls\\archivo.xls"
-   print("---->", file_path)
+   file_path_casa= "D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\scrap_IPC\\files\\xls\\archivo.xls"
+   #file_path = "C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_IPC\\files\\xls\\archivo.xls"
+   print("---->", file_path_casa)
    print("-------------------------------------------")
    print("------CARGA DE DATOS DE LA TABLA DE IPC------")
    valoresDeIPC = [
@@ -44,7 +45,7 @@ if __name__ == '__main__':
       LoadXLSDataPatagonia
     ]
    for regiones in valoresDeIPC:
-      regiones().loadInDataBase(file_path, host, user, password, database)
+      regiones().loadInDataBase(file_path_casa, host, user, password, database)
    print("-------------------------------------------")
    print("------CALCULO DE VARIACION INTERMENSUAL------")
    calculo_intermensual = [

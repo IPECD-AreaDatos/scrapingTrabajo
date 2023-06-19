@@ -3,14 +3,16 @@ USE prueba1;
 -- Trabajo N°1: Carga de datos de Puestos de trabajo asalariados del sector privado
 Select * from Provincias;
 Select * from Departamentos;
+
 -- Tabla con los puestos de trabajo  
 Select COUNT(*)  from puestos_trabajo_asalariado;
 Select * from puestos_trabajo_asalariado limit 3000;
 SELECT * FROM puestos_trabajo_asalariado WHERE codigo_departamento_indec IS NULL;
--- Unions Provincias y localidades
-SELECT provincias.nombre_provincia_indec AS provincia, localidades.nombre_departamento_indec AS localidad, localidades.codigo_departamento_indec AS codigo_departamento_indec
-FROM localidades
-JOIN provincias ON localidades.id_provincia_indec = provincias.id_provincia_indec;
+
+-- Union Provincias y Departamentos
+SELECT provincias.nombre_provincia_indec AS provincia, Departamentos.nombre_departamento_indec AS localidad, Departamentos.codigo_departamento_indec AS codigo_departamento_indec
+FROM Departamentos
+JOIN provincias ON Departamentos.id_provincia_indec = provincias.id_provincia_indec;
 -- Union de tablas // Tabla Final
 SELECT provincias.nombre_provincia_indec AS provincia, 
        localidades.nombre_departamento_indec AS localidad, 
@@ -38,12 +40,11 @@ SELECT * FROM prueba1.ipc_regionpatagonia;
 -- Ver los datos de las varianzas
 -- Ver los datos de las tablas de varianza intermensual
 -- Nacional
-
+SELECT * FROM prueba1.variacion_intermensual_nacion;
 -- Regiones
 SELECT Fecha, CONCAT(FORMAT(Nivel_General * 100, 3), '%') AS porcentaje_formatado
 FROM variacion_intermensual_nacion;
 
-SELECT * FROM prueba1.variacion_intermensual_nacion;
 SELECT * FROM prueba1.variacion_intermensual_cuyo;
 SELECT * FROM prueba1.variacion_intermensual_gba;
 SELECT * FROM prueba1.variacion_intermensual_noroeste;
@@ -52,7 +53,10 @@ SELECT * FROM prueba1.variacion_intermensual_patagonia;
 SELECT * FROM prueba1.variacion_intermensual_nea;
 
 -- Variacion Interanual
+-- Ver los datos de las tablas de varianza interanual
+-- Nacional
 SELECT * FROM prueba1.variacion_interanual_nacion;
+-- Regiones
 SELECT * FROM prueba1.variacion_interanual_cuyo;
 SELECT * FROM prueba1.variacion_interanual_gba;
 SELECT * FROM prueba1.variacion_interanual_noroeste;

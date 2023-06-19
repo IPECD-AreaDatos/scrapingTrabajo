@@ -38,13 +38,6 @@ CREATE TABLE Departamentos (
   nombre_provincia_indec VARCHAR(255)
 );
 
-Select * from Departamentos;
-
--- Union Provincias y localidades
-SELECT provincias.nombre_provincia_indec AS provincia, Departamentos.nombre_departamento_indec AS localidad, Departamentos.codigo_departamento_indec AS codigo_departamento_indec
-FROM Departamentos
-JOIN provincias ON Departamentos.id_provincia_indec = provincias.id_provincia_indec;
-
 -- Tabla con los puestos de trabajo  
 CREATE TABLE puestos_trabajo_asalariado (
   fecha Date,
@@ -53,10 +46,6 @@ CREATE TABLE puestos_trabajo_asalariado (
   clae2 VARCHAR(255),
   puestos INT
 );
-
-Select COUNT(*)  from puestos_trabajo_asalariado;
-Select * from puestos_trabajo_asalariado limit 3000;
-SELECT * FROM puestos_trabajo_asalariado WHERE codigo_departamento_indec IS NULL;
 
 -- Tabla de clae2(Sectores de actividad)
 CREATE TABLE Sectores_de_actividad (
@@ -153,19 +142,8 @@ VALUES
 (96, 'Otros servicios personales'),
 (999, 'Otros sectores');
 
--- Union de tablas 
-SELECT provincias.nombre_provincia_indec AS provincia, 
-       Departamentos.nombre_departamento_indec AS localidad, 
-       puestos_trabajo_asalariado.fecha AS fecha,
-       sectores_de_actividad.clae2_desc AS sector_de_actividad,
-       puestos_trabajo_asalariado.puestos AS puestos
-FROM Departamentos
-JOIN provincias ON Departamentos.id_provincia_indec = provincias.id_provincia_indec
-JOIN puestos_trabajo_asalariado ON Departamentos.codigo_departamento_indec = puestos_trabajo_asalariado.codigo_departamento_indec
-JOIN sectores_de_actividad ON puestos_trabajo_asalariado.clae2 = sectores_de_actividad.clae2
-LIMIT 0, 30000;
 
--- Tabla de IPC del NEA
+-- Tabla de IPC
 -- Creacion de la tabla
 CREATE TABLE IPC_regionNEA(
 Fecha date not null,
@@ -183,10 +161,6 @@ Educación float,
 Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
-
--- Ver los datos de la tabla IPC_regionNEA
-SELECT * FROM prueba1.ipc_regionnea;
-Select * from prueba1.ipc_regionnea limit 10;
 
 -- Tabla Nacional
 CREATE TABLE IPC_TotalNacion(
@@ -206,8 +180,6 @@ Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
 
-SELECT * FROM prueba1.ipc_totalnacion;
-
 -- Tabla Region GBA
 CREATE TABLE IPC_RegionGBA(
 Fecha date not null,
@@ -226,7 +198,6 @@ Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
 
-SELECT * FROM prueba1.ipc_regiongba;
 
 -- Tabla Region Pampeana
 CREATE TABLE IPC_RegionPampeana(
@@ -246,7 +217,6 @@ Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
 
-SELECT * FROM prueba1.ipc_regionpampeana;
 
 -- Tabla Region Noroeste
 CREATE TABLE IPC_RegionNoroeste(
@@ -266,7 +236,6 @@ Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
 
-SELECT * FROM prueba1.ipc_regionnoroeste;
 
 -- Tabla Region Cuyo
 CREATE TABLE IPC_RegionCuyo(
@@ -286,7 +255,6 @@ Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
 
-SELECT * FROM prueba1.ipc_regioncuyo;
 
 -- Tabla Region Patagonia
 CREATE TABLE IPC_RegionPatagonia(
@@ -305,9 +273,6 @@ Educación float,
 Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
-
-SELECT * FROM prueba1.ipc_regionpatagonia;
-
 
 -- VARIACION INTERMENSUAL
 -- variacion nacion
