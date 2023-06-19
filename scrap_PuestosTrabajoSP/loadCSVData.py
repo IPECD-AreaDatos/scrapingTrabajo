@@ -12,7 +12,7 @@ class LoadCSVData:
         conn = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='',
+            password='Estadistica123',
             database='prueba1'
         )
 
