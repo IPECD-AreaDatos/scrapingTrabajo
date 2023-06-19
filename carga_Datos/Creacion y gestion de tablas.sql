@@ -30,17 +30,30 @@ Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (86, '
 Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (90, 'Tucuman');
 Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (94, 'Tierra Del Fuego');
 
-Select * from Provincias;
-
 -- Tabla de Localidades
-Select * from localidades;
+CREATE TABLE Departamentos (
+  codigo_departamento_indec INTEGER,
+  nombre_departamento_indec VARCHAR(255),
+  id_provincia_indec INTEGER,
+  nombre_provincia_indec VARCHAR(255)
+);
 
--- Unions Provincias y localidades
-SELECT provincias.nombre_provincia_indec AS provincia, localidades.nombre_departamento_indec AS localidad, localidades.codigo_departamento_indec AS codigo_departamento_indec
-FROM localidades
-JOIN provincias ON localidades.id_provincia_indec = provincias.id_provincia_indec;
+Select * from Departamentos;
+
+-- Union Provincias y localidades
+SELECT provincias.nombre_provincia_indec AS provincia, Departamentos.nombre_departamento_indec AS localidad, Departamentos.codigo_departamento_indec AS codigo_departamento_indec
+FROM Departamentos
+JOIN provincias ON Departamentos.id_provincia_indec = provincias.id_provincia_indec;
 
 -- Tabla con los puestos de trabajo  
+CREATE TABLE puestos_trabajo_asalariado (
+  fecha Date,
+  codigo_departamento_indec INT,
+  id_provincia_indec INT,
+  clae2 VARCHAR(255),
+  puestos INT
+);
+
 Select COUNT(*)  from puestos_trabajo_asalariado;
 Select * from puestos_trabajo_asalariado limit 3000;
 SELECT * FROM puestos_trabajo_asalariado WHERE codigo_departamento_indec IS NULL;
@@ -142,13 +155,13 @@ VALUES
 
 -- Union de tablas 
 SELECT provincias.nombre_provincia_indec AS provincia, 
-       localidades.nombre_departamento_indec AS localidad, 
+       Departamentos.nombre_departamento_indec AS localidad, 
        puestos_trabajo_asalariado.fecha AS fecha,
        sectores_de_actividad.clae2_desc AS sector_de_actividad,
        puestos_trabajo_asalariado.puestos AS puestos
-FROM localidades
-JOIN provincias ON localidades.id_provincia_indec = provincias.id_provincia_indec
-JOIN puestos_trabajo_asalariado ON localidades.codigo_departamento_indec = puestos_trabajo_asalariado.codigo_departamento_indec
+FROM Departamentos
+JOIN provincias ON Departamentos.id_provincia_indec = provincias.id_provincia_indec
+JOIN puestos_trabajo_asalariado ON Departamentos.codigo_departamento_indec = puestos_trabajo_asalariado.codigo_departamento_indec
 JOIN sectores_de_actividad ON puestos_trabajo_asalariado.clae2 = sectores_de_actividad.clae2
 LIMIT 0, 30000;
 

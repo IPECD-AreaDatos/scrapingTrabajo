@@ -2,7 +2,7 @@ USE prueba1;
 
 -- Trabajo N°1: Carga de datos de Puestos de trabajo asalariados del sector privado
 Select * from Provincias;
-Select * from localidades;
+Select * from Departamentos;
 -- Tabla con los puestos de trabajo  
 Select COUNT(*)  from puestos_trabajo_asalariado;
 Select * from puestos_trabajo_asalariado limit 3000;
