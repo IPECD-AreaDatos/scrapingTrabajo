@@ -7,7 +7,7 @@ from pathlib import Path
 class FileManager:
     
     url = ""
-    folder = str(Path.cwd()) + "/scraper/files/csv"#path.cdw toma la ruta actual de trabajo//Se le agrega la carpeta en donde se va a guardad
+    folder = str(Path.cwd()) + "/scrap_PuestosTrabajoSP/files/csv"#path.cdw toma la ruta actual de trabajo//Se le agrega la carpeta en donde se va a guardad
 
     def __init__(self, url): #Inicializar los atributos del objeto que creamos.
         self.url = url #Esto permite proporcionar la URL al crear una instancia de la clase.
