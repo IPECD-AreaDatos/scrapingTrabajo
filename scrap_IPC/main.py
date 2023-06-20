@@ -24,7 +24,7 @@ from armadoVariacionInteranualNea import armadoVariacionInteranualNEA
 #Datos de la base de datos
 host = 'localhost'
 user = 'root'
-password = 'Estadistica123'
+password = ''
 database = 'prueba1'
 
 

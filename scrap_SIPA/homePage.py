@@ -8,7 +8,7 @@ from selenium.webdriver.chrome.service import Service
 class HomePage:
     
     # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
-    driver = webdriver.Chrome('C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_SIPA\\chromedriver.exe')  # Reemplaza con la ubicación de tu ChromeDriver
+    driver = webdriver.Chrome()  # Reemplaza con la ubicación de tu ChromeDriver
 
     # URL de la página que deseas obtener
     url_pagina = 'https://www.trabajo.gob.ar/estadisticas/index.asp'
@@ -27,7 +27,8 @@ class HomePage:
     print(url_archivo)
     
     # Ruta de la carpeta donde guardar el archivo
-    carpeta_guardado = 'C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_SIPA\\files'
+    #carpeta_guardado = 'C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_SIPA\\files'
+    carpeta_guardado_casa = 'D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\scrap_SIPA\\files'
 
     # Nombre del archivo
     nombre_archivo = 'SIPA.xlsx'
@@ -36,7 +37,7 @@ class HomePage:
     response = requests.get(url_archivo)
 
     # Guardar el archivo en la carpeta especificada
-    ruta_guardado = f'{carpeta_guardado}\\{nombre_archivo}'
+    ruta_guardado = f'{carpeta_guardado_casa}\\{nombre_archivo}'
     with open(ruta_guardado, 'wb') as file:
         file.write(response.content)
 

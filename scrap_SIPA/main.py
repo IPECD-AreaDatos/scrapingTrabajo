@@ -14,6 +14,6 @@ if __name__ == '__main__':
    print("El archivo se descargo correctamente")
    print("-------------------------------------------")
    print("------CARGA DE DATOS DE LA TABLA DE SIPA-----")
-   #LoadXLS2_1().loadInDataBase(file_path, host, user, password, database)
+   LoadXLS2_1().loadInDataBase(file_path, host, user, password, database)
    
    

@@ -9,7 +9,7 @@ class HomePage:
     
     # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
     #driver = webdriver.Chrome('C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_IPC\\chromedriver.exe')  # Reemplaza con la ubicación de tu ChromeDriver
-    driver_casa = webdriver.Chrome('D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\scrap_IPC\\selenium\\chromedriver.exe')
+    driver_casa = webdriver.Chrome()
 
     # URL de la página que deseas obtener
     url_pagina = 'https://www.indec.gob.ar/indec/web/Nivel4-Tema-3-5-31'
