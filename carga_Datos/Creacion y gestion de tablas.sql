@@ -519,7 +519,7 @@ Bienes_y_servicios_varios float
 
 -- TABLAS SIPA
 -- Tabla 1//Hoja 2.1// Personas con trabajo registrado según modalidad ocupacional principal.Con estacionalidad.
-CREATE TABLE SIPA_nacional(
+CREATE TABLE sipa_nacional_con_estacionalidad(
 Fecha date not null,
 Empleo_Asalariado_Sector_Privado float,
 Empleo_Asalariado_Sector_Publico float,
@@ -528,6 +528,15 @@ Trabajo_Independiente_Automomo float,
 Trabajo_Independiente_Monotributo float,
 Trabajo_Independiente_Monotributo_Social float,
 Total float
-)
-
+);
+CREATE TABLE sipa_nacional_sin_estacionalidad(
+Fecha date not null,
+Empleo_Asalariado_Sector_Privado float,
+Empleo_Asalariado_Sector_Publico float,
+Empleo_Casas_Particulares float,
+Trabajo_Independiente_Automomo float,
+Trabajo_Independiente_Monotributo float,
+Trabajo_Independiente_Monotributo_Social float,
+Total float
+);
 

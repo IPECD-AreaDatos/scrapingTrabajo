@@ -25,10 +25,10 @@ class LoadXLS2_2:
         cursor = conn.cursor()
         try:
             # Nombre de la tabla en MySQL
-            table_name = "sipa_nacional"
+            table_name = "sipa_nacional_sin_estacionalidad"
             
-            # Obtener las fechas existentes en la tabla sipa_nacional
-            select_dates_query = "SELECT Fecha FROM sipa_nacional"
+            # Obtener las fechas existentes en la tabla 
+            select_dates_query = "SELECT Fecha FROM sipa_nacional_sin_estacionalidad"
             cursor.execute(select_dates_query)
             existing_dates = [row[0] for row in cursor.fetchall()]
 
@@ -39,14 +39,12 @@ class LoadXLS2_2:
 
             # Reemplazar comas por puntos en los valores numéricos
             df = df.replace(',', '.', regex=True)   
-            df = df.iloc[:-6]#Elimina las ultimas 6 filas siempre
+            df = df.iloc[:-9]#Elimina las ultimas 6 filas siempre
             df.drop(df.columns[-1], axis=1, inplace=True)#Elimina la ultima columna
             df = df.rename(columns=lambda x: x.strip())#Eliminar los espacion al final del nombre
             start_date = pd.to_datetime('2012-01-01')
             df['Período'] = pd.date_range(start=start_date, periods=len(df), freq='M').date
   
-            
-            
             for _, row in df.iterrows():
                 # Obtener los valores de cada columna
                 fecha = row['Período']
@@ -57,24 +55,22 @@ class LoadXLS2_2:
                 trabajo_independiente_monotributo = row['Trabajo Independientes Monotributo']
                 trabajo_independiente_monotributo_social = row['Trabajo Independientes Monotributo\nSocial']
                 total = row['Total']
-
-
                 if fecha in existing_dates:
                     # Actualizar los valores existentes
                     update_query = f"UPDATE {table_name} SET Empleo_Asalariado_Sector_Privado=%s, Empleo_Asalariado_Sector_Publico=%s, Empleo_Casas_Particulares=%s, Trabajo_Independiente_Automomo=%s, Trabajo_Independiente_Monotributo=%s, Trabajo_Independiente_Monotributo_Social=%s, Total=%s WHERE Fecha=%s"
                     cursor.execute(
-                        update_query,
-                        (empleo_privado, empleo_publico, empleo_casas_particulares, trabajo_independiente_autonomo, trabajo_independiente_monotributo, trabajo_independiente_monotributo_social, total, fecha)
+                    update_query,
+                    (empleo_privado, empleo_publico, empleo_casas_particulares, trabajo_independiente_autonomo, trabajo_independiente_monotributo, trabajo_independiente_monotributo_social, total, fecha)
                     )
                 else:
                     # Insertar un nuevo registro
                     insert_query = f"INSERT INTO {table_name} (Fecha, Empleo_Asalariado_Sector_Privado, Empleo_Asalariado_Sector_Publico, Empleo_Casas_Particulares, Trabajo_Independiente_Automomo, Trabajo_Independiente_Monotributo, Trabajo_Independiente_Monotributo_Social, Total) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
                     cursor.execute(
-                        insert_query,
-                        (fecha, empleo_privado, empleo_publico, empleo_casas_particulares, trabajo_independiente_autonomo, trabajo_independiente_monotributo, trabajo_independiente_monotributo_social, total)
+                    insert_query,
+                    (fecha, empleo_privado, empleo_publico, empleo_casas_particulares, trabajo_independiente_autonomo, trabajo_independiente_monotributo, trabajo_independiente_monotributo_social, total)
                     )
-            
-            # Confirmar los cambios y cerrar el cursor y la conexión
+                        
+             # Confirmar los cambios y cerrar el cursor y la conexión
             conn.commit()
             cursor.close()
             
@@ -82,7 +78,7 @@ class LoadXLS2_2:
             end_time = time.time()
             duration = end_time - start_time
             print("-----------------------------------------------")
-            print("Se guardaron los datos de IPC de la Region de Cuyo")
+            print("Se guardaron los datos de SIPA NACIONAL SIN ESTACIONALIDAD")
             print("Tiempo de ejecución:", duration)
 
             # Cerrar la conexión a la base de datos
@@ -93,4 +89,6 @@ class LoadXLS2_2:
             print(f"Data Cuyo: Ocurrió un error durante la carga de datos: {str(e)}")
             conn.close()  # Cerrar la conexión en caso de error
             
+            
+
    

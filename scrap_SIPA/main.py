@@ -1,5 +1,6 @@
 from homePage import HomePage
 from loadXLS2_1 import LoadXLS2_1
+from loadXLS2_2 import LoadXLS2_2
 
 #Datos de la base de datos
 host = 'localhost'
@@ -15,5 +16,5 @@ if __name__ == '__main__':
    print("-------------------------------------------")
    print("------CARGA DE DATOS DE LA TABLA DE SIPA-----")
    LoadXLS2_1().loadInDataBase(file_path, host, user, password, database)
-   
+   LoadXLS2_2().loadInDataBase(file_path, host, user, password, database)
    

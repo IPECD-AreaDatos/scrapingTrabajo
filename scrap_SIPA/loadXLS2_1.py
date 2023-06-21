@@ -25,10 +25,10 @@ class LoadXLS2_1:
         cursor = conn.cursor()
         try:
             # Nombre de la tabla en MySQL
-            table_name = "sipa_nacional"
+            table_name = "sipa_nacional_con_estacionalidad"
             
-            # Obtener las fechas existentes en la tabla sipa_nacional
-            select_dates_query = "SELECT Fecha FROM sipa_nacional"
+            # Obtener las fechas existentes en la tabla 
+            select_dates_query = "SELECT Fecha FROM sipa_nacional_con_estacionalidad"
             cursor.execute(select_dates_query)
             existing_dates = [row[0] for row in cursor.fetchall()]
 
@@ -82,7 +82,7 @@ class LoadXLS2_1:
             end_time = time.time()
             duration = end_time - start_time
             print("-----------------------------------------------")
-            print("Se guardaron los datos de IPC de la Region de Cuyo")
+            print("Se guardaron los datos de SIPA NACIONAL CON ESTACIONALIDAD")
             print("Tiempo de ejecución:", duration)
 
             # Cerrar la conexión a la base de datos

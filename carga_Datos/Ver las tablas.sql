@@ -65,4 +65,5 @@ SELECT * FROM prueba1.variacion_interanual_patagonia;
 SELECT * FROM prueba1.variacion_interanual_nea;
 
 -- SIPA
-SELECT * FROM prueba1.sipa_nacional;
+SELECT * FROM prueba1.sipa_nacional_con_estacionalidad;
+SELECT * FROM prueba1.sipa_nacional_sin_estacionalidad;
