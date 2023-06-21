@@ -6,7 +6,7 @@ import pandas as pd
 
 host = 'localhost'
 user = 'root'
-password = ''
+password = 'Estadistica123'
 database = 'prueba1'
 
 file_path = "C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_SIPA\\files\\SIPA.xlsx"
@@ -33,14 +33,15 @@ class LoadXLS2_1:
             existing_dates = [row[0] for row in cursor.fetchall()]
 
             # Leer el archivo Excel en un DataFrame de pandas
-            df = pd.read_excel(file_path)  # Leer el archivo XLSX y crear el DataFrame
+            df = pd.read_excel(file_path, sheet_name=3, skiprows=1)  # Leer el archivo XLSX y crear el DataFrame
             df = df.replace({np.nan: None})  # Reemplazar los valores NaN(Not a Number) por None
 
             # Reemplazar comas por puntos en los valores numéricos
             df = df.replace(',', '.', regex=True)   
+            df = df.iloc[:-6]#Elimina las ultimas 6 filas siempre
+            df.drop(df.columns[-1], axis=1, inplace=True)#Elimina la ultima columna
             
-            fila = df.iloc[4]
-            print("Fila ", fila)
+
             
             # Se toma el tiempo de finalización y se c  alcula
             end_time = time.time()
