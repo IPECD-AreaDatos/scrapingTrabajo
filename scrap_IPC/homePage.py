@@ -28,8 +28,8 @@ class HomePage:
     print(url_archivo)
     
     # Ruta de la carpeta donde guardar el archivo
-    #carpeta_guardado = 'C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_IPC\\files\\xls'
-    carpeta_guardado_casa = 'D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\scrap_IPC\\files\\xls'
+    carpeta_guardado = 'C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_IPC\\files\\xls'
+    #carpeta_guardado_casa = 'D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\scrap_IPC\\files\\xls'
 
     # Nombre del archivo
     nombre_archivo = 'archivo.xls'
@@ -38,7 +38,7 @@ class HomePage:
     response = requests.get(url_archivo)
 
     # Guardar el archivo en la carpeta especificada
-    ruta_guardado = f'{carpeta_guardado_casa}\\{nombre_archivo}'
+    ruta_guardado = f'{carpeta_guardado}\\{nombre_archivo}'
     with open(ruta_guardado, 'wb') as file:
         file.write(response.content)
 
