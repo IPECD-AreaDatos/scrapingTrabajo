@@ -67,3 +67,5 @@ SELECT * FROM prueba1.variacion_interanual_nea;
 -- SIPA
 SELECT * FROM prueba1.sipa_nacional_con_estacionalidad;
 SELECT * FROM prueba1.sipa_nacional_sin_estacionalidad;
+SELECT * FROM prueba1.sipa_provincia_con_estacionalidad;
+SELECT * FROM prueba1.sipa_provincia_sin_estacionalidad;
