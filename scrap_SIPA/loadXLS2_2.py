@@ -12,7 +12,7 @@ database = 'prueba1'
 file_path = "C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_SIPA\\files\\SIPA.xlsx"
 #file_path = "D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\scrap_SIPA\\files\\SIPA.xlsx"
 
-class LoadXLS2_1:
+class LoadXLS2_2:
     def loadInDataBase(self, file_path, host, user, password, database):
         # Se toma el tiempo de comienzo
         start_time = time.time()
@@ -34,7 +34,7 @@ class LoadXLS2_1:
 
 
             # Leer el archivo Excel en un DataFrame de pandas
-            df = pd.read_excel(file_path, sheet_name=3, skiprows=1)  # Leer el archivo XLSX y crear el DataFrame
+            df = pd.read_excel(file_path, sheet_name=4, skiprows=1)  # Leer el archivo XLSX y crear el DataFrame
             df = df.replace({np.nan: None})  # Reemplazar los valores NaN(Not a Number) por None
 
             # Reemplazar comas por puntos en los valores numéricos
