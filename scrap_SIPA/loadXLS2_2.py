@@ -78,7 +78,7 @@ class LoadXLS2_2:
             end_time = time.time()
             duration = end_time - start_time
             print("-----------------------------------------------")
-            print("Se guardaron los datos de SIPA NACIONAL SIN ESTACIONALIDAD")
+            print("Se guardaron los datos de SIPA NACIONAL SINA ESTACIONALIDAD")
             print("Tiempo de ejecución:", duration)
 
             # Cerrar la conexión a la base de datos
@@ -88,7 +88,6 @@ class LoadXLS2_2:
             # Manejar cualquier excepción ocurrida durante la carga de datos
             print(f"Data Cuyo: Ocurrió un error durante la carga de datos: {str(e)}")
             conn.close()  # Cerrar la conexión en caso de error
-            
             
 
    
