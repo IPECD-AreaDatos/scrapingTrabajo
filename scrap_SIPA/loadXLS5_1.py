@@ -4,13 +4,6 @@ import time
 import numpy as np
 import pandas as pd
 
-host = 'localhost'
-user = 'root'
-password = 'Estadistica123'
-database = 'prueba1'
-
-file_path = "C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_SIPA\\files\\SIPA.xlsx"
-#file_path = "D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\scrap_SIPA\\files\\SIPA.xlsx"
 
 class LoadXLS5_1:
     def loadInDataBase(self, file_path, host, user, password, database):
@@ -111,5 +104,3 @@ class LoadXLS5_1:
             print(f"Data Cuyo: Ocurrió un error durante la carga de datos: {str(e)}")
             conn.close()  # Cerrar la conexión en caso de error
             
-            
-LoadXLS5_1().loadInDataBase(file_path, host, user, password, database)
