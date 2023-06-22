@@ -23,6 +23,6 @@ if __name__ == '__main__':
    LoadXLS2_2().loadInDataBase(file_path, host, user, password, database)
    LoadXLS5_1().loadInDataBase(file_path, host, user, password, database)
    LoadXLS5_2().loadInDataBase(file_path, host, user, password, database)
-   calculoTotalNacion().loadInDataBase(file_path, host, user, password, database)
+   calculoTotalNacion().loadInDataBase(host, user, password, database)
    
    

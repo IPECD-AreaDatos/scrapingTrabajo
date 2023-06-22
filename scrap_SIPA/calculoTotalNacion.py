@@ -38,7 +38,7 @@ class calculoTotalNacion:
             end_time = time.time()
             duration = end_time - start_time
             print("-----------------------------------------------")
-            print("Se calculo el total Nacion")
+            print("Se calculo el total Nacion y NEA")
             print("Tiempo de ejecución:", duration)
 
             # Cerrar la conexión a la base de datos
