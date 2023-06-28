@@ -593,3 +593,34 @@ Santiago_del_Estero float,
 Tierra_del_Fuego float,
 Tucuman float
 );
+
+-- Tablas de Registro Propiedad Automotor 
+-- Nacional
+ CREATE TABLE dnrpa_nacion_auto(
+ Fecha char, 
+ Bueos_Aires float,
+ C_Autonoma_De_BSAS float,
+ Catamarca float,
+ Cordoba float,
+ Corrientes float,
+ Chaco float,
+ Chubut float,
+ Entre_Rios float,
+ Formosa float,
+ Jujuy float,
+ La_Pampa float,
+ La_Rioja float,
+ Mendoza float,
+ Misiones float,
+ Neuquen float,
+ Rio_Negro float,
+ Salta float,
+ San_Juan float,
+ San_Luis float,
+ Santa_Cruz float,
+ Santa_Fe float,
+ Sgo_Del_Estero float,
+ Tucuman float,
+ Tierra_Del_Fuego float,
+ Total float
+ );
