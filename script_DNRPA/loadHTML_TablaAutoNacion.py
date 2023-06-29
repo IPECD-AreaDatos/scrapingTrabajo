@@ -2,8 +2,13 @@ import datetime
 from bs4 import BeautifulSoup
 import mysql.connector
 import time
-import numpy as np
-import pandas as pd
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.support.select import Select
+import time
 
 
 host = 'localhost'
@@ -23,44 +28,20 @@ class loadHTML_TablaAutoNacion:
         # Crear el cursor para ejecutar consultas
         cursor = conn.cursor()
         try:
-            
-            # Confirmar los cambios y cerrar el cursor y la conexión
-            conn.commit()
-            cursor.close()
-            html_row = '''
-            <tr>
-                <th align="center"> Ene </th>
-                <th align="center"> Feb </th>
-                <th align="center"> Mar </th>
-                <th align="center"> Abr </th>
-                <th align="center"> May </th>
-                <th align="center"> Jun </th>
-                <th align="center"> Jul </th>
-                <th align="center"> Ago </th>
-                <th align="center"> Sep </th>
-                <th align="center"> Oct </th>
-                <th align="center"> Nov </th>
-                <th align="center"> Dic </th>
-                <th align="right"> Total </th>
-            </tr>
-            '''
+            driver = webdriver.Chrome()
+            driver.get('https://www.dnrpa.gov.ar/portal_dnrpa/estadisticas/rrss_tramites/tram_prov.php?origen=portal_dnrpa&tipo_consulta=inscripciones')
+            time.sleep(5)
+            elemento = driver.find_element(By.XPATH, '//*[@id="seleccion"]/center/table/tbody/tr[2]/td/select')
+            # Obtener todas las opciones del elemento select
+            opciones = elemento.find_elements(By.TAG_NAME, 'option')
 
-            # Supongamos que tienes el HTML de la fila en una variable llamada 'html_row'
-            soup = BeautifulSoup(html_row, 'html.parser')
+            # Buscar la opción deseada por su valor y hacer clic en ella
+            valor_deseado = '2020'  # Valor de la opción que deseas seleccionar
 
-            # Encuentra todas las etiquetas 'th' dentro de la fila
-            cells = soup.find_all('th')
-
-            # Crea un arreglo para almacenar los valores de las celdas
-            values = []
-
-            # Itera sobre cada celda y agrega su contenido al arreglo
-            for cell in cells:
-                values.append(cell.text.strip())
-
-            # Imprime el arreglo de valores
-            print(values)
-            
+            for opcion in opciones:
+                if opcion.get_attribute('value') == valor_deseado:
+                    opcion.click()
+                    break
             
             # Se toma el tiempo de finalización y se c  alcula
             end_time = time.time()
