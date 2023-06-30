@@ -1,16 +1,9 @@
-import datetime
-from bs4 import BeautifulSoup
 import mysql.connector
 import time
-import requests
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.support.select import Select
-import time
 from tabulate import tabulate
+import openpyxl
 
 
 host = 'localhost'
@@ -30,6 +23,7 @@ class loadHTML_TablaAutoNacion:
         # Crear el cursor para ejecutar consultas
         cursor = conn.cursor()
         try:
+            ruta_archivo_excel = 'C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\script_DNRPA\\prueba.xlsx' 
             driver = webdriver.Chrome()
             driver.get('https://www.dnrpa.gov.ar/portal_dnrpa/estadisticas/rrss_tramites/tram_prov.php?origen=portal_dnrpa&tipo_consulta=inscripciones')
 
@@ -77,24 +71,38 @@ class loadHTML_TablaAutoNacion:
             # Lista para almacenar los datos de la tabla
             tabla_datos = []
 
-            # Recorrer las filas de la tabla
+           # Recorrer las filas de la tabla
             for fila in filas:
                 # Obtener las celdas de cada fila
-                celdas = fila.find_elements(By.TAG_NAME, 'td')
-                
+                celdas = fila.find_elements(By.TAG_NAME, 'td') + fila.find_elements(By.TAG_NAME, 'th')
+
                 # Lista para almacenar los valores de cada fila
                 fila_datos = []
-                
+
                 # Obtener el contenido de cada celda y agregarlo a la lista de datos de la fila
                 for celda in celdas:
                     fila_datos.append(celda.text)
-                
+
                 # Agregar la lista de datos de la fila a la tabla de datos
                 tabla_datos.append(fila_datos)
 
 
-            # Imprimir la tabla en formato de tabla
-            print(tabulate(tabla_datos, headers="firstrow"))
+            # Cargar el archivo Excel existente
+            libro_excel = openpyxl.load_workbook(ruta_archivo_excel)
+
+            # Seleccionar la hoja activa del libro
+            hoja_activa = libro_excel.active
+
+            # Obtener la última fila existente en el archivo
+            ultima_fila = hoja_activa.max_row + 1
+
+            # Recorrer los datos de la tabla y escribirlos en el archivo de Excel
+            for fila_datos in tabla_datos:
+                hoja_activa.append(fila_datos)
+
+            # Guardar el archivo Excel actualizado
+            libro_excel.save(ruta_archivo_excel)
+
             
             
             # Se toma el tiempo de finalización y se calcula
