@@ -63,7 +63,7 @@ class loadHTML_TablaAutoNacion:
                 if ventana != ventana_actual:
                     driver.switch_to.window(ventana)
             
-            time.sleep
+            time.sleep(15)
 
             # Encontrar el elemento <div> con la clase 'grid'
             elemento_div = driver.find_element(By.CLASS_NAME, 'grid')
