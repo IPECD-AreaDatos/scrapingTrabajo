@@ -94,7 +94,7 @@ class loadHTML_TablaAutoNacion:
             
             # Convertir los valores de la transposición a una lista
             valores_transpuestos = df_transpuesta.values.tolist()
-
+            
             # Convertir los nombres de los meses a formato fecha
             meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
             fechas = [datetime.strptime(f'{mes}-{valor_deseado}', '%b-%Y').strftime('%m/%Y') for mes in meses]
