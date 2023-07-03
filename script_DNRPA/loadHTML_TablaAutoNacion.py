@@ -6,6 +6,7 @@ from selenium.webdriver.common.by import By
 from tabulate import tabulate
 import openpyxl
 import pandas as pd
+from dateutil.parser import parse
 
 host = 'localhost'
 user = 'root'
@@ -24,7 +25,8 @@ class loadHTML_TablaAutoNacion:
         # Crear el cursor para ejecutar consultas
         cursor = conn.cursor()
         try:
-            ruta_archivo_excel = 'C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\script_DNRPA\\prueba.xlsx' 
+            #ruta_archivo_excel = 'C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\script_DNRPA\\prueba.xlsx' 
+            ruta_archivo_excel = 'D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\script_DNRPA\\prueba.xlsx'
             driver = webdriver.Chrome()
             driver.get('https://www.dnrpa.gov.ar/portal_dnrpa/estadisticas/rrss_tramites/tram_prov.php?origen=portal_dnrpa&tipo_consulta=inscripciones')
 
@@ -94,14 +96,16 @@ class loadHTML_TablaAutoNacion:
             
             # Convertir los valores de la transposición a una lista
             valores_transpuestos = df_transpuesta.values.tolist()
-            
+
             # Convertir los nombres de los meses a formato fecha
             meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
-            fechas = [datetime.strptime(f'{mes}-{valor_deseado}', '%b-%Y').strftime('%m/%Y') for mes in meses]
+            valor_deseado = '2014'
+
+            # Agregar el año a los nombres de los meses
+            fechas = [parse(f'{mes} {valor_deseado}', fuzzy=True).strftime('%m/%Y') for mes in meses]
 
             # Agregar la fila de fechas como primera fila de los valores transpuestos
             valores_transpuestos.insert(0, fechas)
-
 
             # Cargar el archivo Excel existente
             libro_excel = openpyxl.load_workbook(ruta_archivo_excel)
@@ -121,8 +125,6 @@ class loadHTML_TablaAutoNacion:
             # Guardar el archivo Excel actualizado sobreescribiendo los datos existentes
             libro_excel.save(ruta_archivo_excel)
 
-            
-            
             # Se toma el tiempo de finalización y se calcula
             end_time = time.time()
             duration = end_time - start_time
