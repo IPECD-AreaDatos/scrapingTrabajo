@@ -1,10 +1,11 @@
+import datetime
 import mysql.connector
 import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from tabulate import tabulate
 import openpyxl
-
+import pandas as pd
 
 host = 'localhost'
 user = 'root'
@@ -57,7 +58,7 @@ class loadHTML_TablaAutoNacion:
                 if ventana != ventana_actual:
                     driver.switch_to.window(ventana)
             
-            time.sleep(15)
+            time.sleep(5)
 
             # Encontrar el elemento <div> con la clase 'grid'
             elemento_div = driver.find_element(By.CLASS_NAME, 'grid')
@@ -74,7 +75,7 @@ class loadHTML_TablaAutoNacion:
            # Recorrer las filas de la tabla
             for fila in filas:
                 # Obtener las celdas de cada fila
-                celdas = fila.find_elements(By.TAG_NAME, 'td') + fila.find_elements(By.TAG_NAME, 'th')
+                celdas = fila.find_elements(By.TAG_NAME, 'th') + fila.find_elements(By.TAG_NAME, 'td')
 
                 # Lista para almacenar los valores de cada fila
                 fila_datos = []
@@ -85,22 +86,31 @@ class loadHTML_TablaAutoNacion:
 
                 # Agregar la lista de datos de la fila a la tabla de datos
                 tabla_datos.append(fila_datos)
-
+            
+            datos_sin_segunda_fila = tabla_datos[0:1] + tabla_datos[2:]
+            # Transponer los datos utilizando pandas
+            df = pd.DataFrame(datos_sin_segunda_fila)
+            df_transpuesta = df.transpose()
+            
+            # Convertir los valores de la transposición a una lista
+            valores_transpuestos = df_transpuesta.values.tolist()
 
             # Cargar el archivo Excel existente
             libro_excel = openpyxl.load_workbook(ruta_archivo_excel)
 
-            # Seleccionar la hoja activa del libro
+           # Seleccionar la hoja activa del libro
             hoja_activa = libro_excel.active
 
             # Obtener la última fila existente en el archivo
             ultima_fila = hoja_activa.max_row + 1
 
-            # Recorrer los datos de la tabla y escribirlos en el archivo de Excel
-            for fila_datos in tabla_datos:
+            # Recorrer los datos transpuestos y escribirlos en el archivo de Excel
+            for fila_datos in valores_transpuestos:
                 hoja_activa.append(fila_datos)
-
-            # Guardar el archivo Excel actualizado
+                
+            df_transpuesta.drop
+            
+            # Guardar el archivo Excel actualizado sobreescribiendo los datos existentes
             libro_excel.save(ruta_archivo_excel)
 
             
