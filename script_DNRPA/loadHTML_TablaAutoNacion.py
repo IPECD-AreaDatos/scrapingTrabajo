@@ -25,8 +25,8 @@ class loadHTML_TablaAutoNacion:
         # Crear el cursor para ejecutar consultas
         cursor = conn.cursor()
         try:
-            #ruta_archivo_excel = 'C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\script_DNRPA\\prueba.xlsx' 
-            ruta_archivo_excel = 'D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\script_DNRPA\\prueba.xlsx'
+            ruta_archivo_excel = 'C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\script_DNRPA\\prueba.xlsx' 
+            #ruta_archivo_excel = 'D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\script_DNRPA\\prueba.xlsx'
             driver = webdriver.Chrome()
             driver.get('https://www.dnrpa.gov.ar/portal_dnrpa/estadisticas/rrss_tramites/tram_prov.php?origen=portal_dnrpa&tipo_consulta=inscripciones')
 
@@ -89,6 +89,7 @@ class loadHTML_TablaAutoNacion:
                 # Agregar la lista de datos de la fila a la tabla de datos
                 tabla_datos.append(fila_datos)
             
+            #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓FUNCIONA BIEN MODIFICAR LO DE ABAJO ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
             datos_sin_segunda_fila = tabla_datos[0:1] + tabla_datos[2:]
             # Transponer los datos utilizando pandas
             df = pd.DataFrame(datos_sin_segunda_fila)
