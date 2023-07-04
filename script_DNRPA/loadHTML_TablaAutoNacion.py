@@ -94,7 +94,8 @@ class loadHTML_TablaAutoNacion:
             # Transponer los datos utilizando pandas
             df = pd.DataFrame(datos_sin_segunda_fila)
             df_transpuesta = df.transpose()
-            
+
+
             # Convertir los valores de la transposición a una lista
             valores_transpuestos = df_transpuesta.values.tolist()
 
