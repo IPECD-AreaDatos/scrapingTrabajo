@@ -7,6 +7,7 @@ from tabulate import tabulate
 import openpyxl
 import pandas as pd
 from dateutil.parser import parse
+import re
 
 host = 'localhost'
 user = 'root'
@@ -74,7 +75,6 @@ class loadHTML_TablaAutoNacion:
             # Lista para almacenar los datos de la tabla
             tabla_datos = []
 
-           # Recorrer las filas de la tabla
             for fila in filas:
                 # Obtener las celdas de cada fila
                 celdas = fila.find_elements(By.TAG_NAME, 'th') + fila.find_elements(By.TAG_NAME, 'td')
@@ -82,12 +82,22 @@ class loadHTML_TablaAutoNacion:
                 # Lista para almacenar los valores de cada fila
                 fila_datos = []
 
-                # Obtener el contenido de cada celda y agregarlo a la lista de datos de la fila
+                # Recorrer las celdas de la fila
                 for celda in celdas:
-                    fila_datos.append(celda.text)
+                    valor = celda.text
+                    if isinstance(valor, str):
+                        # Verificar si el valor comienza con un número
+                        if valor.strip() and valor[0].isdigit():
+                            try:
+                                # Intentar convertir el valor a float
+                                valor = float(valor)
+                                print("valor1: ", valor)
+                            except ValueError:
+                                pass  # Mantener el valor original si no se puede convertir a float
+                    fila_datos.append(valor)
 
                 # Agregar la lista de datos de la fila a la tabla de datos
-                tabla_datos.append(fila_datos)
+                tabla_datos.append(fila_datos)           
             
             #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓FUNCIONA BIEN MODIFICAR LO DE ABAJO ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
             datos_sin_segunda_fila = tabla_datos[0:1] + tabla_datos[2:]
