@@ -3,11 +3,9 @@ import mysql.connector
 import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from tabulate import tabulate
 import openpyxl
 import pandas as pd
-from dateutil.parser import parse
-import re
+from datetime import datetime
 
 host = 'localhost'
 user = 'root'
@@ -96,11 +94,11 @@ class loadHTML_TablaAutoNacion:
                             except ValueError:
                                 pass  # Mantener el valor original si no se puede convertir a float
                     fila_datos.append(valor)
-
+                print("aca: ", fila_datos)
                 # Verificar si la última celda es "Total" y eliminarla
                 if fila_datos and fila_datos[-1] == "Total":
                     fila_datos.pop()
-
+                    
                 # Agregar la lista de datos de la fila a la tabla de datos
                 tabla_datos.append(fila_datos) 
             
@@ -119,9 +117,12 @@ class loadHTML_TablaAutoNacion:
            # Seleccionar la hoja activa del libro
             hoja_activa = libro_excel.active
 
-            # Obtener la última fila existente en el archivo
-            ultima_fila = hoja_activa.max_row + 1
+            # Obtener la cantidad total de filas en el archivo
+            total_filas = hoja_activa.max_row
 
+            # Eliminar todas las filas excepto la primera (encabezados)
+            hoja_activa.delete_rows(1, total_filas)
+            
             # Recorrer los datos transpuestos y escribirlos en el archivo de Excel
             for fila_datos in valores_transpuestos:
                 hoja_activa.append(fila_datos)
