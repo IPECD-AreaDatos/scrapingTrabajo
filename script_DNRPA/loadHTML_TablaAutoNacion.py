@@ -89,15 +89,15 @@ class loadHTML_TablaAutoNacion:
                         # Verificar si el valor comienza con un número
                         if valor.strip() and valor[0].isdigit():
                             try:
+                                # Reemplazar el punto decimal por una coma (si es necesario)
+                                valor = valor.replace('.', ',')
+                                
                                 # Intentar convertir el valor a float
                                 valor = float(valor)
                                 print("valor1: ", valor)
                             except ValueError:
                                 pass  # Mantener el valor original si no se puede convertir a float
-                    fila_datos.append(valor)
-
-                # Agregar la lista de datos de la fila a la tabla de datos
-                tabla_datos.append(fila_datos)           
+                    fila_datos.append(valor)     
             
             #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓FUNCIONA BIEN MODIFICAR LO DE ABAJO ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
             datos_sin_segunda_fila = tabla_datos[0:1] + tabla_datos[2:]
