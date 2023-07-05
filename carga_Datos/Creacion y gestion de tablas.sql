@@ -622,6 +622,5 @@ Tucuman float
  Sgo_Del_Estero float,
  Tucuman float,
  Tierra_Del_Fuego float,
- Total_Provincia float,
  Total_Nacion float
  );

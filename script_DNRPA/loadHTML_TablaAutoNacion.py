@@ -74,15 +74,14 @@ class loadHTML_TablaAutoNacion:
 
             # Lista para almacenar los datos de la tabla
             tabla_datos = []
-
+            
             for fila in filas:
-                # Obtener las celdas de cada fila
-                celdas = fila.find_elements(By.TAG_NAME, 'th') + fila.find_elements(By.TAG_NAME, 'td')
+                # Obtener las celdas de cada fila, excluyendo la última columna y la última celda de encabezado
+                celdas = fila.find_elements(By.TAG_NAME, 'th') + fila.find_elements(By.TAG_NAME, 'td')[:-1]
 
                 # Lista para almacenar los valores de cada fila
                 fila_datos = []
 
-                # Recorrer las celdas de la fila
                 for celda in celdas:
                     valor = celda.text
                     if isinstance(valor, str):
@@ -91,7 +90,6 @@ class loadHTML_TablaAutoNacion:
                             try:
                                 # Reemplazar el punto decimal por una coma (si es necesario)
                                 valor = valor.replace('.', '')
-                                
                                 # Intentar convertir el valor a float
                                 valor = float(valor)
                                 print("valor1: ", valor)
@@ -99,16 +97,19 @@ class loadHTML_TablaAutoNacion:
                                 pass  # Mantener el valor original si no se puede convertir a float
                     fila_datos.append(valor)
 
+                # Verificar si la última celda es "Total" y eliminarla
+                if fila_datos and fila_datos[-1] == "Total":
+                    fila_datos.pop()
+
                 # Agregar la lista de datos de la fila a la tabla de datos
-                tabla_datos.append(fila_datos)           
+                tabla_datos.append(fila_datos) 
             
             #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓FUNCIONA BIEN MODIFICAR LO DE ABAJO ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
             datos_sin_segunda_fila = tabla_datos[0:1] + tabla_datos[2:]
             # Transponer los datos utilizando pandas
             df = pd.DataFrame(datos_sin_segunda_fila)
             df_transpuesta = df.transpose()
-
-
+            
             # Convertir los valores de la transposición a una lista
             valores_transpuestos = df_transpuesta.values.tolist()
 
