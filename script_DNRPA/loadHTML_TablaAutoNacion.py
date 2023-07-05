@@ -99,16 +99,6 @@ class loadHTML_TablaAutoNacion:
             # Convertir los valores de la transposición a una lista
             valores_transpuestos = df_transpuesta.values.tolist()
 
-            # Convertir los nombres de los meses a formato fecha
-            meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
-            valor_deseado = '2014'
-
-            # Agregar el año a los nombres de los meses
-            fechas = [parse(f'{mes} {valor_deseado}', fuzzy=True).strftime('%m/%Y') for mes in meses]
-
-            # Agregar la fila de fechas como primera fila de los valores transpuestos
-            valores_transpuestos.insert(0, fechas)
-
             # Cargar el archivo Excel existente
             libro_excel = openpyxl.load_workbook(ruta_archivo_excel)
 
