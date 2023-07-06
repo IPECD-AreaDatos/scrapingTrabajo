@@ -23,11 +23,11 @@ class loadHTML_TablaAutoNacion:
         )
         try:
 
-            #ruta_archivo_excel = 'C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\script_DNRPA\\prueba.xlsx' --> fuente MATI
+            ruta_archivo_excel = 'C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroMoto.xlsx' #--> fuente MATI
 
             #Fuente Gaston
             #ruta_archivo_excel = 'C:\\Users\\Elecciones 2021\\Desktop\\scrapingTrabajo\\script_DNRPA\\prueba.xlsx'
-            ruta_archivo_excel = 'D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroAuto.xlsx'
+            #ruta_archivo_excel = 'D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroMoto.xlsx'
             #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ SELENIUM ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
             driver = webdriver.Chrome()
             driver.get('https://www.dnrpa.gov.ar/portal_dnrpa/estadisticas/rrss_tramites/tram_prov.php?origen=portal_dnrpa&tipo_consulta=inscripciones')
@@ -40,14 +40,14 @@ class loadHTML_TablaAutoNacion:
             opciones = elemento.find_elements(By.TAG_NAME, 'option')
 
             # Buscar la opción deseada por su valor y hacer clic en ella
-            valor_deseado = '2023'  # Valor de la opción que deseas seleccionar
+            valor_deseado = '2014'  # Valor de la opción que deseas seleccionar
 
             for opcion in opciones:
                 if opcion.get_attribute('value') == valor_deseado:
                     opcion.click()
                     break
             
-            boton = driver.find_element(By.XPATH, '//*[@id="seleccion"]/center/table/tbody/tr[4]/td/input[1]')
+            boton = driver.find_element(By.XPATH, '//*[@id="seleccion"]/center/table/tbody/tr[4]/td/input[2]')
             boton.click()
             
             time.sleep(5)
@@ -196,7 +196,7 @@ class loadHTML_TablaAutoNacion:
             sheet = workbook["Hoja1"]
 
             # Obtener las fechas existentes en la tabla de MySQL
-            select_dates_query = "SELECT Fecha FROM dnrpa_nacion_auto"
+            select_dates_query = "SELECT Fecha FROM dnrpa_nacion_moto"
             cursor.execute(select_dates_query)
             existing_dates = [row[0].strftime('%Y-%m-%d') for row in cursor.fetchall()]
             
@@ -223,7 +223,7 @@ class loadHTML_TablaAutoNacion:
                             update_values.append((column_name_mysql, value))
 
                     # Crear la sentencia SQL para la actualización
-                    update_query = "UPDATE dnrpa_nacion_auto SET " + ", ".join([f"{col[0]} = %s" for col in update_values]) + " WHERE Fecha = %s"
+                    update_query = "UPDATE dnrpa_nacion_moto SET " + ", ".join([f"{col[0]} = %s" for col in update_values]) + " WHERE Fecha = %s"
                     # Obtener los valores de la columna en el orden correcto para la actualización
                     update_values = [col[1] for col in update_values]
 
@@ -252,7 +252,7 @@ class loadHTML_TablaAutoNacion:
                     # Crear la sentencia SQL para la inserción
                     columns = ", ".join([col[0] for col in insert_values])
                     placeholders = ", ".join(["%s" for _ in insert_values])
-                    insert_query = f"INSERT INTO dnrpa_nacion_auto ({columns}) VALUES ({placeholders})"
+                    insert_query = f"INSERT INTO dnrpa_nacion_moto ({columns}) VALUES ({placeholders})"
 
                     # Obtener los valores de la columna en el orden correcto para la inserción
                     insert_values = [col[1] for col in insert_values]
