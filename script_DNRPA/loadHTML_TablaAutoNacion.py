@@ -7,6 +7,8 @@ import openpyxl
 import pandas as pd
 from datetime import datetime
 
+import xlrd
+
 host = 'localhost'
 user = 'root'
 password = 'Estadistica123'
@@ -97,19 +99,7 @@ class loadHTML_TablaAutoNacion:
                 # Verificar si la última celda es "Total" y eliminarla
                 if fila_datos and fila_datos[-1] == "Total":
                     fila_datos.pop()
-                
-                if tabla_datos and tabla_datos[0][0] == 'Provincia / Mes':
-                    # Obtener el año deseado
-                    valor_deseado = '2014'
 
-                    # Modificar los nombres de los meses en la primera lista
-                    for i in range(1, len(tabla_datos[0])):
-                        # Generar la fecha en formato 'YYYY-MM-DD' para el mes y año correspondientes
-                        fecha_str = valor_deseado + '-' + format(i, '02d') + '-01'
-                        fecha = datetime.strptime(fecha_str, '%Y-%m-%d').strftime('%Y-%m-%d')
-
-                        # Reemplazar el valor en la primera lista con la fecha
-                        tabla_datos[0][i] = fecha
 
                 tabla_datos.append(fila_datos) 
             
@@ -118,8 +108,29 @@ class loadHTML_TablaAutoNacion:
             df = pd.DataFrame(datos_sin_segunda_fila)
             df_transpuesta = df.transpose()
             
+            #Conversion de MESES a formato Y-M-D , tipo de dato: datetime
+            print(df_transpuesta[0][1:])
+            meses = df_transpuesta[0][1:]
+
+            #Donde almacenamos las nuevas fechas
+            nuevas_fechas = list()
+
+            for i in range(1, len(meses)+ 1):
+
+                if i < 10:
+                    fecha_str =  '01-0'+str(i)+"-"+ str(valor_deseado)
+                else:
+                    fecha_str = '01-'+str(i)+"-"+ str(valor_deseado)
+
+                fecha_str = datetime.strptime(fecha_str,'%d-%m-%Y').date()
+                nuevas_fechas.append(fecha_str)
+
+            #Reasignacion de fechas
+            df_transpuesta[0][1:] = nuevas_fechas
+            
             # Convertir los valores de la transposición a una lista
             valores_transpuestos = df_transpuesta.values.tolist()
+            
         #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ EXCEL ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
             # Cargar el archivo Excel existente
             libro_excel = openpyxl.load_workbook(ruta_archivo_excel)
@@ -138,11 +149,89 @@ class loadHTML_TablaAutoNacion:
                 hoja_activa.append(fila_datos)
                 
             df_transpuesta.drop
-            # Obtener el año deseado
-            anio_deseado = valor_deseado
 
             # Guardar el archivo Excel actualizado sobreescribiendo los datos existentes
             libro_excel.save(ruta_archivo_excel)
+            
+            #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ CARGA MYSQL ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+            # Crear el cursor para ejecutar consultas
+            cursor = conn.cursor()
+            # Cargar el archivo Excel
+            workbook = openpyxl.load_workbook(ruta_archivo_excel)
+
+            column_mapping = {
+                'Provincia / Mes': 'Fecha',
+                'BUENOS AIRES': 'Buenos_Aires',
+                'C.AUTONOMA DE BS.AS': 'C_Autonoma_De_BSAS',
+                'CATAMARCA': 'Catamarca',
+                'CORDOBA': 'Cordoba',
+                'CORRIENTES': 'Corrientes',
+                'CHACO': 'Chaco',
+                'CHUBUT': 'Chubut',
+                'ENTRE RIOS': 'Entre_Rios',
+                'FORMOSA': 'Formosa',
+                'JUJUY': 'Jujuy',
+                'LA PAMPA': 'La_Pampa',
+                'LA RIOJA': 'La_Rioja',
+                'MENDOZA': 'Mendoza',
+                'MISIONES': 'Misiones',
+                'NEUQUEN': 'Neuquen',
+                'RIO NEGRO': 'Rio_Negro',
+                'SALTA': 'Salta',
+                'SAN JUAN': 'San_Juan',
+                'SAN LUIS': 'San_Luis',
+                'SANTA CRUZ': 'Santa_Cruz',
+                'SANTA FE': 'Santa_Fe',
+                'SGO.DEL ESTERO': 'Sgo_Del_Estero',
+                'TUCUMAN': 'Tucuman',
+                'T.DEL FUEGO': 'Tierra_Del_Fuego',
+                'TOTAL': 'Total_Nacion'
+            }
+            
+            # Obtener la hoja de trabajo específica
+            sheet = workbook["Hoja1"]
+            
+            
+            # Obtener las fechas existentes en la tabla de MySQL
+            select_dates_query = "SELECT Fecha FROM dnrpa_nacion_auto"
+            cursor.execute(select_dates_query)
+            existing_dates = [row[0] for row in cursor.fetchall()]
+
+            # Recorrer las filas del archivo de Excel a partir de la segunda fila
+            for row in sheet.iter_rows(min_row=2, values_only=True):
+                fecha = row[0]
+
+                # Verificar si la fecha ya existe en la tabla
+                if fecha not in existing_dates:
+                    # Crear una lista de tuplas con los datos a insertar en la base de datos
+                    insert_values = []
+
+                    # Recorrer las columnas y los valores de la fila actual
+                    for col_idx, value in enumerate(row):
+                        # Obtener el nombre de la columna correspondiente en el archivo de Excel
+                        column_name_excel = sheet.cell(row=1, column=col_idx + 1).value
+
+                        # Verificar si la columna está mapeada en el diccionario de mapeo
+                        if column_name_excel in column_mapping:
+                            # Obtener el nombre de la columna correspondiente en la base de datos MySQL
+                            column_name_mysql = column_mapping[column_name_excel]
+
+                            # Agregar el valor y el nombre de la columna a la lista de valores para la inserción
+                            insert_values.append((column_name_mysql, value))
+
+                    # Crear la sentencia SQL para insertar los datos en la tabla
+                    columns = ", ".join([col[0] for col in insert_values])
+                    placeholders = ", ".join(["%s" for _ in insert_values])
+                    insert_query = f"INSERT INTO dnrpa_nacion_auto ({columns}) VALUES ({placeholders})"
+
+                    # Obtener los valores de la columna en el orden correcto para la inserción
+                    insert_values = [col[1] for col in insert_values]
+
+                    # Ejecutar la sentencia SQL
+                    cursor.execute(insert_query, insert_values)
+
+            # Confirmar los cambios en la base de datos
+            conn.commit()
             
             # Se toma el tiempo de finalización y se calcula
             end_time = time.time()
