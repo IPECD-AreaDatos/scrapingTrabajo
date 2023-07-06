@@ -7,10 +7,8 @@ import openpyxl
 import pandas as pd
 from datetime import datetime
 
-import xlrd
-
-host = 'localhost'
-user = 'root'
+host = '172.17.22.10'
+user = 'Ivan'
 password = 'Estadistica123'
 database = 'prueba1'
 
@@ -24,7 +22,13 @@ class loadHTML_TablaAutoNacion:
             host=host, user=user, password=password, database=database
         )
         try:
-            ruta_archivo_excel = 'C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\script_DNRPA\\prueba.xlsx' 
+
+            #ruta_archivo_excel = 'C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\script_DNRPA\\prueba.xlsx' --> fuente MATI
+
+            #Fuente Gaston
+
+     
+            ruta_archivo_excel = 'C:\\Users\\Elecciones 2021\\Desktop\\scrapingTrabajo\\script_DNRPA\\prueba.xlsx'
             #ruta_archivo_excel = 'D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\script_DNRPA\\prueba.xlsx'
             #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ SELENIUM ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
             driver = webdriver.Chrome()
@@ -38,7 +42,7 @@ class loadHTML_TablaAutoNacion:
             opciones = elemento.find_elements(By.TAG_NAME, 'option')
 
             # Buscar la opción deseada por su valor y hacer clic en ella
-            valor_deseado = '2015'  # Valor de la opción que deseas seleccionar
+            valor_deseado = '2023'  # Valor de la opción que deseas seleccionar
 
             for opcion in opciones:
                 if opcion.get_attribute('value') == valor_deseado:
