@@ -21,11 +21,10 @@ class loadHTML_TablaAutoNacion:
         conn = mysql.connector.connect(
             host=host, user=user, password=password, database=database
         )
-        # Crear el cursor para ejecutar consultas
-        cursor = conn.cursor()
         try:
-            ruta_archivo_excel = 'C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\script_DNRPA\\prueba.xlsx' 
-            #ruta_archivo_excel = 'D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\script_DNRPA\\prueba.xlsx'
+            #ruta_archivo_excel = 'C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\script_DNRPA\\prueba.xlsx' 
+            ruta_archivo_excel = 'D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\script_DNRPA\\prueba.xlsx'
+            #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ SELENIUM ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
             driver = webdriver.Chrome()
             driver.get('https://www.dnrpa.gov.ar/portal_dnrpa/estadisticas/rrss_tramites/tram_prov.php?origen=portal_dnrpa&tipo_consulta=inscripciones')
 
@@ -60,7 +59,7 @@ class loadHTML_TablaAutoNacion:
                     driver.switch_to.window(ventana)
             
             time.sleep(5)
-
+            #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ ENCONTRAR Y TOMAR LOS DATOS ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
             # Encontrar el elemento <div> con la clase 'grid'
             elemento_div = driver.find_element(By.CLASS_NAME, 'grid')
 
@@ -98,11 +97,22 @@ class loadHTML_TablaAutoNacion:
                 # Verificar si la última celda es "Total" y eliminarla
                 if fila_datos and fila_datos[-1] == "Total":
                     fila_datos.pop()
-                    
-                # Agregar la lista de datos de la fila a la tabla de datos
+                
+                if tabla_datos and tabla_datos[0][0] == 'Provincia / Mes':
+                    # Obtener el año deseado
+                    valor_deseado = '2014'
+
+                    # Modificar los nombres de los meses en la primera lista
+                    for i in range(1, len(tabla_datos[0])):
+                        # Generar la fecha en formato 'YYYY-MM-DD' para el mes y año correspondientes
+                        fecha_str = valor_deseado + '-' + format(i, '02d') + '-01'
+                        fecha = datetime.strptime(fecha_str, '%Y-%m-%d').strftime('%Y-%m-%d')
+
+                        # Reemplazar el valor en la primera lista con la fecha
+                        tabla_datos[0][i] = fecha
+
                 tabla_datos.append(fila_datos) 
             
-            #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓FUNCIONA BIEN MODIFICAR LO DE ABAJO ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
             datos_sin_segunda_fila = tabla_datos[0:1] + tabla_datos[2:]
             # Transponer los datos utilizando pandas
             df = pd.DataFrame(datos_sin_segunda_fila)
@@ -110,7 +120,7 @@ class loadHTML_TablaAutoNacion:
             
             # Convertir los valores de la transposición a una lista
             valores_transpuestos = df_transpuesta.values.tolist()
-
+        #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ EXCEL ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
             # Cargar el archivo Excel existente
             libro_excel = openpyxl.load_workbook(ruta_archivo_excel)
 
@@ -128,15 +138,61 @@ class loadHTML_TablaAutoNacion:
                 hoja_activa.append(fila_datos)
                 
             df_transpuesta.drop
-            
+            # Obtener el año deseado
+            anio_deseado = valor_deseado
+
             # Guardar el archivo Excel actualizado sobreescribiendo los datos existentes
             libro_excel.save(ruta_archivo_excel)
 
+            #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ MYSQL ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+            column_mapping = {
+                'Provincia / Mes': 'Fecha',
+                'BUENOS AIRES': 'Bueos_Aires',
+                'C.AUTONOMA DE BS.AS': 'C_Autonoma_De_BSAS',
+                'CATAMARCA': 'Catamarca',
+                'CORDOBA': 'Cordoba',
+                'CORRIENTES': 'Corrientes',
+                'CHACO': 'Chaco',
+                'CHUBUT': 'Chubut',
+                'ENTRE RIOS': 'Entre_Rios',
+                'FORMOSA': 'Formosa',
+                'JUJUY': 'Jujuy',
+                'LA PAMPA': 'La_Pampa',
+                'LA RIOJA': 'La_Rioja',
+                'MENDOZA': 'Mendoza',
+                'MISIONES': 'Misiones',
+                'NEUQUEN': 'Neuquen',
+                'RIO NEGRO': 'Rio_Negro',
+                'SALTA': 'Salta',
+                'SAN JUAN': 'San_Juan',
+                'SAN LUIS': 'San_Luis',
+                'SANTA CRUZ': 'Santa_Cruz',
+                'SANTA FE': 'Santa_Fe',
+                'SGO.DEL ESTERO': 'Sgo_Del_Estero',
+                'TUCUMAN': 'Tucuman',
+                'T.DEL FUEGO': 'Tierra_Del_Fuego',
+                'TOTAL': 'Total_Nacion'
+            }
+            columnas_mysql = list(column_mapping.values())
+
+            # Recorrer los datos transpuestos y escribirlos en la base de datos MySQL
+            for valores_fila in valores_transpuestos:
+                # Crear la sentencia SQL para la inserción
+                sql = f"INSERT INTO dnrpa_nacion_auto ({', '.join(columnas_mysql)}) VALUES ({', '.join(['%s'] * len(columnas_mysql))})"
+                
+                # Obtener los valores correspondientes a las columnas de MySQL
+                valores_mysql = [valores_fila[column_mapping[columna]] for columna in columnas_mysql]
+                
+                # Ejecutar la sentencia SQL con los valores
+                conn.execute(sql, valores_mysql)
+            # Confirmar los cambios en la base de datos
+            conn.commit()
+            
             # Se toma el tiempo de finalización y se calcula
             end_time = time.time()
             duration = end_time - start_time
             print("-----------------------------------------------")
-            print("Se guardaron los datos de SIPA NACIONAL CON ESTACIONALIDAD")
+            print("Se guardaron los datos de Registro automotor")
             print("Tiempo de ejecución:", duration)
 
             # Cerrar la conexión a la base de datos
@@ -144,7 +200,7 @@ class loadHTML_TablaAutoNacion:
 
         except Exception as e:
             # Manejar cualquier excepción ocurrida durante la carga de datos
-            print(f"Data Cuyo: Ocurrió un error durante la carga de datos: {str(e)}")
+            print(f"Registro automotor: Ocurrió un error durante la carga de datos: {str(e)}")
             conn.close()  # Cerrar la conexión en caso de error
             
 loadHTML_TablaAutoNacion().loadInDataBase(host, user, password, database)

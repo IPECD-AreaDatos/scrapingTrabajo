@@ -597,7 +597,7 @@ Tucuman float
 -- Tablas de Registro Propiedad Automotor 
 -- Nacional
  CREATE TABLE dnrpa_nacion_auto(
- Fecha char, 
+ Fecha date, 
  Bueos_Aires float,
  C_Autonoma_De_BSAS float,
  Catamarca float,
