@@ -38,7 +38,7 @@ class loadHTML_TablaAutoNacion:
             opciones = elemento.find_elements(By.TAG_NAME, 'option')
 
             # Buscar la opción deseada por su valor y hacer clic en ella
-            valor_deseado = '2014'  # Valor de la opción que deseas seleccionar
+            valor_deseado = '2015'  # Valor de la opción que deseas seleccionar
 
             for opcion in opciones:
                 if opcion.get_attribute('value') == valor_deseado:
@@ -157,6 +157,8 @@ class loadHTML_TablaAutoNacion:
             # Crear el cursor para ejecutar consultas
             cursor = conn.cursor()
             # Cargar el archivo Excel
+           
+            # Cargar el archivo Excel
             workbook = openpyxl.load_workbook(ruta_archivo_excel)
 
             column_mapping = {
@@ -187,23 +189,49 @@ class loadHTML_TablaAutoNacion:
                 'T.DEL FUEGO': 'Tierra_Del_Fuego',
                 'TOTAL': 'Total_Nacion'
             }
-            
+
             # Obtener la hoja de trabajo específica
             sheet = workbook["Hoja1"]
-            
-            
+
             # Obtener las fechas existentes en la tabla de MySQL
             select_dates_query = "SELECT Fecha FROM dnrpa_nacion_auto"
             cursor.execute(select_dates_query)
-            existing_dates = [row[0] for row in cursor.fetchall()]
-
+            existing_dates = [row[0].strftime('%Y-%m-%d') for row in cursor.fetchall()]
+            
             # Recorrer las filas del archivo de Excel a partir de la segunda fila
             for row in sheet.iter_rows(min_row=2, values_only=True):
                 fecha = row[0]
+                fecha_str = fecha.strftime('%Y-%m-%d')
+                
+                if fecha_str in existing_dates:
+                    # Realizar una actualización (UPDATE)
+                    update_values = []
 
-                # Verificar si la fecha ya existe en la tabla
-                if fecha not in existing_dates:
-                    # Crear una lista de tuplas con los datos a insertar en la base de datos
+                    # Recorrer las columnas y los valores de la fila actual
+                    for col_idx, value in enumerate(row):
+                        # Obtener el nombre de la columna correspondiente en el archivo de Excel
+                        column_name_excel = sheet.cell(row=1, column=col_idx + 1).value
+
+                        # Verificar si la columna está mapeada en el diccionario de mapeo
+                        if column_name_excel in column_mapping:
+                            # Obtener el nombre de la columna correspondiente en la base de datos MySQL
+                            column_name_mysql = column_mapping[column_name_excel]
+
+                            # Agregar el nombre de la columna y el valor a la lista de valores para la actualización
+                            update_values.append((column_name_mysql, value))
+
+                    # Crear la sentencia SQL para la actualización
+                    update_query = "UPDATE dnrpa_nacion_auto SET " + ", ".join([f"{col[0]} = %s" for col in update_values]) + " WHERE Fecha = %s"
+                    # Obtener los valores de la columna en el orden correcto para la actualización
+                    update_values = [col[1] for col in update_values]
+
+                    # Agregar la fecha al final de los valores de actualización
+                    update_values.append(fecha)
+
+                    # Ejecutar la sentencia SQL
+                    cursor.execute(update_query, update_values)
+                else:
+                    # Realizar una inserción (INSERT)
                     insert_values = []
 
                     # Recorrer las columnas y los valores de la fila actual
@@ -216,10 +244,10 @@ class loadHTML_TablaAutoNacion:
                             # Obtener el nombre de la columna correspondiente en la base de datos MySQL
                             column_name_mysql = column_mapping[column_name_excel]
 
-                            # Agregar el valor y el nombre de la columna a la lista de valores para la inserción
+                            # Agregar el nombre de la columna y el valor a la lista de valores para la inserción
                             insert_values.append((column_name_mysql, value))
 
-                    # Crear la sentencia SQL para insertar los datos en la tabla
+                    # Crear la sentencia SQL para la inserción
                     columns = ", ".join([col[0] for col in insert_values])
                     placeholders = ", ".join(["%s" for _ in insert_values])
                     insert_query = f"INSERT INTO dnrpa_nacion_auto ({columns}) VALUES ({placeholders})"
