@@ -598,7 +598,7 @@ Tucuman float
 -- Nacional
  CREATE TABLE dnrpa_nacion_auto(
  Fecha date, 
- Bueos_Aires float,
+ Buenos_Aires float,
  C_Autonoma_De_BSAS float,
  Catamarca float,
  Cordoba float,

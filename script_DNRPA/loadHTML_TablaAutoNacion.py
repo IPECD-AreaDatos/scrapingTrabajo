@@ -143,50 +143,6 @@ class loadHTML_TablaAutoNacion:
 
             # Guardar el archivo Excel actualizado sobreescribiendo los datos existentes
             libro_excel.save(ruta_archivo_excel)
-
-            #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ MYSQL ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
-            column_mapping = {
-                'Provincia / Mes': 'Fecha',
-                'BUENOS AIRES': 'Bueos_Aires',
-                'C.AUTONOMA DE BS.AS': 'C_Autonoma_De_BSAS',
-                'CATAMARCA': 'Catamarca',
-                'CORDOBA': 'Cordoba',
-                'CORRIENTES': 'Corrientes',
-                'CHACO': 'Chaco',
-                'CHUBUT': 'Chubut',
-                'ENTRE RIOS': 'Entre_Rios',
-                'FORMOSA': 'Formosa',
-                'JUJUY': 'Jujuy',
-                'LA PAMPA': 'La_Pampa',
-                'LA RIOJA': 'La_Rioja',
-                'MENDOZA': 'Mendoza',
-                'MISIONES': 'Misiones',
-                'NEUQUEN': 'Neuquen',
-                'RIO NEGRO': 'Rio_Negro',
-                'SALTA': 'Salta',
-                'SAN JUAN': 'San_Juan',
-                'SAN LUIS': 'San_Luis',
-                'SANTA CRUZ': 'Santa_Cruz',
-                'SANTA FE': 'Santa_Fe',
-                'SGO.DEL ESTERO': 'Sgo_Del_Estero',
-                'TUCUMAN': 'Tucuman',
-                'T.DEL FUEGO': 'Tierra_Del_Fuego',
-                'TOTAL': 'Total_Nacion'
-            }
-            columnas_mysql = list(column_mapping.values())
-
-            # Recorrer los datos transpuestos y escribirlos en la base de datos MySQL
-            for valores_fila in valores_transpuestos:
-                # Crear la sentencia SQL para la inserción
-                sql = f"INSERT INTO dnrpa_nacion_auto ({', '.join(columnas_mysql)}) VALUES ({', '.join(['%s'] * len(columnas_mysql))})"
-                
-                # Obtener los valores correspondientes a las columnas de MySQL
-                valores_mysql = [valores_fila[column_mapping[columna]] for columna in columnas_mysql]
-                
-                # Ejecutar la sentencia SQL con los valores
-                conn.execute(sql, valores_mysql)
-            # Confirmar los cambios en la base de datos
-            conn.commit()
             
             # Se toma el tiempo de finalización y se calcula
             end_time = time.time()
