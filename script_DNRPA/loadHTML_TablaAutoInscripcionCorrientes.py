@@ -23,11 +23,11 @@ class loadHTML_TablaAutoNacion:
         )
         try:
 
-            #ruta_archivo_excel = 'C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroAuto.xlsx' --> fuente MATI
+            ruta_archivo_excel = 'C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroInscripcionAutoCorientes.xlsx' #--> fuente MATI
 
             #Fuente Gaston
-            #ruta_archivo_excel = 'C:\\Users\\Elecciones 2021\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroAuto.xlsx'
-            ruta_archivo_excel = 'D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroInscripcionAutoCorientes.xlsx'
+            #ruta_archivo_excel = 'C:\\Users\\Elecciones 2021\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroInscripcionAutoCorientes.xlsx'
+            #ruta_archivo_excel = 'D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroInscripcionAutoCorientes.xlsx'
             #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ SELENIUM ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
             driver = webdriver.Chrome()
             driver.get('https://www.dnrpa.gov.ar/portal_dnrpa/estadisticas/rrss_tramites/tram_prov.php?origen=portal_dnrpa&tipo_consulta=inscripciones')
@@ -125,6 +125,9 @@ class loadHTML_TablaAutoNacion:
             # Transponer los datos utilizando pandas
             df = pd.DataFrame(datos_sin_segunda_fila)
             df_transpuesta = df.transpose()
+            df_transpuesta = df_transpuesta.drop(df_transpuesta.index[-1])
+            df_transpuesta = df_transpuesta.drop(df_transpuesta.columns[-1],axis=1)
+            
             
             #Conversion de MESES a formato Y-M-D , tipo de dato: datetime
             print(df_transpuesta[0][1:])
@@ -167,7 +170,7 @@ class loadHTML_TablaAutoNacion:
                 hoja_activa.append(fila_datos)
                 
             df_transpuesta.drop
-
+            
             # Guardar el archivo Excel actualizado sobreescribiendo los datos existentes
             libro_excel.save(ruta_archivo_excel)
             
