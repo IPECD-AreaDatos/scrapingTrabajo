@@ -279,3 +279,148 @@ class loadHTML_TablaAutoNacion:
             conn.close()  # Cerrar la conexión en caso de error
             
 loadHTML_TablaAutoNacion().loadInDataBase(host, user, password, database)
+
+#aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+            for i in range(1, len(meses)+1):
+
+                if i < 10:
+                    fecha_str =  '01-0'+str(i)+"-"+ str(valor_deseado)
+                else:
+                    fecha_str = '01-'+str(i)+"-"+ str(valor_deseado)
+
+                fecha_str = datetime.strptime(fecha_str,'%d-%m-%Y').date()
+                nuevas_fechas.append(fecha_str)
+
+            #Reasignacion de fechas
+            df_transpuesta[0][1:] = nuevas_fechas
+            
+            # Convertir los valores de la transposición a una lista
+            valores_transpuestos = df_transpuesta.values.tolist()
+            
+        #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ EXCEL ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+            # Cargar el archivo Excel existente
+            libro_excel = openpyxl.load_workbook(ruta_archivo_excel)
+
+           # Seleccionar la hoja activa del libro
+            hoja_activa = libro_excel.active
+
+            # Obtener la cantidad total de filas en el archivo
+            total_filas = hoja_activa.max_row
+
+            # Eliminar todas las filas excepto la primera (encabezados)
+            hoja_activa.delete_rows(1, total_filas)
+            
+            # Recorrer los datos transpuestos y escribirlos en el archivo de Excel
+            for fila_datos in valores_transpuestos:
+                hoja_activa.append(fila_datos)
+                
+            df_transpuesta.drop
+
+            # Guardar el archivo Excel actualizado sobreescribiendo los datos existentes
+            libro_excel.save(ruta_archivo_excel)
+            
+            #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ CARGA MYSQL ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+            # Crear el cursor para ejecutar consultas
+            cursor = conn.cursor()
+            # Cargar el archivo Excel
+           
+            # Cargar el archivo Excel
+            workbook = openpyxl.load_workbook(ruta_archivo_excel)
+
+            column_mapping = {
+                'RRSS / Mes': 'Fecha',
+                '5001 - BELLA VISTA': 'Bella_vista',
+                '5002 - CORRIENTES N° 1': 'Corrientes_N1',
+                '5003 - CURUZU CUATIA': 'Curuzu_Cuatia',
+                '5004 - GOYA': 'Goya',
+                '5005 - MERCEDES': 'Mercedes',
+                '5006 - PASO DE LOS LIBRES': 'Paso_De_Los_Libres',
+                '5007 - SANTO TOME': 'Santo_Tome',
+                '5008 - ESQUINA': 'Esquina',
+                '5009 - ITUZAINGO N° 1': 'Ituzaingo_N1',
+                '5010 - MONTE CASEROS': 'Monte_Caseros',
+                '5011 - CORRIENTES N° 2': 'Corrientes_N2',
+                '5012 - ALVEAR': 'Alvear',
+                '5013 - CORRIENTES N° 3': 'Corrientes_N3',
+                '5014 - CORRIENTES N° 4': 'Corrientes_N4',
+                '5015 - SAN COSME': 'San_Cosme',
+                'TOTAL': 'Total_Nacion',
+            }
+
+            # Obtener la hoja de trabajo específica
+            sheet = workbook["Hoja1"]
+
+            # Obtener las fechas existentes en la tabla de MySQL
+            select_dates_query = "SELECT Fecha FROM dnrpa_inscripcion_corrientes_auto"
+            cursor.execute(select_dates_query)
+            existing_dates = [row[0].strftime('%Y-%m-%d') for row in cursor.fetchall()]
+            
+            # Recorrer las filas del archivo de Excel a partir de la segunda fila
+            for row in sheet.iter_rows(min_row=2, values_only=True):
+                fecha = row[0]
+                fecha_str = fecha.strftime('%Y-%m-%d')
+                
+                if fecha_str in existing_dates:
+                    # Realizar una actualización (UPDATE)
+                    update_values = []
+
+                    # Recorrer las columnas y los valores de la fila actual
+                    for col_idx, value in enumerate(row):
+                        # Obtener el nombre de la columna correspondiente en el archivo de Excel
+                        column_name_excel = sheet.cell(row=1, column=col_idx + 1).value
+
+                        # Verificar si la columna está mapeada en el diccionario de mapeo
+                        if column_name_excel in column_mapping:
+                            # Obtener el nombre de la columna correspondiente en la base de datos MySQL
+                            column_name_mysql = column_mapping[column_name_excel]
+
+                            # Agregar el nombre de la columna y el valor a la lista de valores para la actualización
+                            update_values.append((column_name_mysql, value))
+
+                    # Crear la sentencia SQL para la actualización
+                    update_query = "UPDATE dnrpa_inscripcion_corrientes_auto SET " + ", ".join([f"{col[0]} = %s" for col in update_values]) + " WHERE Fecha = %s"
+                    # Obtener los valores de la columna en el orden correcto para la actualización
+                    update_values = [col[1] for col in update_values]
+
+                    # Agregar la fecha al final de los valores de actualización
+                    update_values.append(fecha)
+
+                    # Ejecutar la sentencia SQL
+                    cursor.execute(update_query, update_values)
+                else:
+                    # Realizar una inserción (INSERT)
+                    insert_values = []
+
+                    # Recorrer las columnas y los valores de la fila actual
+                    for col_idx, value in enumerate(row):
+                        # Obtener el nombre de la columna correspondiente en el archivo de Excel
+                        column_name_excel = sheet.cell(row=1, column=col_idx + 1).value
+
+                        # Verificar si la columna está mapeada en el diccionario de mapeo
+                        if column_name_excel in column_mapping:
+                            # Obtener el nombre de la columna correspondiente en la base de datos MySQL
+                            column_name_mysql = column_mapping[column_name_excel]
+
+                            # Agregar el nombre de la columna y el valor a la lista de valores para la inserción
+                            insert_values.append((column_name_mysql, value))
+
+                    # Crear la sentencia SQL para la inserción
+                    columns = ", ".join([col[0] for col in insert_values])
+                    placeholders = ", ".join(["%s" for _ in insert_values])
+                    insert_query = f"INSERT INTO dnrpa_inscripcion_corrientes_auto ({columns}) VALUES ({placeholders})"
+
+                    # Obtener los valores de la columna en el orden correcto para la inserción
+                    insert_values = [col[1] for col in insert_values]
+
+                    # Ejecutar la sentencia SQL
+                    cursor.execute(insert_query, insert_values)
+
+            # Confirmar los cambios en la base de datos
+            conn.commit()
+            
+            # Se toma el tiempo de finalización y se calcula
+            end_time = time.time()
+            duration = end_time - start_time
+            print("-----------------------------------------------")
+            print("Se guardaron los datos de Registro automotor")
+            print("Tiempo de ejecución:", duration)
