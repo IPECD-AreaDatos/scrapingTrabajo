@@ -596,7 +596,7 @@ Tucuman float
 
 -- Tablas de Registro Propiedad Automotor 
 -- Nacional
- CREATE TABLE dnrpa_nacion_auto(
+ CREATE TABLE dnrpa_inscripcion_nacion_auto(
  Fecha date, 
  Buenos_Aires float,
  C_Autonoma_De_BSAS float,
@@ -624,7 +624,7 @@ Tucuman float
  Tierra_Del_Fuego float,
  Total_Nacion float
  );
-  CREATE TABLE dnrpa_nacion_moto(
+  CREATE TABLE dnrpa_inscripcion_nacion_moto(
  Fecha date, 
  Buenos_Aires float,
  C_Autonoma_De_BSAS float,
@@ -650,5 +650,24 @@ Tucuman float
  Sgo_Del_Estero float,
  Tucuman float,
  Tierra_Del_Fuego float,
+ Total_Nacion float
+ );
+CREATE TABLE dnrpa_inscripcion_corrientes_auto(
+ Fecha date, 
+ Bella_vista float,
+ Corrientes_N1 float,
+ Curuzu_Cuatia float,
+ Goya float,
+ Mercedes float,
+ Paso_De_Los_Libres float,
+ Santo_Tome float,
+ Esquina float,
+ Ituzaingo_N1 float,
+ Monte_Caseros float,
+ Corrientes_N2 float,
+ Alvear float,
+ Corrientes_N3 float,
+ Corrientes_N4 float,
+ San_Cosme float,
  Total_Nacion float
  );

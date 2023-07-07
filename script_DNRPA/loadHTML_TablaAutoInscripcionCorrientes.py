@@ -23,11 +23,11 @@ class loadHTML_TablaAutoNacion:
         )
         try:
 
-            ruta_archivo_excel = 'C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroMoto.xlsx' #--> fuente MATI
+            #ruta_archivo_excel = 'C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroAuto.xlsx' --> fuente MATI
 
             #Fuente Gaston
-            #ruta_archivo_excel = 'C:\\Users\\Elecciones 2021\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroMoto.xlsx'
-            #ruta_archivo_excel = 'D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroMoto.xlsx'
+            #ruta_archivo_excel = 'C:\\Users\\Elecciones 2021\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroAuto.xlsx'
+            ruta_archivo_excel = 'D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroInscripcionAutoCorientes.xlsx'
             #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ SELENIUM ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
             driver = webdriver.Chrome()
             driver.get('https://www.dnrpa.gov.ar/portal_dnrpa/estadisticas/rrss_tramites/tram_prov.php?origen=portal_dnrpa&tipo_consulta=inscripciones')
@@ -40,14 +40,14 @@ class loadHTML_TablaAutoNacion:
             opciones = elemento.find_elements(By.TAG_NAME, 'option')
 
             # Buscar la opción deseada por su valor y hacer clic en ella
-            valor_deseado = '2023'  # Valor de la opción que deseas seleccionar
+            valor_deseado = '2014'  # Valor de la opción que deseas seleccionar
 
             for opcion in opciones:
                 if opcion.get_attribute('value') == valor_deseado:
                     opcion.click()
                     break
             
-            boton = driver.find_element(By.XPATH, '//*[@id="seleccion"]/center/table/tbody/tr[4]/td/input[2]')
+            boton = driver.find_element(By.XPATH, '//*[@id="seleccion"]/center/table/tbody/tr[4]/td/input[1]')
             boton.click()
             
             time.sleep(5)
@@ -63,6 +63,22 @@ class loadHTML_TablaAutoNacion:
                     driver.switch_to.window(ventana)
             
             time.sleep(5)
+            
+            # Encontrar el elemento del enlace por el texto visible completo
+            enlace = driver.find_element(By.LINK_TEXT, "CORRIENTES")
+
+            # O encontrar el elemento del enlace por el texto visible parcial
+            # enlace = driver.find_element_by_partial_link_text("CORRIENTES")
+
+            # Hacer clic en el enlace
+            enlace.click()
+            # Esperar un momento para que se abra la nueva pestaña
+            driver.implicitly_wait(5)
+            # Cambiar al contexto de la nueva pestaña
+            for ventana in driver.window_handles:
+                if ventana != ventana_actual:
+                    driver.switch_to.window(ventana)
+            
             #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ ENCONTRAR Y TOMAR LOS DATOS ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
             # Encontrar el elemento <div> con la clase 'grid'
             elemento_div = driver.find_element(By.CLASS_NAME, 'grid')
@@ -117,7 +133,7 @@ class loadHTML_TablaAutoNacion:
             #Donde almacenamos las nuevas fechas
             nuevas_fechas = list()
 
-            for i in range(1, len(meses)+ 1):
+            for i in range(1, len(meses)+1):
 
                 if i < 10:
                     fecha_str =  '01-0'+str(i)+"-"+ str(valor_deseado)
@@ -164,39 +180,30 @@ class loadHTML_TablaAutoNacion:
             workbook = openpyxl.load_workbook(ruta_archivo_excel)
 
             column_mapping = {
-                'Provincia / Mes': 'Fecha',
-                'BUENOS AIRES': 'Buenos_Aires',
-                'C.AUTONOMA DE BS.AS': 'C_Autonoma_De_BSAS',
-                'CATAMARCA': 'Catamarca',
-                'CORDOBA': 'Cordoba',
-                'CORRIENTES': 'Corrientes',
-                'CHACO': 'Chaco',
-                'CHUBUT': 'Chubut',
-                'ENTRE RIOS': 'Entre_Rios',
-                'FORMOSA': 'Formosa',
-                'JUJUY': 'Jujuy',
-                'LA PAMPA': 'La_Pampa',
-                'LA RIOJA': 'La_Rioja',
-                'MENDOZA': 'Mendoza',
-                'MISIONES': 'Misiones',
-                'NEUQUEN': 'Neuquen',
-                'RIO NEGRO': 'Rio_Negro',
-                'SALTA': 'Salta',
-                'SAN JUAN': 'San_Juan',
-                'SAN LUIS': 'San_Luis',
-                'SANTA CRUZ': 'Santa_Cruz',
-                'SANTA FE': 'Santa_Fe',
-                'SGO.DEL ESTERO': 'Sgo_Del_Estero',
-                'TUCUMAN': 'Tucuman',
-                'T.DEL FUEGO': 'Tierra_Del_Fuego',
-                'TOTAL': 'Total_Nacion'
+                'RRSS / Mes': 'Fecha',
+                '5001 - BELLA VISTA': 'Bella_vista',
+                '5002 - CORRIENTES N° 1': 'Corrientes_N1',
+                '5003 - CURUZU CUATIA': 'Curuzu_Cuatia',
+                '5004 - GOYA': 'Goya',
+                '5005 - MERCEDES': 'Mercedes',
+                '5006 - PASO DE LOS LIBRES': 'Paso_De_Los_Libres',
+                '5007 - SANTO TOME': 'Santo_Tome',
+                '5008 - ESQUINA': 'Esquina',
+                '5009 - ITUZAINGO N° 1': 'Ituzaingo_N1',
+                '5010 - MONTE CASEROS': 'Monte_Caseros',
+                '5011 - CORRIENTES N° 2': 'Corrientes_N2',
+                '5012 - ALVEAR': 'Alvear',
+                '5013 - CORRIENTES N° 3': 'Corrientes_N3',
+                '5014 - CORRIENTES N° 4': 'Corrientes_N4',
+                '5015 - SAN COSME': 'San_Cosme',
+                'TOTAL': 'Total_Nacion',
             }
 
             # Obtener la hoja de trabajo específica
             sheet = workbook["Hoja1"]
 
             # Obtener las fechas existentes en la tabla de MySQL
-            select_dates_query = "SELECT Fecha FROM dnrpa_nacion_moto"
+            select_dates_query = "SELECT Fecha FROM dnrpa_inscripcion_corrientes_auto"
             cursor.execute(select_dates_query)
             existing_dates = [row[0].strftime('%Y-%m-%d') for row in cursor.fetchall()]
             
@@ -223,7 +230,7 @@ class loadHTML_TablaAutoNacion:
                             update_values.append((column_name_mysql, value))
 
                     # Crear la sentencia SQL para la actualización
-                    update_query = "UPDATE dnrpa_nacion_moto SET " + ", ".join([f"{col[0]} = %s" for col in update_values]) + " WHERE Fecha = %s"
+                    update_query = "UPDATE dnrpa_inscripcion_corrientes_auto SET " + ", ".join([f"{col[0]} = %s" for col in update_values]) + " WHERE Fecha = %s"
                     # Obtener los valores de la columna en el orden correcto para la actualización
                     update_values = [col[1] for col in update_values]
 
@@ -252,7 +259,7 @@ class loadHTML_TablaAutoNacion:
                     # Crear la sentencia SQL para la inserción
                     columns = ", ".join([col[0] for col in insert_values])
                     placeholders = ", ".join(["%s" for _ in insert_values])
-                    insert_query = f"INSERT INTO dnrpa_nacion_moto ({columns}) VALUES ({placeholders})"
+                    insert_query = f"INSERT INTO dnrpa_inscripcion_corrientes_auto ({columns}) VALUES ({placeholders})"
 
                     # Obtener los valores de la columna en el orden correcto para la inserción
                     insert_values = [col[1] for col in insert_values]

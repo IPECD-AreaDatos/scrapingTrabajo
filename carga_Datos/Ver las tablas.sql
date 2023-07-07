@@ -72,3 +72,4 @@ SELECT * FROM prueba1.sipa_provincia_sin_estacionalidad;
 
 -- DNRPA 
 SELECT * FROM prueba1.dnrpa_nacion_auto;
+SELECT * FROM prueba1.dnrpa_nacion_moto;
