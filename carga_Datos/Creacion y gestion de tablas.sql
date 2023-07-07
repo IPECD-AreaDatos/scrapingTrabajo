@@ -671,3 +671,20 @@ CREATE TABLE dnrpa_inscripcion_corrientes_auto(
  San_Cosme float,
  Total_Nacion float
  );
+ CREATE TABLE dnrpa_inscripcion_corrientes_moto(
+ Fecha date, 
+ Bella_vista_A float,
+ Corrientes_A float,
+ Curuzu_Cuatia_A float,
+ Goya_A float,
+ Mercedes_A float,
+ Paso_De_Los_Libres_A float,
+ Santo_Tome_A float,
+ Esquina_A float,
+ Ituzaingo_A float,
+ Monte_Caseros_A float,
+ Corrientes_B float,
+ Alvear_A float,
+ San_Cosme_A float,
+ Total_Nacion float
+ );

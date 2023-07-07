@@ -12,7 +12,7 @@ user = 'Ivan'
 password = 'Estadistica123'
 database = 'prueba1'
 
-class loadHTML_TablaAutoNacion:
+class loadHTML_TablaMotoInscripcionCorrientes:
     def loadInDataBase(self, host, user, password, database):
         # Se toma el tiempo de comienzo
         start_time = time.time()
@@ -23,11 +23,11 @@ class loadHTML_TablaAutoNacion:
         )
         try:
 
-            #ruta_archivo_excel = 'C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroAuto.xlsx' --> fuente MATI
+            ruta_archivo_excel = 'C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroInscripcionMotoCorrientes.xlsx' #--> fuente MATI
 
             #Fuente Gaston
-            #ruta_archivo_excel = 'C:\\Users\\Elecciones 2021\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroAuto.xlsx'
-            ruta_archivo_excel = 'D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroAuto.xlsx'
+            #ruta_archivo_excel = 'C:\\Users\\Elecciones 2021\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroInscripcionMotoCorrientes.xlsx'
+            #ruta_archivo_excel = 'D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroInscripcionMotoCorrientes.xlsx'
             #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ SELENIUM ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
             driver = webdriver.Chrome()
             driver.get('https://www.dnrpa.gov.ar/portal_dnrpa/estadisticas/rrss_tramites/tram_prov.php?origen=portal_dnrpa&tipo_consulta=inscripciones')
@@ -40,14 +40,14 @@ class loadHTML_TablaAutoNacion:
             opciones = elemento.find_elements(By.TAG_NAME, 'option')
 
             # Buscar la opción deseada por su valor y hacer clic en ella
-            valor_deseado = '2023'  # Valor de la opción que deseas seleccionar
+            valor_deseado = '2014'  # Valor de la opción que deseas seleccionar
 
             for opcion in opciones:
                 if opcion.get_attribute('value') == valor_deseado:
                     opcion.click()
                     break
             
-            boton = driver.find_element(By.XPATH, '//*[@id="seleccion"]/center/table/tbody/tr[4]/td/input[1]')
+            boton = driver.find_element(By.XPATH, '//*[@id="seleccion"]/center/table/tbody/tr[4]/td/input[2]')
             boton.click()
             
             time.sleep(5)
@@ -63,6 +63,22 @@ class loadHTML_TablaAutoNacion:
                     driver.switch_to.window(ventana)
             
             time.sleep(5)
+            
+            # Encontrar el elemento del enlace por el texto visible completo
+            enlace = driver.find_element(By.LINK_TEXT, "CORRIENTES")
+
+            # O encontrar el elemento del enlace por el texto visible parcial
+            # enlace = driver.find_element_by_partial_link_text("CORRIENTES")
+
+            # Hacer clic en el enlace
+            enlace.click()
+            # Esperar un momento para que se abra la nueva pestaña
+            driver.implicitly_wait(5)
+            # Cambiar al contexto de la nueva pestaña
+            for ventana in driver.window_handles:
+                if ventana != ventana_actual:
+                    driver.switch_to.window(ventana)
+            
             #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ ENCONTRAR Y TOMAR LOS DATOS ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
             # Encontrar el elemento <div> con la clase 'grid'
             elemento_div = driver.find_element(By.CLASS_NAME, 'grid')
@@ -109,6 +125,9 @@ class loadHTML_TablaAutoNacion:
             # Transponer los datos utilizando pandas
             df = pd.DataFrame(datos_sin_segunda_fila)
             df_transpuesta = df.transpose()
+            df_transpuesta = df_transpuesta.drop(df_transpuesta.index[-1])
+            df_transpuesta = df_transpuesta.drop(df_transpuesta.columns[-1],axis=1)
+            
             
             #Conversion de MESES a formato Y-M-D , tipo de dato: datetime
             print(df_transpuesta[0][1:])
@@ -117,7 +136,7 @@ class loadHTML_TablaAutoNacion:
             #Donde almacenamos las nuevas fechas
             nuevas_fechas = list()
 
-            for i in range(1, len(meses)+ 1):
+            for i in range(1, len(meses)+1):
 
                 if i < 10:
                     fecha_str =  '01-0'+str(i)+"-"+ str(valor_deseado)
@@ -151,7 +170,7 @@ class loadHTML_TablaAutoNacion:
                 hoja_activa.append(fila_datos)
                 
             df_transpuesta.drop
-
+            
             # Guardar el archivo Excel actualizado sobreescribiendo los datos existentes
             libro_excel.save(ruta_archivo_excel)
             
@@ -164,39 +183,28 @@ class loadHTML_TablaAutoNacion:
             workbook = openpyxl.load_workbook(ruta_archivo_excel)
 
             column_mapping = {
-                'Provincia / Mes': 'Fecha',
-                'BUENOS AIRES': 'Buenos_Aires',
-                'C.AUTONOMA DE BS.AS': 'C_Autonoma_De_BSAS',
-                'CATAMARCA': 'Catamarca',
-                'CORDOBA': 'Cordoba',
-                'CORRIENTES': 'Corrientes',
-                'CHACO': 'Chaco',
-                'CHUBUT': 'Chubut',
-                'ENTRE RIOS': 'Entre_Rios',
-                'FORMOSA': 'Formosa',
-                'JUJUY': 'Jujuy',
-                'LA PAMPA': 'La_Pampa',
-                'LA RIOJA': 'La_Rioja',
-                'MENDOZA': 'Mendoza',
-                'MISIONES': 'Misiones',
-                'NEUQUEN': 'Neuquen',
-                'RIO NEGRO': 'Rio_Negro',
-                'SALTA': 'Salta',
-                'SAN JUAN': 'San_Juan',
-                'SAN LUIS': 'San_Luis',
-                'SANTA CRUZ': 'Santa_Cruz',
-                'SANTA FE': 'Santa_Fe',
-                'SGO.DEL ESTERO': 'Sgo_Del_Estero',
-                'TUCUMAN': 'Tucuman',
-                'T.DEL FUEGO': 'Tierra_Del_Fuego',
-                'TOTAL': 'Total_Nacion'
+                'RRSS / Mes': 'Fecha',
+                '29001 - BELLA VISTA "A"': 'Bella_vista_A',
+                '29002 - CORRIENTES "A"': 'Corrientes_A',
+                '29003 - CURUZU CUATIA "A"': 'Curuzu_Cuatia_A',
+                '29004 - GOYA "A"': 'Goya_A',
+                '29005 - MERCEDES "A"': 'Mercedes_A',
+                '29006 - PASO DE LOS LIBRES "A"': 'Paso_De_Los_Libres_A',
+                '29007 - SANTO TOME "A"': 'Santo_Tome_A',
+                '29008 - ESQUINA "A"': 'Esquina_A',
+                '29009 - ITUZAINGO "A"': 'Ituzaingo_A',
+                '29010 - MONTE CASEROS "A"': 'Monte_Caseros_A',
+                '29011 - CORRIENTES "B"': 'Corrientes_B',
+                '29012 - ALVEAR "A"': 'Alvear_A',
+                '29013 - SAN COSME "A"	': 'San_Cosme_A',
+                'TOTAL': 'Total_Nacion',
             }
 
             # Obtener la hoja de trabajo específica
             sheet = workbook["Hoja1"]
 
             # Obtener las fechas existentes en la tabla de MySQL
-            select_dates_query = "SELECT Fecha FROM dnrpa_nacion_auto"
+            select_dates_query = "SELECT Fecha FROM dnrpa_inscripcion_corrientes_moto"
             cursor.execute(select_dates_query)
             existing_dates = [row[0].strftime('%Y-%m-%d') for row in cursor.fetchall()]
             
@@ -223,7 +231,7 @@ class loadHTML_TablaAutoNacion:
                             update_values.append((column_name_mysql, value))
 
                     # Crear la sentencia SQL para la actualización
-                    update_query = "UPDATE dnrpa_nacion_auto SET " + ", ".join([f"{col[0]} = %s" for col in update_values]) + " WHERE Fecha = %s"
+                    update_query = "UPDATE dnrpa_inscripcion_corrientes_moto SET " + ", ".join([f"{col[0]} = %s" for col in update_values]) + " WHERE Fecha = %s"
                     # Obtener los valores de la columna en el orden correcto para la actualización
                     update_values = [col[1] for col in update_values]
 
@@ -252,7 +260,7 @@ class loadHTML_TablaAutoNacion:
                     # Crear la sentencia SQL para la inserción
                     columns = ", ".join([col[0] for col in insert_values])
                     placeholders = ", ".join(["%s" for _ in insert_values])
-                    insert_query = f"INSERT INTO dnrpa_nacion_auto ({columns}) VALUES ({placeholders})"
+                    insert_query = f"INSERT INTO dnrpa_inscripcion_corrientes_moto ({columns}) VALUES ({placeholders})"
 
                     # Obtener los valores de la columna en el orden correcto para la inserción
                     insert_values = [col[1] for col in insert_values]
@@ -278,4 +286,4 @@ class loadHTML_TablaAutoNacion:
             print(f"Registro automotor: Ocurrió un error durante la carga de datos: {str(e)}")
             conn.close()  # Cerrar la conexión en caso de error
             
-loadHTML_TablaAutoNacion().loadInDataBase(host, user, password, database)
+loadHTML_TablaMotoInscripcionCorrientes().loadInDataBase(host, user, password, database)
