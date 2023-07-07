@@ -277,5 +277,4 @@ class loadHTML_TablaAutoInscripcionNacion:
             # Manejar cualquier excepción ocurrida durante la carga de datos
             print(f"Registro automotor: Ocurrió un error durante la carga de datos: {str(e)}")
             conn.close()  # Cerrar la conexión en caso de error
-            
-loadHTML_TablaAutoInscripcionNacion().loadInDataBase(host, user, password, database)
+        

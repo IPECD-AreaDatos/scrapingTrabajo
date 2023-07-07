@@ -288,4 +288,3 @@ class loadHTML_TablaAutoInscripcionCorrientes:
             print(f"Registro automotor: Ocurrió un error durante la carga de datos: {str(e)}")
             conn.close()  # Cerrar la conexión en caso de error
             
-loadHTML_TablaAutoInscripcionCorrientes().loadInDataBase(host, user, password, database)

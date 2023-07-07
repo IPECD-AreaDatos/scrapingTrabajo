@@ -1,6 +1,7 @@
 from loadHTML_TablaAutoInscripcionNacion import loadHTML_TablaAutoInscripcionNacion
 from loadHTML_TablaMotoInscripcionNacion import loadHTML_TablaMotoInscripcionNacion
 from loadHTML_TablaAutoInscripcionCorrientes import loadHTML_TablaAutoInscripcionCorrientes
+from loadHTML_TablaMotoInscripcionCorrientes import loadHTML_TablaMotoInscripcionCorrientes
 
 
 #Datos de la base de datos
@@ -13,7 +14,8 @@ database = 'prueba1'
 inscripcion = [
     loadHTML_TablaAutoInscripcionNacion,
     loadHTML_TablaMotoInscripcionNacion,
-    loadHTML_TablaAutoInscripcionCorrientes
+    loadHTML_TablaAutoInscripcionCorrientes,
+    loadHTML_TablaMotoInscripcionCorrientes
 ]
 
 if __name__ == '__main__':

@@ -278,4 +278,3 @@ class loadHTML_TablaMotoInscripcionNacion:
             print(f"Registro automotor: Ocurrió un error durante la carga de datos: {str(e)}")
             conn.close()  # Cerrar la conexión en caso de error
             
-loadHTML_TablaMotoInscripcionNacion().loadInDataBase(host, user, password, database)

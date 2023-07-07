@@ -40,7 +40,7 @@ class loadHTML_TablaMotoInscripcionCorrientes:
             opciones = elemento.find_elements(By.TAG_NAME, 'option')
 
             # Buscar la opción deseada por su valor y hacer clic en ella
-            valor_deseado = '2014'  # Valor de la opción que deseas seleccionar
+            valor_deseado = '2023'  # Valor de la opción que deseas seleccionar
 
             for opcion in opciones:
                 if opcion.get_attribute('value') == valor_deseado:
@@ -196,7 +196,7 @@ class loadHTML_TablaMotoInscripcionCorrientes:
                 '29010 - MONTE CASEROS "A"': 'Monte_Caseros_A',
                 '29011 - CORRIENTES "B"': 'Corrientes_B',
                 '29012 - ALVEAR "A"': 'Alvear_A',
-                '29013 - SAN COSME "A"	': 'San_Cosme_A',
+                '29013 - SAN COSME "A"': 'San_Cosme_A',
                 'TOTAL': 'Total_Nacion',
             }
 
@@ -286,4 +286,3 @@ class loadHTML_TablaMotoInscripcionCorrientes:
             print(f"Registro automotor: Ocurrió un error durante la carga de datos: {str(e)}")
             conn.close()  # Cerrar la conexión en caso de error
             
-loadHTML_TablaMotoInscripcionCorrientes().loadInDataBase(host, user, password, database)
