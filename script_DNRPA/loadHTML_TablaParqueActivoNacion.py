@@ -6,13 +6,14 @@ from selenium.webdriver.common.by import By
 import openpyxl
 import pandas as pd
 from datetime import datetime
+from selenium.webdriver.support.ui import Select
 
 host = '172.17.22.10'
 user = 'Ivan'
 password = 'Estadistica123'
 database = 'prueba1'
 
-class loadHTML_TablaAutoInscripcionNacion:
+class loadHTML_TablaParqueActivoNacion:
     def loadInDataBase(self, host, user, password, database):
         # Se toma el tiempo de comienzo
         start_time = time.time()
@@ -36,24 +37,16 @@ class loadHTML_TablaAutoInscripcionNacion:
             ventana_actual = driver.current_window_handle
             
             elemento = driver.find_element(By.XPATH, '/html/body/div/section/article/div/div[2]/div/div/div/div/form/table/tbody/tr[2]/td[2]/select')
-            # Obtener todas las opciones del elemento select
-            opciones = elemento.find_elements(By.TAG_NAME, 'option')
 
-            # Buscar la opción deseada por su valor y hacer clic en ella
-            valor_deseado = 'Año 2010'  # Valor de la opción que deseas seleccionar
+            # Localizar el elemento select por su nombre
+            select_element = elemento.find_element(By.XPATH, '/html/body/div/section/article/div/div[2]/div/div/div/div/form/table/tbody/tr[2]/td[2]/select')
 
-            for opcion in opciones:
-                if opcion.get_attribute('value') == valor_deseado:
-                    opcion.click()
-                    break
+            # Crear un objeto Select
+            select = Select(select_element)
             
-            boton = driver.find_element(By.XPATH, '//*[@id="seleccion"]/center/table/tbody/tr[4]/td/input[1]')
-            boton.click()
-            
-            time.sleep(5)
-            
-            boton_aceptar = driver.find_element(By.XPATH, '//*[@id="seleccion"]/center/center/input')
-            boton_aceptar.click()
+            # O seleccionar por texto visible
+            valor_deseado = '2010'
+            select.select_by_visible_text('Año 2010')
             
             # Esperar un momento para que se abra la nueva pestaña
             driver.implicitly_wait(5)
@@ -63,7 +56,7 @@ class loadHTML_TablaAutoInscripcionNacion:
                     driver.switch_to.window(ventana)
             
             time.sleep(5)
-            #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ ENCONTRAR Y TOMAR LOS DATOS ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+           #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ ENCONTRAR Y TOMAR LOS DATOS ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
             # Encontrar el elemento <div> con la clase 'grid'
             elemento_div = driver.find_element(By.CLASS_NAME, 'grid')
 
@@ -78,7 +71,7 @@ class loadHTML_TablaAutoInscripcionNacion:
             
             for fila in filas:
                 # Obtener las celdas de cada fila, excluyendo la última columna y la última celda de encabezado
-                celdas = fila.find_elements(By.TAG_NAME, 'th') + fila.find_elements(By.TAG_NAME, 'td')[:-1]
+                celdas = fila.find_elements(By.TAG_NAME, 'th') + fila.find_elements(By.TAG_NAME, 'td')
 
                 # Lista para almacenar los valores de cada fila
                 fila_datos = []
@@ -98,9 +91,6 @@ class loadHTML_TablaAutoInscripcionNacion:
                                 pass  # Mantener el valor original si no se puede convertir a float
                     fila_datos.append(valor)
                 print("aca: ", fila_datos)
-                # Verificar si la última celda es "Total" y eliminarla
-                if fila_datos and fila_datos[-1] == "Total":
-                    fila_datos.pop()
 
 
                 tabla_datos.append(fila_datos) 
@@ -166,7 +156,7 @@ class loadHTML_TablaAutoInscripcionNacion:
             column_mapping = {
                 'Provincia / Mes': 'Fecha',
                 'BUENOS AIRES': 'Buenos_Aires',
-                'C.AUTONOMA DE BS.AS': 'C_Autonoma_De_BSAS',
+                'CABA': 'C_Autonoma_De_BSAS',
                 'CATAMARCA': 'Catamarca',
                 'CORDOBA': 'Cordoba',
                 'CORRIENTES': 'Corrientes',
@@ -186,9 +176,9 @@ class loadHTML_TablaAutoInscripcionNacion:
                 'SAN LUIS': 'San_Luis',
                 'SANTA CRUZ': 'Santa_Cruz',
                 'SANTA FE': 'Santa_Fe',
-                'SGO.DEL ESTERO': 'Sgo_Del_Estero',
+                'S. DEL ESTERO': 'Sgo_Del_Estero',
                 'TUCUMAN': 'Tucuman',
-                'T.DEL FUEGO': 'Tierra_Del_Fuego',
+                'T. DEL FUEGO': 'Tierra_Del_Fuego',
                 'TOTAL': 'Total_Nacion'
             }
 
@@ -196,7 +186,7 @@ class loadHTML_TablaAutoInscripcionNacion:
             sheet = workbook["Hoja1"]
 
             # Obtener las fechas existentes en la tabla de MySQL
-            select_dates_query = "SELECT Fecha FROM dnrpa_inscripcion_nacion_auto"
+            select_dates_query = "SELECT Fecha FROM dnrpa_parque_activo_nacion"
             cursor.execute(select_dates_query)
             existing_dates = [row[0].strftime('%Y-%m-%d') for row in cursor.fetchall()]
             
@@ -223,7 +213,7 @@ class loadHTML_TablaAutoInscripcionNacion:
                             update_values.append((column_name_mysql, value))
 
                     # Crear la sentencia SQL para la actualización
-                    update_query = "UPDATE dnrpa_inscripcion_nacion_auto SET " + ", ".join([f"{col[0]} = %s" for col in update_values]) + " WHERE Fecha = %s"
+                    update_query = "UPDATE dnrpa_parque_activo_nacion SET " + ", ".join([f"{col[0]} = %s" for col in update_values]) + " WHERE Fecha = %s"
                     # Obtener los valores de la columna en el orden correcto para la actualización
                     update_values = [col[1] for col in update_values]
 
@@ -252,7 +242,7 @@ class loadHTML_TablaAutoInscripcionNacion:
                     # Crear la sentencia SQL para la inserción
                     columns = ", ".join([col[0] for col in insert_values])
                     placeholders = ", ".join(["%s" for _ in insert_values])
-                    insert_query = f"INSERT INTO dnrpa_inscripcion_nacion_auto ({columns}) VALUES ({placeholders})"
+                    insert_query = f"INSERT INTO dnrpa_parque_activo_nacion ({columns}) VALUES ({placeholders})"
 
                     # Obtener los valores de la columna en el orden correcto para la inserción
                     insert_values = [col[1] for col in insert_values]
@@ -277,3 +267,5 @@ class loadHTML_TablaAutoInscripcionNacion:
             # Manejar cualquier excepción ocurrida durante la carga de datos
             print(f"Registro automotor: Ocurrió un error durante la carga de datos: {str(e)}")
             conn.close()  # Cerrar la conexión en caso de error
+            
+loadHTML_TablaParqueActivoNacion().loadInDataBase(host, user, password, database)
