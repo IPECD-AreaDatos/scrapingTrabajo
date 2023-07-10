@@ -74,3 +74,4 @@ SELECT * FROM prueba1.dnrpa_inscripcion_corrientes_moto;
 SELECT * FROM prueba1.dnrpa_inscripcion_corrientes_auto;
 SELECT * FROM prueba1.dnrpa_inscripcion_nacion_auto;
 SELECT * FROM prueba1.dnrpa_inscripcion_nacion_moto;
+SELECT * FROM prueba1.dnrpa_parque_activo_nacion;

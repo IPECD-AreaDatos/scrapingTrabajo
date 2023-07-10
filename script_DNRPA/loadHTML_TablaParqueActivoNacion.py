@@ -8,6 +8,8 @@ import pandas as pd
 from datetime import datetime
 from selenium.webdriver.support.ui import Select
 
+
+
 host = '172.17.22.10'
 user = 'Ivan'
 password = 'Estadistica123'
@@ -45,8 +47,8 @@ class loadHTML_TablaParqueActivoNacion:
             select = Select(select_element)
             
             # O seleccionar por texto visible
-            valor_deseado = '2010'
-            select.select_by_visible_text('Año 2010')
+            valor_deseado = '2023'
+            select.select_by_visible_text('Año 2023')
             
             # Esperar un momento para que se abra la nueva pestaña
             driver.implicitly_wait(5)
@@ -267,5 +269,5 @@ class loadHTML_TablaParqueActivoNacion:
             # Manejar cualquier excepción ocurrida durante la carga de datos
             print(f"Registro automotor: Ocurrió un error durante la carga de datos: {str(e)}")
             conn.close()  # Cerrar la conexión en caso de error
-            
-loadHTML_TablaParqueActivoNacion().loadInDataBase(host, user, password, database)
+
+ 
