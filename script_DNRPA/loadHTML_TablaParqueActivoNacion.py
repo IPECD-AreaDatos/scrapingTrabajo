@@ -7,7 +7,7 @@ import openpyxl
 import pandas as pd
 from datetime import datetime
 from selenium.webdriver.support.ui import Select
-
+import os
 
 
 host = '172.17.22.10'
@@ -25,13 +25,16 @@ class loadHTML_TablaParqueActivoNacion:
             host=host, user=user, password=password, database=database
         )
         try:
+            # Obtener la ruta del directorio actual (donde se encuentra el script)
+            directorio_actual = os.path.dirname(os.path.abspath(__file__))
 
-            ruta_archivo_excel = 'C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroParqueActivoNacion.xlsx' #--> fuente MATI
+            # Construir la ruta de la carpeta "files" dentro del directorio actual
+            ruta_carpeta_files = os.path.join(directorio_actual, 'files')
 
-            #Fuente Gaston
-            #ruta_archivo_excel = 'C:\\Users\\Elecciones 2021\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroParqueActivoNacion.xlsx'
-            #ruta_archivo_excel = 'D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroParqueActivoNacion.xlsx'
-            #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ SELENIUM ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+            # Construir la ruta del archivo Excel dentro de la carpeta "files"
+            ruta_archivo_excel = os.path.join(ruta_carpeta_files, 'registroParqueActivoNacion.xlsx')
+
+
             driver = webdriver.Chrome()
             driver.get('https://www.dnrpa.gov.ar/portal_dnrpa/boletines_estadisticos2.php')
 
@@ -47,8 +50,8 @@ class loadHTML_TablaParqueActivoNacion:
             select = Select(select_element)
             
             # O seleccionar por texto visible
-            valor_deseado = '2023'
-            select.select_by_visible_text('Año 2023')
+            valor_deseado = '2022'
+            select.select_by_visible_text('Año 2022')
             
             # Esperar un momento para que se abra la nueva pestaña
             driver.implicitly_wait(5)
@@ -270,4 +273,4 @@ class loadHTML_TablaParqueActivoNacion:
             print(f"Registro automotor: Ocurrió un error durante la carga de datos: {str(e)}")
             conn.close()  # Cerrar la conexión en caso de error
 
- 
+loadHTML_TablaParqueActivoNacion().loadInDataBase(host, user, password, database)
