@@ -10,8 +10,8 @@ from selenium.webdriver.support.ui import Select
 import os
 
 
-host = '172.17.22.10'
-user = 'Ivan'
+host = 'localhost'
+user = 'root'
 password = 'Estadistica123'
 database = 'prueba1'
 
@@ -27,11 +27,7 @@ class loadHTML_TablaParqueActivoNacion:
         try:
             # Obtener la ruta del directorio actual (donde se encuentra el script)
             directorio_actual = os.path.dirname(os.path.abspath(__file__))
-
-            # Construir la ruta de la carpeta "files" dentro del directorio actual
             ruta_carpeta_files = os.path.join(directorio_actual, 'files')
-
-            # Construir la ruta del archivo Excel dentro de la carpeta "files"
             ruta_archivo_excel = os.path.join(ruta_carpeta_files, 'registroParqueActivoNacion.xlsx')
 
 
@@ -50,8 +46,8 @@ class loadHTML_TablaParqueActivoNacion:
             select = Select(select_element)
             
             # O seleccionar por texto visible
-            valor_deseado = '2022'
-            select.select_by_visible_text('Año 2022')
+            valor_deseado = '2023'
+            select.select_by_visible_text('Año 2023')
             
             # Esperar un momento para que se abra la nueva pestaña
             driver.implicitly_wait(5)

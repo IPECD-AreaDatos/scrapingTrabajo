@@ -4,6 +4,7 @@ from loadXLS2_2 import LoadXLS2_2
 from loadXLS5_1 import LoadXLS5_1
 from loadXLS5_2 import LoadXLS5_2
 from calculoTotalNacion import calculoTotalNacion
+import os
 
 #Datos de la base de datos
 host = 'localhost'
@@ -13,7 +14,9 @@ database = 'prueba1'
 
 if __name__ == '__main__':
    url = HomePage()
-   file_path = "C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_SIPA\\files\\SIPA.xlsx"
+   directorio_actual = os.path.dirname(os.path.abspath(__file__))
+   ruta_carpeta_files = os.path.join(directorio_actual, 'files')
+   file_path = os.path.join(ruta_carpeta_files, 'SIPA.xlsx')
    #file_path = "D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\scrap_SIPA\\files\\SIPA.xlsx"
    print("---->", file_path)
    print("El archivo se descargo correctamente")

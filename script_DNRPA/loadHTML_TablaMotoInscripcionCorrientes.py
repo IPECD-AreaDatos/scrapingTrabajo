@@ -6,6 +6,7 @@ from selenium.webdriver.common.by import By
 import openpyxl
 import pandas as pd
 from datetime import datetime
+import os
 
 host = '172.17.22.10'
 user = 'Ivan'
@@ -22,13 +23,11 @@ class loadHTML_TablaMotoInscripcionCorrientes:
             host=host, user=user, password=password, database=database
         )
         try:
+            # Obtener la ruta del directorio actual (donde se encuentra el script)
+            directorio_actual = os.path.dirname(os.path.abspath(__file__))
+            ruta_carpeta_files = os.path.join(directorio_actual, 'files')
+            ruta_archivo_excel = os.path.join(ruta_carpeta_files, 'registroInscripcionMotoCorrientes.xlsx')
 
-            ruta_archivo_excel = 'C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroInscripcionMotoCorrientes.xlsx' #--> fuente MATI
-
-            #Fuente Gaston
-            #ruta_archivo_excel = 'C:\\Users\\Elecciones 2021\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroInscripcionMotoCorrientes.xlsx'
-            #ruta_archivo_excel = 'D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\script_DNRPA\\registroInscripcionMotoCorrientes.xlsx'
-            #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ SELENIUM ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
             driver = webdriver.Chrome()
             driver.get('https://www.dnrpa.gov.ar/portal_dnrpa/estadisticas/rrss_tramites/tram_prov.php?origen=portal_dnrpa&tipo_consulta=inscripciones')
 

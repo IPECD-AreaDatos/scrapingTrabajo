@@ -20,6 +20,7 @@ from armadoVariacionInteranualNoroeste import armadoVariacionInteranualNoroeste
 from armadoVariacionInteranualPampeana import armadoVariacionInteranualPampeana
 from armadoVariacionInteranualPatagonia import armadoVariacionInteranualPatagonia
 from armadoVariacionInteranualNea import armadoVariacionInteranualNEA
+import os
 
 #Datos de la base de datos
 host = 'localhost'
@@ -30,8 +31,9 @@ database = 'prueba1'
 
 if __name__ == '__main__':
    url = HomePage()
-   #file_path_casa= "D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\scrap_IPC\\files\\xls\\archivo.xls"
-   file_path = "C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_IPC\\files\\xls\\archivo.xls"
+   directorio_actual = os.path.dirname(os.path.abspath(__file__))
+   ruta_carpeta_files = os.path.join(directorio_actual, 'files')
+   file_path = os.path.join(ruta_carpeta_files, 'archivo.xlsx')
    print("---->", file_path)
    print("-------------------------------------------")
    print("------CARGA DE DATOS DE LA TABLA DE IPC------")
