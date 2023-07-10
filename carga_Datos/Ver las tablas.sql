@@ -10,9 +10,9 @@ Select * from puestos_trabajo_asalariado limit 3000;
 SELECT * FROM puestos_trabajo_asalariado WHERE codigo_departamento_indec IS NULL;
 
 -- Union Provincias y Departamentos
-SELECT provincias.nombre_provincia_indec AS provincia, Departamentos.nombre_departamento_indec AS localidad, Departamentos.codigo_departamento_indec AS codigo_departamento_indec
-FROM Departamentos
-JOIN provincias ON Departamentos.id_provincia_indec = provincias.id_provincia_indec;
+SELECT provincias.nombre_provincia_indec AS provincia, localidades.nombre_departamento_indec AS localidad, localidades.codigo_departamento_indec AS codigo_departamento_indec
+FROM localidades
+JOIN provincias ON localidades.id_provincia_indec = provincias.id_provincia_indec;
 -- Union de tablas // Tabla Final
 SELECT provincias.nombre_provincia_indec AS provincia, 
        localidades.nombre_departamento_indec AS localidad, 
@@ -22,8 +22,7 @@ SELECT provincias.nombre_provincia_indec AS provincia,
 FROM localidades
 JOIN provincias ON localidades.id_provincia_indec = provincias.id_provincia_indec
 JOIN puestos_trabajo_asalariado ON localidades.codigo_departamento_indec = puestos_trabajo_asalariado.codigo_departamento_indec
-JOIN sectores_de_actividad ON puestos_trabajo_asalariado.clae2 = sectores_de_actividad.clae2
-LIMIT 0, 30000;
+JOIN sectores_de_actividad ON puestos_trabajo_asalariado.clae2 = sectores_de_actividad.clae2;
 
 -- Trabajo2: Tabla de IPC(Indice de Precio al Consumidor)
 -- Ver los datos de las tablas de IPC
@@ -71,5 +70,7 @@ SELECT * FROM prueba1.sipa_provincia_con_estacionalidad;
 SELECT * FROM prueba1.sipa_provincia_sin_estacionalidad;
 
 -- DNRPA 
-SELECT * FROM prueba1.dnrpa_nacion_auto;
-SELECT * FROM prueba1.dnrpa_nacion_moto;
+SELECT * FROM prueba1.dnrpa_inscripcion_corrientes_moto;
+SELECT * FROM prueba1.dnrpa_inscripcion_corrientes_auto;
+SELECT * FROM prueba1.dnrpa_inscripcion_nacion_auto;
+SELECT * FROM prueba1.dnrpa_inscripcion_nacion_moto;
