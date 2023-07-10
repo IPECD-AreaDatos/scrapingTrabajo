@@ -1,4 +1,3 @@
-import os
 from email.message import EmailMessage
 import ssl
 import smtplib

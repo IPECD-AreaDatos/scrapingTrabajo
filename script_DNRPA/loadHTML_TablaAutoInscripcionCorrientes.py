@@ -40,7 +40,7 @@ class loadHTML_TablaAutoInscripcionCorrientes:
             opciones = elemento.find_elements(By.TAG_NAME, 'option')
 
             # Buscar la opción deseada por su valor y hacer clic en ella
-            valor_deseado = '2022'  # Valor de la opción que deseas seleccionar
+            valor_deseado = '2023'  # Valor de la opción que deseas seleccionar
 
             for opcion in opciones:
                 if opcion.get_attribute('value') == valor_deseado:

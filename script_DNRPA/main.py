@@ -2,7 +2,6 @@ from loadHTML_TablaAutoInscripcionNacion import loadHTML_TablaAutoInscripcionNac
 from loadHTML_TablaMotoInscripcionNacion import loadHTML_TablaMotoInscripcionNacion
 from loadHTML_TablaAutoInscripcionCorrientes import loadHTML_TablaAutoInscripcionCorrientes
 from loadHTML_TablaMotoInscripcionCorrientes import loadHTML_TablaMotoInscripcionCorrientes
-import os
 from email.message import EmailMessage
 import ssl
 import smtplib
