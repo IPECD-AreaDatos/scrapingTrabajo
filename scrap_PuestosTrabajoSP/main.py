@@ -1,8 +1,15 @@
+import time
 from homePage import HomePage
 from fileManager import FileManager
 from loadCSVData import LoadCSVData
 from loadCSVDataDepartamentos import LoadCSVDataDepartamentos
 import os
+
+host = '172.17.22.10'
+user = 'Ivan'
+password = 'Estadistica123'
+database = 'prueba1'
+
 
 if __name__ == '__main__':
    url =  HomePage().getDownloadUrl()
@@ -17,8 +24,10 @@ if __name__ == '__main__':
    file_path = os.path.join(ruta_carpeta_files, file_name)
    print("---->", file_path)
    
-   LoadCSVData().loadInDataBase(file_path)
+   time.sleep(3)
+   
+   LoadCSVData().loadInDataBase(file_path, host, user, password, database)
    
 
    #file_path_Departamentos="D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\scrap_PuestosTrabajoSP\\files\\csv\\diccionario_cod_depto.csv"
-   #LoadCSVDataDepartamentos().loadInDataBase(file_path_Departamentos)
+   #LoadCSVDataDepartamentos().loadInDataBase(file_path_Departamentos, host, user, password, database)
