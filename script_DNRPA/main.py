@@ -2,6 +2,7 @@ from loadHTML_TablaAutoInscripcionNacion import loadHTML_TablaAutoInscripcionNac
 from loadHTML_TablaMotoInscripcionNacion import loadHTML_TablaMotoInscripcionNacion
 from loadHTML_TablaAutoInscripcionCorrientes import loadHTML_TablaAutoInscripcionCorrientes
 from loadHTML_TablaMotoInscripcionCorrientes import loadHTML_TablaMotoInscripcionCorrientes
+from loadHTML_TablaParqueActivoNacion import loadHTML_TablaParqueActivoNacion
 from email.message import EmailMessage
 import ssl
 import smtplib
@@ -17,7 +18,8 @@ inscripcion = [
     loadHTML_TablaAutoInscripcionNacion,
     loadHTML_TablaMotoInscripcionNacion,
     loadHTML_TablaAutoInscripcionCorrientes,
-    loadHTML_TablaMotoInscripcionCorrientes
+    loadHTML_TablaMotoInscripcionCorrientes,
+    loadHTML_TablaParqueActivoNacion
 ]
 
 if __name__ == '__main__':
