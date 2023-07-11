@@ -23,8 +23,8 @@ from armadoVariacionInteranualNea import armadoVariacionInteranualNEA
 import os
 
 #Datos de la base de datos
-host = 'localhost'
-user = 'root'
+host = '172.17.22.10'
+user = 'Ivan'
 password = 'Estadistica123'
 database = 'prueba1'
 
@@ -33,7 +33,7 @@ if __name__ == '__main__':
    url = HomePage()
    directorio_actual = os.path.dirname(os.path.abspath(__file__))
    ruta_carpeta_files = os.path.join(directorio_actual, 'files')
-   file_path = os.path.join(ruta_carpeta_files, 'archivo.xlsx')
+   file_path = os.path.join(ruta_carpeta_files, 'archivo.xls')
    print("---->", file_path)
    print("-------------------------------------------")
    print("------CARGA DE DATOS DE LA TABLA DE IPC------")

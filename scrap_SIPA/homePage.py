@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
+import os
 
 class HomePage:
     
@@ -27,8 +28,11 @@ class HomePage:
     print(url_archivo)
     
     # Ruta de la carpeta donde guardar el archivo
-    carpeta_guardado = 'C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_SIPA\\files'
-    #carpeta_guardado_casa = 'D:\\Users\\Pc-Pix211\\Desktop\\scrapingTrabajo\\scrap_SIPA\\files'
+    # Obtener la ruta del directorio actual (donde se encuentra el script)
+    directorio_actual = os.path.dirname(os.path.abspath(__file__))
+
+    # Construir la ruta de la carpeta "files" dentro del directorio actual
+    carpeta_guardado = os.path.join(directorio_actual, 'files')
 
     # Nombre del archivo
     nombre_archivo = 'SIPA.xlsx'

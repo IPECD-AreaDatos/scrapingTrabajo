@@ -2,11 +2,6 @@ import pandas as pd
 import mysql.connector
 import time
 
-host = 'localhost'
-user = 'root'
-password = 'Estadistica123'
-database = 'prueba1'
-
 class calculoTotalNacion:
     def loadInDataBase(self, host, user, password, database):
         # Se toma el tiempo de comienzo
@@ -48,5 +43,3 @@ class calculoTotalNacion:
             print(f"Data Cuyo: Ocurrió un error durante la carga de datos: {str(e)}")
             conn.close()  # Cerrar la conexión en caso de error
             
-   
-calculoTotalNacion().loadInDataBase(host, user, password, database)

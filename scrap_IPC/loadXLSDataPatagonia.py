@@ -8,7 +8,7 @@ class LoadXLSDataPatagonia:
         #Se toma el tiempo de comienzo
         start_time = time.time()
         
-# Establecer la conexión a la base de datos
+        # Establecer la conexión a la base de datos
         conn = mysql.connector.connect(
             host=host, user=user, password=password, database=database
         )
