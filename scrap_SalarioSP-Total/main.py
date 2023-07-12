@@ -12,4 +12,4 @@ if __name__ == '__main__':
     home_page = HomePage()
     home_page.descargar_archivo()
     loadCSVData_SP().loadInDataBase(host, user, password, database)
-    loadCSVData_Total.loadInDataBase(host, user, password, database)
+    loadCSVData_Total().loadInDataBase(host, user, password, database)
