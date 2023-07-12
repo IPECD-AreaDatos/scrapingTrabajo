@@ -716,3 +716,18 @@ CREATE TABLE dnrpa_parque_activo_nacion(
  Tierra_Del_Fuego float,
  Total_Nacion float
  );
+ 
+CREATE TABLE DP_salarios_sector_privado(
+  fecha Date,
+  codigo_departamento_indec INT,
+  id_provincia_indec INT,
+  clae2 VARCHAR(255),
+  salario INT
+);
+CREATE TABLE DP_salarios_total(
+  fecha Date,
+  codigo_departamento_indec INT,
+  id_provincia_indec INT,
+  clae2 VARCHAR(255),
+  salario INT
+);
