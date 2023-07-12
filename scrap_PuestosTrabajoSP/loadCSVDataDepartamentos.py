@@ -14,7 +14,7 @@ class LoadCSVDataDepartamentos:
         )
 
         # Nombre de la tabla en MySQL
-        table_name = 'Departamentos'
+        table_name = 'dp_localidades'
         
         # Leer el archivo de csv y hacer transformaciones
         df = pd.read_csv(file_path)  # Leer el archivo CSV y crear el DataFrame

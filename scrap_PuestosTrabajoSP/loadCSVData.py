@@ -15,7 +15,7 @@ class LoadCSVData:
         )
 
         # Nombre de la tabla en MySQL
-        table_name = 'puestos_trabajo_asalariado'
+        table_name = 'dp_puestosTrabajo_sector_privado'
         # Obtener la ruta del directorio actual (donde se encuentra el script)
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
         # Construir la ruta de la carpeta "files" dentro del directorio actual

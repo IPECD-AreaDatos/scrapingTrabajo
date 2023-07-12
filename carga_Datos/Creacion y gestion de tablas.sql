@@ -1,36 +1,36 @@
 USE prueba1;
--- Tabla de provincias
-CREATE TABLE Provincias(
+-- Tabla de dp_provincias
+CREATE TABLE dp_provincias(
 id_provincia_indec int primary key not null,
 nombre_provincia_indec varchar(20)
 );
 
-Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (2, 'CABA');
-Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (6, 'Buenos Aires');
-Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (10, 'Catamarca');
-Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (14, 'Cordoba');
-Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (18, 'Corrientes');
-Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (22, 'Chaco');
-Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (23, 'Chubut');
-Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (30, 'Entre Rios');
-Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (34, 'Formosa');
-Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (38, 'Jujuy');
-Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (42, 'La Pampa');
-Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (46, 'La Rioja');
-Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (50, 'Mendoza');
-Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (54, 'Misiones');
-Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (58, 'Neuquen');
-Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (62, 'Rio Negro');
-Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (66, 'Salta');
-Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (70, 'San Juan');
-Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (74, 'San Luis');
-Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (78, 'Santa Cruz');
-Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (82, 'Santa Fe');
-Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (86, 'Santiago Del Estero');
-Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (90, 'Tucuman');
-Insert into Provincias(id_provincia_indec, nombre_provincia_indec) Values (94, 'Tierra Del Fuego');
+Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (2, 'CABA');
+Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (6, 'Buenos Aires');
+Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (10, 'Catamarca');
+Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (14, 'Cordoba');
+Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (18, 'Corrientes');
+Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (22, 'Chaco');
+Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (23, 'Chubut');
+Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (30, 'Entre Rios');
+Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (34, 'Formosa');
+Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (38, 'Jujuy');
+Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (42, 'La Pampa');
+Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (46, 'La Rioja');
+Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (50, 'Mendoza');
+Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (54, 'Misiones');
+Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (58, 'Neuquen');
+Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (62, 'Rio Negro');
+Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (66, 'Salta');
+Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (70, 'San Juan');
+Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (74, 'San Luis');
+Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (78, 'Santa Cruz');
+Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (82, 'Santa Fe');
+Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (86, 'Santiago Del Estero');
+Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (90, 'Tucuman');
+Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (94, 'Tierra Del Fuego');
 
--- Tabla de Localidades
+-- Tabla de dp_localidades
 CREATE TABLE Departamentos (
   codigo_departamento_indec INTEGER,
   nombre_departamento_indec VARCHAR(255),
@@ -48,12 +48,12 @@ CREATE TABLE puestos_trabajo_asalariado (
 );
 
 -- Tabla de clae2(Sectores de actividad)
-CREATE TABLE Sectores_de_actividad (
+CREATE TABLE dp_sectores_de_actividad (
   clae2 INT PRIMARY KEY,
   clae2_desc VARCHAR(255)
 );
 
-INSERT INTO Sectores_de_actividad (clae2, clae2_desc)
+INSERT INTO dp_sectores_de_actividad (clae2, clae2_desc)
 VALUES
 (1, 'Agricultura, ganadería, caza y servicios relacionados'),
 (2, 'Silvicultura y explotación forestal'),
@@ -276,7 +276,7 @@ Bienes_y_servicios_varios float
 
 -- VARIACION INTERMENSUAL
 -- variacion nacion
-CREATE TABLE variacion_intermensual_nacion(
+CREATE TABLE ipc_variacion_intermensual_nacion(
 Fecha date not null,
 Nivel_General float,
 Alimentos_y_bebidas_no_alcoholicas float,
@@ -293,7 +293,7 @@ Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
 -- variacion nea
-CREATE TABLE variacion_intermensual_nea(
+CREATE TABLE ipc_variacion_intermensual_nea(
 Fecha date not null,
 Nivel_General float,
 Alimentos_y_bebidas_no_alcoholicas float,
@@ -310,7 +310,7 @@ Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
 -- variacion patagonia
-CREATE TABLE variacion_intermensual_patagonia(
+CREATE TABLE ipc_variacion_intermensual_patagonia(
 Fecha date not null,
 Nivel_General float,
 Alimentos_y_bebidas_no_alcoholicas float,
@@ -327,7 +327,7 @@ Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
 -- variacion pampeana
-CREATE TABLE variacion_intermensual_pampeana(
+CREATE TABLE ipc_variacion_intermensual_pampeana(
 Fecha date not null,
 Nivel_General float,
 Alimentos_y_bebidas_no_alcoholicas float,
@@ -344,7 +344,7 @@ Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
 -- variacion noroeste
-CREATE TABLE variacion_intermensual_noroeste(
+CREATE TABLE ipc_variacion_intermensual_noroeste(
 Fecha date not null,
 Nivel_General float,
 Alimentos_y_bebidas_no_alcoholicas float,
@@ -361,7 +361,7 @@ Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
 -- variacion gba
-CREATE TABLE variacion_intermensual_gba(
+CREATE TABLE ipc_variacion_intermensual_gba(
 Fecha date not null,
 Nivel_General float,
 Alimentos_y_bebidas_no_alcoholicas float,
@@ -378,7 +378,7 @@ Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
 -- variacion Cuyo
-CREATE TABLE variacion_intermensual_cuyo(
+CREATE TABLE ipc_variacion_intermensual_cuyo(
 Fecha date not null,
 Nivel_General float,
 Alimentos_y_bebidas_no_alcoholicas float,
@@ -398,7 +398,7 @@ Bienes_y_servicios_varios float
 
 -- VARIACION INTERANUAL
 -- variacion nacion
-CREATE TABLE variacion_interanual_nacion(
+CREATE TABLE ipc_variacion_interanual_nacion(
 Fecha date not null,
 Nivel_General float,
 Alimentos_y_bebidas_no_alcoholicas float,
@@ -415,7 +415,7 @@ Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
 -- variacion nea
-CREATE TABLE variacion_interanual_nea(
+CREATE TABLE ipc_variacion_interanual_nea(
 Fecha date not null,
 Nivel_General float,
 Alimentos_y_bebidas_no_alcoholicas float,
@@ -432,7 +432,7 @@ Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
 -- variacion patagonia
-CREATE TABLE variacion_interanual_patagonia(
+CREATE TABLE ipc_variacion_interanual_patagonia(
 Fecha date not null,
 Nivel_General float,
 Alimentos_y_bebidas_no_alcoholicas float,
@@ -449,7 +449,7 @@ Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
 -- variacion pampeana
-CREATE TABLE variacion_interanual_pampeana(
+CREATE TABLE ipc_variacion_interanual_pampeana(
 Fecha date not null,
 Nivel_General float,
 Alimentos_y_bebidas_no_alcoholicas float,
@@ -466,7 +466,7 @@ Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
 -- variacion noroeste
-CREATE TABLE variacion_interanual_noroeste(
+CREATE TABLE ipc_variacion_interanual_noroeste(
 Fecha date not null,
 Nivel_General float,
 Alimentos_y_bebidas_no_alcoholicas float,
@@ -483,7 +483,7 @@ Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
 -- variacion gba
-CREATE TABLE variacion_interanual_gba(
+CREATE TABLE ipc_variacion_interanual_gba(
 Fecha date not null,
 Nivel_General float,
 Alimentos_y_bebidas_no_alcoholicas float,
@@ -500,7 +500,7 @@ Restaurantes_y_hoteles float,
 Bienes_y_servicios_varios float
 );
 -- variacion Cuyo
-CREATE TABLE variacion_interanual_cuyo(
+CREATE TABLE ipc_variacion_interanual_cuyo(
 Fecha date not null,
 Nivel_General float,
 Alimentos_y_bebidas_no_alcoholicas float,

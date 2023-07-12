@@ -18,8 +18,8 @@ class armadoVariacionInteranualPampeana:
         cursor.execute(select_query)
         rows = cursor.fetchall()
 
-        # Obtener las fechas existentes en la tabla variacion_interanual_pampeana
-        select_dates_query = "SELECT Fecha FROM variacion_interanual_pampeana"
+        # Obtener las fechas existentes en la tabla ipc_variacion_interanual_pampeana
+        select_dates_query = "SELECT Fecha FROM ipc_variacion_interanual_pampeana"
         cursor.execute(select_dates_query)
         existing_dates = [row[0] for row in cursor.fetchall()]
         
@@ -57,10 +57,10 @@ class armadoVariacionInteranualPampeana:
                 variacion_bienes_servicios = (bienes_servicios_actual / bienes_servicios_anterior) - 1
             
             
-            # Verificar si la fecha actual ya existe en la tabla variacion_interanual_pampeana
+            # Verificar si la fecha actual ya existe en la tabla ipc_variacion_interanual_pampeana
             if fecha_actual not in existing_dates:
                 # Insertar una nueva fila con la fecha y las variaciones calculadas
-                insert_query = "INSERT INTO variacion_interanual_pampeana (Fecha, Nivel_General, Alimentos_y_bebidas_no_alcoholicas, Bebidas_alcoholicas_y_tabaco, Prendas_de_vestir_y_calzado, Vivienda_agua_electricidad_gas_y_otros_combustibles, Equipamiento_y_mantenimiento_del_hogar, Salud, Transporte, Comunicación, Recreación_y_cultura, Educación, Restaurantes_y_hoteles, Bienes_y_servicios_varios) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                insert_query = "INSERT INTO ipc_variacion_interanual_pampeana (Fecha, Nivel_General, Alimentos_y_bebidas_no_alcoholicas, Bebidas_alcoholicas_y_tabaco, Prendas_de_vestir_y_calzado, Vivienda_agua_electricidad_gas_y_otros_combustibles, Equipamiento_y_mantenimiento_del_hogar, Salud, Transporte, Comunicación, Recreación_y_cultura, Educación, Restaurantes_y_hoteles, Bienes_y_servicios_varios) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
                 # Crear una tupla con los valores a insertar
                 insert_values = (
                     fecha_actual,
@@ -83,7 +83,7 @@ class armadoVariacionInteranualPampeana:
 
             else:
                 # Actualizar los valores de variación en la fila existente
-                update_query = "UPDATE variacion_interanual_pampeana SET Nivel_General = %s, Alimentos_y_bebidas_no_alcoholicas = %s, Bebidas_alcoholicas_y_tabaco = %s, Prendas_de_vestir_y_calzado = %s, Vivienda_agua_electricidad_gas_y_otros_combustibles = %s, Equipamiento_y_mantenimiento_del_hogar = %s, Salud = %s, Transporte = %s, Comunicación = %s, Recreación_y_cultura = %s, Educación = %s, Restaurantes_y_hoteles = %s, Bienes_y_servicios_varios = %s WHERE Fecha = %s"
+                update_query = "UPDATE ipc_variacion_interanual_pampeana SET Nivel_General = %s, Alimentos_y_bebidas_no_alcoholicas = %s, Bebidas_alcoholicas_y_tabaco = %s, Prendas_de_vestir_y_calzado = %s, Vivienda_agua_electricidad_gas_y_otros_combustibles = %s, Equipamiento_y_mantenimiento_del_hogar = %s, Salud = %s, Transporte = %s, Comunicación = %s, Recreación_y_cultura = %s, Educación = %s, Restaurantes_y_hoteles = %s, Bienes_y_servicios_varios = %s WHERE Fecha = %s"
                 update_values = (
                     variacion_general,
                     variacion_alimentos_bebidas,
