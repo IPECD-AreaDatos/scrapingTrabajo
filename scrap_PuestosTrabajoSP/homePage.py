@@ -1,33 +1,52 @@
 import requests
-from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.service import Service
+import os
 import urllib3
 
 class HomePage:
-    #Contiene la URL de la página web desde donde se desea obtener la URL de descarga del archivo.
-    url = "https://datos.produccion.gob.ar/dataset/puestos-de-trabajo-por-departamento-partido-y-sector-de-actividad"
     
-    #Se encarga de obtener la URL de descarga del archivo.
-    def getDownloadUrl(self):
-        
-        urllib3.disable_warnings()#Se desactivan las advertencias de verificación de certificados SSL.
-        response = requests.get(self.url, verify=False)#Se realiza una solicitud GET a la URL especificada y se guarda la respuesta 
-        response.raise_for_status()#Verifica si la respuesta de la solicitud tiene un código de estado exitoso
+    def __init__(self):
+        # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
+        self.driver = webdriver.Chrome()  # Reemplaza con la ubicación de tu ChromeDriver
 
-        if response.status_code == 200:
-            #Se crea un objeto BeautifulSoup a partir del contenido HTML/Analizar la estructura del documento
-            soup = BeautifulSoup(response.content, "html.parser") 
-            #Se busca el elemento button que contiene el texto "DESCARGAR".
-            button = soup.find("button", text="DESCARGAR")
-            print("button ->", button)
-            #Se busca el elemento "a" que es el padre del elemento button.
-            parent_a = button.find_parent("a")
-            print("parent ->", parent_a)
-            #Se obtiene el valor del atributo href del elemento "a", que representa la URL de descarga del archivo.
-            href = parent_a.get("href")
-            #Descarga el archivo de Puestos de trabajo asalariados registrados por departamento/partido y clae 2, sector privado//1er archivo
-            print("href:", href)
-            return href
-        else:
-            print("Fallo...")
-            return ""
+        # URL de la página que deseas obtener
+        self.url_pagina = 'https://datos.produccion.gob.ar/dataset/puestos-de-trabajo-por-departamento-partido-y-sector-de-actividad'
 
+    def descargar_archivo(self):
+        # Desactivar advertencias de solicitud no segura
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+        # Cargar la página web
+        self.driver.get(self.url_pagina)
+
+        # Esperar hasta que aparezca el enlace al archivo
+        wait = WebDriverWait(self.driver, 10)
+        archivo = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div[2]/div/div/div/div[1]/div[3]/div[1]/div/a[2]")))
+
+        # Obtener la URL del archivo
+        url_archivo = archivo.get_attribute('href')
+
+        # Ruta de la carpeta donde guardar el archivo
+        # Obtener la ruta del directorio actual (donde se encuentra el script)
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+
+        # Construir la ruta de la carpeta "files" dentro del directorio actual
+        carpeta_guardado = os.path.join(directorio_actual, 'files')
+
+        # Nombre del archivo
+        nombre_archivo = 'trabajoSectorPrivado.csv'
+
+        # Descargar el archivo desactivando la verificación del certificado SSL
+        response = requests.get(url_archivo, verify=False)
+
+        # Guardar el archivo en la carpeta especificada
+        ruta_guardado = os.path.join(carpeta_guardado, nombre_archivo)
+        with open(ruta_guardado, 'wb') as file:
+            file.write(response.content)
+
+        # Cerrar el navegador
+        self.driver.quit()

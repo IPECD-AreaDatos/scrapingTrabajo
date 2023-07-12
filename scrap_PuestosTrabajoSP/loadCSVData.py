@@ -2,9 +2,10 @@ import mysql.connector
 import numpy as np
 import pandas as pd
 import time
+import os
 
 class LoadCSVData:
-    def loadInDataBase(self, file_path, host, user, password, database):
+    def loadInDataBase(self, host, user, password, database):
         #Se toma el tiempo de comienzo
         start_time = time.time()
         
@@ -15,7 +16,14 @@ class LoadCSVData:
 
         # Nombre de la tabla en MySQL
         table_name = 'puestos_trabajo_asalariado'
-        
+        # Obtener la ruta del directorio actual (donde se encuentra el script)
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        # Construir la ruta de la carpeta "files" dentro del directorio actual
+        ruta_carpeta_files = os.path.join(directorio_actual, 'files')
+        file_name = "trabajoSectorPrivado.csv"
+        # Construir la ruta completa del archivo CSV dentro de la carpeta "files"
+        file_path = os.path.join(ruta_carpeta_files, file_name)
+                
         # Leer el archivo de csv y hacer transformaciones
         df = pd.read_csv(file_path)  # Leer el archivo CSV y crear el DataFrame
         df = df.replace({np.nan: None})  # Reemplazar los valores NaN(Not a Number) por None
