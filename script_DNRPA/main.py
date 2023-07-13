@@ -20,6 +20,7 @@ inscripcion = [
     loadHTML_TablaAutoInscripcionCorrientes,
     loadHTML_TablaMotoInscripcionCorrientes,
     loadHTML_TablaParqueActivoNacion
+
 ]
 
 if __name__ == '__main__':
@@ -47,3 +48,5 @@ def enviar_correo():
         smtp.sendmail(email_emisor, email_receptor, em.as_string())
 
 enviar_correo()   
+
+input("Proceso completado - Presione Enter.")
