@@ -1,28 +1,28 @@
 USE prueba1;
 
 -- Trabajo N°1: Carga de datos de Puestos de trabajo asalariados del sector privado
-Select * from Provincias;
+Select * from dp_provincias;
 Select * from Departamentos;
 
 -- Tabla con los puestos de trabajo  
-Select COUNT(*)  from puestos_trabajo_asalariado;
-Select * from puestos_trabajo_asalariado limit 3000;
-SELECT * FROM puestos_trabajo_asalariado WHERE codigo_departamento_indec IS NULL;
+Select COUNT(*)  from dp_puestostrabajo_sector_privado;
+Select * from dp_puestostrabajo_sector_privado limit 3000;
+SELECT * FROM dp_puestostrabajo_sector_privado WHERE codigo_departamento_indec IS NULL;
 
--- Union Provincias y Departamentos
-SELECT provincias.nombre_provincia_indec AS provincia, localidades.nombre_departamento_indec AS localidad, localidades.codigo_departamento_indec AS codigo_departamento_indec
-FROM localidades
-JOIN provincias ON localidades.id_provincia_indec = provincias.id_provincia_indec;
+-- Union dp_provincias y Departamentos
+SELECT dp_provincias.nombre_provincia_indec AS dp_provincias, dp_localidades.nombre_departamento_indec AS dp_localidad, dp_localidades.codigo_departamento_indec AS codigo_departamento_indec
+FROM dp_localidades
+JOIN dp_provincias ON dp_localidades.id_provincia_indec = dp_provincias.id_provincia_indec;
 -- Union de tablas // Tabla Final
-SELECT provincias.nombre_provincia_indec AS provincia, 
-       localidades.nombre_departamento_indec AS localidad, 
-       puestos_trabajo_asalariado.fecha AS fecha,
-       sectores_de_actividad.clae2_desc AS sector_de_actividad,
-       puestos_trabajo_asalariado.puestos AS puestos
-FROM localidades
-JOIN provincias ON localidades.id_provincia_indec = provincias.id_provincia_indec
-JOIN puestos_trabajo_asalariado ON localidades.codigo_departamento_indec = puestos_trabajo_asalariado.codigo_departamento_indec
-JOIN sectores_de_actividad ON puestos_trabajo_asalariado.clae2 = sectores_de_actividad.clae2;
+SELECT dp_provincias.nombre_provincia_indec AS provincias, 
+       dp_localidades.nombre_departamento_indec AS localidad, 
+       dp_puestostrabajo_sector_privado.fecha AS fecha,
+       dp_sectores_de_actividad.clae2_desc AS sector_de_actividad,
+       dp_puestostrabajo_sector_privado.puestos AS puestos
+FROM dp_localidades
+JOIN dp_provincias ON dp_localidades.id_provincia_indec = dp_provincias.id_provincia_indec
+JOIN dp_puestostrabajo_sector_privado ON dp_localidades.codigo_departamento_indec = dp_puestostrabajo_sector_privado.codigo_departamento_indec
+JOIN dp_sectores_de_actividad ON dp_puestostrabajo_sector_privado.clae2 = dp_sectores_de_actividad.clae2;
 
 -- Trabajo2: Tabla de IPC(Indice de Precio al Consumidor)
 -- Ver los datos de las tablas de IPC
@@ -66,8 +66,8 @@ SELECT * FROM prueba1.variacion_interanual_nea;
 -- SIPA
 SELECT * FROM prueba1.sipa_nacional_con_estacionalidad;
 SELECT * FROM prueba1.sipa_nacional_sin_estacionalidad;
-SELECT * FROM prueba1.sipa_provincia_con_estacionalidad;
-SELECT * FROM prueba1.sipa_provincia_sin_estacionalidad;
+SELECT * FROM prueba1.sipa_dp_provincias_con_estacionalidad;
+SELECT * FROM prueba1.sipa_dp_provincias_sin_estacionalidad;
 
 -- DNRPA 
 SELECT * FROM prueba1.dnrpa_inscripcion_corrientes_moto;
@@ -75,3 +75,16 @@ SELECT * FROM prueba1.dnrpa_inscripcion_corrientes_auto;
 SELECT * FROM prueba1.dnrpa_inscripcion_nacion_auto;
 SELECT * FROM prueba1.dnrpa_inscripcion_nacion_moto;
 SELECT * FROM prueba1.dnrpa_parque_activo_nacion;
+
+-- SALARIOS
+SELECT * FROM dp_salarios_sector_privado WHERE MONTH(fecha) = 10 AND YEAR(fecha) = 2022;
+SELECT dp_provincias.nombre_provincia_indec AS provincias, 
+       dp_localidades.nombre_departamento_indec AS localidad, 
+       dp_salarios_sector_privado.fecha AS fecha,
+       dp_sectores_de_actividad.clae2_desc AS sector_de_actividad,
+       dp_salarios_sector_privado.salario AS salario
+FROM dp_localidades
+JOIN dp_provincias ON dp_localidades.id_provincia_indec = dp_provincias.id_provincia_indec
+JOIN dp_salarios_sector_privado ON dp_localidades.codigo_departamento_indec = dp_salarios_sector_privado.codigo_departamento_indec
+JOIN dp_sectores_de_actividad ON dp_salarios_sector_privado.clae2 = dp_sectores_de_actividad.clae2
+WHERE YEAR(dp_salarios_sector_privado.fecha) = 2023 AND dp_provincias.nombre_provincia_indec = 'Corrientes';
