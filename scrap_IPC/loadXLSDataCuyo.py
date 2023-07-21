@@ -129,7 +129,13 @@ class LoadXLSDataCuyo:
                         
                     )
                     cursor.execute(update_query, update_values)
+                    
+                    
+            #Agregamos REGION 
+            
+            update_query = "UPDATE ipc_regioncuyo SET id_region = 6;"
 
+            cursor.execute(update_query)
             # Confirmar los cambios en la base de datos
             conn.commit()
 
