@@ -127,6 +127,14 @@ class LoadXLSDataNacion:
                         fecha,
                     )
                     cursor.execute(update_query, update_values)
+                    
+            
+            #Agregamos REGION - total nacion = 1
+            
+            update_query = "UPDATE ipc_totalnacion SET id_region = 1;"
+
+            cursor.execute(update_query)
+
 
             # Confirmar los cambios en la base de datos
             conn.commit()

@@ -127,6 +127,13 @@ class LoadXLSDataPatagonia:
                         fecha,
                     )
                     cursor.execute(update_query, update_values)
+                    
+        
+            #Agregamos REGION - PATAGONIA = 7
+            
+            update_query = "UPDATE ipc_regionpatagonia SET id_region = 7;"
+
+            cursor.execute(update_query)
 
             # Confirmar los cambios en la base de datos
             conn.commit()

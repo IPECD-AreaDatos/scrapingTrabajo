@@ -127,6 +127,13 @@ class LoadXLSDataGBA:
                         fecha,
                     )
                     cursor.execute(update_query, update_values)
+                    
+                    
+            #Agregamos REGION - GBA = 2
+            
+            update_query = "UPDATE ipc_regiongba SET id_region = 2;"
+
+            cursor.execute(update_query)
 
             # Confirmar los cambios en la base de datos
             conn.commit()

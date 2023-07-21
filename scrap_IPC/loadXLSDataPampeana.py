@@ -127,6 +127,14 @@ class LoadXLSDataPampeana:
                         fecha,
                     )
                     cursor.execute(update_query, update_values)
+                    
+                    
+            #Agregamos REGION - PAMPEANA = 3
+            
+            update_query = "UPDATE ipc_regionpampeana SET id_region = 3;"
+
+            cursor.execute(update_query)
+
 
             # Confirmar los cambios en la base de datos
             conn.commit()

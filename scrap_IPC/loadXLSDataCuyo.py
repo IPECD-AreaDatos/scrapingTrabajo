@@ -131,7 +131,7 @@ class LoadXLSDataCuyo:
                     cursor.execute(update_query, update_values)
                     
                     
-            #Agregamos REGION 
+            #Agregamos REGION - cuyo = 6
             
             update_query = "UPDATE ipc_regioncuyo SET id_region = 6;"
 
