@@ -5,7 +5,7 @@ from armadoXLSDataGBA import LoadXLSDataGBA
 from armadoXLSDataPampena import LoadXLSDataPampena
 from armadoXLSDataNOA import LoadXLSDataNOA
 from armadoXLSDataNEA import LoadXLSDataNEA
-from armadoXLSDatacuyo import LoadXLSDataCuyo
+from armadoXLSDataCuyo import LoadXLSDataCuyo
 from armadoXLSDataPatagonia import LoadXLSDataPatagonia
 import os
 import pandas as pd
