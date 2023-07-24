@@ -161,9 +161,12 @@ VALUES
 -- Tabla de IPC
 CREATE TABLE ipc_region(
 Fecha date not null,
-ID_Region float,
-ID_Subdivision float,
-Valor float
+ID_Region int,
+ID_Subdivision int,
+Valor float,
+
+Foreign key (ID_Region) references regiones(id_region),
+Foreign key (ID_Subdivision) references subdivision(id_subdivision)
 );
 -- Creacion de la tabla
 CREATE TABLE IPC_regionNEA(

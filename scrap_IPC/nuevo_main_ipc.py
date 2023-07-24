@@ -9,7 +9,8 @@ from armadoXLSDataCuyo import LoadXLSDataCuyo
 from armadoXLSDataPatagonia import LoadXLSDataPatagonia
 import os
 import pandas as pd
-
+import mysql.connector
+import datetime
 """
 --- PASOS ---
 
@@ -30,6 +31,7 @@ host = '172.17.22.10'
 user = 'Ivan'
 password = 'Estadistica123'
 database = 'prueba1'
+
 valor_region = 1
 
 if __name__ == '__main__':
@@ -51,10 +53,60 @@ if __name__ == '__main__':
       print("Valor region: ", valor_region)
       regiones().loadInDataBase(file_path, lista_fechas, lista_regiones, valor_region ,lista_subdivision, lista_valores)
       valor_region = valor_region + 1
+       
+    
+    conn = mysql.connector.connect(
+      host=host, user=user, password=password, database=database
+    )
+    # Crear el cursor para ejecutar consultas
+    cursor = conn.cursor()
     
     df['fecha'] = lista_fechas
     df['regiones'] = lista_regiones
     df['subdivision'] = lista_subdivision
     df['valores'] = lista_valores
-    for i in df.values:
-        print(i)
+    
+    # Sentencia SQL para comprobar si la fecha ya existe en la tabla
+    select_query = "SELECT COUNT(*) FROM ipc_region WHERE Fecha = %s"
+
+    # Sentencia SQL para insertar los datos en la tabla
+    insert_query = "INSERT INTO ipc_region (Fecha, ID_Region, ID_Subdivision, Valor) VALUES (%s, %s, %s, %s)"
+
+    # Sentencia SQL para actualizar los datos en la tabla
+    update_query = "UPDATE ipc_region SET Valor = %s WHERE Fecha = %s AND ID_Region = %s AND ID_Subdivision = %s"
+
+    # Variable para controlar el estado del mensaje
+    mensaje_enviado = False
+
+    # Recorrer las listas y ejecutar la consulta para cada conjunto de datos
+    for fecha, region, subdivision, valor in zip(lista_fechas, lista_regiones, lista_subdivision, lista_valores):
+        # Convertir la fecha en formato datetime si es necesario
+        if isinstance(fecha, str):
+            fecha = datetime.datetime.strptime(fecha, '%Y-%m-%d').date()
+
+        # Verificar si la fecha ya existe en la tabla
+        cursor.execute(select_query, (fecha,))
+        row_count = cursor.fetchone()[0]
+
+        if row_count > 0:
+            # La fecha ya existe, realizar una actualización (UPDATE)
+            cursor.execute(update_query, (valor, fecha, region, subdivision))
+            if not mensaje_enviado:
+                print("Ningun dato nuevo")
+                mensaje_enviado = True
+        else:
+            # La fecha no existe, realizar una inserción (INSERT)
+            cursor.execute(insert_query, (fecha, region, subdivision, valor))
+            if not mensaje_enviado:
+                print("Se agregaron nuevas fechas")
+                mensaje_enviado = True
+
+    # Confirmar los cambios en la base de datos
+    conn.commit()
+
+    # Cerrar el cursor y la conexión
+    cursor.close()
+    conn.close()
+
+
+
