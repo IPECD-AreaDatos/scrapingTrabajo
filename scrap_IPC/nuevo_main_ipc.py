@@ -19,21 +19,23 @@ lista_valores = list()
 
 df = pd.DataFrame()
 
-#Descargar EXCEL - Tambien almacenamos las rutas que usaremos
-url = HomePage()
-directorio_actual = os.path.dirname(os.path.abspath(__file__))
-ruta_carpeta_files = os.path.join(directorio_actual, 'files')
-file_path = os.path.join(ruta_carpeta_files, 'archivo.xls')
+#Datos de la base de datos
+host = '172.17.22.10'
+user = 'Ivan'
+password = 'Estadistica123'
+database = 'prueba1'
+valor_region = int(6)
 
-
-LoadXLSDataCuyo().loadInDataBase(file_path, lista_fechas ,lista_regiones,lista_subdivision, lista_valores)
-
-df['fecha'] = lista_fechas
-df['regiones'] = lista_regiones
-df['subdivision'] = lista_subdivision
-df['valores'] = lista_valores
-
-
-for i in df.values:
-
-    print(i)
+if __name__ == '__main__':
+    #Descargar EXCEL - Tambien almacenamos las rutas que usaremos
+    url = HomePage()
+    directorio_actual = os.path.dirname(os.path.abspath(__file__))
+    ruta_carpeta_files = os.path.join(directorio_actual, 'files')
+    file_path = os.path.join(ruta_carpeta_files, 'archivo.xls')
+    valoresDeIPC = [
+      LoadXLSDataCuyo,
+    ]
+    for regiones in valoresDeIPC:
+      print("Valor region: ", valor_region)
+      regiones().loadInDataBase(file_path, lista_fechas, lista_regiones, valor_region ,lista_subdivision, lista_valores)
+     
