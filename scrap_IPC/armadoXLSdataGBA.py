@@ -1,15 +1,16 @@
 import datetime
+import mysql.connector
 import time
 import xlrd
-import pandas as pd
 
-class LoadXLSDataCuyo:
+
+class LoadXLSDataGBA:
     def loadInDataBase(self, file_path, lista_fechas ,lista_region, valor_region ,lista_subdivision, lista_valores):
-        # Se toma el tiempo de comienzo
+        #Se toma el tiempo de comienzo
         start_time = time.time()
-
+        
         try:
-            
+
 
             # Leer el archivo de xls y obtener la hoja de trabajo específica
             workbook = xlrd.open_workbook(file_path)
@@ -27,10 +28,10 @@ class LoadXLSDataCuyo:
                     dt = datetime.datetime(1899, 12, 30) + datetime.timedelta(days=excel_date)
                     target_row_values[i] = dt.date()
                     
-                    
-
+            # Leer los datos de las demás filas utilizando el mismo enfoque
+            
             # Agregamos NIVEL GENERAL - CODIGO: 1
-            nivel_general = list([cell.value for cell in sheet[159]][1:])
+            nivel_general = [cell.value for cell in sheet[39]][1:]
 
             for i in range(len(nivel_general)):
 
@@ -44,26 +45,27 @@ class LoadXLSDataCuyo:
                 lista_valores.append(valor) #--> Cargamos valores
 
 
+
+
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            alimento_y_bebidas_no_alcoholicas = list([cell.value for cell in sheet[160]][1:])
+            alimento_y_bebidas_no_alcoholicas = [cell.value for cell in sheet[40]][1:]
 
             for i in range(len(alimento_y_bebidas_no_alcoholicas)):
 
                 lista_region.append(valor_region) #--> Cargamos region - CUYO = 6
                 lista_fechas.append(target_row_values[i])#--> Cargamos fechas
                 lista_subdivision.append(2) #--> Cargamos subdivision
-
-
-
             
             for valor in alimento_y_bebidas_no_alcoholicas:
 
                 lista_valores.append(valor)#--> Cargamos valores
 
 
-    
+
             #Agregamos BEBIDAS ALCHOLICAS Y TABACOS - Codigo 3
-            bebidas_alcoholicas_y_tabaco = list([cell.value for cell in sheet[161]][1:])
+            bebidas_alcoholicas_y_tabaco = [cell.value for cell in sheet[41]][1:]
+
+
 
             for i in range(len(bebidas_alcoholicas_y_tabaco)):
 
@@ -79,9 +81,9 @@ class LoadXLSDataCuyo:
                 lista_valores.append(valor)#--> Cargamos valores
 
 
-
             #Agregamos Prendas de vestir y calzado - Codigo 4
-            prendasVestir_y_calzado = [cell.value for cell in sheet[162]][1:]
+            prendasVestir_y_calzado = [cell.value for cell in sheet[42]][1:]
+
 
             for i in range(len(prendasVestir_y_calzado)):
 
@@ -98,10 +100,9 @@ class LoadXLSDataCuyo:
 
 
 
-
-
             #Agregamos Vivienda, agua, electricidad, gas y otros combustibles - Codigo  5         
-            vivienda_agua_electricidad_gas_y_otros_combustibles = list([cell.value for cell in sheet[163]][1:])
+            vivienda_agua_electricidad_gas_y_otros_combustibles = [cell.value for cell in sheet[43]][1:]
+
 
             for i in range(len(vivienda_agua_electricidad_gas_y_otros_combustibles)):
 
@@ -110,15 +111,15 @@ class LoadXLSDataCuyo:
                 lista_subdivision.append(5) #--> Cargamos subdivision
 
 
-
             
             for valor in vivienda_agua_electricidad_gas_y_otros_combustibles:
 
                 lista_valores.append(valor)#--> Cargamos valores
 
-
+        
             #Agregamos Equipamiento y mantenimiento del hogar - Codigo  6         
-            equipamiento_y_mantenimiento_del_hogar = list([cell.value for cell in sheet[164]][1:])
+            equipamiento_y_mantenimiento_del_hogar = [cell.value for cell in sheet[44]][1:]
+
 
             for i in range(len(equipamiento_y_mantenimiento_del_hogar)):
                            
@@ -133,9 +134,7 @@ class LoadXLSDataCuyo:
 
 
             #Agregamos salud - Codigo  7
-            
-            salud = list([cell.value for cell in sheet[165]][1:])
-
+            salud = [cell.value for cell in sheet[45]][1:]
 
             for i in range(len(salud )):
                            
@@ -150,9 +149,9 @@ class LoadXLSDataCuyo:
 
 
              #Agregamos Transporte - Codigo  8
-            transporte = list([cell.value for cell in sheet[166]][1:])
+            transporte = [cell.value for cell in sheet[46]][1:]
 
-            for i in range(len(transporte )):
+            for i in range(len(transporte)):
                            
                 lista_region.append(valor_region)#--> Cargamos region - CUYO = 6
                 lista_fechas.append(target_row_values[i])#--> Cargamos fechas
@@ -164,11 +163,9 @@ class LoadXLSDataCuyo:
                 lista_valores.append(valor)#--> Cargamos valores
 
 
-            
 
              #Agregamos Comunicacion - Codigo  9
-            comunicación = list([cell.value for cell in sheet[167]][1:])
-
+            comunicación = [cell.value for cell in sheet[47]][1:]
 
             for i in range(len(comunicación )):
                            
@@ -182,10 +179,8 @@ class LoadXLSDataCuyo:
                 lista_valores.append(valor)#--> Cargamos valores
 
 
-
              #Agregamos Recreación y cultura - Codigo  10
-            recreación_y_cultura = list([cell.value for cell in sheet[168]][1:])
-
+            recreación_y_cultura = [cell.value for cell in sheet[48]][1:]
 
             for i in range(len(recreación_y_cultura)):
                            
@@ -200,10 +195,8 @@ class LoadXLSDataCuyo:
 
 
 
-
             #Agregamos Educacion - Codigo  11
-            educación = list([cell.value for cell in sheet[169]][1:])
-
+            educación = [cell.value for cell in sheet[49]][1:]
 
             for i in range(len(educación)):
                            
@@ -218,9 +211,9 @@ class LoadXLSDataCuyo:
 
 
 
-        
             #Agregamos Restaurantes y hoteles - Codigo  12
-            restaurantes_y_hoteles = list([cell.value for cell in sheet[170]][1:])
+            restaurantes_y_hoteles = [cell.value for cell in sheet[50]][1:]
+
 
             for i in range(len(restaurantes_y_hoteles)):
                            
@@ -236,7 +229,7 @@ class LoadXLSDataCuyo:
 
 
             #Agregamos Bienes y servicios varios - Codigo  13
-            bienes_y_servicios_varios = [cell.value for cell in sheet[171]][1:]
+            bienes_y_servicios_varios = [cell.value for cell in sheet[51]][1:]
 
 
             for i in range(len(bienes_y_servicios_varios)):
@@ -252,8 +245,9 @@ class LoadXLSDataCuyo:
 
 
 
-            
+
+
 
         except Exception as e:
             # Manejar cualquier excepción ocurrida durante la carga de datos
-            print(f"Data Cuyo: Ocurrió un error durante la carga de datos: {str(e)}")
+            print(f"Ocurrió un error durante la carga de datos: {str(e)}")
