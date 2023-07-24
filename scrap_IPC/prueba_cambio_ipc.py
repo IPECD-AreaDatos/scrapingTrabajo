@@ -1,33 +1,14 @@
 import datetime
-import mysql.connector
 import time
 import xlrd
-from homePage import HomePage
-import os
 import pandas as pd
-
-
-
-
-#Datos de la base de datos
-host = '172.17.22.10'
-user = 'Ivan'
-password = 'Estadistica123'
-database = 'prueba1'
-
-
-url = HomePage()
-directorio_actual = os.path.dirname(os.path.abspath(__file__))
-ruta_carpeta_files = os.path.join(directorio_actual, 'files')
-file_path = os.path.join(ruta_carpeta_files, 'archivo.xls')
-
 
 df = pd.DataFrame()
 
 
 
 class LoadXLSDataCuyo:
-    def loadInDataBase(self, file_path, host, user, password, database):
+    def loadInDataBase(self, file_path, lista_fechas ,lista_region, lista_subdivision, lista_valores):
         # Se toma el tiempo de comienzo
         start_time = time.time()
 
@@ -51,20 +32,15 @@ class LoadXLSDataCuyo:
                     target_row_values[i] = dt.date()
                     
                     
-            #LLAMADA DE VAR GLOBAL 
-            global df
 
-            lista_indice = list()
-            lista_valores = list()
-            lista_fechas = list()
-                    
-            # Leer los datos de las demás filas utilizando el mismo enfoque
+            # Agregamos NIVEL GENERAL - CODIGO: 1
             nivel_general = list([cell.value for cell in sheet[159]][1:])
 
             for i in range(len(nivel_general)):
 
-                lista_indice.append(1)
+                lista_region.append(1)
                 lista_fechas.append(target_row_values[i])
+                lista_subdivision.append(1)
 
 
             for valor in nivel_general:
@@ -72,14 +48,15 @@ class LoadXLSDataCuyo:
                 lista_valores.append(valor)
 
 
-    
-
-            bebidas_alcoholicas_y_tabaco = list([cell.value for cell in sheet[161]][1:])
+            #Agregamos Alimentos y bebidas no alcohólicas - Codigo
+            bebidas_alcoholicas_y_tabaco = list([cell.value for cell in sheet[160]][1:])
 
             for i in range(len(bebidas_alcoholicas_y_tabaco)):
 
-                lista_indice.append(2)
+                lista_region.append(1)
                 lista_fechas.append(target_row_values[i])
+                lista_subdivision.append(2)
+
 
             
             for valor in bebidas_alcoholicas_y_tabaco:
@@ -87,13 +64,21 @@ class LoadXLSDataCuyo:
                 lista_valores.append(valor)
 
 
-            df['fecha'] = lista_fechas
-            df['subdivision'] = lista_indice
-            df['valor'] = lista_valores
+    
+            #Agregamos BEBIDAS ALCHOLICAS Y TABACOS - Codigo
+            bebidas_alcoholicas_y_tabaco = list([cell.value for cell in sheet[161]][1:])
+
+            for i in range(len(bebidas_alcoholicas_y_tabaco)):
+
+                lista_region.append(1)
+                lista_fechas.append(target_row_values[i])
+                lista_subdivision.append(3)
+
 
             
+            for valor in bebidas_alcoholicas_y_tabaco:
 
-
+                lista_valores.append(valor)
 
 
 
@@ -114,5 +99,3 @@ class LoadXLSDataCuyo:
             # Manejar cualquier excepción ocurrida durante la carga de datos
             print(f"Data Cuyo: Ocurrió un error durante la carga de datos: {str(e)}")
 
-LoadXLSDataCuyo().loadInDataBase(file_path, host, user, password, database)
-print(df)
