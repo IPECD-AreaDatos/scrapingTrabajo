@@ -2,7 +2,7 @@
 from homePage import HomePage
 from armadoXLSDataNacion import LoadXLSDataNacion
 from armadoXLSDataGBA import LoadXLSDataGBA
-from armadoXLSDataPampena import LoadXLSDataPampena
+from armadoXLSDataPampeana import LoadXLSDataPampeana
 from armadoXLSDataNOA import LoadXLSDataNOA
 from armadoXLSDataNEA import LoadXLSDataNEA
 from armadoXLSDataCuyo import LoadXLSDataCuyo
@@ -50,6 +50,7 @@ if __name__ == '__main__':
     for regiones in valoresDeIPC:
       print("Valor region: ", valor_region)
       regiones().loadInDataBase(file_path, lista_fechas, lista_regiones, valor_region ,lista_subdivision, lista_valores)
+      valor_region = valor_region + 1
     
     df['fecha'] = lista_fechas
     df['regiones'] = lista_regiones

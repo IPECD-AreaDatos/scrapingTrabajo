@@ -3,7 +3,7 @@ import time
 import xlrd
 import pandas as pd
 
-class LoadXLSDataNacion:
+class LoadXLSDataPatagonia:
     def loadInDataBase(self, file_path, lista_fechas ,lista_region, valor_region ,lista_subdivision, lista_valores):
         # Se toma el tiempo de comienzo
         start_time = time.time()
@@ -30,7 +30,7 @@ class LoadXLSDataNacion:
                     
 
             # Agregamos NIVEL GENERAL - CODIGO: 1
-            nivel_general = list([cell.value for cell in sheet[9]][1:])
+            nivel_general = list([cell.value for cell in sheet[189]][1:])
 
             for i in range(len(nivel_general)):
 
@@ -45,7 +45,7 @@ class LoadXLSDataNacion:
 
 
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            alimento_y_bebidas_no_alcoholicas = list([cell.value for cell in sheet[10]][1:])
+            alimento_y_bebidas_no_alcoholicas = list([cell.value for cell in sheet[190]][1:])
 
             for i in range(len(alimento_y_bebidas_no_alcoholicas)):
 
@@ -63,7 +63,7 @@ class LoadXLSDataNacion:
 
     
             #Agregamos BEBIDAS ALCHOLICAS Y TABACOS - Codigo 3
-            bebidas_alcoholicas_y_tabaco = list([cell.value for cell in sheet[11]][1:])
+            bebidas_alcoholicas_y_tabaco = list([cell.value for cell in sheet[191]][1:])
 
             for i in range(len(bebidas_alcoholicas_y_tabaco)):
 
@@ -81,7 +81,7 @@ class LoadXLSDataNacion:
 
 
             #Agregamos Prendas de vestir y calzado - Codigo 4
-            prendasVestir_y_calzado = [cell.value for cell in sheet[12]][1:]
+            prendasVestir_y_calzado = [cell.value for cell in sheet[192]][1:]
 
             for i in range(len(prendasVestir_y_calzado)):
 
@@ -101,7 +101,7 @@ class LoadXLSDataNacion:
 
 
             #Agregamos Vivienda, agua, electricidad, gas y otros combustibles - Codigo  5         
-            vivienda_agua_electricidad_gas_y_otros_combustibles = list([cell.value for cell in sheet[13]][1:])
+            vivienda_agua_electricidad_gas_y_otros_combustibles = list([cell.value for cell in sheet[193]][1:])
 
             for i in range(len(vivienda_agua_electricidad_gas_y_otros_combustibles)):
 
@@ -118,7 +118,7 @@ class LoadXLSDataNacion:
 
 
             #Agregamos Equipamiento y mantenimiento del hogar - Codigo  6         
-            equipamiento_y_mantenimiento_del_hogar = list([cell.value for cell in sheet[14]][1:])
+            equipamiento_y_mantenimiento_del_hogar = list([cell.value for cell in sheet[194]][1:])
 
             for i in range(len(equipamiento_y_mantenimiento_del_hogar)):
                            
@@ -134,7 +134,7 @@ class LoadXLSDataNacion:
 
             #Agregamos salud - Codigo  7
             
-            salud = list([cell.value for cell in sheet[15]][1:])
+            salud = list([cell.value for cell in sheet[195]][1:])
 
 
             for i in range(len(salud )):
@@ -150,7 +150,7 @@ class LoadXLSDataNacion:
 
 
              #Agregamos Transporte - Codigo  8
-            transporte = list([cell.value for cell in sheet[16]][1:])
+            transporte = list([cell.value for cell in sheet[196]][1:])
 
             for i in range(len(transporte )):
                            
@@ -167,7 +167,7 @@ class LoadXLSDataNacion:
             
 
              #Agregamos Comunicacion - Codigo  9
-            comunicación = list([cell.value for cell in sheet[17]][1:])
+            comunicación = list([cell.value for cell in sheet[197]][1:])
 
 
             for i in range(len(comunicación )):
@@ -184,7 +184,7 @@ class LoadXLSDataNacion:
 
 
              #Agregamos Recreación y cultura - Codigo  10
-            recreación_y_cultura = list([cell.value for cell in sheet[18]][1:])
+            recreación_y_cultura = list([cell.value for cell in sheet[198]][1:])
 
 
             for i in range(len(recreación_y_cultura)):
@@ -202,7 +202,7 @@ class LoadXLSDataNacion:
 
 
             #Agregamos Educacion - Codigo  11
-            educación = list([cell.value for cell in sheet[19]][1:])
+            educación = list([cell.value for cell in sheet[199]][1:])
 
 
             for i in range(len(educación)):
@@ -220,7 +220,7 @@ class LoadXLSDataNacion:
 
         
             #Agregamos Restaurantes y hoteles - Codigo  12
-            restaurantes_y_hoteles = list([cell.value for cell in sheet[20]][1:])
+            restaurantes_y_hoteles = list([cell.value for cell in sheet[200]][1:])
 
             for i in range(len(restaurantes_y_hoteles)):
                            
@@ -236,7 +236,7 @@ class LoadXLSDataNacion:
 
 
             #Agregamos Bienes y servicios varios - Codigo  13
-            bienes_y_servicios_varios = [cell.value for cell in sheet[21]][1:]
+            bienes_y_servicios_varios = [cell.value for cell in sheet[201]][1:]
 
 
             for i in range(len(bienes_y_servicios_varios)):
