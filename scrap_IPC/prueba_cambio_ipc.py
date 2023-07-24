@@ -7,6 +7,8 @@ import os
 import pandas as pd
 
 
+
+
 #Datos de la base de datos
 host = '172.17.22.10'
 user = 'Ivan'
@@ -20,9 +22,8 @@ ruta_carpeta_files = os.path.join(directorio_actual, 'files')
 file_path = os.path.join(ruta_carpeta_files, 'archivo.xls')
 
 
-df = pd.DataFrame(columns= ['valor','cod_componente'])
+df = pd.DataFrame()
 
-df_aux = pd.DataFrame(columns= ['valor','cod_componente'])
 
 
 class LoadXLSDataCuyo:
@@ -30,20 +31,8 @@ class LoadXLSDataCuyo:
         # Se toma el tiempo de comienzo
         start_time = time.time()
 
-        # Establecer la conexión a la base de datos
-        conn = mysql.connector.connect(
-            host=host, user=user, password=password, database=database
-        )
-        # Crear el cursor para ejecutar consultas
-        cursor = conn.cursor()
         try:
-            # Nombre de la tabla en MySQL
-            table_name = "ipc_regioncuyo"
-
-            # Obtener las fechas existentes en la tabla ipc_regioncuyo
-            select_dates_query = "SELECT Fecha FROM ipc_regioncuyo"
-            cursor.execute(select_dates_query)
-            existing_dates = [row[0] for row in cursor.fetchall()]
+            
 
             # Leer el archivo de xls y obtener la hoja de trabajo específica
             workbook = xlrd.open_workbook(file_path)
@@ -63,25 +52,51 @@ class LoadXLSDataCuyo:
                     
                     
             #LLAMADA DE VAR GLOBAL 
-            global df,df_aux
+            global df
+
+            lista_indice = list()
+            lista_valores = list()
+            lista_fechas = list()
                     
             # Leer los datos de las demás filas utilizando el mismo enfoque
-            nivel_general = [cell.value for cell in sheet[159]][1:]
-            
-            df_aux['valor'] = list(nivel_general)
-            df_aux['cod_componente'] = 1 #--> CODIGO DE EJEMPLO - PUEDE VARIAR SEGUN EL COMPONENTE
-            
-            
-            df= d
-            
-            
-            alimento_y_bebidas_no_alcoholicas = [cell.value for cell in sheet[160]][1:]
-            df_aux['valor'] = list(alimento_y_bebidas_no_alcoholicas)
-            df_aux['cod_componente'] = 2 #--> CODIGO DE EJEMPLO - PUEDE VARIAR SEGUN EL COMPONENTE
-            df = pd.concat([df, df_aux],axis=1)
+            nivel_general = list([cell.value for cell in sheet[159]][1:])
+
+            for i in range(len(nivel_general)):
+
+                lista_indice.append(1)
+                lista_fechas.append(target_row_values[i])
+
+
+            for valor in nivel_general:
+
+                lista_valores.append(valor)
+
+
+    
+
+            bebidas_alcoholicas_y_tabaco = list([cell.value for cell in sheet[161]][1:])
+
+            for i in range(len(bebidas_alcoholicas_y_tabaco)):
+
+                lista_indice.append(2)
+                lista_fechas.append(target_row_values[i])
 
             
-            bebidas_alcoholicas_y_tabaco = [cell.value for cell in sheet[161]][1:]
+            for valor in bebidas_alcoholicas_y_tabaco:
+
+                lista_valores.append(valor)
+
+
+            df['fecha'] = lista_fechas
+            df['subdivision'] = lista_indice
+            df['valor'] = lista_valores
+
+            
+
+
+
+
+
             prendasVestir_y_calzado = [cell.value for cell in sheet[162]][1:]
             vivienda_agua_electricidad_gas_y_otros_combustibles = [cell.value for cell in sheet[163]][1:]
             equipamiento_y_mantenimiento_del_hogar = [cell.value for cell in sheet[164]][1:]
@@ -93,105 +108,11 @@ class LoadXLSDataCuyo:
             restaurantes_y_hoteles = [cell.value for cell in sheet[170]][1:]
             bienes_y_servicios_varios = [cell.value for cell in sheet[171]][1:]
 
-            for (
-                fecha,
-                nivel_general,
-                alimento_y_bebidas_no_alcoholicas,
-                bebidas_alcoholicas_y_tabaco,
-                prendasVestir_y_calzado,
-                vivienda_agua_electricidad_gas_y_otros_combustibles,
-                equipamiento_y_mantenimiento_del_hogar,
-                salud,
-                transporte,
-                comunicación,
-                recreación_y_cultura,
-                educación,
-                restaurantes_y_hoteles,
-                bienes_y_servicios_varios,
-            ) in zip(
-                target_row_values,
-                nivel_general,
-                alimento_y_bebidas_no_alcoholicas,
-                bebidas_alcoholicas_y_tabaco,
-                prendasVestir_y_calzado,
-                vivienda_agua_electricidad_gas_y_otros_combustibles,
-                equipamiento_y_mantenimiento_del_hogar,
-                salud,
-                transporte,
-                comunicación,
-                recreación_y_cultura,
-                educación,
-                restaurantes_y_hoteles,
-                bienes_y_servicios_varios,
-            ):
-                if fecha not in existing_dates:
-                    print("fecha---->", fecha, "Existente----->", existing_dates)
-                    insert_query = f"INSERT INTO {table_name} (Fecha, Nivel_General, Alimentos_y_bebidas_no_alcoholicas, Bebidas_alcoholicas_y_tabaco, Prendas_de_vestir_y_calzado, Vivienda_agua_electricidad_gas_y_otros_combustibles, Equipamiento_y_mantenimiento_del_hogar, Salud, Transporte, Comunicación, Recreación_y_cultura, Educación, Restaurantes_y_hoteles, Bienes_y_servicios_varios) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-                    cursor.execute(
-                        insert_query,
-                        (
-                            fecha,
-                            float(nivel_general),
-                            float(alimento_y_bebidas_no_alcoholicas),
-                            float(bebidas_alcoholicas_y_tabaco),
-                            float(prendasVestir_y_calzado),
-                            float(vivienda_agua_electricidad_gas_y_otros_combustibles),
-                            float(equipamiento_y_mantenimiento_del_hogar),
-                            float(salud),
-                            float(transporte),
-                            float(comunicación),
-                            float(recreación_y_cultura),
-                            float(educación),
-                            float(restaurantes_y_hoteles),
-                            float(bienes_y_servicios_varios),
-                        ),
-                    )
-                else:
-                    # Actualizar los valores de variación en la fila existente
-                    update_query = "UPDATE ipc_regioncuyo SET Nivel_General = %s, Alimentos_y_bebidas_no_alcoholicas = %s, Bebidas_alcoholicas_y_tabaco = %s, Prendas_de_vestir_y_calzado = %s, Vivienda_agua_electricidad_gas_y_otros_combustibles = %s, Equipamiento_y_mantenimiento_del_hogar = %s, Salud = %s, Transporte = %s, Comunicación = %s, Recreación_y_cultura = %s, Educación = %s, Restaurantes_y_hoteles = %s, Bienes_y_servicios_varios = %s WHERE Fecha = %s"
-                    update_values = (
-                        float(nivel_general),
-                        float(alimento_y_bebidas_no_alcoholicas),
-                        float(bebidas_alcoholicas_y_tabaco),
-                        float(prendasVestir_y_calzado),
-                        float(vivienda_agua_electricidad_gas_y_otros_combustibles),
-                        float(equipamiento_y_mantenimiento_del_hogar),
-                        float(salud),
-                        float(transporte),
-                        float(comunicación),
-                        float(recreación_y_cultura),
-                        float(educación),
-                        float(restaurantes_y_hoteles),
-                        float(bienes_y_servicios_varios),
-                        fecha,
-                        
-                    )
-                    cursor.execute(update_query, update_values)
-                    
-                    
-            #Agregamos REGION - cuyo = 6
             
-            update_query = "UPDATE ipc_regioncuyo SET id_region = 6;"
-
-            cursor.execute(update_query)
-            # Confirmar los cambios en la base de datos
-            conn.commit()
-
-            
-            # Se toma el tiempo de finalización y se calcula
-            end_time = time.time()
-            duration = end_time - start_time
-            print("-----------------------------------------------")
-            print("Se guardaron los datos de IPC de la Region de Cuyo")
-            print("Tiempo de ejecución:", duration)
-
-            # Cerrar la conexión a la base de datos
-            conn.close()
 
         except Exception as e:
             # Manejar cualquier excepción ocurrida durante la carga de datos
             print(f"Data Cuyo: Ocurrió un error durante la carga de datos: {str(e)}")
-            conn.close()  # Cerrar la conexión en caso de error
 
 LoadXLSDataCuyo().loadInDataBase(file_path, host, user, password, database)
 print(df)
