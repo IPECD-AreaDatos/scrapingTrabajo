@@ -8,7 +8,7 @@ df = pd.DataFrame()
 
 
 class LoadXLSDataCuyo:
-    def loadInDataBase(self, file_path, lista_fechas ,lista_region, lista_subdivision, lista_valores):
+    def loadInDataBase(self, file_path, lista_fechas ,lista_region, valor_region ,lista_subdivision, lista_valores):
         # Se toma el tiempo de comienzo
         start_time = time.time()
 
@@ -38,14 +38,14 @@ class LoadXLSDataCuyo:
 
             for i in range(len(nivel_general)):
 
-                lista_region.append(6) #--> Cargamos region - CUYO = 6
-                lista_fechas.append(target_row_values[i])
-                lista_subdivision.append(1)
+                lista_region.append(valor_region) #--> Cargamos region - CUYO = 6
+                lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
+                lista_subdivision.append(1) #--> Cargamos subdivision
 
 
             for valor in nivel_general:
 
-                lista_valores.append(valor)
+                lista_valores.append(valor) #--> Cargamos valores
 
 
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo
@@ -53,15 +53,16 @@ class LoadXLSDataCuyo:
 
             for i in range(len(bebidas_alcoholicas_y_tabaco)):
 
-                lista_region.append(6) #--> Cargamos region - CUYO = 6
-                lista_fechas.append(target_row_values[i])
-                lista_subdivision.append(2)
+                lista_region.append(valor_region) #--> Cargamos region - CUYO = 6
+                lista_fechas.append(target_row_values[i])#--> Cargamos fechas
+                lista_subdivision.append(2) #--> Cargamos subdivision
+
 
 
             
             for valor in bebidas_alcoholicas_y_tabaco:
 
-                lista_valores.append(valor)
+                lista_valores.append(valor)#--> Cargamos valores
 
 
     
@@ -70,15 +71,16 @@ class LoadXLSDataCuyo:
 
             for i in range(len(bebidas_alcoholicas_y_tabaco)):
 
-                lista_region.append(6) #--> Cargamos region - CUYO = 6
-                lista_fechas.append(target_row_values[i])
-                lista_subdivision.append(3)
+                lista_region.append(valor_region) #--> Cargamos region - CUYO = 6
+                lista_fechas.append(target_row_values[i])#--> Cargamos fechas
+                lista_subdivision.append(3) #--> Cargamos subdivision
+
 
 
             
             for valor in bebidas_alcoholicas_y_tabaco:
 
-                lista_valores.append(valor)
+                lista_valores.append(valor)#--> Cargamos valores
 
 
 
@@ -87,29 +89,172 @@ class LoadXLSDataCuyo:
 
             for i in range(len(bebidas_alcoholicas_y_tabaco)):
 
-                lista_region.append(6)#--> Cargamos region - CUYO = 6
-                lista_fechas.append(target_row_values[i])
-                lista_subdivision.append(4)
+                lista_region.append(valor_region)#--> Cargamos region - CUYO = 6
+                lista_fechas.append(target_row_values[i])#--> Cargamos fechas
+                lista_subdivision.append(4) #--> Cargamos subdivision
+
 
 
             
             for valor in bebidas_alcoholicas_y_tabaco:
 
-                lista_valores.append(valor)
+                lista_valores.append(valor)#--> Cargamos valores
 
 
 
 
 
-            vivienda_agua_electricidad_gas_y_otros_combustibles = [cell.value for cell in sheet[163]][1:]
-            equipamiento_y_mantenimiento_del_hogar = [cell.value for cell in sheet[164]][1:]
-            salud = [cell.value for cell in sheet[165]][1:]
-            transporte = [cell.value for cell in sheet[166]][1:]
-            comunicación = [cell.value for cell in sheet[167]][1:]
-            recreación_y_cultura = [cell.value for cell in sheet[168]][1:]
-            educación = [cell.value for cell in sheet[169]][1:]
-            restaurantes_y_hoteles = [cell.value for cell in sheet[170]][1:]
+            #Agregamos Prendas de vestir y calzado - Codigo  5         
+            vivienda_agua_electricidad_gas_y_otros_combustibles = list([cell.value for cell in sheet[163]][1:])
+
+            for i in range(len(bebidas_alcoholicas_y_tabaco)):
+
+                lista_region.append(valor_region)#--> Cargamos region - CUYO = 6
+                lista_fechas.append(target_row_values[i])#--> Cargamos fechas
+                lista_subdivision.append(5) #--> Cargamos subdivision
+
+
+
+            
+            for valor in vivienda_agua_electricidad_gas_y_otros_combustibles:
+
+                lista_valores.append(valor)#--> Cargamos valores
+
+
+            #Agregamos Equipamiento y mantenimiento del hogar - Codigo  6         
+            equipamiento_y_mantenimiento_del_hogar = list([cell.value for cell in sheet[164]][1:])
+
+            for i in range(len(equipamiento_y_mantenimiento_del_hogar)):
+                           
+                lista_region.append(valor_region)#--> Cargamos region - CUYO = 6
+                lista_fechas.append(target_row_values[i])#--> Cargamos fechas
+                lista_subdivision.append(6) #--> Cargamos subdivision
+
+            
+            for valor in equipamiento_y_mantenimiento_del_hogar:
+
+                lista_valores.append(valor)#--> Cargamos valores
+
+
+            #Agregamos salud - Codigo  7
+            
+            salud = list([cell.value for cell in sheet[165]][1:])
+
+
+            for i in range(len(salud )):
+                           
+                lista_region.append(valor_region)#--> Cargamos region - CUYO = 6
+                lista_fechas.append(target_row_values[i])#--> Cargamos fechas
+                lista_subdivision.append(7) #--> Cargamos subdivision
+
+            
+            for valor in salud:
+
+                lista_valores.append(valor)#--> Cargamos valores
+
+
+             #Agregamos Transporte - Codigo  8
+            transporte = list([cell.value for cell in sheet[166]][1:])
+
+            for i in range(len(transporte )):
+                           
+                lista_region.append(valor_region)#--> Cargamos region - CUYO = 6
+                lista_fechas.append(target_row_values[i])#--> Cargamos fechas
+                lista_subdivision.append(8) #--> Cargamos subdivision
+
+            
+            for valor in transporte:
+
+                lista_valores.append(valor)#--> Cargamos valores
+
+
+            
+
+             #Agregamos Comunicacion - Codigo  9
+            comunicación = list([cell.value for cell in sheet[167]][1:])
+
+
+            for i in range(len(comunicación )):
+                           
+                lista_region.append(valor_region)#--> Cargamos region - CUYO = 6
+                lista_fechas.append(target_row_values[i])#--> Cargamos fechas
+                lista_subdivision.append(9) #--> Cargamos subdivision
+
+            
+            for valor in comunicación:
+
+                lista_valores.append(valor)#--> Cargamos valores
+
+
+
+             #Agregamos Recreación y cultura - Codigo  10
+            recreación_y_cultura = list([cell.value for cell in sheet[168]][1:])
+
+
+            for i in range(len(recreación_y_cultura)):
+                           
+                lista_region.append(valor_region)#--> Cargamos region - CUYO = 6
+                lista_fechas.append(target_row_values[i])#--> Cargamos fechas
+                lista_subdivision.append(10) #--> Cargamos subdivision
+
+            
+            for valor in recreación_y_cultura:
+
+                lista_valores.append(valor)#--> Cargamos valores
+
+
+
+
+            #Agregamos Educacion - Codigo  11
+            educación = list([cell.value for cell in sheet[169]][1:])
+
+
+            for i in range(len(educación)):
+                           
+                lista_region.append(valor_region)#--> Cargamos region - CUYO = 6
+                lista_fechas.append(target_row_values[i])#--> Cargamos fechas
+                lista_subdivision.append(11) #--> Cargamos subdivision
+
+            
+            for valor in  educación:
+
+                lista_valores.append(valor)#--> Cargamos valores
+
+
+
+        
+            #Agregamos Educacion - Codigo  12
+            restaurantes_y_hoteles = list([cell.value for cell in sheet[170]][1:])
+
+            for i in range(len(restaurantes_y_hoteles)):
+                           
+                lista_region.append(valor_region)#--> Cargamos region - CUYO = 6
+                lista_fechas.append(target_row_values[i])#--> Cargamos fechas
+                lista_subdivision.append(12) #--> Cargamos subdivision
+
+            
+            for valor in  restaurantes_y_hoteles:
+
+                lista_valores.append(valor)#--> Cargamos valores
+
+
+
+            #Agregamos Educacion - Codigo  13
             bienes_y_servicios_varios = [cell.value for cell in sheet[171]][1:]
+
+
+            for i in range(len(bienes_y_servicios_varios)):
+                            
+                    lista_region.append(valor_region)#--> Cargamos region - CUYO = 6
+                    lista_fechas.append(target_row_values[i])#--> Cargamos fechas
+                    lista_subdivision.append(13) #--> Cargamos subdivision
+
+                
+            for valor in  bienes_y_servicios_varios:
+
+                lista_valores.append(valor)#--> Cargamos valores
+
+
 
             
 
