@@ -1,4 +1,19 @@
 USE prueba1;
+-- Diccionario Regiones
+CREATE TABLE regiones (
+ID_Region INT PRIMARY KEY NOT NULL,
+descripcion_region varchar(30)
+);
+
+INSERT INTO regiones(id_region , descripcion_region) Values (1, "Nacion");
+INSERT INTO regiones(id_region , descripcion_region) Values (2, "GBA");
+INSERT INTO regiones(id_region , descripcion_region) Values (3, "Pampeana");
+INSERT INTO regiones(id_region , descripcion_region) Values (4, "NOA");
+INSERT INTO regiones(id_region , descripcion_region) Values (5, "NEA");
+INSERT INTO regiones(id_region , descripcion_region) Values (6, "Cuyo");
+INSERT INTO regiones(id_region , descripcion_region) Values (7, "Patagonia");
+
+
 -- Tabla de dp_provincias
 CREATE TABLE dp_provincias(
 id_provincia_indec int primary key not null,
@@ -737,3 +752,5 @@ CREATE TABLE DP_salarios_total(
   clae2 VARCHAR(255),
   salario INT
 );
+
+
