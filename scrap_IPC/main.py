@@ -1,4 +1,3 @@
-
 from homePage import HomePage
 from armadoXLSDataNacion import LoadXLSDataNacion
 from armadoXLSDataGBA import LoadXLSDataGBA
@@ -11,13 +10,7 @@ import os
 import pandas as pd
 import mysql.connector
 import datetime
-"""
---- PASOS ---
 
-1) Construir EXCEl
-2) Verificar fechas para actualizacion
-
-"""
 #Listas a tratar durante el proceso
 lista_fechas = list()
 lista_regiones = list()
@@ -54,6 +47,10 @@ if __name__ == '__main__':
       regiones().loadInDataBase(file_path, lista_fechas, lista_regiones, valor_region ,lista_subdivision, lista_valores)
       valor_region = valor_region + 1
        
+    df['fecha'] = lista_fechas
+    df['regiones'] = lista_regiones
+    df['subdivision'] = lista_subdivision
+    df['valores'] = lista_valores
     
     conn = mysql.connector.connect(
       host=host, user=user, password=password, database=database
@@ -61,10 +58,7 @@ if __name__ == '__main__':
     # Crear el cursor para ejecutar consultas
     cursor = conn.cursor()
     
-    df['fecha'] = lista_fechas
-    df['regiones'] = lista_regiones
-    df['subdivision'] = lista_subdivision
-    df['valores'] = lista_valores
+
     
     # Sentencia SQL para comprobar si la fecha ya existe en la tabla
     select_query = "SELECT COUNT(*) FROM ipc_region WHERE Fecha = %s"
@@ -77,8 +71,6 @@ if __name__ == '__main__':
 
     # Variable para controlar el estado del mensaje
     mensaje_enviado = False
-
-    # Recorrer las listas y ejecutar la consulta para cada conjunto de datos
     for fecha, region, subdivision, valor in zip(lista_fechas, lista_regiones, lista_subdivision, lista_valores):
         # Convertir la fecha en formato datetime si es necesario
         if isinstance(fecha, str):
