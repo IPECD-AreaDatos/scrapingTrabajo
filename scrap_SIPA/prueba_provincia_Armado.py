@@ -24,6 +24,7 @@ lista_provincias = list() #--> Contendra los indices de la provincia
 lista_valores_estacionalidad = list() #--> Contendra los valores 
 lista_valores_sin_estacionalidad = list()
 lista_registro = list()#--> Contendra el tipo de REGISTRO
+lista_fechas= list() #--> Contendra las fechas
 
 class LoadXLS5_1:
     def loadInDataBase(self, file_path, host, user, password, database):
@@ -63,28 +64,49 @@ class LoadXLS5_1:
 
             global lista_valores_estacionalidad,lista_provincias,df_aux
              
-        
+            """
             #Datos de Buenos AIRES
             for i in df['BUENOS AIRES']:
+                
+                
+                lista_provincias.append(6) #--> Carga de provincia POR ID - BUENOS AIRES: 6
+                lista_valores_estacionalidad.append(i) #--> Carga de valor POR ESTACIONALDIAD
+                lista_registro.append(1)#--> Carga de tipo de registro - TIPO EMPLEO: 1
 
-                lista_provincias.append(6)
-                lista_valores_estacionalidad.append(i)
-                lista_registro.append(1)
-
-            for i in df_NoEstacional['BUENOS AIRES']:
+            for i in df_NoEstacional['BUENOS AIRES']: #--> Carga de datos no ESTACIONALES
 
                 lista_valores_sin_estacionalidad.append(i)
 
-    
+            """
+            for (_, row), (_, row_no_estacional) in zip(df.iterrows(), df_NoEstacional.iterrows()):
+                # Aquí 'row' corresponde a la fila actual del dataframe 'df'
+                # Y 'row_no_estacional' corresponde a la fila actual del dataframe 'df_NoEstacional'
+                
+                valor_estacionalidad = row['BUENOS AIRES'] # Acceder al valor estacionalidad de 'df'
 
+                fecha = row['Período']
 
+                valor_sin_estacionalidad = row_no_estacional['BUENOS AIRES'] # Acceder al valor sin estacionalidad de 'df_NoEstacional'
+                
+                lista_fechas.append(fecha)
+
+                lista_provincias.append(6)  # Carga de provincia POR ID - BUENOS AIRES: 6
+
+                lista_valores_estacionalidad.append(valor_estacionalidad)  # Carga de valor POR ESTACIONALDIAD
+
+                lista_valores_sin_estacionalidad.append(valor_sin_estacionalidad)
+                
+                lista_registro.append(1)  # Carga de tipo de registro - TIPO EMPLEO: 1
+        
+
+            df_aux['fecha'] = lista_fechas
             df_aux['id_prov'] = lista_provincias
+            df_aux['tipo_registro'] = lista_registro
             df_aux['valores_estacionales'] = lista_valores_estacionalidad
             df_aux['valores_no_estacionales'] = lista_valores_sin_estacionalidad
-            df_aux['tipo_registro'] = lista_registro
 
             print(df_aux)
-            print(df_NoEstacional)
+  
         except Exception as e:
             # Manejar cualquier excepción ocurrida durante la carga de datos
             print(f"Data Cuyo: Ocurrió un error durante la carga de datos: {str(e)}")
