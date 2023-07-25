@@ -26,15 +26,14 @@ JOIN dp_sectores_de_actividad ON dp_puestostrabajo_sector_privado.clae2 = dp_sec
 
 -- Trabajo2: Tabla de IPC(Indice de Precio al Consumidor)
 -- Ver los datos de las tablas de IPC
--- Nacional
-SELECT * FROM prueba1.ipc_totalnacion;
--- Regiones
-SELECT * FROM prueba1.ipc_regionnea;
-SELECT * FROM prueba1.ipc_regiongba;
-SELECT * FROM prueba1.ipc_regionpampeana;
-SELECT * FROM prueba1.ipc_regionnoroeste;
-SELECT * FROM prueba1.ipc_regioncuyo;
-SELECT * FROM prueba1.ipc_regionpatagonia;
+SELECT ipc_region.Fecha, regiones.descripcion_region AS Region, subdivision.descripcion AS Subdivision, ipc_region.Valor
+FROM ipc_region
+INNER JOIN regiones ON ipc_region.ID_Region = regiones.id_region
+INNER JOIN subdivision ON ipc_region.ID_Subdivision = subdivision.id_subdivision
+LIMIT 30000;
+Select COUNT(*)  from ipc_region;
+
+
 
 -- Ver los datos de las varianzas
 -- Ver los datos de las tablas de varianza intermensual
@@ -76,7 +75,7 @@ SELECT * FROM prueba1.dnrpa_inscripcion_nacion_auto;
 SELECT * FROM prueba1.dnrpa_inscripcion_nacion_moto;
 SELECT * FROM prueba1.dnrpa_parque_activo_nacion;
 
--- SALARIOS
+-- SALARIOS dp=Desarrollo Productivo
 SELECT * FROM dp_salarios_sector_privado WHERE MONTH(fecha) = 10 AND YEAR(fecha) = 2022;
 SELECT dp_provincias.nombre_provincia_indec AS provincias, 
        dp_localidades.nombre_departamento_indec AS localidad, 

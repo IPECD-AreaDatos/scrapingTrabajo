@@ -168,6 +168,7 @@ Valor float,
 Foreign key (ID_Region) references regiones(id_region),
 Foreign key (ID_Subdivision) references subdivision(id_subdivision)
 );
+
 -- Creacion de la tabla
 CREATE TABLE IPC_regionNEA(
 Fecha date not null,
