@@ -105,6 +105,9 @@ class LoadXLS5_1:
             df_aux['valores_estacionales'] = lista_valores_estacionalidad
             df_aux['valores_no_estacionales'] = lista_valores_sin_estacionalidad
 
+
+            df_aux = df_aux.sort_values('fecha')
+
             print(df_aux)
   
         except Exception as e:
