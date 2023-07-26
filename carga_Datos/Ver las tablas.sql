@@ -33,40 +33,11 @@ INNER JOIN subdivision ON ipc_region.ID_Subdivision = subdivision.id_subdivision
 LIMIT 30000;
 Select COUNT(*)  from ipc_region;
 
-
-
--- Ver los datos de las varianzas
--- Ver los datos de las tablas de varianza intermensual
--- Nacional
-SELECT * FROM prueba1.variacion_intermensual_nacion;
--- Regiones
-SELECT Fecha, CONCAT(FORMAT(Nivel_General * 100, 3), '%') AS porcentaje_formatado
-FROM variacion_intermensual_nacion;
-
-SELECT * FROM prueba1.variacion_intermensual_cuyo;
-SELECT * FROM prueba1.variacion_intermensual_gba;
-SELECT * FROM prueba1.variacion_intermensual_noroeste;
-SELECT * FROM prueba1.variacion_intermensual_pampeana;
-SELECT * FROM prueba1.variacion_intermensual_patagonia;
-SELECT * FROM prueba1.variacion_intermensual_nea;
-
--- Variacion Interanual
--- Ver los datos de las tablas de varianza interanual
--- Nacional
-SELECT * FROM prueba1.variacion_interanual_nacion;
--- Regiones
-SELECT * FROM prueba1.variacion_interanual_cuyo;
-SELECT * FROM prueba1.variacion_interanual_gba;
-SELECT * FROM prueba1.variacion_interanual_noroeste;
-SELECT * FROM prueba1.variacion_interanual_pampeana;
-SELECT * FROM prueba1.variacion_interanual_patagonia;
-SELECT * FROM prueba1.variacion_interanual_nea;
-
 -- SIPA
-SELECT * FROM prueba1.sipa_nacional_con_estacionalidad;
-SELECT * FROM prueba1.sipa_nacional_sin_estacionalidad;
-SELECT * FROM prueba1.sipa_dp_provincias_con_estacionalidad;
-SELECT * FROM prueba1.sipa_dp_provincias_sin_estacionalidad;
+SELECT sipa_registro.Fecha, dp_provincias.nombre_provincia_indec AS Provincia, sipa_tiporegistro.Descripcion_Registro AS Registro, sipa_registro.Cantidad_con_Estacionalidad, sipa_registro.Cantidad_sin_Estacionalidad
+FROM sipa_registro
+INNER JOIN dp_provincias ON sipa_registro.ID_Provincia = dp_provincias.id_provincia_indec
+INNER JOIN sipa_tiporegistro ON sipa_registro.ID_Tipo_Registro = sipa_tiporegistro.ID_Registro;
 
 -- DNRPA 
 SELECT * FROM prueba1.dnrpa_inscripcion_corrientes_moto;
