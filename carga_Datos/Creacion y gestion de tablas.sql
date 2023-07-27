@@ -757,4 +757,11 @@ CREATE TABLE DP_salarios_total(
   salario INT
 );
 
+Create table censo_provincia(
+Fecha date not null,
+ID_Provincia int,
+Departamentos char,
+Poblacion int,
 
+Foreign key (ID_Provincia) references dp_provincias(id_provincia_indec)
+);
