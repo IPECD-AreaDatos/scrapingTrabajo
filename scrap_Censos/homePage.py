@@ -94,7 +94,9 @@ class homePage:
         
             #Nombre - Asginar el texto que se encuentra en los links
             nombre_archivo = str(self.lista_provincias[indice])+".xls" #--> Extesion de archivo
-            
+            print(f"""          ====================================================================================================
+            Se descargo el archivo de {nombre_archivo} con exito
+          ==================================================================================================== """)
             ruta_guardado = os.path.join(self.ruta_carpeta_files, nombre_archivo) #--> Ruta donde se guardara el archivo
             
             
@@ -106,60 +108,6 @@ class homePage:
                 
             #Añadimos a una lista la ruta del archivo para post-tratamiento
             self.lista_rutas.append(os.path.join(self.ruta_carpeta_files, nombre_archivo))
-            
-        
-            
-            
-            
-
-
-
-        
-    #OBJETIVO: Construir DF a partir del DF descargado en 'obtener_estimacion(self)'
-    def construir_df_estimaciones(self):
-        
-        
-        #Columnas de cada DATAFRAME
-        
-        columnas = ['Departamento','<']
-        
-        #Iteramos por cada archivo - Cada provincia
-        for i,j in enumerate(self.lista_rutas):
-            
-            
-            #Rescate de valores
-            df = pd.read_excel(j,skiprows=9,
-                               usecols= 'A:Q',
-                               nrows=35,
-                               
-                               )
-            
-            
-            #Revisamos si hay valores nulos en la primera fila - Si hay borramos la primera fila 
-            
-            
-
-            
-            print(df.columns)
-            
-            
-            # Revisar si hay valores nulos en la primera fila del DataFrame
-            hay_nulos_en_primera_fila = df.iloc[0].isnull().any()
-
-            # Imprimir el resultado
-            print("Ruta del archivo:",j)
-            print("Pronvicia que corresponde: " ,self.lista_provincias[i]  )
-            print("¿Hay valores nulos en la primera fila del DataFrame?:", hay_nulos_en_primera_fila)
-            
-            print("=================================================")
-
-            
-
-    def imprimir_rutas(self):
-            
-        print(self.lista_rutas)         
-            
-        
             
             
 
