@@ -403,7 +403,6 @@ class LoadXLSProvincias:
                 lista_fechas.append(fecha)
                 lista_registro.append(1)  
 
-                print(lista_valores_estacionalidad[_])
 
         except Exception as e:
             # Manejar cualquier excepción ocurrida durante la carga de datos

@@ -144,8 +144,6 @@ class LoadXLSTrabajoRegistrado:
                 lista_registro.append(8)
                 lista_fechas.append(fecha)
 
-
-                print(row)
     
         except Exception as e:
             
