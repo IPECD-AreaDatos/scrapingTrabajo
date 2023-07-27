@@ -760,7 +760,7 @@ CREATE TABLE DP_salarios_total(
 Create table censo_provincia(
 Fecha date not null,
 ID_Provincia int,
-Departamentos char,
+Departamentos varchar(80),
 Poblacion int,
 
 Foreign key (ID_Provincia) references dp_provincias(id_provincia_indec)
