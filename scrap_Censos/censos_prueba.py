@@ -10,7 +10,7 @@ import pandas as pd
 import xlrd
 from bs4 import BeautifulSoup
 import datetime
-
+import mysql.connector
 
 class homePage:
     
@@ -138,6 +138,10 @@ class homePage:
         rango_años = [2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025]
         fecha_row_index = 4
 
+        bandera = True #--> Inicializacion de bandera || INDICA SI YA SE TOMARON LOS AÑOS O NO - True: no hay años , FALSE: ya se tomaron los años
+
+
+
         """
                         
                                    
@@ -147,22 +151,25 @@ class homePage:
 
         for i in lista_rutas:
 
-            print(inicio)
-            print(final)
-
             workbook = xlrd.open_workbook(i) #--> abrimos doc
             sheet = workbook.sheet_by_index(0) #--> TOmamos primera hoja
 
-            anios = [int(anio) for anio in sheet.row_values(fecha_row_index)[1:] if isinstance(anio, (int, float))]
+
+            if bandera:
+                anios = [int(anio) for anio in sheet.row_values(fecha_row_index)[1:] if isinstance(anio, (int, float))]
+                bandera = False
+
+
             valores_por_anio_y_localidad = []
             
             #Carga de CABA
 
             for row_index in range(filas_iniciales[inicio], min(sheet.nrows, filas_finales[final])):
-                localidad = sheet.cell_value(row_index, 0).strip()
+                localidad = str(sheet.cell_value(row_index, 0)).strip()
                 valores_por_localidad = sheet.row_values(row_index)[1:]
                 for i, valor in enumerate(valores_por_localidad):
                     if isinstance(valor, (int, float)):
+
                         anio = anios[i]
                         fecha = datetime.date(year=anio, month=1, day=1)
                         valores_por_anio_y_localidad.append({
@@ -172,21 +179,55 @@ class homePage:
                             "Valor": valor
                         })
             
-
-            inicio = inicio + 1
-            final = final + 1 
-            codigo = codigo + 1
             
             
-        df = pd.DataFrame()
-        df['valores'] = lista_valores
-        df['años'] = lista_años
-        df['depar'] = lista_deps
+            # Imprimir la lista completa de valores con año y localidad
+            provincia = "Buenos Aires"
+            print("Se estan cargando los valores de ", provincia)
+            for item in valores_por_anio_y_localidad:
+                print(item)
+
+            print(f"Datos de {provincia} se leyeron correctamente")
+            
+            # Establecer la conexión a la base de datos MySQL
+            host = '172.17.22.10'
+            user = 'Ivan'
+            password = 'Estadistica123'
+            database = 'prueba1'
+            conexion = mysql.connector.connect(
+                host=host,
+                user=user,
+                password=password,
+                database=database
+            )
+
+            # Crear un cursor para ejecutar consultas
+            cursor = conexion.cursor()
+
+            # Consulta SQL para insertar los datos en la tabla
+            insert_query = "INSERT INTO censo_provincia (Fecha, ID_Provincia, Departamentos, Poblacion) VALUES (%s, %s, %s, %s)"
+
+            # Variables para transacciones
+            transaccion_activa = False
+
+            # Iterar por los datos y ejecutar la consulta para cada uno
+            for item in valores_por_anio_y_localidad:
+                fecha = item["Anio"].strftime('%Y-%m-%d')
+                codigo_provincia = item["Provincia"]  # Cambia el nombre de la variable
+                departamentos = item["Localidad"]
+                poblacion = item["Valor"]
+
+                # Ejecutar la consulta con los valores correspondientes
+                cursor.execute(insert_query, (fecha, codigo_provincia, departamentos, poblacion))
 
 
-        for i in df.values:
+            # Hacer commit para guardar los cambios en la base de datos
+            conexion.commit()
 
-            print(i)
+            # Cerrar el cursor y la conexión
+            cursor.close()
+            conexion.close()
+            
 
     def imprimir_rutas(self):
             
