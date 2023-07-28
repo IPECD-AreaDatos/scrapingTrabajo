@@ -9,6 +9,7 @@ import urllib3
 import pandas as pd
 import xlrd
 from bs4 import BeautifulSoup
+import datetime
 
 
 class homePage:
@@ -119,9 +120,12 @@ class homePage:
         """
         filas_iniciales = [9,10,9,9,9,9,9,9,9,9,9,10,9,9,9,10,10,10,10,10,10,10,10,10]
         filas_finales = [24,34,25,34,24,35,34,26,18,25,31,28,27,26,25,23,33,29,19,17,29,37,13,27]
-
+        id_provincia = [2, 6, 10, 22, 23, 14, 18, 30, 34, 38, 42, 46, 50, 54, 58, 62, 66, 70, 74, 78, 82, 86, 94, 90]
+        
+        
         inicio = 0 #--> indice que iterara en los indices de valores iniciales
         final = 0 #--> indice que iterara en los indices de valores finales
+        codigo = 0
         
 
         # Lista para almacenar los valores de las filas
@@ -132,43 +136,13 @@ class homePage:
         lista_deps = [] #--> Contendra los departamentos de cada provincia (POR EL MOMENTO FORMATO DE STR)
 
         rango_años = [2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025]
-
+        fecha_row_index = 4
 
         """
                         
                                    
         """
-        lista_rutas = [
-                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\CiudadAutónomadeBuenosAires.xls',
-                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\BuenosAires.xls',
-                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Catamarca.xls', 
-                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Chaco.xls',
-                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Chubut.xls',
-                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Córdoba.xls',
-                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Corrientes.xls',
-                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\EntreRíos.xls',
-                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Formosa.xls',
-                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Jujuy.xls',
-                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\LaPampa.xls',
-                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\LaRioja.xls',
-                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Mendoza.xls',
-                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Misiones.xls',
-                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Neuquén.xls',
-                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\RíoNegro.xls',
-                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Salta.xls',
-                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\SanJuan.xls',
-                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\SanLuis.xls',
-                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\SantaCruz.xls',
-                     'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\SantaFe.xls',
-                     'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\SantiagodelEstero.xls',
-                     'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\TierradelFuego,AntártidaeIslasdelAtlánticoSur.xls',
-                     'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Tucumán.xls'
-
-
-
-
-
-                      ]
+        lista_rutas = self.lista_rutas
     
 
         for i in lista_rutas:
@@ -179,22 +153,30 @@ class homePage:
             workbook = xlrd.open_workbook(i) #--> abrimos doc
             sheet = workbook.sheet_by_index(0) #--> TOmamos primera hoja
 
+            anios = [int(anio) for anio in sheet.row_values(fecha_row_index)[1:] if isinstance(anio, (int, float))]
+            valores_por_anio_y_localidad = []
+            
             #Carga de CABA
 
-            for row in range(filas_iniciales[inicio], filas_finales[final]):
-
-                row_values = sheet.row_values(row, start_colx=1)  # Lee la fila desde la columna B en adelante
-                dep = sheet.cell_value(row, 0)
-
-                for i,j in enumerate(row_values):
-
-                    lista_valores.append(j) #--> Valor
-                    lista_años.append(rango_años[i]) #--> Año
-                    lista_deps.append(dep)
-                    
+            for row_index in range(filas_iniciales[inicio], min(sheet.nrows, filas_finales[final])):
+                localidad = sheet.cell_value(row_index, 0).strip()
+                valores_por_localidad = sheet.row_values(row_index)[1:]
+                for i, valor in enumerate(valores_por_localidad):
+                    if isinstance(valor, (int, float)):
+                        anio = anios[i]
+                        fecha = datetime.date(year=anio, month=1, day=1)
+                        valores_por_anio_y_localidad.append({
+                            "Anio": fecha,
+                            "Provincia": id_provincia[codigo],
+                            "Localidad": localidad,
+                            "Valor": valor
+                        })
+            
 
             inicio = inicio + 1
             final = final + 1 
+            codigo = codigo + 1
+            
             
         df = pd.DataFrame()
         df['valores'] = lista_valores
