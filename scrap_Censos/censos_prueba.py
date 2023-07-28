@@ -117,8 +117,8 @@ class homePage:
         """
         Valores para moverse en los excels
         """
-        filas_iniciales = [9,10,9,9,9]
-        filas_finales = [24,34,25,34,24]
+        filas_iniciales = [9,10,9,9,9,9,9,9,9,9,9,10,9,9,9,10,10,10,10,10,10,10,10,10]
+        filas_finales = [24,34,25,34,24,35,34,26,18,25,31,28,27,26,25,23,33,29,19,17,29,37,13,27]
 
         inicio = 0 #--> indice que iterara en los indices de valores iniciales
         final = 0 #--> indice que iterara en los indices de valores finales
@@ -135,24 +135,50 @@ class homePage:
 
 
         """
-                                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\BuenosAires.xls',
-                                'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Catamarca.xls',
-                                'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Chaco.xls',
-                                'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Chubut.xls',
+                        
+                                   
         """
-        lista_rutas = ['c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\CiudadAutónomadeBuenosAires.xls'
-                       
-                       ]
+        lista_rutas = [
+                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\CiudadAutónomadeBuenosAires.xls',
+                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\BuenosAires.xls',
+                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Catamarca.xls', 
+                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Chaco.xls',
+                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Chubut.xls',
+                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Córdoba.xls',
+                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Corrientes.xls',
+                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\EntreRíos.xls',
+                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Formosa.xls',
+                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Jujuy.xls',
+                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\LaPampa.xls',
+                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\LaRioja.xls',
+                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Mendoza.xls',
+                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Misiones.xls',
+                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Neuquén.xls',
+                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\RíoNegro.xls',
+                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Salta.xls',
+                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\SanJuan.xls',
+                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\SanLuis.xls',
+                    'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\SantaCruz.xls',
+                     'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\SantaFe.xls',
+                     'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\SantiagodelEstero.xls',
+                     'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\TierradelFuego,AntártidaeIslasdelAtlánticoSur.xls',
+                     'c:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_Censos\\files\\Tucumán.xls'
+
+
+
+
+
+                      ]
     
 
         for i in lista_rutas:
 
+            print(inicio)
+            print(final)
+
             workbook = xlrd.open_workbook(i) #--> abrimos doc
             sheet = workbook.sheet_by_index(0) #--> TOmamos primera hoja
 
-            inicio = inicio + 1
-            final = final + 1 
-            
             #Carga de CABA
 
             for row in range(filas_iniciales[inicio], filas_finales[final]):
@@ -167,25 +193,22 @@ class homePage:
                     lista_deps.append(dep)
                     
 
-
-        
-
+            inicio = inicio + 1
+            final = final + 1 
+            
         df = pd.DataFrame()
         df['valores'] = lista_valores
         df['años'] = lista_años
         df['depar'] = lista_deps
 
+
         for i in df.values:
+
             print(i)
 
     def imprimir_rutas(self):
             
-        for i in self.lista_rutas:
-            print(f""" 
-                  
-                  RUTA:{i}
-                
-                  """)
+       print(self.lista_rutas)
 
 
 instancia = homePage()
