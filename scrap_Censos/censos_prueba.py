@@ -179,7 +179,9 @@ class homePage:
                             "Valor": valor
                         })
             
-            
+            inicio = inicio + 1
+            final = final + 1
+            codigo = codigo + 1
             
             # Imprimir la lista completa de valores con año y localidad
             provincia = "Buenos Aires"
