@@ -147,7 +147,6 @@ class homePage:
                                    
         """
         lista_rutas = self.lista_rutas
-    
 
         for i in lista_rutas:
 
