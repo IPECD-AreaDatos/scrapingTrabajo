@@ -27,7 +27,7 @@ class loadHTML_TablaAutoInscripcionCorrientes:
             # Obtener la ruta del directorio actual (donde se encuentra el script)
             directorio_actual = os.path.dirname(os.path.abspath(__file__))
             ruta_carpeta_files = os.path.join(directorio_actual, 'files')
-            ruta_archivo_excel = os.path.join(ruta_carpeta_files, 'registroInscripcionAutoCorientes.xlsx')
+            ruta_archivo_excel = os.path.join(ruta_carpeta_files, 'pruebaReestructuracion.xlsx')
 
             #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ SELENIUM ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
             driver = webdriver.Chrome()
@@ -51,19 +51,19 @@ class loadHTML_TablaAutoInscripcionCorrientes:
             boton = driver.find_element(By.XPATH, '//*[@id="seleccion"]/center/table/tbody/tr[4]/td/input[1]')
             boton.click()
             
-            time.sleep(5)
+            time.sleep(1)
             
             boton_aceptar = driver.find_element(By.XPATH, '//*[@id="seleccion"]/center/center/input')
             boton_aceptar.click()
             
             # Esperar un momento para que se abra la nueva pestaña
-            driver.implicitly_wait(5)
+            driver.implicitly_wait(1)
             # Cambiar al contexto de la nueva pestaña
             for ventana in driver.window_handles:
                 if ventana != ventana_actual:
                     driver.switch_to.window(ventana)
             
-            time.sleep(5)
+            time.sleep(1)
             
             # Encontrar el elemento del enlace por el texto visible completo
             enlace = driver.find_element(By.LINK_TEXT, "CORRIENTES")
@@ -74,7 +74,7 @@ class loadHTML_TablaAutoInscripcionCorrientes:
             # Hacer clic en el enlace
             enlace.click()
             # Esperar un momento para que se abra la nueva pestaña
-            driver.implicitly_wait(5)
+            driver.implicitly_wait(1)
             # Cambiar al contexto de la nueva pestaña
             for ventana in driver.window_handles:
                 if ventana != ventana_actual:
@@ -92,6 +92,7 @@ class loadHTML_TablaAutoInscripcionCorrientes:
 
             # Lista para almacenar los datos de la tabla
             tabla_datos = []
+            num_valores = []
             
             for fila in filas:
                 # Obtener las celdas de cada fila, excluyendo la última columna y la última celda de encabezado
@@ -111,10 +112,11 @@ class loadHTML_TablaAutoInscripcionCorrientes:
                                 # Intentar convertir el valor a float
                                 valor = int(valor)
                                 print("valor1: ", valor)
+                                num_valores.append(valor) #----> Tabla con todos los valores
                             except ValueError:
                                 pass  # Mantener el valor original si no se puede convertir a float
                     fila_datos.append(valor)
-                print("aca: ", fila_datos)
+                print("aca?: ", fila_datos)
                 # Verificar si la última celda es "Total" y eliminarla
                 if fila_datos and fila_datos[-1] == "Total":
                     fila_datos.pop()
@@ -125,6 +127,7 @@ class loadHTML_TablaAutoInscripcionCorrientes:
             datos_sin_segunda_fila = tabla_datos[0:1] + tabla_datos[2:]
             # Transponer los datos utilizando pandas
             df = pd.DataFrame(datos_sin_segunda_fila)
+            print(df)
             df_transpuesta = df.transpose()
             df_transpuesta = df_transpuesta.drop(df_transpuesta.index[-1])
             df_transpuesta = df_transpuesta.drop(df_transpuesta.columns[-1],axis=1)
@@ -168,111 +171,12 @@ class loadHTML_TablaAutoInscripcionCorrientes:
             
             # Recorrer los datos transpuestos y escribirlos en el archivo de Excel
             for fila_datos in valores_transpuestos:
-                hoja_activa.append(fila_datos)
-                
+                hoja_activa.append(fila_datos)                
             df_transpuesta.drop
             
             # Guardar el archivo Excel actualizado sobreescribiendo los datos existentes
             libro_excel.save(ruta_archivo_excel)
             
-            #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ CARGA MYSQL ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
-            # Crear el cursor para ejecutar consultas
-            cursor = conn.cursor()
-            # Cargar el archivo Excel
-           
-            # Cargar el archivo Excel
-            workbook = openpyxl.load_workbook(ruta_archivo_excel)
-
-            column_mapping = {
-                'RRSS / Mes': 'Fecha',
-                '5001 - BELLA VISTA': 'Bella_vista',
-                '5002 - CORRIENTES N° 1': 'Corrientes_N1',
-                '5003 - CURUZU CUATIA': 'Curuzu_Cuatia',
-                '5004 - GOYA': 'Goya',
-                '5005 - MERCEDES': 'Mercedes',
-                '5006 - PASO DE LOS LIBRES': 'Paso_De_Los_Libres',
-                '5007 - SANTO TOME': 'Santo_Tome',
-                '5008 - ESQUINA': 'Esquina',
-                '5009 - ITUZAINGO N° 1': 'Ituzaingo_N1',
-                '5010 - MONTE CASEROS': 'Monte_Caseros',
-                '5011 - CORRIENTES N° 2': 'Corrientes_N2',
-                '5012 - ALVEAR': 'Alvear',
-                '5013 - CORRIENTES N° 3': 'Corrientes_N3',
-                '5014 - CORRIENTES N° 4': 'Corrientes_N4',
-                '5015 - SAN COSME': 'San_Cosme',
-                'TOTAL': 'Total_Nacion',
-            }
-
-            # Obtener la hoja de trabajo específica
-            sheet = workbook["Hoja1"]
-
-            # Obtener las fechas existentes en la tabla de MySQL
-            select_dates_query = "SELECT Fecha FROM dnrpa_inscripcion_corrientes_auto"
-            cursor.execute(select_dates_query)
-            existing_dates = [row[0].strftime('%Y-%m-%d') for row in cursor.fetchall()]
-            
-            # Recorrer las filas del archivo de Excel a partir de la segunda fila
-            for row in sheet.iter_rows(min_row=2, values_only=True):
-                fecha = row[0]
-                fecha_str = fecha.strftime('%Y-%m-%d')
-                
-                if fecha_str in existing_dates:
-                    # Realizar una actualización (UPDATE)
-                    update_values = []
-
-                    # Recorrer las columnas y los valores de la fila actual
-                    for col_idx, value in enumerate(row):
-                        # Obtener el nombre de la columna correspondiente en el archivo de Excel
-                        column_name_excel = sheet.cell(row=1, column=col_idx + 1).value
-
-                        # Verificar si la columna está mapeada en el diccionario de mapeo
-                        if column_name_excel in column_mapping:
-                            # Obtener el nombre de la columna correspondiente en la base de datos MySQL
-                            column_name_mysql = column_mapping[column_name_excel]
-
-                            # Agregar el nombre de la columna y el valor a la lista de valores para la actualización
-                            update_values.append((column_name_mysql, value))
-
-                    # Crear la sentencia SQL para la actualización
-                    update_query = "UPDATE dnrpa_inscripcion_corrientes_auto SET " + ", ".join([f"{col[0]} = %s" for col in update_values]) + " WHERE Fecha = %s"
-                    # Obtener los valores de la columna en el orden correcto para la actualización
-                    update_values = [col[1] for col in update_values]
-
-                    # Agregar la fecha al final de los valores de actualización
-                    update_values.append(fecha)
-
-                    # Ejecutar la sentencia SQL
-                    cursor.execute(update_query, update_values)
-                else:
-                    # Realizar una inserción (INSERT)
-                    insert_values = []
-
-                    # Recorrer las columnas y los valores de la fila actual
-                    for col_idx, value in enumerate(row):
-                        # Obtener el nombre de la columna correspondiente en el archivo de Excel
-                        column_name_excel = sheet.cell(row=1, column=col_idx + 1).value
-
-                        # Verificar si la columna está mapeada en el diccionario de mapeo
-                        if column_name_excel in column_mapping:
-                            # Obtener el nombre de la columna correspondiente en la base de datos MySQL
-                            column_name_mysql = column_mapping[column_name_excel]
-
-                            # Agregar el nombre de la columna y el valor a la lista de valores para la inserción
-                            insert_values.append((column_name_mysql, value))
-
-                    # Crear la sentencia SQL para la inserción
-                    columns = ", ".join([col[0] for col in insert_values])
-                    placeholders = ", ".join(["%s" for _ in insert_values])
-                    insert_query = f"INSERT INTO dnrpa_inscripcion_corrientes_auto ({columns}) VALUES ({placeholders})"
-
-                    # Obtener los valores de la columna en el orden correcto para la inserción
-                    insert_values = [col[1] for col in insert_values]
-
-                    # Ejecutar la sentencia SQL
-                    cursor.execute(insert_query, insert_values)
-
-            # Confirmar los cambios en la base de datos
-            conn.commit()
             
             # Se toma el tiempo de finalización y se calcula
             end_time = time.time()
@@ -288,4 +192,5 @@ class loadHTML_TablaAutoInscripcionCorrientes:
             # Manejar cualquier excepción ocurrida durante la carga de datos
             print(f"Registro automotor: Ocurrió un error durante la carga de datos: {str(e)}")
             conn.close()  # Cerrar la conexión en caso de error
-            
+
+loadHTML_TablaAutoInscripcionCorrientes().loadInDataBase(host, user, password, database)

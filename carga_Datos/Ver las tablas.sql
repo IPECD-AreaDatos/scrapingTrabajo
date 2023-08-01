@@ -40,14 +40,11 @@ INNER JOIN dp_provincias ON sipa_registro.ID_Provincia = dp_provincias.id_provin
 INNER JOIN sipa_tiporegistro ON sipa_registro.ID_Tipo_Registro = sipa_tiporegistro.ID_Registro;
 
 -- DNRPA 
-SELECT * FROM prueba1.dnrpa_inscripcion_corrientes_moto;
-SELECT * FROM prueba1.dnrpa_inscripcion_corrientes_auto;
-SELECT * FROM prueba1.dnrpa_inscripcion_nacion_auto;
-SELECT * FROM prueba1.dnrpa_inscripcion_nacion_moto;
-SELECT * FROM prueba1.dnrpa_parque_activo_nacion;
+
 
 -- SALARIOS dp=Desarrollo Productivo
 SELECT * FROM dp_salarios_sector_privado WHERE MONTH(fecha) = 10 AND YEAR(fecha) = 2022;
+
 SELECT dp_provincias.nombre_provincia_indec AS provincias, 
        dp_localidades.nombre_departamento_indec AS localidad, 
        dp_salarios_sector_privado.fecha AS fecha,

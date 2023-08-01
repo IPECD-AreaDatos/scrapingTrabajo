@@ -117,7 +117,7 @@ class LoadXLSProvincias:
                 #Valores obtenidos se agregan a las listas - Cargamos CHUBUT
                 lista_valores_estacionalidad.append(valor_estacionalidad)
                 lista_valores_sin_estacionalidad.append(valor_sin_estacionalidad)
-                lista_provincias.append(23)
+                lista_provincias.append(26)
                 lista_fechas.append(fecha)
                 lista_registro.append(1)  
 
