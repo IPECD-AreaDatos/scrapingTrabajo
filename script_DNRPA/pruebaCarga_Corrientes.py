@@ -90,19 +90,30 @@ class loadHTML_TablaAutoInscripcionCorrientes:
             # Obtener todas las filas de la tabla
             filas = elemento_tabla.find_elements(By.TAG_NAME, 'tr')
 
-            # Lista para almacenar los datos de la tabla
+            # Obtener las celdas de la primera columna de la tabla
+            regiones = driver.find_elements(By.XPATH, "//table//tr//td[1]")
+
+            # Lista para almacenar los valores de la primera columna
+            valores_regiones = [celda.text for celda in regiones]
+            print("columna ----> ", valores_regiones)
+
+            # Ahora puedes iterar por las filas y celdas de la tabla
             tabla_datos = []
-            num_valores = []
+            cantidad = []  # Tabla con todos los valores
+            id_vehiculo = []
+            id_provincia = [2, 6, 10, 22, 26, 14, 18, 30, 34, 38, 42, 46, 50, 54, 58, 62, 66, 70, 74, 78, 82, 86, 94, 90]
+            i = 0
             
             for fila in filas:
-                # Obtener las celdas de cada fila, excluyendo la última columna y la última celda de encabezado
-                celdas = fila.find_elements(By.TAG_NAME, 'th') + fila.find_elements(By.TAG_NAME, 'td')[:-1]
+                # Obtener las celdas de cada fila, excluyendo la primera columna y la última celda de encabezado
+                celdas = fila.find_elements(By.TAG_NAME, 'td')[1:-1]
 
                 # Lista para almacenar los valores de cada fila
                 fila_datos = []
 
                 for celda in celdas:
                     valor = celda.text
+                    id_vehiculo.append(1)
                     if isinstance(valor, str):
                         # Verificar si el valor comienza con un número
                         if valor.strip() and valor[0].isdigit():
@@ -112,18 +123,20 @@ class loadHTML_TablaAutoInscripcionCorrientes:
                                 # Intentar convertir el valor a float
                                 valor = int(valor)
                                 print("valor1: ", valor)
-                                num_valores.append(valor) #----> Tabla con todos los valores
+                                cantidad.append(valor)  # ----> Tabla con todos los valores
                             except ValueError:
                                 pass  # Mantener el valor original si no se puede convertir a float
+
                     fila_datos.append(valor)
+                
+                print("id_vehiculo ----> ", id_vehiculo)  # Imprimir el último valor agregado a id_vehiculo
                 print("aca?: ", fila_datos)
                 # Verificar si la última celda es "Total" y eliminarla
                 if fila_datos and fila_datos[-1] == "Total":
                     fila_datos.pop()
 
-
-                tabla_datos.append(fila_datos) 
-            
+                tabla_datos.append(fila_datos)
+    
             datos_sin_segunda_fila = tabla_datos[0:1] + tabla_datos[2:]
             # Transponer los datos utilizando pandas
             df = pd.DataFrame(datos_sin_segunda_fila)

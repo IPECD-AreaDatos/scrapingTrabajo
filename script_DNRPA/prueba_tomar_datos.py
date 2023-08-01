@@ -100,7 +100,7 @@ class PruebaDnrpa:
             driver.execute_script("window.open(arguments[0], '_blank');", a.get_attribute("href"))
 
             nueva_ventana = driver.window_handles[-1]  # El último handle corresponde a la nueva ventana
-
+            time.sleep(5)
             
 
 
