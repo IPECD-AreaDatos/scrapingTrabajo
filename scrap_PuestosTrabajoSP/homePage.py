@@ -23,30 +23,41 @@ class HomePage:
         # Cargar la página web
         self.driver.get(self.url_pagina)
 
-        # Esperar hasta que aparezca el enlace al archivo
+        # Esperar hasta que aparezca el enlace al primer archivo
         wait = WebDriverWait(self.driver, 10)
         archivo = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div[2]/div/div/div/div[1]/div[3]/div[1]/div/a[2]")))
 
-        # Obtener la URL del archivo
+        # Obtener la URL del primer archivo
         url_archivo = archivo.get_attribute('href')
 
-        # Ruta de la carpeta donde guardar el archivo
+        # Esperar hasta que aparezca el enlace al segundo archivo
+        archivo2 = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div[2]/div/div/div/div[1]/div[3]/div[3]/div/a[2]")))
+
+        # Obtener la URL del segundo archivo
+        url_archivo2 = archivo2.get_attribute('href')
+
+        # Ruta de la carpeta donde guardar los archivos
         # Obtener la ruta del directorio actual (donde se encuentra el script)
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
 
         # Construir la ruta de la carpeta "files" dentro del directorio actual
         carpeta_guardado = os.path.join(directorio_actual, 'files')
 
-        # Nombre del archivo
+        # Nombre de los archivos
         nombre_archivo = 'trabajoSectorPrivado.csv'
+        nombre_archivo2 = 'trabajoTotal.csv'
 
-        # Descargar el archivo desactivando la verificación del certificado SSL
-        response = requests.get(url_archivo, verify=False)
+        # Descargar el primer archivo desactivando la verificación del certificado SSL
+        response1 = requests.get(url_archivo, verify=False)
+        ruta_guardado1 = os.path.join(carpeta_guardado, nombre_archivo)
+        with open(ruta_guardado1, 'wb') as file1:
+            file1.write(response1.content)
 
-        # Guardar el archivo en la carpeta especificada
-        ruta_guardado = os.path.join(carpeta_guardado, nombre_archivo)
-        with open(ruta_guardado, 'wb') as file:
-            file.write(response.content)
+        # Descargar el segundo archivo desactivando la verificación del certificado SSL
+        response2 = requests.get(url_archivo2, verify=False)
+        ruta_guardado2 = os.path.join(carpeta_guardado, nombre_archivo2)
+        with open(ruta_guardado2, 'wb') as file2:
+            file2.write(response2.content)
 
         # Cerrar el navegador
         self.driver.quit()

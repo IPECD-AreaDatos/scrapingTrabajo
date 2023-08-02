@@ -4,6 +4,7 @@ import pandas as pd
 import time
 import os
 
+
 class LoadCSVData:
     def loadInDataBase(self, host, user, password, database):
         #Se toma el tiempo de comienzo

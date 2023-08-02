@@ -63,6 +63,14 @@ CREATE TABLE puestos_trabajo_asalariado (
   puestos INT
 );
 
+CREATE TABLE dp_puestostrabajo_total (
+  fecha Date,
+  codigo_departamento_indec INT,
+  id_provincia_indec INT,
+  clae2 VARCHAR(255),
+  puestos INT
+);
+
 -- Tabla de clae2(Sectores de actividad)
 CREATE TABLE dp_sectores_de_actividad (
   clae2 INT PRIMARY KEY,
@@ -163,13 +171,30 @@ VALUES
 CREATE TABLE ipc_region(
 Fecha date not null,
 ID_Region int,
+ID_Categoria int, 
 ID_Subdivision int,
 Valor float,
 
-Foreign key (ID_Region) references regiones(id_region),
-Foreign key (ID_Subdivision) references subdivision(id_subdivision)
+
+Foreign key (ID_Region) references regiones(ID_Region),
+Foreign key (ID_Subdivision) references ipc_subdivision(id_subdivision)
 );
 
+create table ipc_categoria(
+id_categoria INT,
+nombre VARCHAR(255) NOT NULL,
+
+primary key (id_categoria)
+);
+
+create table ipc_subdivision(
+id_categoria int,
+id_subdivision int,
+nombre varchar(150),
+
+primary key (id_subdivision),
+foreign key (id_categoria) references ipc_categoria(id_categoria)
+);
 -- TABLAS SIPA
 CREATE TABLE sipa_registro(
 Fecha date not null,
