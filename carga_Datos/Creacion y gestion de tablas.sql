@@ -172,9 +172,9 @@ CREATE TABLE ipc_region(
 Fecha date not null,
 ID_Region int,
 ID_Categoria int, 
+ID_Division int,
 ID_Subdivision int,
 Valor float,
-
 
 Foreign key (ID_Region) references regiones(ID_Region),
 Foreign key (ID_Categoria) references ipc_categoria(id_categoria)
@@ -296,11 +296,11 @@ INSERT INTO ipc_subdivision (id_categoria, id_division, id_subdivision, nombre) 
     (10, 27, 38, 'Equipos audiovisuales, fotográficos y de procesamiento de la información'),
     (10, 28, 39, 'Servicios recreativos y culturales'),
     (10, 29, 40, 'Periódicos, diarios, revistas, libros y artículos de papelería'),
-    (11, 30, 42, 'Educación'),
-    (12, 31, 43, 'Restaurantes y hoteles'),
-    (12, 32, 44, 'Restaurantes y comidas fuera del hogar'),
-    (13, 33, 45, 'Bienes y servicios varios'),
-    (13, 34, 46, 'Cuidado personal');
+    (11, 30, 41, 'Educación'),
+    (12, 31, 42, 'Restaurantes y hoteles'),
+    (12, 32, 43, 'Restaurantes y comidas fuera del hogar'),
+    (13, 33, 44, 'Bienes y servicios varios'),
+    (13, 34, 45, 'Cuidado personal');
 
     
     
