@@ -27,8 +27,12 @@ class LoadXLSDataGBA:
                     excel_date = target_row_values[i]  # Usar el valor de Excel sin convertirlo a entero
                     dt = datetime.datetime(1899, 12, 30) + datetime.timedelta(days=excel_date)
                     target_row_values[i] = dt.date()
+            
                     
-            # Leer los datos de las demás filas utilizando el mismo enfoque
+            valor_sacado1 = 260
+            valor_sacado2 = 262.2
+            
+            
             
             # Agregamos NIVEL GENERAL - CODIGO: 1
             nivel_general = [cell.value for cell in sheet[7]][1:]
@@ -291,9 +295,9 @@ class LoadXLSDataGBA:
             # Iteramos por la lista y reemplazamos los elementos que sean '///':
             for i in range(len(lista_valores)):
                 if lista_valores[i] == '///':
-                    lista_valores[i] = 74.7
+                    lista_valores[i] = valor_sacado1
                     
-        
+
             #Agregamos Prendas de vestir y calzado - Codigo 4
             calzado = [cell.value for cell in sheet[25]][1:]
             
@@ -310,8 +314,10 @@ class LoadXLSDataGBA:
             # Iteramos por la lista y reemplazamos los elementos que sean '///':
             for i in range(len(lista_valores)):
                 if lista_valores[i] == '///':
-                    lista_valores[i] = 25.3
+                    lista_valores[i] = valor_sacado2
             
+
+             
             #Agregamos Vivienda, agua, electricidad, gas y otros combustibles - Codigo  5         
             vivienda_agua_electricidad_gas_y_otros_combustibles = [cell.value for cell in sheet[26]][1:]
             
@@ -655,7 +661,7 @@ class LoadXLSDataGBA:
 
 
             #Agregamos Restaurantes y hoteles - Codigo  12
-            restaurantes_comidas_fueradelhogar = [cell.value for cell in sheet[48]][1:]
+            restaurantes_comidas_fueradelhogar = [cell.value for cell in sheet[49]][1:]
             
             for i in range(len(restaurantes_comidas_fueradelhogar)):
                 lista_fechas.append(target_row_values[i])  # Cargamos fechas
@@ -664,9 +670,24 @@ class LoadXLSDataGBA:
                 lista_division.append(32)
                 lista_subdivision.append(43)  # Cargamos subdivision
 
-
             for valor in  restaurantes_comidas_fueradelhogar:
                 lista_valores.append(valor)#--> Cargamos valores
+            
+            # Obtén los valores de las celdas en la línea 49 y columnas AP hasta AS
+            values_to_replace = [sheet.cell_value(48, col_idx) for col_idx in range(41, 45)]
+
+            # Índices de las posiciones que deseas reemplazar
+            indices_a_reemplazar = [3358, 3359, 3360, 3361]
+
+            # Reemplazar los valores en las posiciones indicadas
+            for idx in indices_a_reemplazar:
+                lista_valores[idx] = values_to_replace[idx - 3358]
+            
+            print("a: ", lista_valores[3358])
+            print("a: ", lista_valores[3359])
+            print("a: ", lista_valores[3360])
+            print("a: ", lista_valores[3361])
+        
             
             #Agregamos Bienes y servicios varios - Codigo  13
             bienes_y_servicios_varios = [cell.value for cell in sheet[50]][1:]

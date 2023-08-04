@@ -1,19 +1,20 @@
 import datetime
+import mysql.connector
 import time
 import xlrd
-import pandas as pd
+
 
 class LoadXLSDataPampeana:
     def loadInDataBase(self, file_path, valor_region, lista_fechas, lista_region,  lista_categoria, lista_division, lista_subdivision, lista_valores):
-        # Se toma el tiempo de comienzo
+        #Se toma el tiempo de comienzo
         start_time = time.time()
-
+        
         try:
-            
+
 
             # Leer el archivo de xls y obtener la hoja de trabajo específica
             workbook = xlrd.open_workbook(file_path)
-            sheet = workbook.sheet_by_index(0)  # Hoja 3 (índice 2)
+            sheet = workbook.sheet_by_index(2)  # Hoja 3 (índice 2)
 
             # Definir el índice de la fila objetivo
             target_row_index = 56  # El índice de la fila que deseas obtener (por ejemplo, línea 3)
@@ -27,10 +28,13 @@ class LoadXLSDataPampeana:
                     dt = datetime.datetime(1899, 12, 30) + datetime.timedelta(days=excel_date)
                     target_row_values[i] = dt.date()
                     
-                    
-
+            # Leer los datos de las demás filas utilizando el mismo enfoque
+            valor_sacado1 = 260
+            valor_sacado2 = 262.2
+            
+            
             # Agregamos NIVEL GENERAL - CODIGO: 1
-            nivel_general = [cell.value for cell in sheet[59]][1:]
+            nivel_general = [cell.value for cell in sheet[58]][1:]
 
             for i in range(len(nivel_general)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -46,7 +50,7 @@ class LoadXLSDataPampeana:
 
 
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            alimento_y_bebidas_no_alcoholicas = [cell.value for cell in sheet[60]][1:]
+            alimento_y_bebidas_no_alcoholicas = [cell.value for cell in sheet[59]][1:]
 
             for i in range(len(alimento_y_bebidas_no_alcoholicas)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -61,7 +65,7 @@ class LoadXLSDataPampeana:
 
 
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            alimento = [cell.value for cell in sheet[61]][1:]
+            alimento = [cell.value for cell in sheet[60]][1:]
 
             for i in range(len(alimento)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -75,7 +79,7 @@ class LoadXLSDataPampeana:
                 lista_valores.append(valor)#--> Cargamos valores
 
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            pan_y_cereales = [cell.value for cell in sheet[62]][1:]
+            pan_y_cereales = [cell.value for cell in sheet[61]][1:]
 
             for i in range(len(pan_y_cereales)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -90,7 +94,7 @@ class LoadXLSDataPampeana:
                 
             
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            carnes_y_derivados = [cell.value for cell in sheet[63]][1:]
+            carnes_y_derivados = [cell.value for cell in sheet[62]][1:]
 
             for i in range(len(carnes_y_derivados)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -104,7 +108,7 @@ class LoadXLSDataPampeana:
                 lista_valores.append(valor)#--> Cargamos valores
 
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            leche_productoslacteos_huevos = [cell.value for cell in sheet[64]][1:]
+            leche_productoslacteos_huevos = [cell.value for cell in sheet[63]][1:]
 
             for i in range(len(leche_productoslacteos_huevos)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -118,7 +122,7 @@ class LoadXLSDataPampeana:
                 lista_valores.append(valor)#--> Cargamos valores
             
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            aceites_grasas_manteca = [cell.value for cell in sheet[65]][1:]
+            aceites_grasas_manteca = [cell.value for cell in sheet[64]][1:]
 
             for i in range(len(aceites_grasas_manteca)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -132,7 +136,7 @@ class LoadXLSDataPampeana:
                 lista_valores.append(valor)#--> Cargamos valores
 
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            frutas = [cell.value for cell in sheet[66]][1:]
+            frutas = [cell.value for cell in sheet[65]][1:]
 
             for i in range(len(frutas)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -146,7 +150,7 @@ class LoadXLSDataPampeana:
                 lista_valores.append(valor)#--> Cargamos valores
 
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            verduras_tuberculos_legumbres = [cell.value for cell in sheet[67]][1:]
+            verduras_tuberculos_legumbres = [cell.value for cell in sheet[66]][1:]
 
             for i in range(len(verduras_tuberculos_legumbres)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -160,7 +164,7 @@ class LoadXLSDataPampeana:
                 lista_valores.append(valor)#--> Cargamos valores
 
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            azucar_dulces_chocolate_golosinas = [cell.value for cell in sheet[68]][1:]
+            azucar_dulces_chocolate_golosinas = [cell.value for cell in sheet[67]][1:]
 
             for i in range(len(azucar_dulces_chocolate_golosinas)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -174,7 +178,7 @@ class LoadXLSDataPampeana:
                 lista_valores.append(valor)#--> Cargamos valores
             
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            bebidas_no_alcoholicas = [cell.value for cell in sheet[69]][1:]
+            bebidas_no_alcoholicas = [cell.value for cell in sheet[68]][1:]
 
             for i in range(len(bebidas_no_alcoholicas)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -188,7 +192,7 @@ class LoadXLSDataPampeana:
                 lista_valores.append(valor)#--> Cargamos valores
             
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            cafe_te_yerba_cacao = [cell.value for cell in sheet[70]][1:]
+            cafe_te_yerba_cacao = [cell.value for cell in sheet[69]][1:]
 
             for i in range(len(cafe_te_yerba_cacao)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -202,7 +206,7 @@ class LoadXLSDataPampeana:
                 lista_valores.append(valor)#--> Cargamos valores
             
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            aguas_minerales_bebidasgaseosas_jugos = [cell.value for cell in sheet[71]][1:]
+            aguas_minerales_bebidasgaseosas_jugos = [cell.value for cell in sheet[70]][1:]
 
             for i in range(len(aguas_minerales_bebidasgaseosas_jugos)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -217,7 +221,7 @@ class LoadXLSDataPampeana:
             
             
             #Agregamos BEBIDAS ALCHOLICAS Y TABACOS - Codigo 3
-            bebidas_alcoholicas_y_tabaco = [cell.value for cell in sheet[72]][1:]
+            bebidas_alcoholicas_y_tabaco = [cell.value for cell in sheet[71]][1:]
 
             for i in range(len(bebidas_alcoholicas_y_tabaco)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -232,7 +236,7 @@ class LoadXLSDataPampeana:
 
 
             #Agregamos BEBIDAS ALCHOLICAS Y TABACOS - Codigo 3
-            bebidas_alcoholicas= [cell.value for cell in sheet[73]][1:]
+            bebidas_alcoholicas= [cell.value for cell in sheet[72]][1:]
 
             for i in range(len(bebidas_alcoholicas)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -246,7 +250,7 @@ class LoadXLSDataPampeana:
                 lista_valores.append(valor)#--> Cargamos valores
             
             #Agregamos BEBIDAS ALCHOLICAS Y TABACOS - Codigo 3
-            tabaco= [cell.value for cell in sheet[74]][1:]
+            tabaco= [cell.value for cell in sheet[73]][1:]
 
             for i in range(len(tabaco)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -261,7 +265,7 @@ class LoadXLSDataPampeana:
             
             
             #Agregamos Prendas de vestir y calzado - Codigo 4
-            prendasVestir_y_calzado = [cell.value for cell in sheet[75]][1:]
+            prendasVestir_y_calzado = [cell.value for cell in sheet[74]][1:]
             
             for i in range(len(prendasVestir_y_calzado)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -271,12 +275,11 @@ class LoadXLSDataPampeana:
                 lista_subdivision.append(17) #--> Cargamos subdivision
 
             for valor in prendasVestir_y_calzado:
-
                 lista_valores.append(valor)#--> Cargamos valores
 
             
             #Agregamos Prendas de vestir y calzado - Codigo 4
-            prendasdevestir_materiales = [cell.value for cell in sheet[25]][1:]
+            prendasdevestir_materiales = [cell.value for cell in sheet[75]][1:]
             
             for i in range(len(prendasdevestir_materiales)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -286,11 +289,16 @@ class LoadXLSDataPampeana:
                 lista_subdivision.append(18) #--> Cargamos subdivision
 
             for valor in prendasdevestir_materiales:
-
                 lista_valores.append(valor)#--> Cargamos valores
-            
+                  
+            # Iteramos por la lista y reemplazamos los elementos que sean '///':
+            for i in range(len(lista_valores)):
+                if lista_valores[i] == '///':
+                    lista_valores[i] = valor_sacado1
+                    
+        
             #Agregamos Prendas de vestir y calzado - Codigo 4
-            calzado = [cell.value for cell in sheet[26]][1:]
+            calzado = [cell.value for cell in sheet[76]][1:]
             
             for i in range(len(calzado)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -300,12 +308,15 @@ class LoadXLSDataPampeana:
                 lista_subdivision.append(19) #--> Cargamos subdivision
 
             for valor in calzado:
-
                 lista_valores.append(valor)#--> Cargamos valores
 
-
+            # Iteramos por la lista y reemplazamos los elementos que sean '///':
+            for i in range(len(lista_valores)):
+                if lista_valores[i] == '///':
+                    lista_valores[i] = valor_sacado2
+            
             #Agregamos Vivienda, agua, electricidad, gas y otros combustibles - Codigo  5         
-            vivienda_agua_electricidad_gas_y_otros_combustibles = [cell.value for cell in sheet[27]][1:]
+            vivienda_agua_electricidad_gas_y_otros_combustibles = [cell.value for cell in sheet[77]][1:]
             
             for i in range(len(vivienda_agua_electricidad_gas_y_otros_combustibles)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -319,7 +330,7 @@ class LoadXLSDataPampeana:
                 lista_valores.append(valor)#--> Cargamos valores
 
             #Agregamos Vivienda, agua, electricidad, gas y otros combustibles - Codigo  5         
-            alquiler_vivienda_y_gastos_conexos = [cell.value for cell in sheet[28]][1:]
+            alquiler_vivienda_y_gastos_conexos = [cell.value for cell in sheet[78]][1:]
             
             for i in range(len(alquiler_vivienda_y_gastos_conexos)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -333,7 +344,7 @@ class LoadXLSDataPampeana:
                 lista_valores.append(valor)#--> Cargamos valores
 
             #Agregamos Vivienda, agua, electricidad, gas y otros combustibles - Codigo  5         
-            alquiler_vivienda = [cell.value for cell in sheet[29]][1:]
+            alquiler_vivienda = [cell.value for cell in sheet[79]][1:]
             
             for i in range(len(alquiler_vivienda)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -348,7 +359,7 @@ class LoadXLSDataPampeana:
         
         
             #Agregamos Vivienda, agua, electricidad, gas y otros combustibles - Codigo  5         
-            mantenimiento_y_reparacion_vivienda = [cell.value for cell in sheet[30]][1:]
+            """mantenimiento_y_reparacion_vivienda = [cell.value for cell in sheet[80]][1:]
             
             for i in range(len(mantenimiento_y_reparacion_vivienda)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -359,11 +370,11 @@ class LoadXLSDataPampeana:
 
             for valor in mantenimiento_y_reparacion_vivienda:
 
-                lista_valores.append(valor)#--> Cargamos valores
+                lista_valores.append(valor)#--> Cargamos valores"""
         
         
             #Agregamos Vivienda, agua, electricidad, gas y otros combustibles - Codigo  5         
-            electricidad_gas_otroscombustibles = [cell.value for cell in sheet[31]][1:]
+            electricidad_gas_otroscombustibles = [cell.value for cell in sheet[80]][1:]
             
             for i in range(len(electricidad_gas_otroscombustibles)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -377,7 +388,7 @@ class LoadXLSDataPampeana:
                 lista_valores.append(valor)#--> Cargamos valores
         
             #Agregamos Equipamiento y mantenimiento del hogar - Codigo  6         
-            equipamiento_y_mantenimiento_del_hogar = [cell.value for cell in sheet[32]][1:]
+            equipamiento_y_mantenimiento_del_hogar = [cell.value for cell in sheet[81]][1:]
 
 
             for i in range(len(equipamiento_y_mantenimiento_del_hogar)):
@@ -394,7 +405,7 @@ class LoadXLSDataPampeana:
 
 
             #Agregamos Equipamiento y mantenimiento del hogar - Codigo  6         
-            bienesyservicios_para_la_conservacion_del_hogar = [cell.value for cell in sheet[33]][1:]
+            bienesyservicios_para_la_conservacion_del_hogar = [cell.value for cell in sheet[82]][1:]
 
 
             for i in range(len(bienesyservicios_para_la_conservacion_del_hogar)):
@@ -411,7 +422,7 @@ class LoadXLSDataPampeana:
 
 
             #Agregamos salud - Codigo  7
-            salud = [cell.value for cell in sheet[35]][1:]
+            salud = [cell.value for cell in sheet[83]][1:]
 
             for i in range(len(salud )):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -426,7 +437,7 @@ class LoadXLSDataPampeana:
 
 
             #Agregamos salud - Codigo  7
-            productos_medicinales_artefactos_equiposparalasalud = [cell.value for cell in sheet[35]][1:]
+            productos_medicinales_artefactos_equiposparalasalud = [cell.value for cell in sheet[84]][1:]
 
             for i in range(len(productos_medicinales_artefactos_equiposparalasalud )):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -441,7 +452,7 @@ class LoadXLSDataPampeana:
             
             
             #Agregamos salud - Codigo  7
-            gastos_prepagas = [cell.value for cell in sheet[36]][1:]
+            gastos_prepagas = [cell.value for cell in sheet[85]][1:]
 
             for i in range(len(gastos_prepagas )):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -456,7 +467,7 @@ class LoadXLSDataPampeana:
             
             
             #Agregamos Transporte - Codigo  8
-            transporte = [cell.value for cell in sheet[37]][1:]
+            transporte = [cell.value for cell in sheet[86]][1:]
 
             for i in range(len(transporte)):   
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -471,7 +482,7 @@ class LoadXLSDataPampeana:
 
 
             #Agregamos Transporte - Codigo  8
-            adquisicion_de_vehiculos = [cell.value for cell in sheet[38]][1:]
+            adquisicion_de_vehiculos = [cell.value for cell in sheet[87]][1:]
 
             for i in range(len(adquisicion_de_vehiculos)):   
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -485,7 +496,7 @@ class LoadXLSDataPampeana:
                 lista_valores.append(valor)#--> Cargamos valores
             
             #Agregamos Transporte - Codigo  8
-            funcionamiento_equipos_transporte_personal = [cell.value for cell in sheet[39]][1:]
+            funcionamiento_equipos_transporte_personal = [cell.value for cell in sheet[88]][1:]
 
             for i in range(len(funcionamiento_equipos_transporte_personal)):   
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -500,7 +511,7 @@ class LoadXLSDataPampeana:
 
 
             #Agregamos Transporte - Codigo  8
-            combustibles_lubricantes_vehiculos_hogar = [cell.value for cell in sheet[40]][1:]
+            combustibles_lubricantes_vehiculos_hogar = [cell.value for cell in sheet[89]][1:]
 
             for i in range(len(combustibles_lubricantes_vehiculos_hogar)):   
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -515,7 +526,7 @@ class LoadXLSDataPampeana:
 
 
             #Agregamos Transporte - Codigo  8
-            transporte_publico = [cell.value for cell in sheet[41]][1:]
+            transporte_publico = [cell.value for cell in sheet[90]][1:]
 
             for i in range(len(transporte_publico)):   
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -530,7 +541,7 @@ class LoadXLSDataPampeana:
 
 
             #Agregamos Comunicacion - Codigo  9
-            comunicación = [cell.value for cell in sheet[42]][1:]
+            comunicación = [cell.value for cell in sheet[91]][1:]
 
             for i in range(len(comunicación )):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -545,7 +556,7 @@ class LoadXLSDataPampeana:
                 lista_valores.append(valor)#--> Cargamos valores
 
             #Agregamos Comunicacion - Codigo  9
-            servicios_telefonia_internet = [cell.value for cell in sheet[43]][1:]
+            servicios_telefonia_internet = [cell.value for cell in sheet[92]][1:]
 
             for i in range(len(servicios_telefonia_internet )):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -561,7 +572,7 @@ class LoadXLSDataPampeana:
 
 
             #Agregamos Recreación y cultura - Codigo  10
-            recreación_y_cultura = [cell.value for cell in sheet[44]][1:]
+            recreación_y_cultura = [cell.value for cell in sheet[93]][1:]
 
             for i in range(len(recreación_y_cultura)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -572,9 +583,10 @@ class LoadXLSDataPampeana:
 
             for valor in recreación_y_cultura:
                 lista_valores.append(valor)#--> Cargamos valores
-
+                
+            """"
             #Agregamos Recreación y cultura - Codigo  10
-            equiposaudiovisuales_fotograficos_procesamientodelainformacion = [cell.value for cell in sheet[45]][1:]
+            equiposaudiovisuales_fotograficos_procesamientodelainformacion = [cell.value for cell in sheet[94]][1:]
 
             for i in range(len(equiposaudiovisuales_fotograficos_procesamientodelainformacion)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -585,9 +597,9 @@ class LoadXLSDataPampeana:
 
             for valor in equiposaudiovisuales_fotograficos_procesamientodelainformacion:
                 lista_valores.append(valor)#--> Cargamos valores
-
+            """
             #Agregamos Recreación y cultura - Codigo  10
-            servicios_recreativos_culturales = [cell.value for cell in sheet[46]][1:]
+            servicios_recreativos_culturales = [cell.value for cell in sheet[94]][1:]
 
             for i in range(len(servicios_recreativos_culturales)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -601,7 +613,7 @@ class LoadXLSDataPampeana:
 
 
             #Agregamos Recreación y cultura - Codigo  10
-            periodicos_diarios_revistas_libros_articulosdepapeleria = [cell.value for cell in sheet[47]][1:]
+            periodicos_diarios_revistas_libros_articulosdepapeleria = [cell.value for cell in sheet[95]][1:]
 
             for i in range(len(periodicos_diarios_revistas_libros_articulosdepapeleria)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -615,7 +627,7 @@ class LoadXLSDataPampeana:
                 
                 
             #Agregamos Educacion - Codigo  11
-            educación = [cell.value for cell in sheet[48]][1:]
+            educación = [cell.value for cell in sheet[96]][1:]
 
             for i in range(len(educación)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -632,7 +644,7 @@ class LoadXLSDataPampeana:
 
 
             #Agregamos Restaurantes y hoteles - Codigo  12
-            restaurantes_y_hoteles = [cell.value for cell in sheet[49]][1:]
+            restaurantes_y_hoteles = [cell.value for cell in sheet[97]][1:]
 
             for i in range(len(restaurantes_y_hoteles)):    
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -647,21 +659,36 @@ class LoadXLSDataPampeana:
 
 
             #Agregamos Restaurantes y hoteles - Codigo  12
-            restaurantes_comidas_fueradelhogar = [cell.value for cell in sheet[50]][1:]
-
-            for i in range(len(restaurantes_comidas_fueradelhogar)):    
-                lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
-                lista_region.append(valor_region) #--> Cargamos region - CUYO = 6
+            restaurantes_comidas_fueradelhogar = [cell.value for cell in sheet[98]][1:]
+            
+            for i in range(len(restaurantes_comidas_fueradelhogar)):
+                lista_fechas.append(target_row_values[i])  # Cargamos fechas
+                lista_region.append(valor_region)  # Cargamos region - CUYO = 6
                 lista_categoria.append(12)
                 lista_division.append(32)
-                lista_subdivision.append(43) #--> Cargamos subdivision
+                lista_subdivision.append(43)  # Cargamos subdivision
 
-            
             for valor in  restaurantes_comidas_fueradelhogar:
-                lista_valores.append(valor)#--> Cargamos valores
+                lista_valores.append(valor)#--> Cargamos valore
+                
+            # Obtén los valores de las celdas en la línea 49 y columnas AP hasta AS
+            values_to_replace = [sheet.cell_value(97, col_idx) for col_idx in range(41, 45)]
 
+            # Índices de las posiciones que deseas reemplazar
+            indices_a_reemplazar = [3200, 3201, 3202, 3203]
+
+            # Reemplazar los valores en las posiciones indicadas
+            for idx in indices_a_reemplazar:
+                lista_valores[idx] = values_to_replace[idx - 3200]
+            
+            print("a: ", lista_valores[3200])
+            print("a: ", lista_valores[3201])
+            print("a: ", lista_valores[3202])
+            print("a: ", lista_valores[3203])
+            
+            
             #Agregamos Bienes y servicios varios - Codigo  13
-            bienes_y_servicios_varios = [cell.value for cell in sheet[51]][1:]
+            bienes_y_servicios_varios = [cell.value for cell in sheet[99]][1:]
             
             for i in range(len(bienes_y_servicios_varios)):     
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -675,7 +702,7 @@ class LoadXLSDataPampeana:
                 lista_valores.append(valor)#--> Cargamos valores
 
             #Agregamos Bienes y servicios varios - Codigo  13
-            cuidado_personal = [cell.value for cell in sheet[52]][1:]
+            cuidado_personal = [cell.value for cell in sheet[100]][1:]
             
             for i in range(len(cuidado_personal)):     
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -688,6 +715,7 @@ class LoadXLSDataPampeana:
             for valor in  cuidado_personal:
                 lista_valores.append(valor)#--> Cargamos valores
 
+
         except Exception as e:
             # Manejar cualquier excepción ocurrida durante la carga de datos
-            print(f"Data Cuyo: Ocurrió un error durante la carga de datos: {str(e)}")
+            print(f"Ocurrió un error durante la carga de datos: {str(e)}")

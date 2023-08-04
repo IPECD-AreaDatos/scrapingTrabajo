@@ -37,7 +37,7 @@ if __name__ == '__main__':
     file_path = os.path.join(ruta_carpeta_files, 'IPC_Desagregado.xls')
     valoresDeIPC = [
       #LoadXLSDataNacion,
-      LoadXLSDataGBA,
+      #LoadXLSDataGBA,
       #LoadXLSDataPampeana,
       #LoadXLSDataNOA,
       #LoadXLSDataNEA,
