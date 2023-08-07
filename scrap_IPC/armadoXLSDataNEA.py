@@ -26,8 +26,8 @@ class LoadXLSDataNEA:
                     target_row_values[i] = dt.date()
                     
             # Leer los datos de las demás filas utilizando el mismo enfoque
-            valor_sacado1 = 260
-            valor_sacado2 = 262.2
+            valor_sacado1 = 258.4
+            valor_sacado2 = 235.9
             
             
             # Agregamos NIVEL GENERAL - CODIGO: 1
@@ -667,21 +667,12 @@ class LoadXLSDataNEA:
 
             for valor in  restaurantes_comidas_fueradelhogar:
                 lista_valores.append(valor)#--> Cargamos valore
-                
-            # Obtén los valores de las celdas en la línea 49 y columnas AP hasta AS
-            values_to_replace = [sheet.cell_value(195, col_idx) for col_idx in range(41, 45)]
 
-            # Índices de las posiciones que deseas reemplazar
-            indices_a_reemplazar = [3200, 3201, 3202, 3203]
-
-            # Reemplazar los valores en las posiciones indicadas
-            for idx in indices_a_reemplazar:
-                lista_valores[idx] = values_to_replace[idx - 3200]
             
-            print("a: ", lista_valores[3200])
-            print("a: ", lista_valores[3201])
-            print("a: ", lista_valores[3202])
-            print("a: ", lista_valores[3203])
+            lista_valores[3200]=284.5
+            lista_valores[3201]=289.2
+            lista_valores[3202]=295.8
+            lista_valores[3203]=302.4
             
             #Agregamos Bienes y servicios varios - Codigo  13
             bienes_y_servicios_varios = [cell.value for cell in sheet[197]][1:]

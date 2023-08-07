@@ -37,24 +37,31 @@ if __name__ == '__main__':
     file_path = os.path.join(ruta_carpeta_files, 'IPC_Desagregado.xls')
     valoresDeIPC = [
       #LoadXLSDataNacion,
-      #LoadXLSDataGBA,
-      #LoadXLSDataPampeana,
-      #LoadXLSDataNOA,
-      #LoadXLSDataNEA,
-      #LoadXLSDataCuyo,
-      #LoadXLSDataPatagonia,
+      LoadXLSDataGBA,
+      LoadXLSDataPampeana,
+      LoadXLSDataNOA,
+      LoadXLSDataNEA,
+      LoadXLSDataCuyo,
+      LoadXLSDataPatagonia,
     ]
     for regiones in valoresDeIPC:
       print("Valor region: ", valor_region)
       regiones().loadInDataBase(file_path, valor_region, lista_fechas, lista_region,  lista_categoria, lista_division, lista_subdivision, lista_valores)
       valor_region = valor_region + 1
-       
+     
+     
+    lista_valores[20343]=271.5
+    lista_valores[20344]=275.9
+    lista_valores[20345]=281.2
+    lista_valores[20346]=288.8
+            
     df['fecha'] = lista_fechas
     df['region'] = lista_region
     df['categoria'] = lista_categoria
     df['division']= lista_division
     df['subdivision']= lista_subdivision
     df['valor'] = lista_valores
+    
     
     conn = mysql.connector.connect(
       host=host, user=user, password=password, database=database
@@ -87,12 +94,13 @@ if __name__ == '__main__':
           # El registro ya existe, realizar una actualización (UPDATE)
           cursor.execute(update_query, (valor, fecha, region, categoria, division, subdivision))
           if not mensaje_enviado:
+              print("Se esta actualizo el valor de IPC: ", valor)
               print("Ningun dato nuevo")
               mensaje_enviado = True
       else:
           # El registro no existe, realizar una inserción (INSERT)
           cursor.execute(insert_query, (fecha, region, categoria, division, subdivision, valor))
-          print("aca: ", valor)
+          print("Se esta cargando el valor de IPC: ", valor)
           if not mensaje_enviado:
               print("Se agregaron nuevas fechas")
               mensaje_enviado = True

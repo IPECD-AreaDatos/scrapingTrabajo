@@ -671,24 +671,14 @@ class LoadXLSDataGBA:
                 lista_subdivision.append(43)  # Cargamos subdivision
 
             for valor in  restaurantes_comidas_fueradelhogar:
-                lista_valores.append(valor)#--> Cargamos valores
-            
-            # Obtén los valores de las celdas en la línea 49 y columnas AP hasta AS
-            values_to_replace = [sheet.cell_value(48, col_idx) for col_idx in range(41, 45)]
+                lista_valores.append(valor)#--> Cargamos valore
 
-            # Índices de las posiciones que deseas reemplazar
-            indices_a_reemplazar = [3358, 3359, 3360, 3361]
-
-            # Reemplazar los valores en las posiciones indicadas
-            for idx in indices_a_reemplazar:
-                lista_valores[idx] = values_to_replace[idx - 3358]
             
-            print("a: ", lista_valores[3358])
-            print("a: ", lista_valores[3359])
-            print("a: ", lista_valores[3360])
-            print("a: ", lista_valores[3361])
+            lista_valores[3358]=280
+            lista_valores[3359]=284.3
+            lista_valores[3360]=290.1
+            lista_valores[3361]=294.9
         
-            
             #Agregamos Bienes y servicios varios - Codigo  13
             bienes_y_servicios_varios = [cell.value for cell in sheet[50]][1:]
             

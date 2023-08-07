@@ -28,8 +28,8 @@ class LoadXLSDataPatagonia:
                     target_row_values[i] = dt.date()
                     
             # Leer los datos de las demás filas utilizando el mismo enfoque
-            valor_sacado1 = 260
-            valor_sacado2 = 262.2
+            valor_sacado1 = 236.8
+            valor_sacado2 = 265.8
             
             
             # Agregamos NIVEL GENERAL - CODIGO: 1
@@ -669,21 +669,12 @@ class LoadXLSDataPatagonia:
             for valor in  restaurantes_comidas_fueradelhogar:
                 lista_valores.append(valor)#--> Cargamos valores
             
-            # Obtén los valores de las celdas en la línea 49 y columnas AP hasta AS
-            values_to_replace = [sheet.cell_value(293, col_idx) for col_idx in range(41, 45)]
-
-            # Índices de las posiciones que deseas reemplazar
-            indices_a_reemplazar = [3358, 3359, 3360, 3361]
-
-            # Reemplazar los valores en las posiciones indicadas
-            for idx in indices_a_reemplazar:
-                lista_valores[idx] = values_to_replace[idx - 3358]
+            lista_valores[3200]=271.5
+            lista_valores[3201]=275.9
+            lista_valores[3202]=281.2
+            lista_valores[3203]=288.8
             
-            print("a: ", lista_valores[3358])
-            print("a: ", lista_valores[3359])
-            print("a: ", lista_valores[3360])
-            print("a: ", lista_valores[3361])
-        
+            
             
             #Agregamos Bienes y servicios varios - Codigo  13
             bienes_y_servicios_varios = [cell.value for cell in sheet[295]][1:]
@@ -713,6 +704,7 @@ class LoadXLSDataPatagonia:
             for valor in  cuidado_personal:
                 lista_valores.append(valor)#--> Cargamos valores
 
+            print(lista_valores)
             
 
         except Exception as e:
