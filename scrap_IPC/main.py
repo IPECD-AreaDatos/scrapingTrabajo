@@ -111,6 +111,7 @@ if __name__ == '__main__':
     # Cerrar el cursor y la conexión
     cursor.close()
     conn.close()
+    
 
 
 

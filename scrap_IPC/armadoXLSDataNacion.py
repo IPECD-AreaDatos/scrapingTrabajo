@@ -2,259 +2,84 @@ import datetime
 import time
 import xlrd
 import pandas as pd
+import mysql.connector
 
 class LoadXLSDataNacion:
-    def loadInDataBase(self, file_path, lista_fechas ,lista_region, valor_region ,lista_subdivision, lista_valores):
+    def loadInDataBase(self):
         # Se toma el tiempo de comienzo
         start_time = time.time()
 
         try:
-            
-            # Leer el archivo de xls y obtener la hoja de trabajo específica
-            workbook = xlrd.open_workbook(file_path)
-            sheet = workbook.sheet_by_index(2)  # Hoja 3 (índice 2)
+            db_config = {
+                'host': '172.17.22.10',
+                'user': 'Ivan',
+                'password': 'Estadistica123',
+                'database': 'prueba1'
+            }
 
-            # Definir el índice de la fila objetivo
-            target_row_index = 155  # El índice de la fila que deseas obtener (por ejemplo, línea 3)
-
-            # Obtener los valores de la fila completa a partir de la segunda columna (columna B)
-            target_row_values = sheet.row_values(target_row_index, start_colx=1)  # start_colx=1 indica que se inicia desde la columna B
-
-            for i in range(len(target_row_values)):
-                if isinstance(target_row_values[i], float):
-                    excel_date = target_row_values[i]  # Usar el valor de Excel sin convertirlo a entero
-                    dt = datetime.datetime(1899, 12, 30) + datetime.timedelta(days=excel_date)
-                    target_row_values[i] = dt.date()
-                    
-                    
-
-            # Agregamos NIVEL GENERAL - CODIGO: 1
-            nivel_general = list([cell.value for cell in sheet[9]][1:])
-
-            for i in range(len(nivel_general)):
-
-                lista_region.append(valor_region) #--> Cargamos region - CUYO = 6
-                lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
-                lista_subdivision.append(1) #--> Cargamos subdivision
-
-
-            for valor in nivel_general:
-
-                lista_valores.append(valor) #--> Cargamos valores
-
-
-            #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            alimento_y_bebidas_no_alcoholicas = list([cell.value for cell in sheet[10]][1:])
-
-            for i in range(len(alimento_y_bebidas_no_alcoholicas)):
-
-                lista_region.append(valor_region) #--> Cargamos region - CUYO = 6
-                lista_fechas.append(target_row_values[i])#--> Cargamos fechas
-                lista_subdivision.append(2) #--> Cargamos subdivision
-
-
-
-            
-            for valor in alimento_y_bebidas_no_alcoholicas:
-
-                lista_valores.append(valor)#--> Cargamos valores
-
-
-    
-            #Agregamos BEBIDAS ALCHOLICAS Y TABACOS - Codigo 3
-            bebidas_alcoholicas_y_tabaco = list([cell.value for cell in sheet[11]][1:])
-
-            for i in range(len(bebidas_alcoholicas_y_tabaco)):
-
-                lista_region.append(valor_region) #--> Cargamos region - CUYO = 6
-                lista_fechas.append(target_row_values[i])#--> Cargamos fechas
-                lista_subdivision.append(3) #--> Cargamos subdivision
-
-
-
-            
-            for valor in bebidas_alcoholicas_y_tabaco:
-
-                lista_valores.append(valor)#--> Cargamos valores
-
-
-
-            #Agregamos Prendas de vestir y calzado - Codigo 4
-            prendasVestir_y_calzado = [cell.value for cell in sheet[12]][1:]
-
-            for i in range(len(prendasVestir_y_calzado)):
-
-                lista_region.append(valor_region)#--> Cargamos region - CUYO = 6
-                lista_fechas.append(target_row_values[i])#--> Cargamos fechas
-                lista_subdivision.append(4) #--> Cargamos subdivision
-
-
-
-            
-            for valor in prendasVestir_y_calzado:
-
-                lista_valores.append(valor)#--> Cargamos valores
-
-
-
-
-
-            #Agregamos Vivienda, agua, electricidad, gas y otros combustibles - Codigo  5         
-            vivienda_agua_electricidad_gas_y_otros_combustibles = list([cell.value for cell in sheet[13]][1:])
-
-            for i in range(len(vivienda_agua_electricidad_gas_y_otros_combustibles)):
-
-                lista_region.append(valor_region)#--> Cargamos region - CUYO = 6
-                lista_fechas.append(target_row_values[i])#--> Cargamos fechas
-                lista_subdivision.append(5) #--> Cargamos subdivision
-
-
-
-            
-            for valor in vivienda_agua_electricidad_gas_y_otros_combustibles:
-
-                lista_valores.append(valor)#--> Cargamos valores
-
-
-            #Agregamos Equipamiento y mantenimiento del hogar - Codigo  6         
-            equipamiento_y_mantenimiento_del_hogar = list([cell.value for cell in sheet[14]][1:])
-
-            for i in range(len(equipamiento_y_mantenimiento_del_hogar)):
-                           
-                lista_region.append(valor_region)#--> Cargamos region - CUYO = 6
-                lista_fechas.append(target_row_values[i])#--> Cargamos fechas
-                lista_subdivision.append(6) #--> Cargamos subdivision
-
-            
-            for valor in equipamiento_y_mantenimiento_del_hogar:
-
-                lista_valores.append(valor)#--> Cargamos valores
-
-
-            #Agregamos salud - Codigo  7
-            
-            salud = list([cell.value for cell in sheet[15]][1:])
-
-
-            for i in range(len(salud )):
-                           
-                lista_region.append(valor_region)#--> Cargamos region - CUYO = 6
-                lista_fechas.append(target_row_values[i])#--> Cargamos fechas
-                lista_subdivision.append(7) #--> Cargamos subdivision
-
-            
-            for valor in salud:
-
-                lista_valores.append(valor)#--> Cargamos valores
-
-
-             #Agregamos Transporte - Codigo  8
-            transporte = list([cell.value for cell in sheet[16]][1:])
-
-            for i in range(len(transporte )):
-                           
-                lista_region.append(valor_region)#--> Cargamos region - CUYO = 6
-                lista_fechas.append(target_row_values[i])#--> Cargamos fechas
-                lista_subdivision.append(8) #--> Cargamos subdivision
-
-            
-            for valor in transporte:
-
-                lista_valores.append(valor)#--> Cargamos valores
-
-
+            # Establecer la conexión a la base de datos MySQL
+            conn = mysql.connector.connect(**db_config)
+            cursor = conn.cursor()
             
 
-             #Agregamos Comunicacion - Codigo  9
-            comunicación = list([cell.value for cell in sheet[17]][1:])
+            # Consultar y leer todos los datos de ipc_region
+            select_query = """
+                SELECT Fecha, ID_Region, ID_Categoria, ID_Division, ID_Subdivision, Valor
+                FROM ipc_region
+                WHERE NOT (ID_Categoria = 5 AND ID_Division = 13 AND ID_Subdivision = 23)
+                AND NOT (ID_Categoria = 10 AND ID_Division = 27 AND ID_Subdivision = 38)
+            """
+            cursor.execute(select_query)
+            data_to_process = cursor.fetchall()
 
 
-            for i in range(len(comunicación )):
-                           
-                lista_region.append(valor_region)#--> Cargamos region - CUYO = 6
-                lista_fechas.append(target_row_values[i])#--> Cargamos fechas
-                lista_subdivision.append(9) #--> Cargamos subdivision
+            # Crear un DataFrame a partir de los datos obtenidos
+            column_names = ['Fecha', 'ID_Region', 'ID_Categoria', 'ID_Division', 'ID_Subdivision', 'Valor']
+            df = pd.DataFrame(data_to_process, columns=column_names)
 
+            # Definir los valores de multiplicación basados en ID_Region
+            df['Factor'] = df['ID_Region'].apply(lambda x: 0.447 if x == 2 else
+                                                       (0.342 if x == 3 else
+                                                        (0.045 if x == 4 else
+                                                         (0.069 if x == 5 else
+                                                          (0.052 if x == 6 else
+                                                           (0.046 if x == 7 else 1.0))))))
+
+            # Aplicar la multiplicación al valor
+            df['Valor'] = df['Valor'] * df['Factor']
+
+            # Sumar los valores agrupados por ciertas columnas
+            group_columns = ['ID_Categoria', 'ID_Division', 'ID_Subdivision', 'Fecha']
+            grouped_df = df.groupby(group_columns, as_index=False)['Valor'].sum()
+
+            grouped_df_sorted = grouped_df.sort_values(by='Fecha')
+
+            # Imprimir el DataFrame ordenado por fecha
+            print(grouped_df_sorted)
             
-            for valor in comunicación:
 
-                lista_valores.append(valor)#--> Cargamos valores
-
-
-
-             #Agregamos Recreación y cultura - Codigo  10
-            recreación_y_cultura = list([cell.value for cell in sheet[18]][1:])
-
-
-            for i in range(len(recreación_y_cultura)):
-                           
-                lista_region.append(valor_region)#--> Cargamos region - CUYO = 6
-                lista_fechas.append(target_row_values[i])#--> Cargamos fechas
-                lista_subdivision.append(10) #--> Cargamos subdivision
-
-            
-            for valor in recreación_y_cultura:
-
-                lista_valores.append(valor)#--> Cargamos valores
-
-
-
-
-            #Agregamos Educacion - Codigo  11
-            educación = list([cell.value for cell in sheet[19]][1:])
-
-
-            for i in range(len(educación)):
-                           
-                lista_region.append(valor_region)#--> Cargamos region - CUYO = 6
-                lista_fechas.append(target_row_values[i])#--> Cargamos fechas
-                lista_subdivision.append(11) #--> Cargamos subdivision
-
-            
-            for valor in  educación:
-
-                lista_valores.append(valor)#--> Cargamos valores
-
-
-
-        
-            #Agregamos Restaurantes y hoteles - Codigo  12
-            restaurantes_y_hoteles = list([cell.value for cell in sheet[20]][1:])
-
-            for i in range(len(restaurantes_y_hoteles)):
-                           
-                lista_region.append(valor_region)#--> Cargamos region - CUYO = 6
-                lista_fechas.append(target_row_values[i])#--> Cargamos fechas
-                lista_subdivision.append(12) #--> Cargamos subdivision
-
-            
-            for valor in  restaurantes_y_hoteles:
-
-                lista_valores.append(valor)#--> Cargamos valores
-
-
-
-            #Agregamos Bienes y servicios varios - Codigo  13
-            bienes_y_servicios_varios = [cell.value for cell in sheet[21]][1:]
-
-
-            for i in range(len(bienes_y_servicios_varios)):
-                            
-                    lista_region.append(valor_region)#--> Cargamos region - CUYO = 6
-                    lista_fechas.append(target_row_values[i])#--> Cargamos fechas
-                    lista_subdivision.append(13) #--> Cargamos subdivision
-
+            # Insertar el resultado en la tabla con ID_Region igual a 1
+            for index, row in grouped_df_sorted.iterrows():
+                fecha = row['Fecha']
+                id_categoria = row['ID_Categoria']
+                id_division = row['ID_Division']
+                id_subdivision = row['ID_Subdivision']
+                valor = row['Valor']
                 
-            for valor in  bienes_y_servicios_varios:
+                insert_query = "INSERT INTO ipc_region (Fecha, ID_Region, ID_Categoria, ID_Division, ID_Subdivision, Valor) VALUES (%s, 1, %s, %s, %s, %s)"
+                values = (fecha, id_categoria, id_division, id_subdivision, valor)
+                cursor.execute(insert_query, values)
+                    
+            # Commit los cambios en la base de datos
+            conn.commit()
 
-                lista_valores.append(valor)#--> Cargamos valores
-
-            
-            
-
-
-            
-
+            # Cerrar la conexión
+            cursor.close()
+            conn.close()
+        
         except Exception as e:
             # Manejar cualquier excepción ocurrida durante la carga de datos
             print(f"Data Cuyo: Ocurrió un error durante la carga de datos: {str(e)}")
+            
+            
+LoadXLSDataNacion().loadInDataBase()
