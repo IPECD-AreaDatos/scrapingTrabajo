@@ -1,4 +1,4 @@
-from homePage import HomePage
+#from homePage import HomePage
 from loadXLSProvincias import LoadXLSProvincias
 from loadXLSTrabajoRegistrado import LoadXLSTrabajoRegistrado
 from conexionBaseDatos import conexionBaseDatos
@@ -16,12 +16,13 @@ database = 'prueba1'
 if __name__ == '__main__':
     
     #Obtencion del archivo
-    url = HomePage()
+    #url = HomePage()
     directorio_actual = os.path.dirname(os.path.abspath(__file__))
     ruta_carpeta_files = os.path.join(directorio_actual, 'files')
     file_path = os.path.join(ruta_carpeta_files, 'SIPA.xlsx')
 
-    #Inicializamos las listas de datos
+    #Inicializamos el data frame y la listas de datos
+    df = pd.DataFrame() 
     lista_provincias = list()
     lista_valores_estacionalidad = list() 
     lista_valores_sin_estacionalidad = list() 
@@ -32,3 +33,4 @@ if __name__ == '__main__':
     LoadXLSProvincias().loadInDataBase(file_path, lista_provincias, lista_valores_estacionalidad, lista_valores_sin_estacionalidad, lista_registro,lista_fechas)
     LoadXLSTrabajoRegistrado().loadInDataBase(file_path, lista_provincias, lista_valores_estacionalidad, lista_valores_sin_estacionalidad, lista_registro,lista_fechas)
     conexionBaseDatos().cargaBaseDatos(host, user, password, database, lista_provincias, lista_valores_estacionalidad, lista_valores_sin_estacionalidad, lista_registro,lista_fechas)
+
