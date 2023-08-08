@@ -52,7 +52,15 @@ class LoadXLSTrabajoRegistrado:
                 lista_provincias.append(1)#Provincia
                 lista_registro.append(2)
                 lista_fechas.append(fecha)
-
+               
+                print("==================================================================")
+                print("Nacion")
+                print("Numero: 1 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
+               
            # ========================================================================================# 
 
                 #Emplo Asalariado en SECTOR PUBLICO - codigo 2
@@ -67,6 +75,13 @@ class LoadXLSTrabajoRegistrado:
                 lista_registro.append(3)
                 lista_fechas.append(fecha)
 
+                print("==================================================================")
+                print("Nacion")
+                print("Numero: 1 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
 
            # ========================================================================================# 
 
@@ -82,6 +97,13 @@ class LoadXLSTrabajoRegistrado:
                 lista_registro.append(4)
                 lista_fechas.append(fecha)
 
+                print("==================================================================")
+                print("Nacion")
+                print("Numero: 1 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
 
            # ========================================================================================# 
 
@@ -96,8 +118,14 @@ class LoadXLSTrabajoRegistrado:
                 lista_provincias.append(1)#Provincia
                 lista_registro.append(5)
                 lista_fechas.append(fecha)
-
-
+                
+                print("==================================================================")
+                print("Nacion")
+                print("Numero: 1 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
 
            # ========================================================================================# 
 
@@ -113,6 +141,13 @@ class LoadXLSTrabajoRegistrado:
                 lista_registro.append(6)
                 lista_fechas.append(fecha)
 
+                print("==================================================================")
+                print("Nacion")
+                print("Numero: 1 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
 
            # ========================================================================================# 
 
@@ -128,7 +163,13 @@ class LoadXLSTrabajoRegistrado:
                 lista_registro.append(7)
                 lista_fechas.append(fecha)
 
-
+                print("==================================================================")
+                print("Nacion")
+                print("Numero: 1 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
 
            # ========================================================================================# 
 
@@ -144,6 +185,13 @@ class LoadXLSTrabajoRegistrado:
                 lista_registro.append(8)
                 lista_fechas.append(fecha)
 
+                print("==================================================================")
+                print("Nacion")
+                print("Numero: 1 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
     
         except Exception as e:
             

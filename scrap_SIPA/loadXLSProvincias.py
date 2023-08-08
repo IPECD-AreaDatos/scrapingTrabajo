@@ -44,9 +44,6 @@ class LoadXLSProvincias:
                 #Obtencion de fecha - Esta debe agregarse varias veces para diferentes provinicias
                 fecha = row['Período']
 
-                #Carga del tipo de registro -  Esta debe agregarse varias veces para diferentes provinicias
-                valor_registo = 1
-
                 
                 # ========================================================================================# 
                 
@@ -61,6 +58,16 @@ class LoadXLSProvincias:
                 lista_fechas.append(fecha)
                 lista_registro.append(1)  
 
+                
+                print("==================================================================")
+                print("Provincia: Buenos Aires")
+                print("Numero provincia: 6 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
+
+                
                 # ========================================================================================# 
 
 
@@ -75,13 +82,21 @@ class LoadXLSProvincias:
                 lista_fechas.append(fecha)
                 lista_registro.append(1)  
 
+                                
+                print("==================================================================")
+                print("Provincia: CABA")
+                print("Numero provincia: 2 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
 
+                
                 # ========================================================================================# 
 
                 #Carga de valores CATAMARCA - ID = no se todavia   
                 valor_estacionalidad = row['CATAMARCA']
                 valor_sin_estacionalidad = row_no_estacional['CATAMARCA']
-
 
                 #Valores obtenidos se agregan a las listas - Cargamos CATAMARCA
                 lista_valores_estacionalidad.append(valor_estacionalidad)
@@ -90,6 +105,13 @@ class LoadXLSProvincias:
                 lista_fechas.append(fecha)
                 lista_registro.append(1)  
 
+                print("==================================================================")
+                print("Provincia: Catamarca")
+                print("Numero provincia: 10 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
 
                 # ========================================================================================# 
 
@@ -98,13 +120,20 @@ class LoadXLSProvincias:
                 valor_estacionalidad = row['CHACO']
                 valor_sin_estacionalidad = row_no_estacional['CHACO']
 
-
                 #Valores obtenidos se agregan a las listas - Cargamos CHACO
                 lista_valores_estacionalidad.append(valor_estacionalidad)
                 lista_valores_sin_estacionalidad.append(valor_sin_estacionalidad)
                 lista_provincias.append(22)
                 lista_fechas.append(fecha)
                 lista_registro.append(1)  
+
+                print("==================================================================")
+                print("Provincia: Chaco")
+                print("Numero provincia: 22 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
 
 
                 # ========================================================================================# 
@@ -113,7 +142,6 @@ class LoadXLSProvincias:
                 valor_estacionalidad = row['CHUBUT']
                 valor_sin_estacionalidad = row_no_estacional['CHUBUT']
 
-
                 #Valores obtenidos se agregan a las listas - Cargamos CHUBUT
                 lista_valores_estacionalidad.append(valor_estacionalidad)
                 lista_valores_sin_estacionalidad.append(valor_sin_estacionalidad)
@@ -121,6 +149,13 @@ class LoadXLSProvincias:
                 lista_fechas.append(fecha)
                 lista_registro.append(1)  
 
+                print("==================================================================")
+                print("Provincia: Chubut")
+                print("Numero provincia: 26 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
 
                # ========================================================================================# 
 
@@ -128,20 +163,26 @@ class LoadXLSProvincias:
                 valor_estacionalidad = row['CÓRDOBA']
                 valor_sin_estacionalidad = row_no_estacional['CÓRDOBA']
 
-
                 #Valores obtenidos se agregan a las listas - Cargamos CORDOBA
                 lista_valores_estacionalidad.append(valor_estacionalidad)
                 lista_valores_sin_estacionalidad.append(valor_sin_estacionalidad)
                 lista_provincias.append(14)
                 lista_fechas.append(fecha)
                 lista_registro.append(1)  
-    
+
+                print("==================================================================")
+                print("Provincia: Cordoba")
+                print("Numero provincia: 14 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
+                
               # ========================================================================================# 
 
                 #Carga de valores CORRIENTES - ID = 18
                 valor_estacionalidad = row['CORRIENTES']
                 valor_sin_estacionalidad = row_no_estacional['CORRIENTES']
-
 
                 #Valores obtenidos se agregan a las listas - Cargamos CORRIENTES
                 lista_valores_estacionalidad.append(valor_estacionalidad)
@@ -150,13 +191,19 @@ class LoadXLSProvincias:
                 lista_fechas.append(fecha)
                 lista_registro.append(1)  
 
+                print("==================================================================")
+                print("Provincia: Corrientes")
+                print("Numero provincia: 18 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
 
               # ========================================================================================# 
 
                 #Carga de valores ENTRE RÍOS - ID = no se todavia   
                 valor_estacionalidad = row['ENTRE RÍOS']
                 valor_sin_estacionalidad = row_no_estacional['ENTRE RÍOS']
-
 
                 #Valores obtenidos se agregan a las listas - Cargamos ENTRE RIOS
                 lista_valores_estacionalidad.append(valor_estacionalidad)
@@ -165,12 +212,19 @@ class LoadXLSProvincias:
                 lista_fechas.append(fecha)
                 lista_registro.append(1)  
 
+                print("==================================================================")
+                print("Provincia: Entre Rios")
+                print("Numero provincia: 30 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
+
               # ========================================================================================# 
 
                 #Carga de valores FORMOSA - ID = no se todavia   
                 valor_estacionalidad = row['FORMOSA']
                 valor_sin_estacionalidad = row_no_estacional['FORMOSA']
-
 
                 #Valores obtenidos se agregan a las listas - Cargamos FORMOSA
                 lista_valores_estacionalidad.append(valor_estacionalidad)
@@ -179,12 +233,19 @@ class LoadXLSProvincias:
                 lista_fechas.append(fecha)
                 lista_registro.append(1)  
 
+                print("==================================================================")
+                print("Provincia: Formosa")
+                print("Numero provincia: 34 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
+
               # ========================================================================================# 
 
                 #Carga de valores JUJUY - ID = no se todavia   
                 valor_estacionalidad = row['JUJUY']
                 valor_sin_estacionalidad = row_no_estacional['JUJUY']
-
 
                 #Valores obtenidos se agregan a las listas - Cargamos JUJUY
                 lista_valores_estacionalidad.append(valor_estacionalidad)
@@ -192,14 +253,20 @@ class LoadXLSProvincias:
                 lista_provincias.append(38)
                 lista_fechas.append(fecha)
                 lista_registro.append(1)  
-        
+
+                print("==================================================================")
+                print("Provincia: Jujuy")
+                print("Numero provincia: 38 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
     
               # ========================================================================================# 
 
                 #Carga de valores LA PAMPA - ID = no se todavia   
                 valor_estacionalidad = row['LA PAMPA']
                 valor_sin_estacionalidad = row_no_estacional['LA PAMPA']
-
 
                 #Valores obtenidos se agregan a las listas - Cargamos LA PAMPA
                 lista_valores_estacionalidad.append(valor_estacionalidad)
@@ -208,6 +275,13 @@ class LoadXLSProvincias:
                 lista_fechas.append(fecha)
                 lista_registro.append(1)  
 
+                print("==================================================================")
+                print("Provincia: La Pampa")
+                print("Numero provincia: 42 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
 
               # ========================================================================================# 
 
@@ -215,14 +289,20 @@ class LoadXLSProvincias:
                 valor_estacionalidad = row['LA RIOJA']
                 valor_sin_estacionalidad = row_no_estacional['LA RIOJA']
 
-
                 #Valores obtenidos se agregan a las listas - Cargamos LA RIOJA
                 lista_valores_estacionalidad.append(valor_estacionalidad)
                 lista_valores_sin_estacionalidad.append(valor_sin_estacionalidad)
                 lista_provincias.append(46)
                 lista_fechas.append(fecha)
                 lista_registro.append(1)  
-        
+
+                print("==================================================================")
+                print("Provincia: La Rioja")
+                print("Numero provincia: 46 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
 
               # ========================================================================================# 
 
@@ -230,20 +310,26 @@ class LoadXLSProvincias:
                 valor_estacionalidad = row['MENDOZA']
                 valor_sin_estacionalidad = row_no_estacional['MENDOZA']
 
-
                 #Valores obtenidos se agregan a las listas - Cargamos MENDOZA
                 lista_valores_estacionalidad.append(valor_estacionalidad)
                 lista_valores_sin_estacionalidad.append(valor_sin_estacionalidad)
                 lista_provincias.append(50)
                 lista_fechas.append(fecha)
                 lista_registro.append(1)  
-        
+
+                print("==================================================================")
+                print("Provincia: Mendoza")
+                print("Numero provincia: 50 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
+
               # ========================================================================================# 
 
                 #Carga de valores MISIONES - ID = no se todavia   
                 valor_estacionalidad = row['MISIONES']
                 valor_sin_estacionalidad = row_no_estacional['MISIONES']
-
 
                 #Valores obtenidos se agregan a las listas - Cargamos MISIONES
                 lista_valores_estacionalidad.append(valor_estacionalidad)
@@ -252,12 +338,19 @@ class LoadXLSProvincias:
                 lista_fechas.append(fecha)
                 lista_registro.append(1)  
 
+                print("==================================================================")
+                print("Provincia: Misiones")
+                print("Numero provincia: 54 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
+
               # ========================================================================================# 
 
                 #Carga de valores NEUQUÉN- ID = no se todavia   
                 valor_estacionalidad = row['NEUQUÉN']
                 valor_sin_estacionalidad = row_no_estacional['NEUQUÉN']
-
 
                 #Valores obtenidos se agregan a las listas - Cargamos NEUQUÉN
                 lista_valores_estacionalidad.append(valor_estacionalidad)
@@ -265,14 +358,20 @@ class LoadXLSProvincias:
                 lista_provincias.append(58)
                 lista_fechas.append(fecha)
                 lista_registro.append(1)  
-    
+
+                print("==================================================================")
+                print("Provincia: Neuquen")
+                print("Numero provincia: 58 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
 
               # ========================================================================================# 
 
                 #Carga de valores RÍO NEGRO- ID = no se todavia   
                 valor_estacionalidad = row['RíO NEGRO']
                 valor_sin_estacionalidad = row_no_estacional['RÍO NEGRO']
-
 
                 #Valores obtenidos se agregan a las listas - Cargamos RÍO NEGRO
                 lista_valores_estacionalidad.append(valor_estacionalidad)
@@ -281,13 +380,19 @@ class LoadXLSProvincias:
                 lista_fechas.append(fecha)
                 lista_registro.append(1)  
 
+                print("==================================================================")
+                print("Provincia: Rio Negro")
+                print("Numero provincia: 62 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
 
               # ========================================================================================# 
 
                 #Carga de valores SALTA- ID = no se todavia   
                 valor_estacionalidad = row['SALTA']
                 valor_sin_estacionalidad = row_no_estacional['SALTA']
-
 
                 #Valores obtenidos se agregan a las listas - Cargamos SALTA
                 lista_valores_estacionalidad.append(valor_estacionalidad)
@@ -296,13 +401,19 @@ class LoadXLSProvincias:
                 lista_fechas.append(fecha)
                 lista_registro.append(1)  
 
+                print("==================================================================")
+                print("Provincia: Salta")
+                print("Numero provincia: 66 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
 
               # ========================================================================================# 
 
                 #Carga de valores SAN JUAN- ID = no se todavia   
                 valor_estacionalidad = row['SAN JUAN']
                 valor_sin_estacionalidad = row_no_estacional['SAN JUAN']
-
 
                 #Valores obtenidos se agregan a las listas - Cargamos SAN JUAN
                 lista_valores_estacionalidad.append(valor_estacionalidad)
@@ -311,14 +422,19 @@ class LoadXLSProvincias:
                 lista_fechas.append(fecha)
                 lista_registro.append(1)  
 
-
+                print("==================================================================")
+                print("Provincia: San Juan")
+                print("Numero provincia: 70 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
 
               # ========================================================================================# 
 
                 #Carga de valores SAN LUIS- ID = no se todavia   
                 valor_estacionalidad = row['SAN LUIS']
                 valor_sin_estacionalidad = row_no_estacional['SAN LUIS']
-
 
                 #Valores obtenidos se agregan a las listas - Cargamos SAN LUIS
                 lista_valores_estacionalidad.append(valor_estacionalidad)
@@ -327,13 +443,19 @@ class LoadXLSProvincias:
                 lista_fechas.append(fecha)
                 lista_registro.append(1)  
 
+                print("==================================================================")
+                print("Provincia: San Luis")
+                print("Numero provincia: 74 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
 
               # ========================================================================================# 
 
                 #Carga de valores SANTA CRUZ- ID = no se todavia   
                 valor_estacionalidad = row['SANTA CRUZ']
                 valor_sin_estacionalidad = row_no_estacional['SANTA CRUZ']
-
 
                 #Valores obtenidos se agregan a las listas - Cargamos SANTA CRUZ
                 lista_valores_estacionalidad.append(valor_estacionalidad)
@@ -342,15 +464,19 @@ class LoadXLSProvincias:
                 lista_fechas.append(fecha)
                 lista_registro.append(1)  
 
-
-
+                print("==================================================================")
+                print("Provincia: Santa Cruz")
+                print("Numero provincia: 78 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
 
               # ========================================================================================# 
 
                 #Carga de valores SANTA FE- ID = no se todavia   
                 valor_estacionalidad = row['SANTA FE']
                 valor_sin_estacionalidad = row_no_estacional['SANTA FE']
-
 
                 #Valores obtenidos se agregan a las listas - Cargamos SANTA FE
                 lista_valores_estacionalidad.append(valor_estacionalidad)
@@ -359,13 +485,19 @@ class LoadXLSProvincias:
                 lista_fechas.append(fecha)
                 lista_registro.append(1) 
 
+                print("==================================================================")
+                print("Provincia: Santa Fe")
+                print("Numero provincia: 82 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
 
               # ========================================================================================# 
 
                 #Carga de valores SANTIAGO \nDEL ESTERO - ID = no se todavia   
                 valor_estacionalidad = row['SANTIAGO \nDEL ESTERO']
                 valor_sin_estacionalidad = row_no_estacional['SANTIAGO \nDEL ESTERO']
-
 
                 #Valores obtenidos se agregan a las listas - Cargamos SANTIAGO \nDEL ESTERO
                 lista_valores_estacionalidad.append(valor_estacionalidad)
@@ -374,12 +506,19 @@ class LoadXLSProvincias:
                 lista_fechas.append(fecha)
                 lista_registro.append(1)  
 
+                print("==================================================================")
+                print("Provincia: Santiago del Estero")
+                print("Numero provincia: 86 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
+
               # ========================================================================================# 
 
                 #Carga de valores TIERRA DEL FUEGO - ID = no se todavia   
                 valor_estacionalidad = row['TIERRA DEL FUEGO']
                 valor_sin_estacionalidad = row_no_estacional['TIERRA DEL FUEGO']
-
 
                 #Valores obtenidos se agregan a las listas - Cargamos TIERRA DEL FUEGO
                 lista_valores_estacionalidad.append(valor_estacionalidad)
@@ -388,13 +527,19 @@ class LoadXLSProvincias:
                 lista_fechas.append(fecha)
                 lista_registro.append(1)  
 
+                print("==================================================================")
+                print("Provincia: Tierra del Fuego")
+                print("Numero provincia: 94 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
                 
               # ========================================================================================# 
 
                 #Carga de valores TUCUMÁN - ID = no se todavia   
                 valor_estacionalidad = row['TUCUMÁN']
                 valor_sin_estacionalidad = row_no_estacional['TUCUMÁN']
-
 
                 #Valores obtenidos se agregan a las listas - Cargamos TUCUMÁN
                 lista_valores_estacionalidad.append(valor_estacionalidad)
@@ -403,6 +548,13 @@ class LoadXLSProvincias:
                 lista_fechas.append(fecha)
                 lista_registro.append(1)  
 
+                print("==================================================================")
+                print("Provincia: Tucuman")
+                print("Numero provincia: 90 ")
+                print("Fecha: ", fecha)
+                print("Valores con estacionalidad ", valor_estacionalidad)
+                print("Valores sin estacionalidad ", valor_sin_estacionalidad)
+                print("==================================================================")
 
         except Exception as e:
             # Manejar cualquier excepción ocurrida durante la carga de datos
