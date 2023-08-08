@@ -19,7 +19,7 @@ CREATE TABLE dp_provincias(
 id_provincia_indec int primary key not null,
 nombre_provincia_indec varchar(20)
 );
-
+insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) values (1, 'Nacion');
 Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (2, 'CABA');
 Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (6, 'Buenos Aires');
 Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (10, 'Catamarca');
