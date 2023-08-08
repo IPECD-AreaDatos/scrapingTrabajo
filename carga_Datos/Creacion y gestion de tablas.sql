@@ -63,6 +63,14 @@ CREATE TABLE puestos_trabajo_asalariado (
   puestos INT
 );
 
+CREATE TABLE dp_puestostrabajo_total (
+  fecha Date,
+  codigo_departamento_indec INT,
+  id_provincia_indec INT,
+  clae2 VARCHAR(255),
+  puestos INT
+);
+
 -- Tabla de clae2(Sectores de actividad)
 CREATE TABLE dp_sectores_de_actividad (
   clae2 INT PRIMARY KEY,
@@ -163,13 +171,139 @@ VALUES
 CREATE TABLE ipc_region(
 Fecha date not null,
 ID_Region int,
+ID_Categoria int, 
+ID_Division int,
 ID_Subdivision int,
 Valor float,
 
-Foreign key (ID_Region) references regiones(id_region),
-Foreign key (ID_Subdivision) references subdivision(id_subdivision)
+Foreign key (ID_Region) references regiones(ID_Region),
+Foreign key (ID_Categoria) references ipc_categoria(id_categoria)
 );
 
+create table ipc_categoria(
+id_categoria INT,
+nombre VARCHAR(255) NOT NULL,
+
+primary key (id_categoria)
+);
+INSERT INTO ipc_categoria (id_categoria, nombre) VALUES
+    (1, 'Nivel general'),
+    (2, 'Alimentos y bebidas no alcohólicas'),
+    (3, 'Bebidas alcohólicas y tabaco'),
+    (4, 'Prendas de vestir y calzado'),
+    (5, 'Vivienda, agua, electricidad, gas y otros combustibles'),
+    (6, 'Equipamiento y mantenimiento del hogar'),
+    (7, 'Salud'),
+    (8, 'Transporte'),
+    (9, 'Comunicación'),
+    (10, 'Recreación y cultura'),
+    (11, 'Educación'),
+    (12, 'Restaurantes y hoteles'),
+    (13, 'Bienes y servicios varios');
+
+
+create table ipc_division(
+id_categoria int,
+id_division int,
+nombre varchar(150),
+
+primary key (id_division),
+foreign key (id_categoria) references ipc_categoria(id_categoria)
+);
+INSERT INTO ipc_division (id_categoria, id_division, nombre) VALUES
+    (1, 1, 'Nivel general'),
+    (2, 2, 'Alimentos y bebidas no alcohólicas'),
+    (2, 3, 'Alimentos'),
+    (2, 4, 'Bebidas no alcohólicas'),
+    (3, 5, 'Bebidas alcohólicas y tabaco'),
+    (3, 6, 'Bebidas alcohólicas'),
+    (3, 7, 'Tabaco'),
+    (4, 8, 'Prendas de vestir y calzado'),
+    (4, 9, 'Prendas de vestir y materiales'),
+    (4, 10, 'Calzado'),
+    (5, 11, 'Vivienda, agua, electricidad, gas y otros combustibles'),
+    (5, 12, 'Alquiler de la vivienda y gastos conexos'),
+    (5, 13, 'Mantenimiento y reparación de la vivienda'),
+    (5, 14, 'Electricidad, gas y otros combustibles'),
+    (6, 15, 'Equipamiento y mantenimiento del hogar'),
+    (6, 16, 'Bienes y servicios para la conservación del hogar'),
+    (7, 17, 'Salud'),
+    (7, 18, 'Productos medicinales, artefactos y equipos para la salud'),
+    (7, 19, 'Gastos de prepagas'),
+    (8, 20, 'Transporte'),
+    (8, 21, 'Adquisición de vehículos'),
+    (8, 22, 'Funcionamiento de equipos de transporte personal'),
+    (8, 23, 'Transporte público'),
+    (9, 24, 'Comunicación'),
+    (9, 25, 'Servicios  de telefonía e internet'),
+    (10, 26, 'Recreación y cultura'),
+    (10, 27, 'Equipos audiovisuales, fotográficos y de procesamiento de la información'),
+    (10, 28, 'Servicios recreativos y culturales'),
+    (10, 29, 'Periódicos, diarios, revistas, libros y artículos de papelería'),
+    (11, 30, 'Educación'),
+    (12, 31, 'Restaurantes y hoteles'),
+    (12, 32, 'Restaurantes y comidas fuera del hogar'),
+    (13, 33, 'Bienes y servicios varios'),
+    (13, 34, 'Cuidado personal');
+    
+create table ipc_subdivision(
+id_categoria int,
+id_division int,
+id_subdivision int,
+nombre varchar(150),
+
+primary key (id_subdivision),
+foreign key (id_division) references ipc_division(id_division)
+);
+INSERT INTO ipc_subdivision (id_categoria, id_division, id_subdivision, nombre) VALUES
+    (1, 1, 1, 'Nivel general'),
+    (2, 2, 2, 'Alimentos y bebidas no alcohólicas'),
+    (2, 3, 3, 'Alimentos'),
+    (2, 3, 4, 'Pan y cereales'),
+    (2, 3, 5, 'Carnes y derivados'),
+    (2, 3, 6, 'Leche, productos lácteos y huevos'),
+    (2, 3, 7, 'Aceites, grasas y manteca'),
+    (2, 3, 8, 'Frutas'),
+    (2, 3, 9, 'Verduras, tubérculos y legumbres'),
+    (2, 3, 10, 'Azúcar, dulces, chocolate, golosinas, etc,'),
+    (2, 4, 11, 'Bebidas no alcohólicas'),
+	(2, 4, 12, 'Café, té, yerba y cacao'),
+	(2, 4, 13, 'Aguas minerales, bebidas gaseosas y jugos'),
+    (3, 5, 14, 'Bebidas alcohólicas y tabaco'),
+    (3, 6, 15, 'Bebidas alcohólicas'),
+    (3, 7, 16, 'Tabaco'),
+    (4, 8, 17, 'Prendas de vestir y calzado'),
+    (4, 9, 18, 'Prendas de vestir y materiales'),
+    (4, 10, 19, 'Calzado'),
+    (5, 11, 20, 'Vivienda, agua, electricidad, gas y otros combustibles'),
+    (5, 12, 21, 'Alquiler de la vivienda y gastos conexos'),
+    (5, 12, 22, 'Alquiler de la vivienda'),
+    (5, 13, 23, 'Mantenimiento y reparación de la vivienda'),
+    (5, 14, 24, 'Electricidad, gas y otros combustibles'),
+    (6, 15, 25, 'Equipamiento y mantenimiento del hogar'),
+    (6, 16, 26, 'Bienes y servicios para la conservación del hogar'),
+    (7, 17, 27, 'Salud'),
+    (7, 18, 28, 'Productos medicinales, artefactos y equipos para la salud'),
+    (7, 19, 29, 'Gastos de prepagas'),
+    (8, 20, 30, 'Transporte'),
+    (8, 21, 31, 'Adquisición de vehículos'),
+    (8, 22, 32, 'Funcionamiento de equipos de transporte personal'),
+    (8, 22, 33, 'Combustibles y lubricantes para vehículos de uso del hogar'),
+    (8, 23, 34, 'Transporte público'),
+    (9, 24, 35, 'Comunicación'),
+    (9, 25, 36, 'Servicios  de telefonía e internet'),
+    (10, 26, 37, 'Recreación y cultura'),
+    (10, 27, 38, 'Equipos audiovisuales, fotográficos y de procesamiento de la información'),
+    (10, 28, 39, 'Servicios recreativos y culturales'),
+    (10, 29, 40, 'Periódicos, diarios, revistas, libros y artículos de papelería'),
+    (11, 30, 41, 'Educación'),
+    (12, 31, 42, 'Restaurantes y hoteles'),
+    (12, 32, 43, 'Restaurantes y comidas fuera del hogar'),
+    (13, 33, 44, 'Bienes y servicios varios'),
+    (13, 34, 45, 'Cuidado personal');
+
+    
+    
 -- TABLAS SIPA
 CREATE TABLE sipa_registro(
 Fecha date not null,

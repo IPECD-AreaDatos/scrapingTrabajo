@@ -21,7 +21,7 @@ class HomePage:
     wait = WebDriverWait(driver_casa, 10)
 
     # Encontrar el enlace al archivo
-    archivo = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div/div[2]/div/div[2]/div[1]/div[2]/div/div/a")))
+    archivo = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div/div[2]/div/div[2]/div[2]/div[2]/div/div/a")))
 
     # Obtener la URL del archivo
     url_archivo = archivo.get_attribute('href')
@@ -35,7 +35,7 @@ class HomePage:
     carpeta_guardado = os.path.join(directorio_actual, 'files')
 
     # Nombre del archivo
-    nombre_archivo = 'archivo.xls'
+    nombre_archivo = 'IPC_Desagregado.xls'
 
     # Descargar el archivo
     response = requests.get(url_archivo)
