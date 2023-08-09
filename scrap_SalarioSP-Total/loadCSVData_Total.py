@@ -3,6 +3,11 @@ import numpy as np
 import pandas as pd
 import time
 import os
+from email.message import EmailMessage
+import ssl
+import smtplib
+
+nuevos_datos = []
 
 class loadCSVData_Total:
     def loadInDataBase(self, host, user, password, database):
@@ -41,27 +46,43 @@ class loadCSVData_Total:
         else:
             print(f"La columna '{column_name_stripped}' no existe en el DataFrame.")
 
-        # Obtener los nombres y tipos de datos de las columnas
-        column_names = list(df.columns)
-        column_types = df.dtypes.to_dict()
+        print("Tabla de Salarios Total")
+        insert_query = f"INSERT INTO {table_name} VALUES ({', '.join(['%s' for _ in range(len(df.columns))])})"
+        update_query = f"UPDATE {table_name} SET salario = %s WHERE fecha = %s AND codigo_departamento_indec = %s AND id_provincia_indec = %s AND clae2 = %s"
 
-        print ("Tabla de Salarios Total")
-        #Representa la consulta SQL de inserción en la tabla de la base de datos. 
-        insert_query = f"INSERT INTO {table_name} VALUES ("
-        for index, row in df.iterrows(): #Se itera sobre las filas del DataFrame
-            print("en el for:")
-            #Se crea una cadena values que contiene marcadores de posición %s para cada valor en una fila.
-            values = ', '.join(["%s" for _ in range(len(row))])
-            #Se convierte la fila en una tupla de valores, que se utilizará como argumento en la consulta de inserción.
-            data_tuple = tuple(row.values)
-            #Se ejecuta la consulta de inserción utilizando el objeto cursor//Se concatenan la consulta insert_query, los valores values y un paréntesis de cierre
-            #La tupla data_tuple se pasa como argumento para proporcionar los valores a insertar en la tabla.
-            conn.cursor().execute(insert_query + values + ")", data_tuple)
-            print("values")
-            print(data_tuple)
+        for index, row in df.iterrows():
+            data_tuple = tuple(row)
+            
+            # Verificar si los valores ya existen en la tabla
+            check_query = f"SELECT * FROM {table_name} WHERE fecha = %s AND codigo_departamento_indec = %s AND id_provincia_indec = %s AND clae2 = %s"
+            check_data = (row['fecha'], row['codigo_departamento_indec'], row['id_provincia_indec'], row['clae2'])
+            conn.cursor().execute(check_query, check_data)
+            existing_data = conn.cursor().fetchone()
+
+            if existing_data:
+                # Si los valores ya existen, realizar la actualización
+                update_data = (row['salario'], row['fecha'], row['codigo_departamento_indec'], row['id_provincia_indec'], row['clae2'])
+                conn.cursor().execute(update_query, update_data)
+                print("Actualización realizada:", update_data)
+            else:
+                # Si los valores no existen, realizar la inserción
+                conn.cursor().execute(insert_query, data_tuple)
+                print("Inserción realizada:", data_tuple)
+                
+                # Agregar los datos nuevos a la lista
+                nuevos_datos.append(data_tuple)
+
         conn.commit()
+
+        # Enviar correo solo si hay nuevos datos
+        if nuevos_datos:
+            enviar_correo()
+            
         
-        print("GUARDO!!!!!")
+        print("==========================================================")
+        print("Se realizo la actualizacion de la tabla de Salarios Total")
+        print("==========================================================")
+        
         #Se toma el tiempo de finalizacion y se calcula
         end_time = time.time()
         duration = end_time - start_time
@@ -69,3 +90,26 @@ class loadCSVData_Total:
         
         # Cerrar la conexión a la base de datos
         conn.close()
+        
+        
+def enviar_correo():
+    email_emisor='departamientoactualizaciondato@gmail.com'
+    email_contraseña = 'oxadnhkcyjnyibao'
+    email_receptor = 'gastongrillo2001@gmail.com'
+    asunto = 'Modificación en la base de datos'
+    mensaje = 'Se ha producido una modificación en la base de datos.'
+    body = "Se han agregado nuevos datos:\n\n"
+    for data in nuevos_datos:
+        body += ', '.join(map(str, data)) + '\n'
+    
+    em = EmailMessage()
+    em['From'] = email_emisor
+    em['To'] = email_receptor
+    em['Subject'] = asunto
+    em.set_content(mensaje)
+    
+    contexto= ssl.create_default_context()
+    
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
+        smtp.login(email_emisor, email_contraseña)
+        smtp.sendmail(email_emisor, email_receptor, em.as_string())
