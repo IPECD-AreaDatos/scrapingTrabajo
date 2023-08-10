@@ -669,12 +669,6 @@ class LoadXLSDataPatagonia:
             for valor in  restaurantes_comidas_fueradelhogar:
                 lista_valores.append(valor)#--> Cargamos valores
             
-            lista_valores[3200]=271.5
-            lista_valores[3201]=275.9
-            lista_valores[3202]=281.2
-            lista_valores[3203]=288.8
-            
-            
             
             #Agregamos Bienes y servicios varios - Codigo  13
             bienes_y_servicios_varios = [cell.value for cell in sheet[295]][1:]
@@ -704,8 +698,6 @@ class LoadXLSDataPatagonia:
             for valor in  cuidado_personal:
                 lista_valores.append(valor)#--> Cargamos valores
 
-            print(lista_valores)
-            
 
         except Exception as e:
             # Manejar cualquier excepción ocurrida durante la carga de datos
