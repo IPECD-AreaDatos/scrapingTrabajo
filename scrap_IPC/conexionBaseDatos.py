@@ -35,9 +35,11 @@ class conexionBaseDatos:
 
             # Sentencia SQL para actualizar los datos en la tabla
             update_query = "UPDATE ipc_region SET Valor = %s WHERE Fecha = %s AND ID_Region = %s AND ID_Categoria = %s AND ID_Division = %s AND ID_Subdivision = %s"
-            
-            # Variable para controlar el estado del mensaje
-            mensaje_enviado = False
+   
+            #Verificar cantidad de filas anteriores 
+            select_row_count_query = "SELECT COUNT(*) FROM ipc_region"
+            cursor.execute(select_row_count_query)
+            row_count_before = cursor.fetchone()[0]
             
             for fecha, region, categoria, division, subdivision, valor in zip(lista_fechas, lista_region, lista_categoria, lista_division, lista_subdivision, lista_valores):
                 # Convertir la fecha en formato datetime si es necesario
@@ -52,18 +54,25 @@ class conexionBaseDatos:
                     # El registro ya existe, realizar una actualización (UPDATE)
                     cursor.execute(update_query, (valor, fecha, region, categoria, division, subdivision))
                     print("Leyendo el valor de IPC: ", valor)
-                    if not mensaje_enviado:
-                        print("Ningun dato nuevo")
-                        mensaje_enviado = True
+
                 else:
                     # El registro no existe, realizar una inserción (INSERT)
                     cursor.execute(insert_query, (fecha, region, categoria, division, subdivision, valor))
                     print("Leyendo el valor de IPC: ", valor)
-                    if not mensaje_enviado:
-                        print("Se agregaron nuevas fechas")
-                        enviar_correo()
-                        mensaje_enviado = True
 
+            #Obtener cantidad de filas
+            cursor.execute(select_row_count_query)
+            row_count_after = cursor.fetchone()[0]
+            #Comparar la cantidad de antes y despues
+            if row_count_after > row_count_before:
+                print("Se agregaron nuevos datos")
+                enviar_correo()   
+            else:
+                print("Se realizo una verificacion de la base de datos")
+            
+            print("antes:", row_count_before)
+            print("despues:", row_count_after)
+            
             # Confirmar los cambios en la base de datos
             conn.commit()
 
@@ -76,20 +85,20 @@ class conexionBaseDatos:
             print(e)   
 
 def enviar_correo():
-    email_emisor='departamientoactualizaciondato@gmail.com'
+    email_emisor = 'departamientoactualizaciondato@gmail.com'
     email_contraseña = 'oxadnhkcyjnyibao'
-    email_receptor = 'gastongrillo2001@gmail.com'
+    email_receptores = ['gastongrillo2001@gmail.com', 'matizalazar2001@gmail.com']
     asunto = 'Modificación en la base de datos'
-    mensaje = 'Se ha producido una modificación en la base de datos de IPC.'
+    mensaje = 'Se ha producido una modificación en la base de datos de IPC.\n\nValores nuevos:\n'
     
     em = EmailMessage()
     em['From'] = email_emisor
-    em['To'] = email_receptor
+    em['To'] = ", ".join(email_receptores)
     em['Subject'] = asunto
     em.set_content(mensaje)
     
-    contexto= ssl.create_default_context()
+    contexto = ssl.create_default_context()
     
     with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
         smtp.login(email_emisor, email_contraseña)
-        smtp.sendmail(email_emisor, email_receptor, em.as_string())
+        smtp.sendmail(email_emisor, email_receptores, em.as_string())
