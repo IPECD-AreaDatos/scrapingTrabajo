@@ -7,16 +7,10 @@ import pandas as pd
 from sqlalchemy import create_engine
 
 class homePage:
-    def construir_df_estimaciones(self):
+    def construir_df_estimaciones(self, host, user, password, database):
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
         ruta_carpeta_files = os.path.join(directorio_actual, 'files')
         file_path = os.path.join(ruta_carpeta_files, 'Estimación Modificada Censo 2022.xlsx')
-
-        # Establecer la conexión a la base de datos MySQL
-        host = '172.17.22.10'
-        user = 'Ivan'
-        password = 'Estadistica123'
-        database = 'prueba1'
         
         db_connection = mysql.connector.connect(
             host=host,
@@ -70,4 +64,3 @@ class homePage:
             
         
 
-homePage().construir_df_estimaciones()
