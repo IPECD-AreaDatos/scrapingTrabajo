@@ -1,37 +1,66 @@
-import time
 import numpy as np
 import pandas as pd
-import xlrd
+from datetime import datetime, timedelta
+import mysql
+import mysql.connector
+
 class cargaIndice:
-    def loadXLSIndiceEMAE(self, file_path, lista_fechas, lista_SectorProductivo, lista_valores):
+    def loadXLSIndiceEMAE(self, file_path, lista_fechas, lista_SectorProductivo, lista_valores, host, user, password, database):
 
         try:
 
             # Leer el archivo Excel en un DataFrame de pandas
-            df = pd.read_excel(file_path, sheet_name=0, skiprows=2)  # Leer el archivo XLSX y crear el DataFrame
+            df = pd.read_excel(file_path, sheet_name=0, skiprows=1)  # Leer el archivo XLSX y crear el DataFrame
             df = df.replace({np.nan: None})  # Reemplazar los valores NaN(Not a Number) por None
+            # Eliminar la última fila que contiene "Fuente: INDEC"
+            df = df.drop(df.index[-1])
+            df = df.drop(df.index[-1])
+            
 
             # Obtener las columnas desde C hasta R
             columnas_valores = df.columns[2:18]  # Columnas C a R
             
-            # Iterar a través de las filas a partir de la fila 6
-            for index, row in df.iterrows():
-                if index >= 5:  # Fila 6 en adelante
-                    lista_fechas.append(row[0])  # Agregar la fecha a la lista
-                    
-                    for columna_valor in columnas_valores:
-                        valor_celda = row[columna_valor]
-                        if valor_celda is not None:
-                            lista_valores.append(valor_celda)  # Agregar valor a la lista de valores
-                            
-                            # Obtener el valor correspondiente de la fila 3 y la columna actual
-                            sector_productivo = df.at[2, columna_valor]
-                            lista_SectorProductivo.append(sector_productivo)
-            
+            fecha_inicio = datetime(2004, 1, 1)
+            num_meses = len(df) - 2  # Restar 2 para compensar las filas de encabezados
+            lista_fechas = [fecha_inicio + timedelta(days=30.44 * i) for i in range(num_meses)]
 
+            # Iterar a través de las filas a partir de la fila 3
+            for index, row in df.iterrows():
+                if index >= 2:  # Fila 3 en adelante
+                    fecha = lista_fechas[index - 2]  # Restar 2 para compensar el índice
+                    for columna in columnas_valores:
+                        valor = df.at[index, columna]
+                        lista_valores.append(valor)
+                        
+                        sector_productivo = df.at[0, columna]  # Fila 1 (Fila de los años)
+                        lista_SectorProductivo.append(sector_productivo)
+                        print(f"Fecha: {fecha}, Valor: {valor}, Sector Productivo: {sector_productivo}")
+            # Conexión a la base de datos MySQL
+            conn = mysql.connector.connect(
+                host=host, user=user, password=password, database=database
+            )
+            cursor = conn.cursor()
+
+            # Iterar a través de las filas a partir de la fila 3
+            for index, row in df.iterrows():
+                if index >= 3:  # Fila 3 en adelante
+                    fecha = lista_fechas[index - 2]  # Restar 2 para compensar el índice
+                    for columna in columnas_valores:
+                        valor = df.at[index, columna]
+                        sector_productivo = df.at[0, columna]  # Fila 1 (Fila de los años)
+                        
+                        # Insertar en la tabla MySQL
+                        query = "INSERT INTO emae (Fecha, Sector_Productivo, Valor) VALUES (%s, %s, %s)"
+                        values = (fecha, sector_productivo, valor)
+                        cursor.execute(query, values)
+                        conn.commit()
+
+            # Cerrar la conexión a la base de datos
+            cursor.close()
+            conn.close()
         except Exception as e:
             # Manejar cualquier excepción ocurrida durante la carga de datos
             print(f"Data Cuyo: Ocurrió un error durante la carga de datos: {str(e)}")
-    
+
 
 

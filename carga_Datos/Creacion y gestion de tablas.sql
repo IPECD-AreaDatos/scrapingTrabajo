@@ -359,3 +359,9 @@ INSERT INTO dnrpa_vehiculos (ID_Vehiculo, Tipo_Vehiculo)
 VALUES
 (1, 'Auto'),
 (2, 'Moto');
+
+create table emae(
+Fecha date not null,
+Sector_Productivo char(125),
+Valor float
+);

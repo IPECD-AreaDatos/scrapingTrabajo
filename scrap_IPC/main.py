@@ -8,9 +8,6 @@ from armadoXLSDataPatagonia import LoadXLSDataPatagonia
 from armadoXLSDataNacion import LoadXLSDataNacion
 from conexionBaseDatos import conexionBaseDatos
 import os
-import pandas as pd
-import mysql.connector
-import datetime
 
 
 #Listas a tratar durante el proceso

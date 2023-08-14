@@ -1,7 +1,7 @@
-#from homePage import HomePage
+from homePage import HomePage
 import os
 import pandas as pd
-from homePage import HomePage
+#from homePage import HomePage
 from cargaIndice import cargaIndice
 
 #Datos de la base de datos
@@ -25,5 +25,6 @@ if __name__ == '__main__':
     lista_SectorProductivo = list()
     lista_valores= list() 
     
-    cargaIndice().loadXLSIndiceEMAE(file_path, lista_fechas, lista_SectorProductivo, lista_valores)
+    cargaIndice().loadXLSIndiceEMAE(file_path, lista_fechas, lista_SectorProductivo, lista_valores, host, user, password, database)
+    #conexionBaseDatos().cargaBaseDatos(lista_fechas, lista_SectorProductivo, lista_valores, host, user, password, database)
     
