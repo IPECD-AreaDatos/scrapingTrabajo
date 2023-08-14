@@ -53,11 +53,7 @@ class LoadXLSDataNacion:
             grouped_df = df.groupby(group_columns, as_index=False)['Valor'].sum()
 
             grouped_df_sorted = grouped_df.sort_values(by='Fecha')
-
-            # Imprimir el DataFrame ordenado por fecha
-            print(grouped_df_sorted)
-            
-
+        
             # Insertar el resultado en la tabla con ID_Region igual a 1
             for index, row in grouped_df_sorted.iterrows():
                 fecha = row['Fecha']
@@ -80,6 +76,3 @@ class LoadXLSDataNacion:
         except Exception as e:
             # Manejar cualquier excepción ocurrida durante la carga de datos
             print(f"Data Cuyo: Ocurrió un error durante la carga de datos: {str(e)}")
-            
-            
-LoadXLSDataNacion().loadInDataBase()

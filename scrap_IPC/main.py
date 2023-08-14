@@ -5,6 +5,7 @@ from armadoXLSDataNOA import LoadXLSDataNOA
 from armadoXLSDataNEA import LoadXLSDataNEA
 from armadoXLSDataCuyo import LoadXLSDataCuyo
 from armadoXLSDataPatagonia import LoadXLSDataPatagonia
+from armadoXLSDataNacion import LoadXLSDataNacion
 from conexionBaseDatos import conexionBaseDatos
 import os
 import pandas as pd
@@ -37,7 +38,6 @@ if __name__ == '__main__':
     ruta_carpeta_files = os.path.join(directorio_actual, 'files')
     file_path = os.path.join(ruta_carpeta_files, 'IPC_Desagregado.xls')
     valoresDeIPC = [
-      #LoadXLSDataNacion,
       LoadXLSDataGBA,
       LoadXLSDataPampeana,
       LoadXLSDataNOA,
@@ -49,6 +49,7 @@ if __name__ == '__main__':
       print("Valor region: ", valor_region)
       regiones().loadInDataBase(file_path, valor_region, lista_fechas, lista_region,  lista_categoria, lista_division, lista_subdivision, lista_valores)
       valor_region = valor_region + 1
+    LoadXLSDataNacion().loadInDataBase()
     conexionBaseDatos().cargaBaseDatos(lista_fechas, lista_region, lista_categoria, lista_division, lista_subdivision, lista_valores, host, user, password, database)
 
 
