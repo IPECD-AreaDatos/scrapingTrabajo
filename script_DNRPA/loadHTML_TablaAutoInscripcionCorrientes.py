@@ -7,6 +7,9 @@ import openpyxl
 import pandas as pd
 from datetime import datetime
 import os
+from email.message import EmailMessage
+import ssl
+import smtplib
 
 host = '172.17.22.10'
 user = 'Ivan'
@@ -211,6 +214,8 @@ class loadHTML_TablaAutoInscripcionCorrientes:
             cursor.execute(select_dates_query)
             existing_dates = [row[0].strftime('%Y-%m-%d') for row in cursor.fetchall()]
             
+            verificacion_envio = False            
+            
             # Recorrer las filas del archivo de Excel a partir de la segunda fila
             for row in sheet.iter_rows(min_row=2, values_only=True):
                 fecha = row[0]
@@ -243,6 +248,7 @@ class loadHTML_TablaAutoInscripcionCorrientes:
 
                     # Ejecutar la sentencia SQL
                     cursor.execute(update_query, update_values)
+                    enviar_correo()
                 else:
                     # Realizar una inserción (INSERT)
                     insert_values = []
@@ -288,4 +294,23 @@ class loadHTML_TablaAutoInscripcionCorrientes:
             # Manejar cualquier excepción ocurrida durante la carga de datos
             print(f"Registro automotor: Ocurrió un error durante la carga de datos: {str(e)}")
             conn.close()  # Cerrar la conexión en caso de error
-            
+
+
+def enviar_correo():
+    email_emisor='departamientoactualizaciondato@gmail.com'
+    email_contraseña = 'oxadnhkcyjnyibao'
+    email_receptores = ['gastongrillo2001@gmail.com', 'matizalazar2001@gmail.com']
+    asunto = 'Modificación en la base de datos'
+    mensaje = 'Se ha producido una modificación en la base de datos. Hay nuevos valores en la tabla de DNRP'
+    
+    em = EmailMessage()
+    em['From'] = email_emisor
+    em['To'] = ", ".join(email_receptores)
+    em['Subject'] = asunto
+    em.set_content(mensaje)
+    
+    contexto= ssl.create_default_context()
+    
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
+        smtp.login(email_emisor, email_contraseña)
+        smtp.sendmail(email_emisor, email_receptores, em.as_string())

@@ -45,7 +45,7 @@ def enviar_correo():
     email_contraseña = 'oxadnhkcyjnyibao'
     email_receptores = ['gastongrillo2001@gmail.com', 'matizalazar2001@gmail.com']
     asunto = 'Modificación en la base de datos'
-    mensaje = 'Se ha producido una modificación en la base de datos de IPC.\n\nValores nuevos:\n'
+    mensaje = 'Se ha producido una modificación en la base de datos de IPC.'
     
     em = EmailMessage()
     em['From'] = email_emisor
