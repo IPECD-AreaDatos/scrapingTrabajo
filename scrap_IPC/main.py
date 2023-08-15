@@ -1,5 +1,5 @@
 from homePage import HomePage
-from armadoXLSDataGBA import LoadXLSDataGBA
+from armadoXLSdataGBA import LoadXLSDataGBA
 from armadoXLSDataPampeana import LoadXLSDataPampeana
 from armadoXLSDataNOA import LoadXLSDataNOA
 from armadoXLSDataNEA import LoadXLSDataNEA
