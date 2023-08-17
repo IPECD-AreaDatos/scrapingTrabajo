@@ -667,10 +667,19 @@ class LoadXLSDataCuyo:
             for valor in  restaurantes_comidas_fueradelhogar:
                 lista_valores.append(valor)#--> Cargamos valore
 
-            lista_valores[3200]=301.3
-            lista_valores[3201]=305.3
-            lista_valores[3202]=312.4
-            lista_valores[3203]=319.5
+
+            lista_posiciones_restaurante= []
+            lista_arreglo= [301.3, 305.3, 312.4, 319.5]
+
+            for i in range(len(lista_valores)):
+                if lista_valores[i] == '///':
+                    lista_valores[i] = lista_posiciones_restaurante.append(i)
+            
+
+            for i in range(len(lista_posiciones_restaurante)):
+                lista_valores[lista_posiciones_restaurante[i]] = lista_arreglo[i]
+
+
             #Agregamos Bienes y servicios varios - Codigo  13
             bienes_y_servicios_varios = [cell.value for cell in sheet[246]][1:]
             

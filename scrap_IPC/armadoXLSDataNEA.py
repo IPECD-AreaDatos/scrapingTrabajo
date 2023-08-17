@@ -668,11 +668,17 @@ class LoadXLSDataNEA:
             for valor in  restaurantes_comidas_fueradelhogar:
                 lista_valores.append(valor)#--> Cargamos valore
 
+            lista_posiciones_restaurante= []
+            lista_arreglo= [284.5, 289.2, 295.8, 302.4]
+
+            for i in range(len(lista_valores)):
+                if lista_valores[i] == '///':
+                    lista_valores[i] = lista_posiciones_restaurante.append(i)
             
-            lista_valores[3200]=284.5
-            lista_valores[3201]=289.2
-            lista_valores[3202]=295.8
-            lista_valores[3203]=302.4
+
+            for i in range(len(lista_posiciones_restaurante)):
+                lista_valores[lista_posiciones_restaurante[i]] = lista_arreglo[i]
+
             
             #Agregamos Bienes y servicios varios - Codigo  13
             bienes_y_servicios_varios = [cell.value for cell in sheet[197]][1:]

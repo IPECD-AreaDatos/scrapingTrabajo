@@ -656,6 +656,17 @@ class LoadXLSDataPatagonia:
                 lista_valores.append(valor)#--> Cargamos valores
 
 
+            lista_posiciones_restaurante= []
+            lista_arreglo= [271.5, 275.9, 281.2, 288.8]
+
+            for i in range(len(lista_valores)):
+                if lista_valores[i] == '///':
+                    lista_valores[i] = lista_posiciones_restaurante.append(i)
+            
+
+            for i in range(len(lista_posiciones_restaurante)):
+                lista_valores[lista_posiciones_restaurante[i]] = lista_arreglo[i]
+
             #Agregamos Restaurantes y hoteles - Codigo  12
             restaurantes_comidas_fueradelhogar = [cell.value for cell in sheet[294]][1:]
             

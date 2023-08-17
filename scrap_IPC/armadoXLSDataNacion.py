@@ -5,20 +5,14 @@ import pandas as pd
 import mysql.connector
 
 class LoadXLSDataNacion:
-    def loadInDataBase(self):
+    def loadInDataBase(self, host, user, password, database ):
         # Se toma el tiempo de comienzo
         start_time = time.time()
 
         try:
-            db_config = {
-                'host': '172.17.22.10',
-                'user': 'Ivan',
-                'password': 'Estadistica123',
-                'database': 'prueba1'
-            }
-
-            # Establecer la conexión a la base de datos MySQL
-            conn = mysql.connector.connect(**db_config)
+            conn = mysql.connector.connect(
+                host=host, user=user, password=password, database=database
+            )
             cursor = conn.cursor()
             
 

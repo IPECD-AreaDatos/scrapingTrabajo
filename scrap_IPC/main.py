@@ -3,9 +3,8 @@ from armadoXLSdataGBA import LoadXLSDataGBA
 from armadoXLSDataPampeana import LoadXLSDataPampeana
 from armadoXLSDataNOA import LoadXLSDataNOA
 from armadoXLSDataNEA import LoadXLSDataNEA
-from armadoXLSDataCuyo import LoadXLSDataCuyo
+from armadoXLSDatacuyo import LoadXLSDataCuyo
 from armadoXLSDataPatagonia import LoadXLSDataPatagonia
-from armadoXLSDataNacion import LoadXLSDataNacion
 from conexionBaseDatos import conexionBaseDatos
 import os
 
@@ -21,9 +20,9 @@ lista_valores = list()
 
 
 #Datos de la base de datos
-host = '172.17.22.10'
-user = 'Ivan'
-password = 'Estadistica123'
+host = '127.0.0.1'
+user = 'root'
+password = ''
 database = 'prueba1'
 
 valor_region = 2
@@ -46,7 +45,6 @@ if __name__ == '__main__':
       print("Valor region: ", valor_region)
       regiones().loadInDataBase(file_path, valor_region, lista_fechas, lista_region,  lista_categoria, lista_division, lista_subdivision, lista_valores)
       valor_region = valor_region + 1
-    LoadXLSDataNacion().loadInDataBase()
     conexionBaseDatos().cargaBaseDatos(lista_fechas, lista_region, lista_categoria, lista_division, lista_subdivision, lista_valores, host, user, password, database)
 
 

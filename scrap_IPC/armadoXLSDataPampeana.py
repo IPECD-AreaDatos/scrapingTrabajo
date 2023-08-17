@@ -671,11 +671,17 @@ class LoadXLSDataPampeana:
             for valor in  restaurantes_comidas_fueradelhogar:
                 lista_valores.append(valor)#--> Cargamos valore
             
-            lista_valores[3200]=285.5
-            lista_valores[3201]=289.9
-            lista_valores[3202]=297.3
-            lista_valores[3203]=303.6
+
+            lista_posiciones_restaurante= []
+            lista_arreglo= [285.5, 289.9, 297.3, 303.6]
+
+            for i in range(len(lista_valores)):
+                if lista_valores[i] == '///':
+                    lista_valores[i] = lista_posiciones_restaurante.append(i)
             
+
+            for i in range(len(lista_posiciones_restaurante)):
+                lista_valores[lista_posiciones_restaurante[i]] = lista_arreglo[i]
             
             #Agregamos Bienes y servicios varios - Codigo  13
             bienes_y_servicios_varios = [cell.value for cell in sheet[99]][1:]

@@ -296,7 +296,7 @@ class LoadXLSDataGBA:
             for i in range(len(lista_valores)):
                 if lista_valores[i] == '///':
                     lista_valores[i] = valor_sacado1
-                    
+        
 
             #Agregamos Prendas de vestir y calzado - Codigo 4
             calzado = [cell.value for cell in sheet[25]][1:]
@@ -674,6 +674,17 @@ class LoadXLSDataGBA:
                 lista_valores.append(valor)#--> Cargamos valore
 
             
+            lista_posiciones_restaurante= []
+            lista_arreglo= [280, 284.3, 290.1, 294.9]
+
+            for i in range(len(lista_valores)):
+                if lista_valores[i] == '///':
+                    lista_valores[i] = lista_posiciones_restaurante.append(i)
+            
+
+            for i in range(len(lista_posiciones_restaurante)):
+                lista_valores[lista_posiciones_restaurante[i]] = lista_arreglo[i]
+
             lista_valores[3358]=280
             lista_valores[3359]=284.3
             lista_valores[3360]=290.1
