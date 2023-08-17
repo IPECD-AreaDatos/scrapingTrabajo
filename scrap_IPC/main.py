@@ -17,8 +17,6 @@ lista_division = list()
 lista_subdivision = list()
 lista_valores = list()
 
-
-
 #Datos de la base de datos
 host = '127.0.0.1'
 user = 'root'

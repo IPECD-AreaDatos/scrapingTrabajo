@@ -4,6 +4,13 @@ import xlrd
 import pandas as pd
 import mysql.connector
 
+
+#Datos de la base de datos
+host = '127.0.0.1'
+user = 'root'
+password = ''
+database = 'prueba1'
+
 class LoadXLSDataNacion:
     def loadInDataBase(self, host, user, password, database ):
         # Se toma el tiempo de comienzo
@@ -32,31 +39,32 @@ class LoadXLSDataNacion:
             df = pd.DataFrame(data_to_process, columns=column_names)
 
             # Definir los valores de multiplicación basados en ID_Region
-            df['Factor'] = df['ID_Region'].apply(lambda x: 0.447 if x == 2 else
-                                                       (0.342 if x == 3 else
-                                                        (0.045 if x == 4 else
-                                                         (0.069 if x == 5 else
-                                                          (0.052 if x == 6 else
-                                                           (0.046 if x == 7 else 1.0))))))
+            factor_mapping = {
+                2: 0.447,
+                3: 0.342,
+                4: 0.045,
+                5: 0.069,
+                6: 0.052,
+                7: 0.046
+            }
+
+            df['Factor'] = df['ID_Region'].map(factor_mapping)
 
             # Aplicar la multiplicación al valor
             df['Valor'] = df['Valor'] * df['Factor']
 
-            # Sumar los valores agrupados por ciertas columnas
-            group_columns = ['ID_Categoria', 'ID_Division', 'ID_Subdivision', 'Fecha']
-            grouped_df = df.groupby(group_columns, as_index=False)['Valor'].sum()
-
-            grouped_df_sorted = grouped_df.sort_values(by='Fecha')
-        
-            # Insertar el resultado en la tabla con ID_Region igual a 1
-            for index, row in grouped_df_sorted.iterrows():
+            # Insertar los valores modificados en la tabla ipc_region con ID_Region igual a 1
+            for index, row in df.iterrows():
                 fecha = row['Fecha']
                 id_categoria = row['ID_Categoria']
                 id_division = row['ID_Division']
                 id_subdivision = row['ID_Subdivision']
                 valor = row['Valor']
                 
-                insert_query = "INSERT INTO ipc_region (Fecha, ID_Region, ID_Categoria, ID_Division, ID_Subdivision, Valor) VALUES (%s, 1, %s, %s, %s, %s)"
+                insert_query = """
+                    INSERT INTO ipc_region (Fecha, ID_Region, ID_Categoria, ID_Division, ID_Subdivision, Valor)
+                    VALUES (%s, 1, %s, %s, %s, %s)
+                """
                 values = (fecha, id_categoria, id_division, id_subdivision, valor)
                 cursor.execute(insert_query, values)
                     
@@ -70,3 +78,5 @@ class LoadXLSDataNacion:
         except Exception as e:
             # Manejar cualquier excepción ocurrida durante la carga de datos
             print(f"Data Cuyo: Ocurrió un error durante la carga de datos: {str(e)}")
+
+LoadXLSDataNacion().loadInDataBase(host, user, password, database)
