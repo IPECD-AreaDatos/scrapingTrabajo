@@ -239,8 +239,8 @@ class loadHTML_TablaAutoInscripcionCorrientes:
                             update_values.append((column_name_mysql, value))
 
                     # Crear la sentencia SQL para la actualización
-                    update_query = "UPDATE dnrpa_inscripcion_corrientes_auto SET " + ", ".join([f"{col[0]} = %s" for col in update_values]) + " WHERE Fecha = %s"
-                    # Obtener los valores de la columna en el orden correcto para la actualización
+                        update_query = "UPDATE dnrpa_inscripcion_corrientes_auto SET " + ", ".join([f"{col[0]} = %s" for col in update_values]) + " WHERE Fecha = %s"
+                        # Obtener los valores de la columna en el orden correcto para la actualización
                     update_values = [col[1] for col in update_values]
 
                     # Agregar la fecha al final de los valores de actualización

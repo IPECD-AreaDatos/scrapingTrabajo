@@ -18,9 +18,9 @@ lista_subdivision = list()
 lista_valores = list()
 
 #Datos de la base de datos
-host = '127.0.0.1'
-user = 'root'
-password = ''
+host = '172.17.22.10'
+user = 'Ivan'
+password = 'Estadistica123'
 database = 'prueba1'
 
 valor_region = 2
