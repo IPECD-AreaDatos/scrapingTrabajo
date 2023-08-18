@@ -45,7 +45,7 @@ class conexionBaseDatos:
                 cursor.execute(insert_query, (fecha, region, categoria, division, subdivision, valor))
                 print("Leyendo el valor de IPC: ", valor)
 
-            LoadXLSDataNacion().loadInDataBase(host, user, password, database)
+            
 
             #Obtener cantidad de filas
             cursor.execute(select_row_count_query)
@@ -68,6 +68,8 @@ class conexionBaseDatos:
             cursor.close()
             conn.close()
 
+            LoadXLSDataNacion().loadInDataBase(host, user, password, database)
+            
         except Exception as e:
             
             print(e)   

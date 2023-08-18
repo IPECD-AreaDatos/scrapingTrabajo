@@ -27,7 +27,6 @@ valor_region = 2
 
 if __name__ == '__main__':
     #Descargar EXCEL - Tambien almacenamos las rutas que usaremos
-    url = HomePage()
     directorio_actual = os.path.dirname(os.path.abspath(__file__))
     ruta_carpeta_files = os.path.join(directorio_actual, 'files')
     file_path = os.path.join(ruta_carpeta_files, 'IPC_Desagregado.xls')
