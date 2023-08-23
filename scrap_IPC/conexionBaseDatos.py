@@ -45,22 +45,7 @@ class conexionBaseDatos:
                 cursor.execute(insert_query, (fecha, region, categoria, division, subdivision, valor))
                 print("Leyendo el valor de IPC: ", valor)
 
-            
 
-            #Obtener cantidad de filas
-            cursor.execute(select_row_count_query)
-            row_count_after = cursor.fetchone()[0]
-
-            #Comparar la cantidad de antes y despues
-            if row_count_after > row_count_before:
-                print("Se agregaron nuevos datos")
-                enviar_correo()   
-            else:
-                print("Se realizo una verificacion de la base de datos")
-            
-            print("antes:", row_count_before)
-            print("despues:", row_count_after)
-            
             # Confirmar los cambios en la base de datos
             conn.commit()
 
@@ -69,6 +54,8 @@ class conexionBaseDatos:
             conn.close()
 
             LoadXLSDataNacion().loadInDataBase(host, user, password, database)
+            
+            verificar_cantidad(host, user, password, database, row_count_before)
             
         except Exception as e:
             
@@ -92,5 +79,32 @@ def enviar_correo():
     with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
         smtp.login(email_emisor, email_contraseña)
         smtp.sendmail(email_emisor, email_receptores, em.as_string())
+
+def verificar_cantidad(host, user, password, database, row_count_before):
+    conn = mysql.connector.connect(
+        host=host, user=user, password=password, database=database
+    )
+    cursor = conn.cursor()
+    
+    #Verificar cantidad de filas anteriores 
+    select_row_count_query = "SELECT COUNT(*) FROM ipc_region"
+    #Obtener cantidad de filas
+    cursor.execute(select_row_count_query)
+    row_count_after = cursor.fetchone()[0]
+
+    #Comparar la cantidad de antes y despues
+    if row_count_after > row_count_before:
+        print("Se agregaron nuevos datos")
+        enviar_correo()   
+    else:
+        print("Se realizo una verificacion de la base de datos")
+    
+    print("antes:", row_count_before)
+    print("despues:", row_count_after)
+    
+    # Cerrar el cursor y la conexión
+    cursor.close()
+    conn.close()
+
 
 
