@@ -299,7 +299,7 @@ class loadHTML_TablaAutoInscripcionCorrientes:
 def enviar_correo():
     email_emisor='departamientoactualizaciondato@gmail.com'
     email_contraseña = 'oxadnhkcyjnyibao'
-    email_receptores = ['gastongrillo2001@gmail.com', 'matizalazar2001@gmail.com']
+    email_receptores = ['gastongrillo2001@gmail.com', 'matizalazar2001@gmail.com','boscojfrancisco@gmail.com']
     asunto = 'Modificación en la base de datos'
     mensaje = 'Se ha producido una modificación en la base de datos. Hay nuevos valores en la tabla de DNRP'
     
