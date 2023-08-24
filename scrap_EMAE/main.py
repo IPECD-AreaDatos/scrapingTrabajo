@@ -26,5 +26,4 @@ if __name__ == '__main__':
     lista_valores= list() 
     
     cargaIndice().loadXLSIndiceEMAE(file_path, lista_fechas, lista_SectorProductivo, lista_valores, host, user, password, database)
-    #conexionBaseDatos().cargaBaseDatos(lista_fechas, lista_SectorProductivo, lista_valores, host, user, password, database)
     
