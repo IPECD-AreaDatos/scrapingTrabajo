@@ -365,3 +365,9 @@ Fecha date not null,
 Sector_Productivo char(125),
 Valor float
 );
+
+-- TABLAS RIPTE
+create table ripte(
+Fecha date,
+ripte float
+);
