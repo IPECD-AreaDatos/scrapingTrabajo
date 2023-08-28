@@ -371,3 +371,5 @@ create table ripte(
 Fecha date,
 ripte float
 );
+
+#Tabla De Salario Minimo Vital y Movil
