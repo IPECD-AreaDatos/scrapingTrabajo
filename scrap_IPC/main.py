@@ -6,6 +6,7 @@ from armadoXLSDataNEA import LoadXLSDataNEA
 from armadoXLSDatacuyo import LoadXLSDataCuyo
 from armadoXLSDataPatagonia import LoadXLSDataPatagonia
 from conexionBaseDatos import conexionBaseDatos
+from armadoXLSProductos import LoadXLSDataProductos
 import os
 
 
@@ -27,23 +28,32 @@ valor_region = 2
 
 if __name__ == '__main__':
     #Descargar EXCEL - Tambien almacenamos las rutas que usaremos
-    directorio_actual = os.path.dirname(os.path.abspath(__file__))
-    ruta_carpeta_files = os.path.join(directorio_actual, 'files')
-    file_path = os.path.join(ruta_carpeta_files, 'IPC_Desagregado.xls')
-    valoresDeIPC = [
-      LoadXLSDataGBA,
-      LoadXLSDataPampeana,
-      LoadXLSDataNOA,
-      LoadXLSDataNEA,
-      LoadXLSDataCuyo,
-      LoadXLSDataPatagonia,
-    ]
-    for regiones in valoresDeIPC:
-      print("Valor region: ", valor_region)
-      regiones().loadInDataBase(file_path, valor_region, lista_fechas, lista_region,  lista_categoria, lista_division, lista_subdivision, lista_valores)
-      valor_region = valor_region + 1
-    conexionBaseDatos().cargaBaseDatos(lista_fechas, lista_region, lista_categoria, lista_division, lista_subdivision, lista_valores, host, user, password, database)
-
+    #home_page = HomePage()
+    #home_page.descargar_archivo()
+    
+    #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ CARGA DE IPC DESAGREGADO ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+    #directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
+    #ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
+    #file_path_desagregado = os.path.join(ruta_carpeta_files, 'IPC_Desagregado.xls')
+    #valoresDeIPC = [
+    #  LoadXLSDataGBA,
+    #  LoadXLSDataPampeana,
+    #  LoadXLSDataNOA,
+    #  LoadXLSDataNEA,
+    #  LoadXLSDataCuyo,
+    #  LoadXLSDataPatagonia,
+    #]
+    #for regiones in valoresDeIPC:
+    #  print("Valor region: ", valor_region)
+    #  regiones().loadInDataBase(file_path_desagregado, valor_region, lista_fechas, lista_region,  lista_categoria, lista_division, lista_subdivision, lista_valores)
+    #  valor_region = valor_region + 1
+    #conexionBaseDatos().cargaBaseDatos(lista_fechas, lista_region, lista_categoria, lista_division, lista_subdivision, lista_valores, host, user, password, database)
+    
+    #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ CARGA DE IPC PRODUCTOS ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+    directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
+    ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
+    file_path_productos = os.path.join(ruta_carpeta_files, 'IPC_Productos.xls')
+    LoadXLSDataProductos().loadInDataBase(file_path_productos)
 
 
 

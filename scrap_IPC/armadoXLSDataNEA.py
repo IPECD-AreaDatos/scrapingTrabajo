@@ -9,7 +9,7 @@ class LoadXLSDataNEA:
         start_time = time.time()
 
         try:
-                    # Leer el archivo de xls y obtener la hoja de trabajo específica
+            # Leer el archivo de xls y obtener la hoja de trabajo específica
             workbook = xlrd.open_workbook(file_path)
             sheet = workbook.sheet_by_index(2)  # Hoja 3 (índice 2)
 
