@@ -373,3 +373,10 @@ ripte float
 );
 
 #Tabla De Salario Minimo Vital y Movil
+CREATE TABLE salario_mvm(
+
+	fecha date, 
+    salario_mvm_mensual float,
+    salario_mvm_diario float,
+    salario_mvm_hora float
+);
