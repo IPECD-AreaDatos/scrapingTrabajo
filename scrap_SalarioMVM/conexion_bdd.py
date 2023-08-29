@@ -101,7 +101,7 @@ class conexionBaseDatos:
 
     def enviar_correo(self):
         email_emisor='departamientoactualizaciondato@gmail.com'
-        email_contraseña = 'oxadnhkcyjnyibao'
+        email_contraseña = 'cmxddbshnjqfehka'
         email_receptor = ['boscojfrancisco@gmail.com','gastongrillo2001@gmail.com']
         asunto = 'Modificación en la base de datos'
         mensaje = 'Se ha producido una modificación en la base de datos. La tabla de SALARIO MINIMO VITAL Y MOVIL contiene nuevos datos.'
