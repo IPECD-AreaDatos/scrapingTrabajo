@@ -6,6 +6,7 @@ import ssl
 import smtplib
 import pandas as pd
 import sqlalchemy
+from datetime import datetime
 
 class conexionBaseDatos:
 
@@ -100,6 +101,10 @@ class conexionBaseDatos:
                     
 
     def enviar_correo(self):
+
+
+
+
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
         email_receptor = ['boscojfrancisco@gmail.com','gastongrillo2001@gmail.com']
@@ -117,3 +122,44 @@ class conexionBaseDatos:
         with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
             smtp.login(email_emisor, email_contraseña)
             smtp.sendmail(email_emisor, email_receptor, em.as_string())
+
+
+    #OBJETIVO: Obtener los valores , salario nominal, variacion mensual, variacion interanual, variacion acumulada
+
+    def obtencion_valores(self):
+
+        #Abrimos conexion con la BDD
+        self.conectar_bdd()
+
+        #Traemos la tabla de SMVM y la tratamos como un dataframe
+        nombre_tabla = 'salario_mvm'
+        query_carga = f"SELECT * FROM {nombre_tabla}"
+        df_bdd = pd.read_sql(query_carga,self.conn)
+
+        
+        #Definimos salario nominal: es el dato crudo del smvym
+        salario_nominal = df_bdd['salario_mvm_mensual'].iloc[-1]
+
+        #Definimos variacion mensual: ( Mes actual / mes anterior - 1 ) * 100
+        variacion_mensual = ( df_bdd['salario_mvm_mensual'].iloc[-1] / (df_bdd['salario_mvm_mensual'].iloc[-2] - 1 ) ) * 100
+
+        #Definimos variacion interanual - Variacion del mes del año respecto al mismo mes del año pasado
+        fecha_ultimo_mes = df_bdd['fecha'].iloc[-1]
+
+
+        fecha_ultimo_mes = datetime.strptime(fecha_ultimo_mes,'%Y-%m-%d').date()
+
+        año_actual = fecha_ultimo_mes.year
+
+        año_anterior = año_actual - 1
+
+        
+
+        
+
+
+        
+
+
+
+
