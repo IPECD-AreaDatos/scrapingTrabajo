@@ -10,7 +10,6 @@ df = pd.DataFrame()
 instancia = HomePage()
 instancia.descargar_archivo()
 df = instancia.tratamiento_df()
-instancia.pagina_principal()
 
 
 #Conexion con BASE DE DATOS

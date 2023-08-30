@@ -156,7 +156,7 @@ class conexionBaseDatos:
 
 
         # ===== Definimos variacion interanual - Variacion del mes del año respecto al mismo mes del año pasado =====
-        fecha_ultimo_mes = fecha_mes_actual
+        fecha_ultimo_mes = df_bdd['salario_mvm_mensual'].iloc[-1]
 
         #Obtenemos el año, mes, y dia actuales - esto para obtener el valor del año pasado en el mismo mes
         año_actual = str(fecha_ultimo_mes.year)
