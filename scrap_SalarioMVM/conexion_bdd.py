@@ -102,14 +102,22 @@ class conexionBaseDatos:
 
     def enviar_correo(self):
 
-
+        salario_nominal, variacion_mensual, variacion_interanual, variacion_acumulada, fecha_ultimo_mes, fecha_mes_anterior, fecha_ultimo_mesAñoAnterior, diciembre_AñoAnterior = self.obtencion_valores()
 
 
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptor = ['boscojfrancisco@gmail.com','gastongrillo2001@gmail.com']
+        email_receptor = ['boscojfrancisco@gmail.com','gastongrillo2001@gmail.com','joseignaciobaibiene@gmail.com', 'matizalazar2001@gmail.com']
         asunto = 'Modificación en la base de datos'
-        mensaje = 'Se ha producido una modificación en la base de datos. La tabla de SALARIO MINIMO VITAL Y MOVIL contiene nuevos datos.'
+        mensaje = f"""
+        Se ha producido una modificación en la base de datos. La tabla de SALARIO MINIMO VITAL Y MOVIL contiene nuevos datos.
+
+        Salario Nominal de {fecha_ultimo_mes}: {salario_nominal}
+        Variacion mensual desde {fecha_mes_anterior} a {fecha_ultimo_mes}:  {variacion_mensual}
+        Variacion Interanual de {fecha_ultimo_mesAñoAnterior} a {fecha_ultimo_mes}: {variacion_interanual}
+        Variacion Acumulada de {diciembre_AñoAnterior} a {fecha_ultimo_mes}: {variacion_acumulada}
+
+        """
         
         em = EmailMessage()
         em['From'] = email_emisor
@@ -137,21 +145,57 @@ class conexionBaseDatos:
         df_bdd = pd.read_sql(query_carga,self.conn)
 
         
-        #Definimos salario nominal: es el dato crudo del smvym
+        # ===== Definimos salario nominal: es el dato crudo del smvym =====
         salario_nominal = df_bdd['salario_mvm_mensual'].iloc[-1]
 
-        #Definimos variacion mensual: ( Mes actual / mes anterior - 1 ) * 100
-        variacion_mensual = ( df_bdd['salario_mvm_mensual'].iloc[-1] / (df_bdd['salario_mvm_mensual'].iloc[-2] - 1 ) ) * 100
+        # ===== Definimos variacion mensual: ( Mes actual / mes anterior - 1 ) * 100 =====
+        fecha_mes_actual = df_bdd['salario_mvm_mensual'].iloc[-1]
+        fecha_mes_anterior = df_bdd['salario_mvm_mensual'].iloc[-2]
+        variacion_mensual = (( fecha_mes_actual / (fecha_mes_anterior  ) ) - 1) * 100
 
-        #Definimos variacion interanual - Variacion del mes del año respecto al mismo mes del año pasado
-        fecha_ultimo_mes = df_bdd['fecha'].iloc[-1]
 
 
-        fecha_ultimo_mes = datetime.strptime(fecha_ultimo_mes,'%Y-%m-%d').date()
+        # ===== Definimos variacion interanual - Variacion del mes del año respecto al mismo mes del año pasado =====
+        fecha_ultimo_mes = fecha_mes_actual
 
-        año_actual = fecha_ultimo_mes.year
+        #Obtenemos el año, mes, y dia actuales - esto para obtener el valor del año pasado en el mismo mes
+        año_actual = str(fecha_ultimo_mes.year)
+        mes_actual = str(fecha_ultimo_mes.month)
+        dia_actual = str(fecha_ultimo_mes.day)
+        año_anterior = int(año_actual) - 1
+        año_anterior = str(año_anterior)
 
-        año_anterior = año_actual - 1
+        #Construccion de la cadena para pasarla a formato de fecha
+        cadene_fecha = año_anterior + "-" + mes_actual + "-" + dia_actual
+        fecha_ultimo_mesAñoAnterior = datetime.strptime(cadene_fecha,'%Y-%m-%d').date()
+
+        #Fila del salario del mismo mes, del año anterior
+        fila_mes_AñoAnterior = df_bdd.loc[df_bdd['fecha'] == fecha_ultimo_mesAñoAnterior]
+        smvm_año_anterior = fila_mes_AñoAnterior['salario_mvm_mensual'].values[0]
+
+
+        #calculo final 
+
+        variacion_interanual = ((salario_nominal / smvm_año_anterior) - 1) * 100
+
+        print(salario_nominal, smvm_año_anterior, variacion_interanual)
+
+
+        # ==== VARIACION ACUMULADA: Cuanto aumento desde que empezo el año - se tiene encuenta desde diciembre del año pasado ====== #
+
+        diciembre_AñoAnterior = datetime.strptime(año_anterior + "-" + "12-01",'%Y-%m-%d').date()
+
+        valor_dic_AñoAnterior = df_bdd.loc[df_bdd['fecha'] == diciembre_AñoAnterior]
+        smvm_dic_AñoAnterior = valor_dic_AñoAnterior['salario_mvm_mensual'].values[0]
+
+
+        variacion_acumulada = ((salario_nominal / smvm_dic_AñoAnterior) - 1) * 100
+
+
+        return salario_nominal, variacion_mensual, variacion_interanual, variacion_acumulada, fecha_ultimo_mes, fecha_mes_anterior ,fecha_ultimo_mesAñoAnterior, diciembre_AñoAnterior
+
+
+
 
         
 

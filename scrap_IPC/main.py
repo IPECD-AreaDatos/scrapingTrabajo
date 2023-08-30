@@ -28,26 +28,26 @@ valor_region = 2
 
 if __name__ == '__main__':
     #Descargar EXCEL - Tambien almacenamos las rutas que usaremos
-    #home_page = HomePage()
-    #home_page.descargar_archivo()
+    home_page = HomePage()
+    home_page.descargar_archivo()
     
     #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ CARGA DE IPC DESAGREGADO ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
-    #directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
-    #ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
-    #file_path_desagregado = os.path.join(ruta_carpeta_files, 'IPC_Desagregado.xls')
-    #valoresDeIPC = [
-    #  LoadXLSDataGBA,
-    #  LoadXLSDataPampeana,
-    #  LoadXLSDataNOA,
-    #  LoadXLSDataNEA,
-    #  LoadXLSDataCuyo,
-    #  LoadXLSDataPatagonia,
-    #]
-    #for regiones in valoresDeIPC:
-    #  print("Valor region: ", valor_region)
-    #  regiones().loadInDataBase(file_path_desagregado, valor_region, lista_fechas, lista_region,  lista_categoria, lista_division, lista_subdivision, lista_valores)
-    #  valor_region = valor_region + 1
-    #conexionBaseDatos().cargaBaseDatos(lista_fechas, lista_region, lista_categoria, lista_division, lista_subdivision, lista_valores, host, user, password, database)
+    directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
+    ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
+    file_path_desagregado = os.path.join(ruta_carpeta_files, 'IPC_Desagregado.xls')
+    valoresDeIPC = [
+      LoadXLSDataGBA,
+      LoadXLSDataPampeana,
+      LoadXLSDataNOA,
+      LoadXLSDataNEA,
+      LoadXLSDataCuyo,
+      LoadXLSDataPatagonia,
+    ]
+    for regiones in valoresDeIPC:
+      print("Valor region: ", valor_region)
+      regiones().loadInDataBase(file_path_desagregado, valor_region, lista_fechas, lista_region,  lista_categoria, lista_division, lista_subdivision, lista_valores)
+      valor_region = valor_region + 1
+    conexionBaseDatos().cargaBaseDatos(lista_fechas, lista_region, lista_categoria, lista_division, lista_subdivision, lista_valores, host, user, password, database)
     
     #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ CARGA DE IPC PRODUCTOS ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
     directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
