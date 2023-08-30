@@ -372,6 +372,13 @@ Fecha date,
 ripte float
 );
 
+create table ipc_productos(
+ID_Region int,
+Fecha date,
+Producto char(50),
+Valor float
+);
+
 #Tabla De Salario Minimo Vital y Movil
 CREATE TABLE salario_mvm(
 
