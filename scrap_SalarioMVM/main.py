@@ -8,15 +8,16 @@ df = pd.DataFrame()
 
 
 instancia = HomePage()
-instancia.descargar_archivo()
-df = instancia.tratamiento_df()
+#instancia.descargar_archivo()
+#df = instancia.tratamiento_df()
+instancia.pagina_principal()
 
-
+"""
 #Conexion con BASE DE DATOS
 
 #Datos de la base de datos
 host = '172.17.22.10'
-user = 'Ivan'
+user = 'Ivan' 
 password = 'Estadistica123'
 database = 'prueba1'
 
@@ -25,4 +26,5 @@ conexion = conexionBaseDatos(host,user,password,database)
 conexion.conectar_bdd()
 
 conexion.cargar_datos(df)
+"""
 

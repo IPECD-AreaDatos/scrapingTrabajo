@@ -6,6 +6,8 @@ from selenium.webdriver.support import expected_conditions as EC
 import os
 import pandas as pd
 from datetime import datetime
+from bs4 import BeautifulSoup 
+import re
 
 
 class HomePage:
@@ -45,6 +47,10 @@ class HomePage:
         with open(ruta_guardado, 'wb') as file:
             file.write(response.content)
 
+
+        
+        self.driver.close()
+
     
     def tratamiento_df(self):
 
@@ -69,4 +75,23 @@ class HomePage:
 
         return df
 
+    #Objetivo: traer de la pagina ofical de SMVM el dato del ultimo mes
+    def pagina_principal(self):
 
+        #Cargamos pagina y buscamos elemento con XPATH
+        url = 'https://www.argentina.gob.ar/trabajo/consejodelsalario'
+        self.driver.get(url) 
+        elemento_td = self.driver.find_elements(By.XPATH,'/html/body/main/div[2]/div/section/article/div/div[5]/div/div/table/tbody/tr[2]/td[2]')
+        valor = elemento_td[0].text #--> Obtencion del texto
+
+        solo_numeros =re.sub(r'\D', '', valor) #--> Eliminacion de todos los caracteres no numericos
+
+        smvm_mes = int(solo_numeros)
+    
+        smvm_dia = smvm_mes/25
+
+        smvm_hora = smvm_dia/24
+
+        self.driver.close()
+
+        print(smvm_mes, smvm_dia, smvm_hora)
