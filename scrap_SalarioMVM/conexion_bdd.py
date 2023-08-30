@@ -34,7 +34,7 @@ class conexionBaseDatos:
             print("ERROR:",e)
 
 
-    #Cargamos los datos a la tabla 'salario_mvm'
+    #Cargamos los datos a la tabla 'salario_mvm' - Tambien detecta datos nuevos para ir cargandolos
     def cargar_datos(self,df):
 
 
