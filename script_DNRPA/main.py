@@ -13,11 +13,11 @@ database = 'prueba1'
 
 # Lista de tablas a cargar
 inscripcion = [
-    loadHTML_TablaAutoInscripcionNacion,
-    loadHTML_TablaMotoInscripcionNacion,
+    #loadHTML_TablaAutoInscripcionNacion,
+    #loadHTML_TablaMotoInscripcionNacion,
     loadHTML_TablaAutoInscripcionCorrientes,
-    loadHTML_TablaMotoInscripcionCorrientes,
-    loadHTML_TablaParqueActivoNacion
+    #loadHTML_TablaMotoInscripcionCorrientes,
+    #loadHTML_TablaParqueActivoNacion
 
 ]
 

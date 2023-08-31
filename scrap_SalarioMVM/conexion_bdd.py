@@ -109,7 +109,7 @@ class conexionBaseDatos:
         email_contraseña = 'cmxddbshnjqfehka'
 
 
-        email_receptor = ['boscojfrancisco@gmail.com','gastongrillo2001@gmail.com','joseignaciobaibiene@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com']
+        email_receptor = ['boscojfrancisco@gmail.com','gastongrillo2001@gmail.com','joseignaciobaibiene@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com', 'agusssalinas3@gmail.com', 'martinmmicelli@gmail.com']
         asunto = 'Modificación en la base de datos - SALARIO MINIMO VITAL Y MOVIL'
         mensaje = f"""
         Se ha producido una modificación en la base de datos. La tabla de SALARIO MINIMO VITAL Y MOVIL contiene nuevos datos. \n
