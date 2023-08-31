@@ -49,10 +49,6 @@ class ripte_cargaHistorico:
             nuevos_datos.append(data_tuple)
 
         conn.commit()
-
-        # Enviar correo solo si hay nuevos datos
-        #if nuevos_datos:
-            #enviar_correo()
             
         print("====================================================================")
         print("Se realizo la actualizacion de la tabla de Salarios Sector Privado")

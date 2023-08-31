@@ -11,20 +11,37 @@ import os
 
 
 class ripte_cargaUltimoDato:
-    def loadInDataBase(self, host, user, password, database):  
+
+    #Inicializacion de variables
+    def __init__(self, host, user, password, database):
+        self.driver = None
+        self.conn = None
+        self.host = host
+        self.user = user
+        self.password = password
+        self.database = database
+
+
+    #Establecemos la conexion a la BDD
+    def conectar_bdd(self):
+        conn = mysql.connector.connect(host=self.host, user=self.user, password=self.password, database=self.database)
+
+    #Cargamos los datos
+    def loadInDataBase(self):  
+
         # Se toma el tiempo de comienzo
         start_time = time.time()
-
         tolerancia = 1.99         
         
-        # Establecer la conexión a la base de datos
-        conn = mysql.connector.connect(
-            host=host, user=user, password=password, database=database
-        )
+        #Conexion a la BDD
+        self.conectar_bdd()
         
+
+        #Carga de pagina
         driver = webdriver.Chrome()
         driver.get('https://www.argentina.gob.ar/trabajo/seguridadsocial/ripte')
        
+       #Buscamos la tabla que contiene los datos
         elemento = driver.find_element(By.XPATH, '//*[@id="block-system-main"]/section/article/div/div[9]/div/div/div/div/div[1]/div/h3')
         contenido_texto = elemento.text
         contenido_numerico = contenido_texto.replace('$', '').replace('.','').replace(',', '.')
@@ -36,7 +53,7 @@ class ripte_cargaUltimoDato:
             print("El contenido no es un número válido.")
             
         # Obtener la última fecha y el último valor de ripte de la base de datos
-        cursor = conn.cursor()
+        cursor = self.conn.cursor()
         cursor.execute("SELECT Fecha, ripte FROM ripte ORDER BY Fecha DESC LIMIT 1")
         ultima_fecha, ultimo_ripte = cursor.fetchone()
 
@@ -90,6 +107,13 @@ def enviar_correo(nueva_fecha, nuevo_valor, valor_anterior):  # Recibir los valo
     with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
         smtp.login(email_emisor, email_contraseña)
         smtp.sendmail(email_emisor, email_receptores, em.as_string())
+
+
+
+    def obtener_datos():
+
+
+        pass
 
 
 #https://www.argentina.gob.ar/trabajo/seguridadsocial/ripte

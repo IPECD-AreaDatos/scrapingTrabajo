@@ -10,6 +10,9 @@ user = 'Ivan'
 password = 'Estadistica123'
 database = 'prueba1'
 
+
+#Instancia encargada 
+
 if __name__ == '__main__':
     #Obtencion del archivo
     #home_page = HomePage()
