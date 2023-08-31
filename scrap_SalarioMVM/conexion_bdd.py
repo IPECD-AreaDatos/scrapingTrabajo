@@ -109,28 +109,19 @@ class conexionBaseDatos:
         email_contraseña = 'cmxddbshnjqfehka'
 
 
-        email_receptor = ['boscojfrancisco@gmail.com','gastongrillo2001@gmail.com','joseignaciobaibiene@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com', 'agusssalinas3@gmail.com', 'martinmmicelli@gmail.com']
+        email_receptor = ['matizalazar2001@gmail.com']
         asunto = 'Modificación en la base de datos - SALARIO MINIMO VITAL Y MOVIL'
         mensaje = f"""
         Se ha producido una modificación en la base de datos. La tabla de SALARIO MINIMO VITAL Y MOVIL contiene nuevos datos. \n
 
         * Salario Nominal de {fecha_ultimo_mes}: ${salario_nominal}
-
-        ---------------------------------------------------------- \n
-    
-        * Variacion mensual desde {fecha_mes_anterior} a {fecha_ultimo_mes}:  {variacion_mensual:.2f}%
-
-        ---------------------------------------------------------- \n
-
+        * Variacion mensual desde {fecha_mes_anterior} a {fecha_ultimo_mes}:  **{variacion_mensual:.2f}%**
         * Variacion Interanual de {fecha_ultimo_mesAñoAnterior} a {fecha_ultimo_mes}: {variacion_interanual:.2f}%
-
-        ---------------------------------------------------------- \n
-
         * Variacion Acumulada de {diciembre_AñoAnterior} a {fecha_ultimo_mes}: {variacion_acumulada:.2f}%
 
-        ---------------------------------------------------------- \n
-
-        Dirección de Estadística y Censos.
+        Instituto Provincial de Estadistica y Ciencia de Datos de Corrientes
+        Dirección: Tucumán 1164 - Corrientes Capital
+        Contacto Coordinación General: 3794 284993
 
         """
         
