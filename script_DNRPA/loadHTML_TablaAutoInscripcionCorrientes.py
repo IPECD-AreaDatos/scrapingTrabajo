@@ -239,8 +239,8 @@ class loadHTML_TablaAutoInscripcionCorrientes:
                             update_values.append((column_name_mysql, value))
 
                     # Crear la sentencia SQL para la actualización
-                        update_query = "UPDATE dnrpa_inscripcion_corrientes_auto SET " + ", ".join([f"{col[0]} = %s" for col in update_values]) + " WHERE Fecha = %s"
-                        # Obtener los valores de la columna en el orden correcto para la actualización
+                    update_query = "UPDATE dnrpa_inscripcion_corrientes_auto SET " + ", ".join([f"{col[0]} = %s" for col in update_values]) + " WHERE Fecha = %s"
+                    # Obtener los valores de la columna en el orden correcto para la actualización
                     update_values = [col[1] for col in update_values]
 
                     # Agregar la fecha al final de los valores de actualización
@@ -248,7 +248,19 @@ class loadHTML_TablaAutoInscripcionCorrientes:
 
                     # Ejecutar la sentencia SQL
                     cursor.execute(update_query, update_values)
-                    enviar_correo()
+
+                    # Obtener el número de filas afectadas por la actualización
+                    rows_affected = cursor.rowcount
+
+                    # Comprobar si se realizaron cambios (si rows_affected es mayor a 0)
+                    if rows_affected > 0:
+                        print(f"Se realizaron {rows_affected} cambios en la base de datos.")
+                        enviar_correo()
+                    else:
+                        print("No se realizaron cambios en la base de datos.")
+
+                    # Luego de la actualización, ejecutar el envío de correo si es necesario
+                    
                 else:
                     # Realizar una inserción (INSERT)
                     insert_values = []
@@ -298,10 +310,10 @@ class loadHTML_TablaAutoInscripcionCorrientes:
 
 def enviar_correo():
     email_emisor='departamientoactualizaciondato@gmail.com'
-    email_contraseña = 'oxadnhkcyjnyibao'
-    email_receptores = ['gastongrillo2001@gmail.com', 'matizalazar2001@gmail.com','boscojfrancisco@gmail.com']
-    asunto = 'Modificación en la base de datos'
-    mensaje = 'Se ha producido una modificación en la base de datos. Hay nuevos valores en la tabla de DNRP'
+    email_contraseña = 'cmxddbshnjqfehka'
+    email_receptores = ['gastongrillo2001@gmail.com', 'matizalazar2001@gmail.com']
+    asunto = 'Modificación en la base de datos - '
+    mensaje = 'Se ha producido una modificación en la base de datos. Hay nuevos valores en la tabla de Registros de la Propiedad Automotor'
     
     em = EmailMessage()
     em['From'] = email_emisor
