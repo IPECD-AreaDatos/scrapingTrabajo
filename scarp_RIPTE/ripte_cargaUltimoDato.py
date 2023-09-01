@@ -98,29 +98,29 @@ class ripte_cargaUltimoDato:
 
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com']
-
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com']
+        
 
         asunto = f'Modificación en la base de datos - Remuneración Imponible Promedio de los Trabajadores Estables (RIPTE) - Fecha {nueva_fecha}'
         mensaje = f'''\
             <html>
             <body>
-            <p>Se ha producido una modificación en la base de datos de RIPTE.</p>
+            <h2>Se ha producido una modificación en la base de datos de RIPTE.</h2>
             <hr>
-            <p>Nueva fecha: {nueva_fecha} -- Nuevo valor: <b>${nuevo_valor}<b></p>
+            <p>Nueva fecha: {nueva_fecha} -- Nuevo valor:  <span style="font-size: 17px;"><b>${nuevo_valor}<b></p>
             <hr>
-            <p>Valor correspondiente a {fecha_mes_anterior}: ${valor_anterior} -- Variación Mensual: <b>{variacion_mensual:.2f}%</b>  </p>
+            <p>Valor correspondiente a {fecha_mes_anterior}: ${valor_anterior} -- Variación Mensual:  <span style="font-size: 17px;"><b>{variacion_mensual:.2f}%</b>  </p>
             <hr>
-            <p>Variación interanual de {nueva_fecha} a {fecha_mes_AñoAnterior}: <b>{variacion_interanual:.2f}%</b> </p>
+            <p>Variación interanual de {nueva_fecha} a {fecha_mes_AñoAnterior}:  <span style="font-size: 17px;"><b>{variacion_interanual:.2f}%</b> </p>
             <hr>
-            <p>Variación Acumulada desde {diciembre_AñoAnterior} a {nueva_fecha}: <b>{variacion_acumulada:.2f}%</b> </p>
+            <p>Variación Acumulada desde {diciembre_AñoAnterior} a {nueva_fecha}:  <span style="font-size: 17px;"><b>{variacion_acumulada:.2f}%</b> </p>
             </body>
 
             
-            Instituto Provincial de Estadistica y Ciencia de Datos de Corrientes
+            Instituto Provincial de Estadistica y Ciencia de Datos de Corrientes <br>
             Dirección: Tucumán 1164 - Corrientes Capital
-            Contacto Coordinación General: 3794 284993
-
+            - Contacto Coordinación General: 3794 284993
+        
             </html>
             '''
         
