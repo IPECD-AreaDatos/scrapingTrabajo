@@ -97,45 +97,43 @@ class conexionBaseDatos:
             else: #No se producira la carga
                 return False
                 
+             
+    def enviar_correo(self):  # Recibir los valores como argumentos
 
-                    
 
-    def enviar_correo(self):
-
+        #Obtencion de valores para informe por CORREO
         salario_nominal, variacion_mensual, variacion_interanual, variacion_acumulada, fecha_ultimo_mes, fecha_mes_anterior, fecha_ultimo_mesAñoAnterior, diciembre_AñoAnterior = self.obtencion_valores()
-
-
-        email_emisor='departamientoactualizaciondato@gmail.com'
+        
+        email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-
-
-        email_receptor = ['matizalazar2001@gmail.com']
-        asunto = 'Modificación en la base de datos - SALARIO MINIMO VITAL Y MOVIL'
-        mensaje = f"""
-        Se ha producido una modificación en la base de datos. La tabla de SALARIO MINIMO VITAL Y MOVIL contiene nuevos datos. \n
-
-        * Salario Nominal de {fecha_ultimo_mes}: ${salario_nominal}
-        * Variacion mensual desde {fecha_mes_anterior} a {fecha_ultimo_mes}:  **{variacion_mensual:.2f}%**
-        * Variacion Interanual de {fecha_ultimo_mesAñoAnterior} a {fecha_ultimo_mes}: {variacion_interanual:.2f}%
-        * Variacion Acumulada de {diciembre_AñoAnterior} a {fecha_ultimo_mes}: {variacion_acumulada:.2f}%
-
-        Instituto Provincial de Estadistica y Ciencia de Datos de Corrientes
-        Dirección: Tucumán 1164 - Corrientes Capital
-        Contacto Coordinación General: 3794 284993
-
-        """
+        email_receptores = ['gastongrillo2001@gmail.com', 'matizalazar2001@gmail.com']
+        asunto = f'Modificación en la base de datos - SALARIO MINIMO VITAL Y MOVIL - Fecha {fecha_ultimo_mes}'
+        mensaje = f'''\
+            <html>
+            <body>
+            <h3>Se ha producido una modificación en la base de datos. La tabla de SALARIO MINIMO VITAL Y MOVIL contiene nuevos datos.</h3>
+            <p>*Salario Nominal de {fecha_ultimo_mes}: <b>${salario_nominal}</b></p>
+            <p>*Variacion mensual desde {fecha_mes_anterior} a {fecha_ultimo_mes}: <b>{variacion_mensual:.2f}%%</b></p>
+            <p>*Variacion Interanual de {fecha_ultimo_mesAñoAnterior} a {fecha_ultimo_mes}: <b>{variacion_interanual:.2f}%</b></p>
+            <p>*Variacion Acumulada de {diciembre_AñoAnterior} a {fecha_ultimo_mes}: <b>{variacion_acumulada:.2f}%</b></p>
+            <p> Instituto Provincial de Estadistica y Ciencia de Datos de Corrientes<br>
+                Dirección: Tucumán 1164 - Corrientes Capital<br>
+                Contacto Coordinación General: 3794 284993</p>
+            </body>
+            </html>
+            '''
         
         em = EmailMessage()
         em['From'] = email_emisor
-        em['To'] = ", ".join(email_receptor)
+        em['To'] = ", ".join(email_receptores)
         em['Subject'] = asunto
-        em.set_content(mensaje)
+        em.set_content(mensaje, subtype = 'html')
         
         contexto = ssl.create_default_context()
         
         with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
             smtp.login(email_emisor, email_contraseña)
-            smtp.sendmail(email_emisor, email_receptor, em.as_string())
+            smtp.sendmail(email_emisor, email_receptores, em.as_string())
 
 
     #OBJETIVO: Obtener los valores , salario nominal, variacion mensual, variacion interanual, variacion acumulada
