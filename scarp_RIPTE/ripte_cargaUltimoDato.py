@@ -94,26 +94,31 @@ class ripte_cargaUltimoDato:
         #Obtencion de valores para informe por CORREO
         variacion_mensual = ((nuevo_valor / valor_anterior) - 1) * 100
         variacion_interanual, variacion_acumulada, fecha_mes_anterior,fecha_mes_AñoAnterior, diciembre_AñoAnterior = self.obtener_datos(nueva_fecha,nuevo_valor)
+
+
+        #Construccion de la cadena de la fecha actual
         nueva_fecha = nueva_fecha.date()
+
+        cadena_nueva_fecha = str(nueva_fecha.year) +"-"+str(nueva_fecha.month)
 
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com']
-        
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com']
 
-        asunto = f'Modificación en la base de datos - Remuneración Imponible Promedio de los Trabajadores Estables (RIPTE) - Fecha {nueva_fecha}'
+        asunto = f'Modificación en la base de datos - Remuneración Imponible Promedio de los Trabajadores Estables (RIPTE) - Fecha {cadena_nueva_fecha}'
         mensaje = f'''\
             <html>
             <body>
             <h2>Se ha producido una modificación en la base de datos de RIPTE.</h2>
             <hr>
-            <p>Nueva fecha: {nueva_fecha} -- Nuevo valor:  <span style="font-size: 17px;"><b>${nuevo_valor}<b></p>
+            <p>Nueva fecha: {cadena_nueva_fecha} -- Nuevo valor:  <span style="font-size: 17px;"><b>${nuevo_valor}<b></p>
             <hr>
             <p>Valor correspondiente a {fecha_mes_anterior}: ${valor_anterior} -- Variación Mensual:  <span style="font-size: 17px;"><b>{variacion_mensual:.2f}%</b>  </p>
             <hr>
-            <p>Variación interanual de {nueva_fecha} a {fecha_mes_AñoAnterior}:  <span style="font-size: 17px;"><b>{variacion_interanual:.2f}%</b> </p>
+            <p>Variación interanual de {cadena_nueva_fecha} a {fecha_mes_AñoAnterior}:  <span style="font-size: 17px;"><b>{variacion_interanual:.2f}%</b> </p>
             <hr>
-            <p>Variación Acumulada desde {diciembre_AñoAnterior} a {nueva_fecha}:  <span style="font-size: 17px;"><b>{variacion_acumulada:.2f}%</b> </p>
+            <p>Variación Acumulada desde {diciembre_AñoAnterior} a {cadena_nueva_fecha}:  <span style="font-size: 17px;"><b>{variacion_acumulada:.2f}%</b> </p>
             </body>
 
             
@@ -184,9 +189,25 @@ class ripte_cargaUltimoDato:
         variacion_acumulada = ((nuevo_valor / smvm_dic_AñoAnterior) - 1) * 100
 
 
+        #==== CONSTRUCCION DE FECHAS
 
 
-        return variacion_interanual, variacion_acumulada,fecha_mes_AñoAnterior,fecha_mes_AñoAnterior,diciembre_AñoAnterior
+        
+        #Construccion de la fecha del mes anterior al actual --> Para variacion Mensual
+        mes_anterior = df_bdd['Fecha'].iloc[-2]
+        cadena_mes_anterior = str(mes_anterior.year) +"-"+str(mes_anterior.month)
+
+
+        #Construcion de la fecha del mismo mes , del año pasado --> Para variacion Interanual
+        cadena_mes_añoAnterior = str(año_anterior) +"-"+ mes_actual
+
+        #Construccion de la fecha de diciembre del año anterior al ACTUAL --> Para Variacion Acumulada
+        cadena_dic_añoAnterior = str(diciembre_AñoAnterior.year) +"-"+str(diciembre_AñoAnterior.month)
+
+
+
+
+        return variacion_interanual, variacion_acumulada,cadena_mes_anterior,cadena_mes_añoAnterior,cadena_dic_añoAnterior
 
 #https://www.argentina.gob.ar/trabajo/seguridadsocial/ripte
 
