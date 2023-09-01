@@ -106,7 +106,7 @@ class conexionBaseDatos:
         
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores = ['gastongrillo2001@gmail.com', 'matizalazar2001@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com']
         asunto = f'Modificación en la base de datos - SALARIO MINIMO VITAL Y MOVIL - Fecha {fecha_ultimo_mes}'
         mensaje = f'''\
             <html>
