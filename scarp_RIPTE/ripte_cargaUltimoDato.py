@@ -101,24 +101,26 @@ class ripte_cargaUltimoDato:
         email_receptores = ['gastongrillo2001@gmail.com', 'matizalazar2001@gmail.com']
         asunto = f'Modificación en la base de datos - RIPTE - Fecha {nueva_fecha}'
         mensaje = f'''\
-            Se ha producido una modificación en la base de datos de RIPTE. \n
-            --------------------------------------------------------------
-            * Nueva fecha: {nueva_fecha} --  Nuevo valor: ${nuevo_valor}
-            --------------------------------------------------------------                                      
-            * Valor correspondiente a {fecha_mes_anterior}: ${valor_anterior} -- Variacion Mensual: {variacion_mensual:.2f}%
-            --------------------------------------------------------------                                      
-            * Variacion interanual de {fecha_mes_AñoAnterior} a {nueva_fecha}: {variacion_interanual:.2f}%
-            --------------------------------------------------------------                                      
-            * Variacion Acumulada desde {diciembre_AñoAnterior} a {nueva_fecha}: {variacion_acumulada:.2f}%
-
-
+            <html>
+            <body>
+            <p>Se ha producido una modificación en la base de datos de RIPTE.</p>
+            <hr>
+            <p><strong>Nueva fecha:</strong> {nueva_fecha} -- <strong>Nuevo valor:</strong> ${nuevo_valor}</p>
+            <hr>
+            <p><strong>Valor correspondiente a {fecha_mes_anterior}:</strong> ${valor_anterior} -- <strong>Variación Mensual:</strong> {variacion_mensual:.2f}%</p>
+            <hr>
+            <p><strong>Variación interanual de {fecha_mes_AñoAnterior} a {nueva_fecha}:</strong> {variacion_interanual:.2f}%</p>
+            <hr>
+            <p><strong>Variación Acumulada desde {diciembre_AñoAnterior} a {nueva_fecha}:</strong> {variacion_acumulada:.2f}%</p>
+            </body>
+            </html>
             '''
         
         em = EmailMessage()
         em['From'] = email_emisor
         em['To'] = ", ".join(email_receptores)
         em['Subject'] = asunto
-        em.set_content(mensaje)
+        em.set_content(mensaje, subtype = 'html')
         
         contexto = ssl.create_default_context()
         
