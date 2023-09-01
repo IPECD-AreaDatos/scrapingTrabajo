@@ -106,16 +106,20 @@ class conexionBaseDatos:
         
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','agusssalinas3@gmail.com', 'ivanfedericorodriguez@gmail.com']
         asunto = f'Modificación en la base de datos - SALARIO MINIMO VITAL Y MOVIL - Fecha {fecha_ultimo_mes}'
         mensaje = f'''\
             <html>
             <body>
-            <h3>Se ha producido una modificación en la base de datos. La tabla de SALARIO MINIMO VITAL Y MOVIL contiene nuevos datos.</h3>
-            <p>*Salario Nominal de {fecha_ultimo_mes}: <b>${salario_nominal}</b></p>
-            <p>*Variacion mensual desde {fecha_mes_anterior} a {fecha_ultimo_mes}: <b>{variacion_mensual:.2f}%%</b></p>
-            <p>*Variacion Interanual de {fecha_ultimo_mesAñoAnterior} a {fecha_ultimo_mes}: <b>{variacion_interanual:.2f}%</b></p>
-            <p>*Variacion Acumulada de {diciembre_AñoAnterior} a {fecha_ultimo_mes}: <b>{variacion_acumulada:.2f}%</b></p>
+            <h2>Se ha producido una modificación en la base de datos. La tabla de SALARIO MINIMO VITAL Y MOVIL contiene nuevos datos.</h2>
+            <p>*Salario Nominal de {fecha_ultimo_mes}: <span style="font-size: 17px;"><b>${salario_nominal}</b></span></p>
+            <hr>
+            <p>*Variacion mensual desde {fecha_mes_anterior} a {fecha_ultimo_mes}: <span style="font-size: 17px;"><b>{variacion_mensual:.2f}%%</b></span></p>
+            <hr>
+            <p>*Variacion Interanual de {fecha_ultimo_mesAñoAnterior} a {fecha_ultimo_mes}: <span style="font-size: 17px;"><b>{variacion_interanual:.2f}%</b></span></p>
+            <hr>
+            <p>*Variacion Acumulada de {diciembre_AñoAnterior} a {fecha_ultimo_mes}: <span style="font-size: 17px;"><b>{variacion_acumulada:.2f}%</b></span></p>
+            <hr>
             <p> Instituto Provincial de Estadistica y Ciencia de Datos de Corrientes<br>
                 Dirección: Tucumán 1164 - Corrientes Capital<br>
                 Contacto Coordinación General: 3794 284993</p>

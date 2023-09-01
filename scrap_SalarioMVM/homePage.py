@@ -8,6 +8,8 @@ import pandas as pd
 from datetime import datetime
 from bs4 import BeautifulSoup 
 import re
+import time
+from selenium import webdriver
 
 
 class HomePage:
@@ -31,6 +33,9 @@ class HomePage:
         #Cargamos la pagina
         self.driver.get(self.url_pagina)
 
+        # Hacer que Selenium espere durante 5 segundos antes de continuar
+        time.sleep(15)
+        
         #Detectamos boton de descarga - Es una etiqueta <a>, y obtenemos el atributo HREF
         etiqueta_a_descarga = self.driver.find_element(By.XPATH,'/html/body/div[1]/div[2]/div/div/div[3]/a[1]')
         href = etiqueta_a_descarga.get_attribute('href')
