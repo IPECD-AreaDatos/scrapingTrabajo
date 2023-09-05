@@ -7,20 +7,44 @@ import smtplib
 import pandas as pd
 
 class conexionBaseDatos:
-    def cargaBaseDatos(self, host, user, password, database, lista_provincias, lista_valores_estacionalidad, lista_valores_sin_estacionalidad, lista_registro,lista_fechas):
-        try:
-            conn = mysql.connector.connect(
+
+    #Inicializacion de variables en la clase
+    def __init__(self, host, user, password, database, lista_provincias, lista_valores_estacionalidad, lista_valores_sin_estacionalidad, lista_registro,lista_fechas):
+
+        self.host = host
+        self.user = user
+        self.password = password 
+        self.database = database
+        self.lista_provincias = lista_provincias
+        self.lista_valores_estacionalidad = lista_valores_estacionalidad
+        self.lista_valores_sin_estacionalidad = lista_valores_sin_estacionalidad
+        self.lista_registro = lista_registro
+        self.lista_fechas = lista_fechas
+        self.cursor = None
+        self.conn = None
+
+    def conectar_bdd(self,host,user,password,database):
+
+            self.conn = mysql.connector.connect(
                 host=host, user=user, password=password, database=database
             )
-            cursor = conn.cursor()
+            self.cursor = self.conn.cursor()
+
+        
+
+    def cargaBaseDatos(self):
+
+        try:
+            #Conectar a la BDD 
+            self.conectar_bdd(self.host,self.user,self.password,self.database)
             
             #Se le asigna la lista correspondiente a la columna del data frame y se arma el "Excel"
             df = pd.DataFrame() 
-            df['fecha'] = lista_fechas
-            df['id_prov'] = lista_provincias
-            df['tipo_registro'] = lista_registro
-            df['valores_estacionales'] = lista_valores_estacionalidad
-            df['valores_no_estacionales'] = lista_valores_sin_estacionalidad
+            df['fecha'] = self.lista_fechas
+            df['id_prov'] = self.lista_provincias
+            df['tipo_registro'] = self.lista_registro
+            df['valores_estacionales'] = self.lista_valores_estacionalidad
+            df['valores_no_estacionales'] = self.lista_valores_sin_estacionalidad
             
             # Verificar cuantas filas tiene la tabla de mysql
             select_query = "SELECT COUNT(*) FROM sipa_registro WHERE Fecha = %s"
@@ -33,54 +57,175 @@ class conexionBaseDatos:
 
             #Verificar cantidad de filas anteriores 
             select_row_count_query = "SELECT COUNT(*) FROM sipa_registro"
-            cursor.execute(select_row_count_query)
-            row_count_before = cursor.fetchone()[0]
+            self.cursor.execute(select_row_count_query)
+            row_count_before = self.cursor.fetchone()[0]
             
+            #Borrado de tabla para actualizacion
             delete_query ="TRUNCATE `prueba1`.`sipa_registro`"
-            cursor.execute(delete_query)
+            self.cursor.execute(delete_query)
             
-            for fecha, id_prov, tipo_registro, valores_estacionales, valores_no_estacionales in zip(lista_fechas, lista_provincias, lista_registro, lista_valores_estacionalidad, lista_valores_sin_estacionalidad):
+            for fecha, id_prov, tipo_registro, valores_estacionales, valores_no_estacionales in zip(self.lista_fechas, self.lista_provincias, self.lista_registro, self.lista_valores_estacionalidad, self.lista_valores_sin_estacionalidad):
                 # Convertir la fecha en formato datetime si es necesario
                 if isinstance(fecha, str):
                     fecha = datetime.datetime.strptime(fecha, '%Y-%m-%d').date()
 
-                cursor.execute(insert_query, (fecha, id_prov, tipo_registro, valores_estacionales, valores_no_estacionales))
+                self.cursor.execute(insert_query, (fecha, id_prov, tipo_registro, valores_estacionales, valores_no_estacionales))
                         
             #Obtener cantidad de filas
-            cursor.execute(select_row_count_query)
-            row_count_after = cursor.fetchone()[0]
+            self.cursor.execute(select_row_count_query)
+            row_count_after = self.cursor.fetchone()[0]
+
             #Comparar la cantidad de antes y despues
             if row_count_after > row_count_before:
                 print("Se agregaron nuevos datos")
-                enviar_correo()   
+                self.enviar_correo()   
             else:
                 print("Se realizo una verificacion de la base de datos")
                 
             # Confirmar los cambios en la base de datos
-            conn.commit()
+            self.conn.commit()
             # Cerrar el cursor y la conexión
-            cursor.close()
-            conn.close()
+            self.cursor.close()
+            self.conn.close()
 
         except Exception as e:
             
             print(e)   
 
-def enviar_correo():
-    email_emisor='departamientoactualizaciondato@gmail.com'
-    email_contraseña = 'cmxddbshnjqfehka'
-    email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com']
-    asunto = 'Modificación en la base de datos'
-    mensaje = 'Se ha producido una modificación en la base de datos.La tabla de SIPA posee nuevos valores'
-    
-    em = EmailMessage()
-    em['From'] = email_emisor
-    em['To'] = email_receptores
-    em['Subject'] = asunto
-    em.set_content(mensaje)
-    
-    contexto= ssl.create_default_context()
-    
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
-        smtp.login(email_emisor, email_contraseña)
-        smtp.sendmail(email_emisor, email_receptores, em.as_string())
+    def enviar_correo(self):
+
+        self.obtener_datos()
+
+
+        email_emisor='departamientoactualizaciondato@gmail.com'
+        email_contraseña = 'cmxddbshnjqfehka'
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com']
+        asunto = 'Modificación en la base de datos'
+        mensaje = 'Se ha producido una modificación en la base de datos.La tabla de SIPA posee nuevos valores'
+        
+        em = EmailMessage()
+        em['From'] = email_emisor
+        em['To'] = email_receptores
+        em['Subject'] = asunto
+        em.set_content(mensaje)
+        
+        contexto= ssl.create_default_context()
+        
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
+            smtp.login(email_emisor, email_contraseña)
+            smtp.sendmail(email_emisor, email_receptores, em.as_string())
+
+
+    """
+    En esta funcion nos encargamos de obtener los datos:
+
+    * El Porcentaje(%) de cada grupo
+    * Empleo total registrado a nivel pais - Variancion mensual e Interanual del mes actual
+    * Empleo privado registraddo -  Variancion mensual e Interanual del mes actual
+    * Empleo registrado PROMEDIO NEA - Variancion mensual e Interanual del mes actual
+    * Empleo registrado en Corrientes - Variancion mensual e Interanual del mes actual
+
+    """
+    def obtener_porcentaje_clases(self):
+
+        # ====  Carga de datos desde la BDD - transformacion a DATAFRAME
+        nombre_tabla = 'sipa_registro'
+        query_carga = f'SELECT * FROM {nombre_tabla}'
+        df_bdd = pd.read_sql(query_carga,self.conn)
+
+
+        # === Calculando el porcentaje(%) de cada grupo
+        grupos = df_bdd.groupby('ID_Tipo_Registro')
+
+        print("\n\n")
+
+        #Variables de empleo
+        total_privado = None
+        total_publico = None
+        total_casas_particulares = None
+        total_idp_autonomo = None
+        total_idp_monotributo = None
+        total_idp_monotributo_social = None
+
+        lista_totales = []
+        
+
+        #Para los totales no tenemos en cuenta GRUPO 1 (NACION) y el GRUPO 8(Totales)
+        for categoria,grupo in grupos:  
+
+            if categoria == 1 or categoria == 8:
+                pass
+            else:
+                #Posicionamiento en la lista
+                indice = categoria-2
+
+                #Obtencion de fecha MAXIMA
+                fecha_max = grupo['Fecha'].max()
+                #Obtener la fila 
+
+                fila = grupo[grupo['Fecha'] == fecha_max]
+
+                lista_totales.append(fila['Cantidad_con_Estacionalidad'].values[0])
+
+                print(f"Valor {lista_totales[indice]} - Categoria {categoria} ")
+     
+        
+
+        #Asignacon de valores
+
+        #Variables de empleo
+        total_privado = lista_totales[0]
+        total_publico = lista_totales[1]
+        total_casas_particulares = lista_totales[2]
+        total_idp_autonomo = lista_totales[3]
+        total_idp_monotributo = lista_totales[4]
+        total_idp_monotributo_social = lista_totales[5]
+
+        #=== CALCULO DE PORCENTAJES
+
+        total = sum(lista_totales)
+
+        porcentaje_privado = ((total_privado * 100) / total)
+        porcentaje_publico = ((total_publico * 100) / total)
+        porcentaje_total_casas_particulares = ((total_casas_particulares * 100) / total)
+        porcentaje_total_idp_autonomo = ((total_idp_autonomo * 100) / total)
+        porcentaje_total_idp_monotributo = ((total_idp_monotributo  * 100) / total)
+        porcentaje_total_idp_monotributo_social = ((total_idp_monotributo_social  * 100) / total)
+
+
+        
+
+
+        print(porcentaje_privado)
+        print(porcentaje_publico)
+        print(porcentaje_total_casas_particulares)
+        print(porcentaje_total_idp_autonomo)
+        print(porcentaje_total_idp_monotributo)
+        print(porcentaje_total_idp_monotributo_social)
+
+
+
+
+        
+
+
+
+
+#Datos de la base de datos
+host = '172.17.22.10'
+user = 'Ivan'
+password = 'Estadistica123'
+database = 'prueba1'
+
+lista_provincias = list()
+lista_valores_estacionalidad = list() 
+lista_valores_sin_estacionalidad = list() 
+lista_registro = list()
+lista_fechas= list() 
+
+instancia_bdd = conexionBaseDatos(host, user, password, database, lista_provincias, lista_valores_estacionalidad, lista_valores_sin_estacionalidad, lista_registro,lista_fechas)
+instancia_bdd.conectar_bdd(host,user,password,database)
+instancia_bdd.obtener_porcentaje_clases()
+
+
