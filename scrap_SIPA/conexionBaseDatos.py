@@ -68,14 +68,14 @@ class conexionBaseDatos:
 
 def enviar_correo():
     email_emisor='departamientoactualizaciondato@gmail.com'
-    email_contraseña = 'oxadnhkcyjnyibao'
-    email_receptor = ['gastongrillo2001@gmail.com', 'matizalazar2001@gmail.com', 'boscojfrancisco@gmail.com']
+    email_contraseña = 'cmxddbshnjqfehka'
+    email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com']
     asunto = 'Modificación en la base de datos'
     mensaje = 'Se ha producido una modificación en la base de datos.La tabla de SIPA posee nuevos valores'
     
     em = EmailMessage()
     em['From'] = email_emisor
-    em['To'] = email_receptor
+    em['To'] = email_receptores
     em['Subject'] = asunto
     em.set_content(mensaje)
     
@@ -83,4 +83,4 @@ def enviar_correo():
     
     with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
         smtp.login(email_emisor, email_contraseña)
-        smtp.sendmail(email_emisor, email_receptor, em.as_string())
+        smtp.sendmail(email_emisor, email_receptores, em.as_string())
