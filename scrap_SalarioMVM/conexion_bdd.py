@@ -116,7 +116,7 @@ class conexionBaseDatos:
             <hr>
             <p>*Variacion mensual desde {fecha_mes_anterior} a {fecha_ultimo_mes}: <span style="font-size: 17px;"><b>{variacion_mensual:.2f}%%</b></span></p>
             <hr>
-            <p>*Variacion Interanual de {fecha_ultimo_mesAñoAnterior} a {fecha_ultimo_mes}: <span style="font-size: 17px;"><b>{variacion_interanual:.2f}%</b></span></p>
+            <p>*Variacion Interanual de {fecha_ultimo_mes} a {fecha_ultimo_mesAñoAnterior}: <span style="font-size: 17px;"><b>{variacion_interanual:.2f}%</b></span></p>
             <hr>
             <p>*Variacion Acumulada de {diciembre_AñoAnterior} a {fecha_ultimo_mes}: <span style="font-size: 17px;"><b>{variacion_acumulada:.2f}%</b></span></p>
             <hr>

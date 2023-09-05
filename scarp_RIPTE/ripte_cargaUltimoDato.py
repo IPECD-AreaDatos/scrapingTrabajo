@@ -208,8 +208,3 @@ class ripte_cargaUltimoDato:
 
 
         return variacion_interanual, variacion_acumulada,cadena_mes_anterior,cadena_mes_añoAnterior,cadena_dic_añoAnterior
-
-#https://www.argentina.gob.ar/trabajo/seguridadsocial/ripte
-
-#https://datos.gob.ar/dataset/sspm-salario-minimo-vital-movil-pesos-corrientes/archivo/sspm_57.1
-
