@@ -37,3 +37,5 @@ if __name__ == '__main__':
     instancia_bdd = conexionBaseDatos(host, user, password, database, lista_provincias, lista_valores_estacionalidad, lista_valores_sin_estacionalidad, lista_registro,lista_fechas)
     instancia_bdd.cargaBaseDatos()
 
+
+
