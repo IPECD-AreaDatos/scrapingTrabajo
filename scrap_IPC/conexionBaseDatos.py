@@ -8,20 +8,42 @@ import pandas as pd
 from armadoXLSDataNacion import LoadXLSDataNacion
 
 class conexionBaseDatos:
-    def cargaBaseDatos(self, lista_fechas, lista_region, lista_categoria, lista_division, lista_subdivision, lista_valores, host, user, password, database):
-        try:
-            conn = mysql.connector.connect(
-                host=host, user=user, password=password, database=database
+
+    def __init__(self,lista_fechas, lista_region, lista_categoria, lista_division, lista_subdivision, lista_valores, host, user, password, database):
+
+        self.lista_fechas = lista_fechas
+        self.lista_region = lista_region
+        self.lista_categoria = lista_categoria
+        self.lista_division = lista_division
+        self.lista_subdivision = lista_subdivision
+        self.lista_valores = lista_valores
+        self.host = host
+        self.user = user
+        self.password = password
+        self.database = database
+        self.conn = None
+        self.cursor = None
+
+    def conectar_bdd(self):
+
+            self.conn = mysql.connector.connect(
+                host=self.host, user=self.user, password=self.password, database=self.database
             )
-            cursor = conn.cursor()
+            self.cursor = self.conn.cursor()
+
+
+    def cargaBaseDatos(self):
+        
+        try:
+            self.conectar_bdd(self)
             
             df = pd.DataFrame()        
-            df['fecha'] = lista_fechas
-            df['region'] = lista_region
-            df['categoria'] = lista_categoria
-            df['division']= lista_division
-            df['subdivision']= lista_subdivision
-            df['valor'] = lista_valores
+            df['fecha'] = self.lista_fechas
+            df['region'] = self.lista_region
+            df['categoria'] = self.lista_categoria
+            df['division']= self.lista_division
+            df['subdivision']= self.lista_subdivision
+            df['valor'] = self.lista_valores
             
            # Sentencia SQL para comprobar si la fecha ya existe en la tabla
             select_query = "SELECT COUNT(*) FROM ipc_region WHERE Fecha = %s AND ID_Region = %s AND ID_Categoria = %s AND ID_Division = %s AND ID_Subdivision = %s"
@@ -31,80 +53,203 @@ class conexionBaseDatos:
 
             #Verificar cantidad de filas anteriores 
             select_row_count_query = "SELECT COUNT(*) FROM ipc_region"
-            cursor.execute(select_row_count_query)
-            row_count_before = cursor.fetchone()[0]
+            self.cursor.execute(select_row_count_query)
+            row_count_before = self.cursor.fetchone()[0]
             
             delete_query ="TRUNCATE `prueba1`.`ipc_region`"
-            cursor.execute(delete_query)
+            self.cursor.execute(delete_query)
 
-            for fecha, region, categoria, division, subdivision, valor in zip(lista_fechas, lista_region, lista_categoria, lista_division, lista_subdivision, lista_valores):
+            for fecha, region, categoria, division, subdivision, valor in zip(self.lista_fechas, self.lista_region, self.lista_categoria, self.lista_division, self.lista_subdivision, self.lista_valores):
                 # Convertir la fecha en formato datetime si es necesario
                 if isinstance(fecha, str):
                     fecha = datetime.datetime.strptime(fecha, '%Y-%m-%d').date()
 
-                cursor.execute(insert_query, (fecha, region, categoria, division, subdivision, valor))
+                self.cursor.execute(insert_query, (fecha, region, categoria, division, subdivision, valor))
                 print("Leyendo el valor de IPC: ", valor)
 
 
+            self.verificar_cantidad(self,row_count_before)
+
+
             # Confirmar los cambios en la base de datos
-            conn.commit()
+            self.conn.commit()
 
             # Cerrar el cursor y la conexión
-            cursor.close()
-            conn.close()
+            self.cursor.close()
+            self.conn.close()
 
-            LoadXLSDataNacion().loadInDataBase(host, user, password, database)
+            LoadXLSDataNacion().loadInDataBase(self.host, self.user, self.password, self.database)
             
-            verificar_cantidad(host, user, password, database, row_count_before)
             
         except Exception as e:
             
             print(e)   
 
-def enviar_correo():
-    email_emisor = 'departamientoactualizaciondato@gmail.com'
-    email_contraseña = 'cmxddbshnjqfehka'
-    email_receptores = ['gastongrillo2001@gmail.com', 'matizalazar2001@gmail.com', 'boscojfrancisco@gmail.com']
-    asunto = 'Modificación en la base de datos'
-    mensaje = 'Se ha producido una modificación en la base de datos. La tabla de IPC contiene nuevos datos'
-    
-    em = EmailMessage()
-    em['From'] = email_emisor
-    em['To'] = ", ".join(email_receptores)
-    em['Subject'] = asunto
-    em.set_content(mensaje)
-    
-    contexto = ssl.create_default_context()
-    
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
-        smtp.login(email_emisor, email_contraseña)
-        smtp.sendmail(email_emisor, email_receptores, em.as_string())
 
-def verificar_cantidad(host, user, password, database, row_count_before):
-    conn = mysql.connector.connect(
-        host=host, user=user, password=password, database=database
-    )
-    cursor = conn.cursor()
-    
-    #Verificar cantidad de filas anteriores 
-    select_row_count_query = "SELECT COUNT(*) FROM ipc_region"
-    #Obtener cantidad de filas
-    cursor.execute(select_row_count_query)
-    row_count_after = cursor.fetchone()[0]
-
-    #Comparar la cantidad de antes y despues
-    if row_count_after > row_count_before:
-        print("Se agregaron nuevos datos")
-        enviar_correo()   
-    else:
-        print("Se realizo una verificacion de la base de datos")
-    
-    print("antes:", row_count_before)
-    print("despues:", row_count_after)
-    
-    # Cerrar el cursor y la conexión
-    cursor.close()
-    conn.close()
+    def enviar_correo(self):
+        email_emisor = 'departamientoactualizaciondato@gmail.com'
+        email_contraseña = 'cmxddbshnjqfehka'
+        email_receptores = ['gastongrillo2001@gmail.com', 'matizalazar2001@gmail.com', 'boscojfrancisco@gmail.com']
+        asunto = 'Modificación en la base de datos'
+        mensaje = 'Se ha producido una modificación en la base de datos. La tabla de IPC contiene nuevos datos'
+        
+        em = EmailMessage()
+        em['From'] = email_emisor
+        em['To'] = ", ".join(email_receptores)
+        em['Subject'] = asunto
+        em.set_content(mensaje)
+        
+        contexto = ssl.create_default_context()
+        
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
+            smtp.login(email_emisor, email_contraseña)
+            smtp.sendmail(email_emisor, email_receptores, em.as_string())
 
 
+    def verificar_cantidad(self,row_count_before):
+       
+        #Verificar cantidad de filas anteriores 
+        select_row_count_query = "SELECT COUNT(*) FROM ipc_region"
+        #Obtener cantidad de filas
+        self.cursor.execute(select_row_count_query)
+        row_count_after = self.cursor.fetchone()[0]
 
+        #Comparar la cantidad de antes y despues
+        if row_count_after > row_count_before:
+            print("Se agregaron nuevos datos")
+            self.enviar_correo()   
+        else:
+            print("Se realizo una verificacion de la base de datos")
+        
+        print("antes:", row_count_before)
+        print("despues:", row_count_after)
+
+
+    #Objetivo: calcular la variacion mensual, intearanual y acumulado del IPC a nivel nacional
+    def variaciones_nacionales(self):
+
+        nombre_tabla = 'ipc_region'
+        query_consulta = f'SELECT * FROM {nombre_tabla}'
+        df_bdd = pd.read_sql(query_consulta,self.conn)
+
+        #==== IPC registrado en el AÑO Y MES actual ==== #
+
+        #Obtener ultima fecha
+        fecha_max = df_bdd['Fecha'].max()
+
+        #Buscamos los registros de la ultima fecha - Sumamos todos los campos
+        grupo_ultima_fecha = df_bdd[(df_bdd['Fecha'] == fecha_max)]
+        total_ipc = sum(grupo_ultima_fecha['Valor'])
+
+         #=== CALCULO DE LA VARIACION MENSUAL
+
+        #Buscamos el mes anterior
+        mes_anterior = int(fecha_max.month) - 1
+
+        #Convertimos la serie a datetime para buscar por año y mes
+        df_bdd['Fecha'] = pd.to_datetime(df_bdd['Fecha'])    
+        grupo_mes_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == fecha_max.year) & (df_bdd['Fecha'].dt.month == mes_anterior)]
+
+        #Total del mes anterior y calculo de la variacion mensual
+        total_mes_anterior = int(sum(grupo_mes_anterior['Valor']))
+
+        variacion_mensual = ((total_ipc/ total_mes_anterior) - 1) * 100
+
+
+        #=== CALCULO VARIACION INTERANUAL
+
+        grupo_mes_actual_año_anterior= df_bdd[(df_bdd['Fecha'].dt.year == fecha_max.year-1 ) & (df_bdd['Fecha'].dt.month == fecha_max.month)]
+
+        total_ipc_año_anterior = sum(grupo_mes_actual_año_anterior['Valor'])
+
+        variacion_interanual = ((total_ipc / total_ipc_año_anterior) - 1) * 100
+
+
+        #=== CALCULO VARIACION ACUMULADA - Variacion desde DIC del año anterior
+
+        grupo_diciembre_año_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == fecha_max.year-1 ) & ((df_bdd['Fecha'].dt.month == 12)) ]
+
+        total_diciembre = sum(grupo_diciembre_año_anterior['Valor'])
+
+        variacion_acumulada = ((total_ipc / total_diciembre) - 1) * 100
+        
+        print("* variacion acumuluada:",variacion_mensual)
+        print("* Variacion INTERANUAL",variacion_interanual)
+        print("* Variacion ACUMULADA",variacion_acumulada)
+
+
+#Objetivo: calcular la variacion mensual, intearanual y acumulado del IPC a nivel NEA (CHACO + FORMOSA + CORRIENTES + MENDOZA)
+    def variaciones_nea(self):
+
+        nombre_tabla = 'ipc_region'
+        query_consulta = f'SELECT * FROM {nombre_tabla} WHERE ID_Region = 5'
+        df_bdd = pd.read_sql(query_consulta,self.conn)
+
+        #==== IPC registrado en el AÑO Y MES actual ==== #
+
+        #Obtener ultima fecha
+        fecha_max = df_bdd['Fecha'].max()
+
+        #Buscamos los registros de la ultima fecha - Sumamos todos los campos
+        grupo_ultima_fecha = df_bdd[(df_bdd['Fecha'] == fecha_max)]
+        total_ipc = sum(grupo_ultima_fecha['Valor'])
+
+         #=== CALCULO DE LA VARIACION MENSUAL
+
+        #Buscamos el mes anterior
+        mes_anterior = int(fecha_max.month) - 1
+
+        #Convertimos la serie a datetime para buscar por año y mes
+        df_bdd['Fecha'] = pd.to_datetime(df_bdd['Fecha'])    
+        grupo_mes_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == fecha_max.year) & (df_bdd['Fecha'].dt.month == mes_anterior)]
+
+        #Total del mes anterior y calculo de la variacion mensual
+        total_mes_anterior = int(sum(grupo_mes_anterior['Valor']))
+
+        variacion_mensual = ((total_ipc/ total_mes_anterior) - 1) * 100
+
+
+        #=== CALCULO VARIACION INTERANUAL
+
+        grupo_mes_actual_año_anterior= df_bdd[(df_bdd['Fecha'].dt.year == fecha_max.year-1 ) & (df_bdd['Fecha'].dt.month == fecha_max.month)]
+
+        total_ipc_año_anterior = sum(grupo_mes_actual_año_anterior['Valor'])
+
+        variacion_interanual = ((total_ipc / total_ipc_año_anterior) - 1) * 100
+
+
+        #=== CALCULO VARIACION ACUMULADA - Variacion desde DIC del año anterior
+
+        grupo_diciembre_año_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == fecha_max.year-1 ) & ((df_bdd['Fecha'].dt.month == 12)) ]
+
+        total_diciembre = sum(grupo_diciembre_año_anterior['Valor'])
+
+        variacion_acumulada = ((total_ipc / total_diciembre) - 1) * 100
+        
+        print("* variacion mensual DEL NEA:",variacion_mensual)
+        print("* Variacion INTERANUAL DEL NEA:",variacion_interanual)
+        print("* Variacion ACUMULADA DEL NEA:",variacion_acumulada)
+
+
+
+#SECCION DE PRUEBAS
+
+#Listas a tratar durante el proceso
+lista_fechas = list()
+lista_region = list()
+lista_categoria = list()
+lista_division = list()
+lista_subdivision = list()
+lista_valores = list()
+
+#Datos de la base de datos
+host = '172.17.22.10'
+user = 'Ivan'
+password = 'Estadistica123'
+database = 'prueba1'
+
+instancia = conexionBaseDatos(lista_fechas, lista_region, lista_categoria, lista_division, lista_subdivision, lista_valores, host, user, password, database)
+instancia.conectar_bdd()
+instancia.variaciones_nacionales()
+print("\n ---------  \n")
+instancia.variaciones_nea()
