@@ -126,10 +126,10 @@ class conexionBaseDatos:
 
 
     #Objetivo: calcular la variacion mensual, intearanual y acumulado del IPC a nivel nacional
-    def variaciones_nacionales(self):
+    def variaciones(self,region):
 
         nombre_tabla = 'ipc_region'
-        query_consulta = f'SELECT * FROM {nombre_tabla}'
+        query_consulta = f'SELECT * FROM {nombre_tabla} WHERE ID_Region = {region} and ID_Subdivision = 1'
         df_bdd = pd.read_sql(query_consulta,self.conn)
 
         #==== IPC registrado en el AÑO Y MES actual ==== #
@@ -139,7 +139,8 @@ class conexionBaseDatos:
 
         #Buscamos los registros de la ultima fecha - Sumamos todos los campos
         grupo_ultima_fecha = df_bdd[(df_bdd['Fecha'] == fecha_max)]
-        total_ipc = sum(grupo_ultima_fecha['Valor'])
+
+        total_ipc = grupo_ultima_fecha['Valor'].values[0]
 
          #=== CALCULO DE LA VARIACION MENSUAL
 
@@ -151,7 +152,7 @@ class conexionBaseDatos:
         grupo_mes_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == fecha_max.year) & (df_bdd['Fecha'].dt.month == mes_anterior)]
 
         #Total del mes anterior y calculo de la variacion mensual
-        total_mes_anterior = int(sum(grupo_mes_anterior['Valor']))
+        total_mes_anterior = grupo_mes_anterior['Valor'].values[0]
 
         variacion_mensual = ((total_ipc/ total_mes_anterior) - 1) * 100
 
@@ -160,7 +161,7 @@ class conexionBaseDatos:
 
         grupo_mes_actual_año_anterior= df_bdd[(df_bdd['Fecha'].dt.year == fecha_max.year-1 ) & (df_bdd['Fecha'].dt.month == fecha_max.month)]
 
-        total_ipc_año_anterior = sum(grupo_mes_actual_año_anterior['Valor'])
+        total_ipc_año_anterior =  grupo_mes_actual_año_anterior['Valor'].values[0]
 
         variacion_interanual = ((total_ipc / total_ipc_año_anterior) - 1) * 100
 
@@ -169,32 +170,27 @@ class conexionBaseDatos:
 
         grupo_diciembre_año_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == fecha_max.year-1 ) & ((df_bdd['Fecha'].dt.month == 12)) ]
 
-        total_diciembre = sum(grupo_diciembre_año_anterior['Valor'])
+        total_diciembre = grupo_diciembre_año_anterior['Valor'].values[0]
 
         variacion_acumulada = ((total_ipc / total_diciembre) - 1) * 100
         
-        print("* variacion acumuluada:",variacion_mensual)
+        print("* variacion mensual:",variacion_mensual)
         print("* Variacion INTERANUAL",variacion_interanual)
         print("* Variacion ACUMULADA",variacion_acumulada)
 
-
-#Objetivo: calcular la variacion mensual, intearanual y acumulado del IPC a nivel NEA (CHACO + FORMOSA + CORRIENTES + MENDOZA)
-    def variaciones_nea(self):
+    #Objetivo: calcular las variaciones mensuales de las subdiviones del NEA
+    def vars_mensual_nea(self):
 
         nombre_tabla = 'ipc_region'
         query_consulta = f'SELECT * FROM {nombre_tabla} WHERE ID_Region = 5'
-        df_bdd = pd.read_sql(query_consulta,self.conn)
-
-        #==== IPC registrado en el AÑO Y MES actual ==== #
+        df_bdd = pd.read_sql(query_consulta,self.conn)  
 
         #Obtener ultima fecha
         fecha_max = df_bdd['Fecha'].max()
 
-        #Buscamos los registros de la ultima fecha - Sumamos todos los campos
+        #Buscamos los registros de la ultima fecha 
         grupo_ultima_fecha = df_bdd[(df_bdd['Fecha'] == fecha_max)]
-        total_ipc = sum(grupo_ultima_fecha['Valor'])
 
-         #=== CALCULO DE LA VARIACION MENSUAL
 
         #Buscamos el mes anterior
         mes_anterior = int(fecha_max.month) - 1
@@ -202,33 +198,27 @@ class conexionBaseDatos:
         #Convertimos la serie a datetime para buscar por año y mes
         df_bdd['Fecha'] = pd.to_datetime(df_bdd['Fecha'])    
         grupo_mes_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == fecha_max.year) & (df_bdd['Fecha'].dt.month == mes_anterior)]
-
-        #Total del mes anterior y calculo de la variacion mensual
-        total_mes_anterior = int(sum(grupo_mes_anterior['Valor']))
-
-        variacion_mensual = ((total_ipc/ total_mes_anterior) - 1) * 100
-
-
-        #=== CALCULO VARIACION INTERANUAL
-
-        grupo_mes_actual_año_anterior= df_bdd[(df_bdd['Fecha'].dt.year == fecha_max.year-1 ) & (df_bdd['Fecha'].dt.month == fecha_max.month)]
-
-        total_ipc_año_anterior = sum(grupo_mes_actual_año_anterior['Valor'])
-
-        variacion_interanual = ((total_ipc / total_ipc_año_anterior) - 1) * 100
-
-
-        #=== CALCULO VARIACION ACUMULADA - Variacion desde DIC del año anterior
-
-        grupo_diciembre_año_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == fecha_max.year-1 ) & ((df_bdd['Fecha'].dt.month == 12)) ]
-
-        total_diciembre = sum(grupo_diciembre_año_anterior['Valor'])
-
-        variacion_acumulada = ((total_ipc / total_diciembre) - 1) * 100
         
-        print("* variacion mensual DEL NEA:",variacion_mensual)
-        print("* Variacion INTERANUAL DEL NEA:",variacion_interanual)
-        print("* Variacion ACUMULADA DEL NEA:",variacion_acumulada)
+        
+        #Vamos a detectar los valores de cada subdivision y calcular su variacion mensual
+        #Luego lo agregaremos a una tabla de STR o HTML para trabajar el conjunto en su totalidad
+
+        for indice in grupo_ultima_fecha['ID_Subdivision']:
+            
+
+            #Busqueda del valor del mes anterior
+            fila_mes_anterior = grupo_mes_anterior[grupo_mes_anterior['ID_Subdivision'] == indice]
+            valor_mes_anterior = fila_mes_anterior['Valor']
+
+            #Valor del mes actual
+            valor_mes_actual = grupo_ultima_fecha[grupo_ultima_fecha['ID_Subdivision'] == indice]
+
+            print(valor_mes_actual)
+
+
+        
+        
+
 
 
 
@@ -250,6 +240,11 @@ database = 'prueba1'
 
 instancia = conexionBaseDatos(lista_fechas, lista_region, lista_categoria, lista_division, lista_subdivision, lista_valores, host, user, password, database)
 instancia.conectar_bdd()
-instancia.variaciones_nacionales()
+
+"""
+instancia.variaciones(1) #--> Nacion
 print("\n ---------  \n")
-instancia.variaciones_nea()
+instancia.variaciones(5) #--> NEA
+"""
+
+instancia.vars_mensual_nea()
