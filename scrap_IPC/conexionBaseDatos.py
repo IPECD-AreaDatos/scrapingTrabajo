@@ -87,18 +87,57 @@ class conexionBaseDatos:
 
 
     def enviar_correo(self):
+
+
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores = ['gastongrillo2001@gmail.com', 'matizalazar2001@gmail.com', 'boscojfrancisco@gmail.com']
-        asunto = 'Modificación en la base de datos'
-        mensaje = 'Se ha producido una modificación en la base de datos. La tabla de IPC contiene nuevos datos'
+        #email_receptores = ['gastongrillo2001@gmail.com', 'matizalazar2001@gmail.com', 'boscojfrancisco@gmail.com']
+        email_receptores = ['benitezeliogaston@gmail.com']
+
+        #Variaciones nacionales
+        mensaje_variaciones,fecha = self.variaciones(1)
+        mensaje_variaciones_nea,fecha = self.variaciones(5)
+
+        asunto = f'Actualizacion en la base de datos - INDICE DE PRECIOS AL CONSUMIDOR (IPC) - Fecha {fecha}'
+
+        mensaje = f'''
+        
+        <html>
+        Se ha producido una modificación en la base de datos. La tabla de IPC contiene nuevos datos
+        <body>
+
+        <hr>
+
+        '''
+        
+        #Aderimos al mensje las variaciones nacionales
+        variaciones_nacionales = f'''
+
+        <h3> Variaciones a nivel Nacional - Argetina </h3>
+
+        ''' + mensaje_variaciones_nea + "<hr>"
+
+        variaciones_nea = f'''
+
+                <h3> Variaciones Noroeste(NEA) - Argetina </h3>
+
+
+        '''
+
+
+
+
+
+        
+
+
+        
         
         em = EmailMessage()
         em['From'] = email_emisor
         em['To'] = ", ".join(email_receptores)
         em['Subject'] = asunto
-        em.set_content(mensaje)
-        
+        em.set_content(mensaje, subtype = 'html')      
         contexto = ssl.create_default_context()
         
         with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
@@ -173,24 +212,40 @@ class conexionBaseDatos:
         total_diciembre = grupo_diciembre_año_anterior['Valor'].values[0]
 
         variacion_acumulada = ((total_ipc / total_diciembre) - 1) * 100
-        
-        print("* variacion mensual:",variacion_mensual)
-        print("* Variacion INTERANUAL",variacion_interanual)
-        print("* Variacion ACUMULADA",variacion_acumulada)
 
-    #Objetivo: calcular las variaciones mensuales de las subdiviones del NEA
-    def vars_mensual_nea(self):
+        cadena_variaciones =f'''
+        <p>VARIACION MENSUAL: <span style="font-size: 17px;"><b>{variacion_mensual:.2f}</b></span></p>
+        <p>VARIACION INTERANUAL: <span style="font-size: 17px;"><b>{variacion_interanual:.2f}</b></span></p>
+        <p>VARIACION ACUMULADA: <span style="font-size: 17px;"><b>{variacion_acumulada:.2f}</b></span></p>
+        '''
 
+        return cadena_variaciones,fecha_max
+
+    #Objetivo: calcular las variaciones de las subdiviones del NEA
+    def variaciones_nea(self):
+
+
+        #Cadena que contendra todos los datos en formato HTML
+        cadena_de_datos =''
+
+        #Buscamos tabla con los datos del IPC
         nombre_tabla = 'ipc_region'
         query_consulta = f'SELECT * FROM {nombre_tabla} WHERE ID_Region = 5'
         df_bdd = pd.read_sql(query_consulta,self.conn)  
 
+        #Buscamos la tabla de las subdivisiones para imprimir los mensajes
+        nombre_subdivision = 'ipc_subdivision'
+        query_consulta = f'SELECT * FROM {nombre_subdivision}'
+        df_subdivisiones = pd.read_sql(query_consulta,self.conn)
+        
         #Obtener ultima fecha
         fecha_max = df_bdd['Fecha'].max()
 
+
+        #=== OPERACIONES NECESARIAS PARA EL CALCULO DE LA VARIACION MENSUAL
+
         #Buscamos los registros de la ultima fecha 
         grupo_ultima_fecha = df_bdd[(df_bdd['Fecha'] == fecha_max)]
-
 
         #Buscamos el mes anterior
         mes_anterior = int(fecha_max.month) - 1
@@ -198,24 +253,71 @@ class conexionBaseDatos:
         #Convertimos la serie a datetime para buscar por año y mes
         df_bdd['Fecha'] = pd.to_datetime(df_bdd['Fecha'])    
         grupo_mes_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == fecha_max.year) & (df_bdd['Fecha'].dt.month == mes_anterior)]
-        
-        
+
+
+         #=== OPERACIONES NECESARIAS PARA EL CALCULO DE LA VARIACION INTERANUAL
+        grupo_año_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == fecha_max.year - 1) & (df_bdd['Fecha'].dt.month == fecha_max.month)]
+
+
+        #=== OPERACIONES NECESARIAS PARA EL CALCULO DE LA VARIACION ACUMULADA
+        grupo_dic_año_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == fecha_max.year - 1) & (df_bdd['Fecha'].dt.month == 12)]
+        print(grupo_dic_año_anterior)
+
         #Vamos a detectar los valores de cada subdivision y calcular su variacion mensual
         #Luego lo agregaremos a una tabla de STR o HTML para trabajar el conjunto en su totalidad
-
         for indice in grupo_ultima_fecha['ID_Subdivision']:
             
+            #=== CALCULO DE LA VARIACION MENSUAL
 
             #Busqueda del valor del mes anterior
             fila_mes_anterior = grupo_mes_anterior[grupo_mes_anterior['ID_Subdivision'] == indice]
-            valor_mes_anterior = fila_mes_anterior['Valor']
+            valor_mes_anterior = fila_mes_anterior['Valor'].values[0]
 
-            #Valor del mes actual
-            valor_mes_actual = grupo_ultima_fecha[grupo_ultima_fecha['ID_Subdivision'] == indice]
+            #Valor del valor del mes actual
+            fila_mes_actual = grupo_ultima_fecha[grupo_ultima_fecha['ID_Subdivision'] == indice]
+            valor_mes_actual = fila_mes_actual['Valor'].values[0]
 
-            print(valor_mes_actual)
+            #Busqueda del nombre de la subdivision 
+            subdivision = df_subdivisiones[df_subdivisiones['id_subdivision'] == indice]
+            nombre_indice = subdivision['nombre'].values[0]
+
+            #Calculo de la variacion mensual
+            var_mensual = ((valor_mes_actual / valor_mes_anterior) - 1 ) * 100
+            
+
+            #=== CALCULO DE LA VARIACION INTERANUAL
+
+            #Busqueda del valor del año anterior 
+            fila_año_anterior = grupo_año_anterior[grupo_año_anterior['ID_Subdivision'] == indice]
+            valor_año_anterior = fila_año_anterior['Valor'].values[0]
+
+            
+            var_interanual = ((valor_mes_actual / valor_año_anterior) - 1) * 100
 
 
+            #=== CALCULO DE LA VARIACION ACUMULADA
+
+            #Busqueda del valor del DICIEMBRRE del anterior 
+            fila_dic_año_anterior = grupo_dic_año_anterior[grupo_dic_año_anterior['ID_Subdivision'] == indice]
+            valor_dic_año_anterior = fila_dic_año_anterior['Valor'].values[0]
+
+            
+            var_acumulada = ((valor_mes_actual / valor_dic_año_anterior) - 1) * 100
+
+
+            fila_de_nea = f'''
+            <tr>
+            <td> {nombre_indice}</td>
+            <td> {var_mensual}</td>
+            <td> {var_interanual}</td>
+            <td> {var_acumulada}</td>
+            </tr>
+            '''
+
+            cadena_de_datos = cadena_de_datos + fila_de_nea
+
+        
+        return cadena_de_datos
         
         
 
@@ -233,7 +335,7 @@ lista_subdivision = list()
 lista_valores = list()
 
 #Datos de la base de datos
-host = '172.17.22.10'
+host = '192.168.0.101'
 user = 'Ivan'
 password = 'Estadistica123'
 database = 'prueba1'
@@ -247,4 +349,4 @@ print("\n ---------  \n")
 instancia.variaciones(5) #--> NEA
 """
 
-instancia.vars_mensual_nea()
+instancia.variaciones_nea()
