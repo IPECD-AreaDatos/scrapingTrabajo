@@ -19,7 +19,7 @@ lista_subdivision = list()
 lista_valores = list()
 
 #Datos de la base de datos
-host = '172.17.22.10'
+host = '192.168.0.101'
 user = 'Ivan'
 password = 'Estadistica123'
 database = 'prueba1'
@@ -47,7 +47,9 @@ if __name__ == '__main__':
       print("Valor region: ", valor_region)
       regiones().loadInDataBase(file_path_desagregado, valor_region, lista_fechas, lista_region,  lista_categoria, lista_division, lista_subdivision, lista_valores)
       valor_region = valor_region + 1
-    conexionBaseDatos().cargaBaseDatos(lista_fechas, lista_region, lista_categoria, lista_division, lista_subdivision, lista_valores, host, user, password, database)
+    
+    instancia = conexionBaseDatos(lista_fechas, lista_region, lista_categoria, lista_division, lista_subdivision, lista_valores, host, user, password, database)
+    instancia.cargaBaseDatos()
     
     #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ CARGA DE IPC PRODUCTOS ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
     directorio_desagregado = os.path.dirname(os.path.abspath(__file__))

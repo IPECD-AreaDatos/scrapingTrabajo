@@ -102,7 +102,7 @@ class LoadXLSDataProductos:
             db_config = {
                 'user': 'Ivan',
                 'password': 'Estadistica123',
-                'host': '172.17.22.10',
+                'host': '192.168.0.101',
                 'database': 'prueba1',
             }
 

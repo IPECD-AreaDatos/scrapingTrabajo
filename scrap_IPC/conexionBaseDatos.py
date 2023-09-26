@@ -34,9 +34,9 @@ class conexionBaseDatos:
 
     def cargaBaseDatos(self):
         
-        try:
-            self.conectar_bdd(self)
-            
+        #try:
+
+            self.conectar_bdd()
             df = pd.DataFrame()        
             df['fecha'] = self.lista_fechas
             df['region'] = self.lista_region
@@ -54,10 +54,17 @@ class conexionBaseDatos:
             #Verificar cantidad de filas anteriores 
             select_row_count_query = "SELECT COUNT(*) FROM ipc_region"
             self.cursor.execute(select_row_count_query)
+
+
+            #Version anterior
             row_count_before = self.cursor.fetchone()[0]
-            
-            delete_query ="TRUNCATE `prueba1`.`ipc_region`"
+
+            #Version nueva
+            cant_valores = len(df.values)
+
+            delete_query ="TRUNCATE TABLE `prueba1`.`ipc_region`"
             self.cursor.execute(delete_query)
+
 
             for fecha, region, categoria, division, subdivision, valor in zip(self.lista_fechas, self.lista_region, self.lista_categoria, self.lista_division, self.lista_subdivision, self.lista_valores):
                 # Convertir la fecha en formato datetime si es necesario
@@ -67,23 +74,31 @@ class conexionBaseDatos:
                 self.cursor.execute(insert_query, (fecha, region, categoria, division, subdivision, valor))
                 print("Leyendo el valor de IPC: ", valor)
 
-
-            self.verificar_cantidad(self,row_count_before)
-
-
+            
             # Confirmar los cambios en la base de datos
             self.conn.commit()
+            # Cerrar el cursor y la conexión
+            self.cursor.close()
+            self.conn.close()
+
+            #CARGA DE LOS DATOS DE ID NACION
+            LoadXLSDataNacion().loadInDataBase(self.host, self.user, self.password, self.database)
+
+
+
+            self.conectar_bdd()
+            self.verificar_cantidad(row_count_before)
+
 
             # Cerrar el cursor y la conexión
             self.cursor.close()
             self.conn.close()
 
-            LoadXLSDataNacion().loadInDataBase(self.host, self.user, self.password, self.database)
             
             
-        except Exception as e:
+        #except Exception as e:
             
-            print(e)   
+        #    print("EL ERROR ES: ",e)   
 
 
     def enviar_correo(self):
@@ -91,8 +106,7 @@ class conexionBaseDatos:
 
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        #email_receptores = ['gastongrillo2001@gmail.com', 'matizalazar2001@gmail.com', 'boscojfrancisco@gmail.com']
-        email_receptores = ['benitezeliogaston@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com']
 
         #Variaciones nacionales
         mensaje_variaciones,fecha = self.variaciones(1)
@@ -113,31 +127,45 @@ class conexionBaseDatos:
         #Aderimos al mensje las variaciones nacionales
         variaciones_nacionales = f'''
 
-        <h3> Variaciones a nivel Nacional - Argetina </h3>
+        <h3> Variaciones a nivel Nacional - Argentina </h3>
 
-        ''' + mensaje_variaciones_nea + "<hr>"
+        ''' + mensaje_variaciones + "<hr>"
 
         variaciones_nea = f'''
 
-                <h3> Variaciones Noroeste(NEA) - Argetina </h3>
+                <h3> Variaciones Noroeste(NEA) - Argentina </h3>
 
 
+        ''' + mensaje_variaciones_nea + "<hr>"
+
+
+        #Creacion de tabla con variaciones
+        datos_tabla = self.variaciones_nea()
+
+        tabla = f''' 
+        
+        <table>  
+
+        <th> INDICE </th>
+        <th>  VAR. MENSUAL </th>
+        <th> VAR. INTERANUAL </th>
+        <th> VAR. ACUMULADA </th>
+        {datos_tabla}
+
+        </table> 
+
+        </body>
+        </html>
         '''
 
 
-
-
-
-        
-
-
-        
+        cadena_final = mensaje + variaciones_nacionales + variaciones_nea + tabla
         
         em = EmailMessage()
         em['From'] = email_emisor
         em['To'] = ", ".join(email_receptores)
         em['Subject'] = asunto
-        em.set_content(mensaje, subtype = 'html')      
+        em.set_content(cadena_final, subtype = 'html')      
         contexto = ssl.create_default_context()
         
         with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
@@ -153,6 +181,7 @@ class conexionBaseDatos:
         self.cursor.execute(select_row_count_query)
         row_count_after = self.cursor.fetchone()[0]
 
+        print(f"\n - LA CANTIDAD DE FILAS EN LA BDD ES: {row_count_after}")
         #Comparar la cantidad de antes y despues
         if row_count_after > row_count_before:
             print("Se agregaron nuevos datos")
@@ -168,16 +197,24 @@ class conexionBaseDatos:
     def variaciones(self,region):
 
         nombre_tabla = 'ipc_region'
+
         query_consulta = f'SELECT * FROM {nombre_tabla} WHERE ID_Region = {region} and ID_Subdivision = 1'
+
+        #query_prueba = 'SELECT * FROM ipc_region WHERE ID_Region = 1 and ID_Subdivision = 1'
         df_bdd = pd.read_sql(query_consulta,self.conn)
+
 
         #==== IPC registrado en el AÑO Y MES actual ==== #
 
         #Obtener ultima fecha
         fecha_max = df_bdd['Fecha'].max()
 
+        print(f"LA FECHA MAXIMA ES: {fecha_max}")
+
         #Buscamos los registros de la ultima fecha - Sumamos todos los campos
         grupo_ultima_fecha = df_bdd[(df_bdd['Fecha'] == fecha_max)]
+
+        print(grupo_ultima_fecha)
 
         total_ipc = grupo_ultima_fecha['Valor'].values[0]
 
@@ -224,6 +261,11 @@ class conexionBaseDatos:
     #Objetivo: calcular las variaciones de las subdiviones del NEA
     def variaciones_nea(self):
 
+        #Lista de variaciones
+        list_var_mensual = []
+        list_var_interanual = []
+        list_var_acumulada = []
+        lista_indices = []
 
         #Cadena que contendra todos los datos en formato HTML
         cadena_de_datos =''
@@ -305,17 +347,43 @@ class conexionBaseDatos:
             var_acumulada = ((valor_mes_actual / valor_dic_año_anterior) - 1) * 100
 
 
+            list_var_mensual.append(var_mensual)
+            list_var_interanual.append(var_interanual)
+            list_var_acumulada.append(var_acumulada)
+            lista_indices.append(nombre_indice)
+
+
+
+        #Creacion de DATAFRAME
+        data = {
+             
+             'nombre_indices':lista_indices,
+             'var_mensual': list_var_mensual,
+             'var_interanual':list_var_interanual,
+             'var_acumulada':list_var_acumulada
+        }
+
+        df = pd.DataFrame(data)
+
+        #Ordenacion por var mensual
+        df = df.sort_values(by='var_mensual',ascending=[False])
+
+
+        #Armado de cadena para correo
+        for nombre_indice,var_mensual,var_interanual,var_acumulada in zip(df['nombre_indices'],df['var_mensual'],df['var_interanual'],df['var_acumulada']):
+        
             fila_de_nea = f'''
-            <tr>
-            <td> {nombre_indice}</td>
-            <td> {var_mensual}</td>
-            <td> {var_interanual}</td>
-            <td> {var_acumulada}</td>
-            </tr>
-            '''
+                <tr>
+
+                <td> {nombre_indice}</td>
+                <td"> {var_mensual:.2f}</td>
+                <td> {var_interanual:.2f}</td>
+                <td> {var_acumulada:.2f}</td>
+                </tr>
+                '''
 
             cadena_de_datos = cadena_de_datos + fila_de_nea
-
+    
         
         return cadena_de_datos
         
@@ -323,7 +391,7 @@ class conexionBaseDatos:
 
 
 
-
+"""
 #SECCION DE PRUEBAS
 
 #Listas a tratar durante el proceso
@@ -343,10 +411,7 @@ database = 'prueba1'
 instancia = conexionBaseDatos(lista_fechas, lista_region, lista_categoria, lista_division, lista_subdivision, lista_valores, host, user, password, database)
 instancia.conectar_bdd()
 
-"""
+
 instancia.variaciones(1) #--> Nacion
 print("\n ---------  \n")
-instancia.variaciones(5) #--> NEA
 """
-
-instancia.variaciones_nea()
