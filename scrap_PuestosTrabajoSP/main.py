@@ -3,7 +3,7 @@ from loadCSVData import LoadCSVData
 from loadCSVPuestosTotal import LoadCSVDataPuestosTotal
 
 #Datos de la base de datos
-host = '172.17.22.10'
+host = '192.168.0.101'
 user = 'Ivan'
 password = 'Estadistica123'
 database = 'prueba1'
