@@ -18,7 +18,8 @@ class loadCSVData_Total:
         conn = mysql.connector.connect(
             host=host, user=user, password=password, database=database
         )
-
+        cursor = conn.cursor()
+        
         # Nombre de la tabla en MySQL
         table_name = 'DP_salarios_total'
         # Obtener la ruta del directorio actual (donde se encuentra el script)
@@ -46,38 +47,42 @@ class loadCSVData_Total:
         else:
             print(f"La columna '{column_name_stripped}' no existe en el DataFrame.")
 
+
+        #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓CARGA EN BASE DE DATOS ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
         print("Tabla de Salarios Total")
+        select_row_count_query = "SELECT COUNT(*) FROM DP_salarios_total"
+        cursor.execute(select_row_count_query)
+        row_count_before = cursor.fetchone()[0]
+        
+        delete_query ="TRUNCATE `prueba1`.`DP_salarios_total`"
+        cursor.execute(delete_query)
+        
         insert_query = f"INSERT INTO {table_name} VALUES ({', '.join(['%s' for _ in range(len(df.columns))])})"
-        update_query = f"UPDATE {table_name} SET salario = %s WHERE fecha = %s AND codigo_departamento_indec = %s AND id_provincia_indec = %s AND clae2 = %s"
+
 
         for index, row in df.iterrows():
             data_tuple = tuple(row)
+            # Si los valores no existen, realizar la inserción
+            conn.cursor().execute(insert_query, data_tuple)
+            print(data_tuple)
             
-            # Verificar si los valores ya existen en la tabla
-            check_query = f"SELECT * FROM {table_name} WHERE fecha = %s AND codigo_departamento_indec = %s AND id_provincia_indec = %s AND clae2 = %s"
-            check_data = (row['fecha'], row['codigo_departamento_indec'], row['id_provincia_indec'], row['clae2'])
-            conn.cursor().execute(check_query, check_data)
-            existing_data = conn.cursor().fetchone()
+            # Agregar los datos nuevos a la lista
+            nuevos_datos.append(data_tuple)
 
-            if existing_data:
-                # Si los valores ya existen, realizar la actualización
-                update_data = (row['salario'], row['fecha'], row['codigo_departamento_indec'], row['id_provincia_indec'], row['clae2'])
-                conn.cursor().execute(update_query, update_data)
-                print("Actualización realizada:", update_data)
-            else:
-                # Si los valores no existen, realizar la inserción
-                conn.cursor().execute(insert_query, data_tuple)
-                print("Inserción realizada:", data_tuple)
-                
-                # Agregar los datos nuevos a la lista
-                nuevos_datos.append(data_tuple)
+        cursor.execute(select_row_count_query)
+        row_count_after = cursor.fetchone()[0]
+        
+        #Comparar la cantidad de antes y despues
+        if row_count_after > row_count_before:
+            print("Se agregaron nuevos datos")
+            enviar_correo()   
+        else:
+            print("Se realizo una verificacion de la base de datos")
 
         conn.commit()
-
-        # Enviar correo solo si hay nuevos datos
-        if nuevos_datos:
-            enviar_correo()
-            
+        # Cerrar la conexión a la base de datos
+        conn.close()
+        
         
         print("==========================================================")
         print("Se realizo la actualizacion de la tabla de Salarios Total")
@@ -88,16 +93,15 @@ class loadCSVData_Total:
         duration = end_time - start_time
         print(f"Tiempo de ejecución: {duration} segundos")
         
-        # Cerrar la conexión a la base de datos
-        conn.close()
+
         
         
 def enviar_correo():
     email_emisor='departamientoactualizaciondato@gmail.com'
-    email_contraseña = 'oxadnhkcyjnyibao'
-    email_receptor = ['gastongrillo2001@gmail.com','boscojfrancisco@gmail.com']
+    email_contraseña = 'cmxddbshnjqfehka'
+    email_receptor = ['gastongrillo2001@gmail.com','matizalazar2001@gmail.com']
     asunto = 'Modificación en la base de datos'
-    mensaje = 'Se ha producido una modificación en la base de datos.'
+    mensaje = 'Se ha producido una modificación en la base de datos.Nuevos datos den Salarios Total'
     body = "Se han agregado nuevos datos:\n\n"
     for data in nuevos_datos:
         body += ', '.join(map(str, data)) + '\n'
