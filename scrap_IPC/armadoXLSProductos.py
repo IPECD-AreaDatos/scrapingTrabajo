@@ -12,6 +12,9 @@ class LoadXLSDataProductos:
         start_time = time.time()
         
         try:
+            print("\n****************************************************")
+            print("************* Inicio de la sección IPC_Productos *************")
+            print("\n****************************************************")
             # Listas para almacenar los datos
             id_region = []
             productos = []
@@ -137,7 +140,7 @@ class LoadXLSDataProductos:
             if row_count_after > row_count_before:
                 print("Se agregaron nuevos datos de ipc_productos")
             else:
-                print("Se realizo una verificacion de la base de datos")
+                print("Se realizo una verificacion de la base de datos de ipc_productos")
                    
         except Exception as e:
             # Manejar cualquier excepción ocurrida durante la carga de datos

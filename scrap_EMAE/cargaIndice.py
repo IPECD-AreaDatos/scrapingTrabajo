@@ -91,8 +91,8 @@ class cargaIndice:
 
 def enviar_correo():
     email_emisor='departamientoactualizaciondato@gmail.com'
-    email_contraseña = 'oxadnhkcyjnyibao'
-    email_receptor = ['gastongrillo2001@gmail.com', 'matizalazar2001@gmail.com','boscojfrancisco@gmail.com']
+    email_contraseña = 'cmxddbshnjqfehka'
+    email_receptor = ['gastongrillo2001@gmail.com', 'matizalazar2001@gmail.com']
     asunto = 'Modificación en la base de datos'
     mensaje = 'Se ha producido una modificación en la base de datos.La tabla de EMAE contiene nuevos datos'
     
