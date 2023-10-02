@@ -110,8 +110,7 @@ class conexionBaseDatos:
 
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com']
-        email_receptores =  ['gastongrillo2001@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com']
         
         #Variaciones nacionales
         mensaje_variaciones,fecha = self.variaciones(1)
@@ -149,12 +148,14 @@ class conexionBaseDatos:
 
         tabla = f''' 
         
-        <table>  
+        <table style="border-collapse: collapse; width: 100%;">
 
-        <th> INDICE </th>
-        <th>  VAR. MENSUAL </th>
-        <th> VAR. INTERANUAL </th>
-        <th> VAR. ACUMULADA </th>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> INDICE </th>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;">  VAR. MENSUAL </th>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> INDICE </th>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> VAR. INTERANUAL </th>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> INDICE </th>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> VAR. ACUMULADA </th>
         {datos_tabla}
 
         </table> 
@@ -365,20 +366,25 @@ class conexionBaseDatos:
 
         df = pd.DataFrame(data)
 
-        #Ordenacion por var mensual
-        df = df.sort_values(by='var_mensual',ascending=[False])
-
+        #Ordenacion por var mensual | intearanual| acumulado
+        df_mensual = df.sort_values(by='var_mensual',ascending=[False])
+        df_interanual = df.sort_values(by='var_interanual',ascending=[False])
+        df_acumulado = df.sort_values(by='var_acumulada',ascending=[False])
 
         #Armado de cadena para correo
-        for nombre_indice,var_mensual,var_interanual,var_acumulada in zip(df['nombre_indices'],df['var_mensual'],df['var_interanual'],df['var_acumulada']):
+        for nombre_mensual,var_mensual,nombre_interanual,var_interanual, nombre_acumulado,var_acumulada in zip(df_mensual['nombre_indices'],df_mensual['var_mensual'],df_interanual['nombre_indices'],df_interanual['var_interanual'],df_acumulado['nombre_indices'],df_acumulado['var_acumulada']):
         
             fila_de_nea = f'''
                 <tr>
 
-                <td> {nombre_indice}</td>
-                <td"> {var_mensual:.2f}</td>
-                <td> {var_interanual:.2f}</td>
-                <td> {var_acumulada:.2f}</td>
+                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {nombre_mensual}</td>
+                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {var_mensual:.2f}</td>
+
+                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {nombre_interanual}</td>
+                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {var_interanual:.2f}</td>
+
+                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {nombre_acumulado}</td>
+                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {var_acumulada:.2f}</td>
                 </tr>
                 '''
 
