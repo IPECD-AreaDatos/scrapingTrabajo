@@ -3,7 +3,12 @@ import numpy as np
 import pandas as pd
 import time
 import os
+from email.message import EmailMessage
+import ssl
+import smtplib
 
+
+nuevos_datos = []
 
 class LoadCSVData:
     def loadInDataBase(self, host, user, password, database):
@@ -14,6 +19,8 @@ class LoadCSVData:
         conn = mysql.connector.connect(
             host=host, user=user, password=password, database=database
         )
+
+        cursor = conn.cursor()
 
         # Nombre de la tabla en MySQL
         table_name = 'dp_puestosTrabajo_sector_privado'
@@ -46,22 +53,45 @@ class LoadCSVData:
         column_names = list(df.columns)
         column_types = df.dtypes.to_dict()
 
-        #Representa la consulta SQL de inserción en la tabla de la base de datos. 
-        insert_query = f"INSERT INTO {table_name} VALUES ("
-        for index, row in df.iterrows(): #Se itera sobre las filas del DataFrame
-            print("en el for:")
-            #Se crea una cadena values que contiene marcadores de posición %s para cada valor en una fila.
-            values = ', '.join(["%s" for _ in range(len(row))])
-            #Se convierte la fila en una tupla de valores, que se utilizará como argumento en la consulta de inserción.
-            data_tuple = tuple(row.values)
-            #Se ejecuta la consulta de inserción utilizando el objeto cursor//Se concatenan la consulta insert_query, los valores values y un paréntesis de cierre
-            #La tupla data_tuple se pasa como argumento para proporcionar los valores a insertar en la tabla.
-            conn.cursor().execute(insert_query + values + ")", data_tuple)
-            print("values")
-            print(data_tuple)
-        conn.commit()
+        #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓CARGA EN BASE DE DATOS ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+        print("Tabla de Puestos de Trabajo Sector Privado")
+        #Verificar cantidad de filas anteriores 
+        select_row_count_query = "SELECT COUNT(*) FROM dp_puestostrabajo_sector_privado"
+        cursor.execute(select_row_count_query)
+        row_count_before = cursor.fetchone()[0]
         
-        print("GUARDO!!!!!")
+        delete_query ="TRUNCATE `prueba1`.`dp_puestostrabajo_sector_privado`"
+        cursor.execute(delete_query)
+        
+        insert_query = f"INSERT INTO {table_name} VALUES ({', '.join(['%s' for _ in range(len(df.columns))])})"
+        
+        for index, row in df.iterrows():
+            data_tuple = tuple(row)
+        
+            # Si los valores no existen, realizar la inserción
+            conn.cursor().execute(insert_query, data_tuple)
+            print(data_tuple)
+            
+            # Agregar los datos nuevos a la lista
+            nuevos_datos.append(data_tuple)
+            
+        cursor.execute(select_row_count_query)
+        row_count_after = cursor.fetchone()[0]
+        
+        #Comparar la cantidad de antes y despues
+        if row_count_after > row_count_before:
+            print("Se agregaron nuevos datos")
+            enviar_correo()   
+        else:
+            print("Se realizo una verificacion de la base de datos")
+            
+        
+        conn.commit()
+            
+        print("====================================================================")
+        print("Se realizo la actualizacion de la Tabla de Puestos de Trabajo Sector Privado")
+        print("====================================================================")
+
         #Se toma el tiempo de finalizacion y se calcula
         end_time = time.time()
         duration = end_time - start_time
@@ -69,3 +99,26 @@ class LoadCSVData:
         
         # Cerrar la conexión a la base de datos
         conn.close()
+        
+        
+def enviar_correo():
+    email_emisor='departamientoactualizaciondato@gmail.com'
+    email_contraseña = 'cmxddbshnjqfehka'
+    email_receptor = ['matizalazar2001@gmail.com','gastongrillo2001@gmail.com']
+    asunto = 'Modificación en la base de datos'
+    mensaje = 'Se ha producido una modificación en la base de datos.Tabla de Puestos de Trabajo Sector Privado'
+    body = "Se han agregado nuevos datos:\n\n"
+    for data in nuevos_datos:
+        body += ', '.join(map(str, data)) + '\n'
+    
+    em = EmailMessage()
+    em['From'] = email_emisor
+    em['To'] = email_receptor
+    em['Subject'] = asunto
+    em.set_content(mensaje)
+    
+    contexto= ssl.create_default_context()
+    
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
+        smtp.login(email_emisor, email_contraseña)
+        smtp.sendmail(email_emisor, email_receptor, em.as_string())
