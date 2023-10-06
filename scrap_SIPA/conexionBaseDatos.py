@@ -99,8 +99,8 @@ class conexionBaseDatos:
         #DATOS DE EMISOR Y RECEPTOR
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com']
-
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com']
         #PORCENTAJES DE EMPLEOS REGISTRADOS
         porcentaje_privado, porcentaje_publico, porcentaje_total_casas_particulares,porcentaje_total_idp_autonomo,porcentaje_total_idp_monotributo,porcentaje_total_idp_monotributo_social,cadena_ultima_fecha = self.obtener_porcentaje_clases()
 
@@ -108,15 +108,13 @@ class conexionBaseDatos:
         total_nivel_pais, variacion_mensual, variacion_interanual,diferencia_mensual,diferencia_interanual = self.empleo_registrado_pais()
 
         #EMPLEO PRIVADO REGISTRADO A NIVEL PAIS 
-        total_nivel_pais_privado, variacion_mensual_privado, variacion_interanual_privado, diferencia_mensual_privado,diferencia_interanual_privado,fecha_del_maximo,maximo = self.empleo_privado_registrado()
+        total_nivel_pais_privado, variacion_mensual_privado, variacion_interanual_privado, diferencia_mensual_privado,diferencia_interanual_privado,fecha_del_maximo,maximo, promedio_empleo_nacion = self.empleo_privado_registrado()
 
         #EMPLEO PRIVADO REGISTRADO EN EL NEA
-        total_empleo_nea,variacion_mensual_nea,variacion_interanual_nea, diferencia_interanual_nea,diferencia_mensual_nea = self.empleos_nea()
+        total_empleo_nea,variacion_mensual_nea,variacion_interanual_nea, diferencia_interanual_nea,diferencia_mensual_nea, promedio_empleo_nea = self.empleos_nea()
 
-        #Empleo PRIVADO REGISTRADO EN CORRIENTES
-        total_empleo_corr,variacion_mensual_corr,variacion_interanual_corr, diferencia_interanual_corr,diferencia_mensual_corr,promedio_empleo_corr = self.empleo_corrientes()
 
-        asunto = f'Actualizacion en la base de datos - SISTEMA INTEGRADO PREVISIONAL ARGENTINO(SIPA) - Fecha {cadena_ultima_fecha}'
+        asunto = f'SISTEMA INTEGRADO PREVISIONAL ARGENTINO(SIPA) - Fecha {cadena_ultima_fecha}'
         
         mensaje_uno = f'''\
         <html>
@@ -124,53 +122,87 @@ class conexionBaseDatos:
         <h2>Se ha producido una actualizacion en la base de datos. La tabla de SIPA contiene nuevos datos.</h2>
 
         <hr>
-        <h3> Distribucion de los empleos - Argentina </h3>
-        <p>1 - Empleos privados registrados: <span style="font-size: 17px;"><b>{porcentaje_privado:.2f}%</b></span></p>
+        <h3> Distribucion de los Trabajos Registrados - Argentina </h3>
+        <p>1 - Trabajo privados registrados: <span style="font-size: 17px;"><b>{porcentaje_privado:.2f}%</b></span></p>
         <p>2 - Empleos publicos registrados: <span style="font-size: 17px;"><b>{porcentaje_publico:.2f}%</b></span></p>
         <p>3 - Monotributistas Independientes: <span style="font-size: 17px;"><b>{porcentaje_total_idp_monotributo:.2f}%</b></span></p>
         <p>4 - Monotributistas Sociales: <span style="font-size: 17px;"><b>{porcentaje_total_idp_monotributo_social:.2f}%</b></span></p>
         <p>5 - Empleo en casas particulares registrado: <span style="font-size: 17px;"><b>{porcentaje_total_casas_particulares:.2f}%</b></span></p>
         <p>6 - Trabajadores independientes autonomos: <span style="font-size: 17px;"><b>{porcentaje_total_idp_autonomo:.2f}%</b></span></p>
         <hr>
-        <h3> Empleo Registrado a nivel nacional: </h3>
+        <h3> Trabajo Registrado a nivel nacional: </h3>
         <p>Total: <span style="font-size: 17px;"><b>{locale.format("%d",total_nivel_pais, grouping=True)}</b></span></p>
         <p>Variacion mensual: <span style="font-size: 17px;"><b>{variacion_mensual:.2f}%</b></span> ({diferencia_mensual}) puestos  </p>
         <p>Variacion interanual: <span style="font-size: 17px;"><b>{variacion_interanual:.2f}%</b></span>  ({diferencia_interanual}) puestos  </p>
         <hr>
-        <h3> Empleo PRIVADO registrado a nivel nacional: </h3>
-        <p>Total: <span style="font-size: 17px;"><b>{locale.format("%d",total_nivel_pais_privado, grouping=True)}</b></span></p>
-        <p>Variacion mensual: <span style="font-size: 17px;"><b>{variacion_mensual_privado:.2f}%</b></span>  ({diferencia_mensual_privado}) puestos  </p>
-        <p>Variacion interanual: <span style="font-size: 17px;"><b>{variacion_interanual_privado:.2f}%</b></span> ({diferencia_interanual_privado}) puestos </p>
-        <p> Maximo HISTORICO - FECHA {fecha_del_maximo} - Total de empleo privado en la fecha: {maximo}
-        <hr>
-        <h3>Empleo PRIVADO registrado en el NEA (Nordeste Argentino) </h3>
-        <p>Total: <span style="font-size: 17px;"><b>{locale.format("%d",total_empleo_nea, grouping=True)}</b></span></p>
-        <p>Variacion mensual: <span style="font-size: 17px;"><b>{variacion_mensual_nea:.2f}%</b></span>  ({diferencia_mensual_nea}) puestos  </p>
-        <p>Variacion interanual: <span style="font-size: 17px;"><b>{variacion_interanual_nea:.2f}%</b></span> ({diferencia_interanual_nea}) puestos </p>
-        <hr>
-        <h3>Empleo PRIVADO registrado en CORRIENTES</h3>
-        <p>Total: <span style="font-size: 17px;"><b>{locale.format("%d",total_empleo_corr, grouping=True)}</b></span></p>
-        <p>Variacion mensual: <span style="font-size: 17px;"><b>{variacion_mensual_corr:.2f}%</b></span>  ({diferencia_mensual_corr}) puestos  </p>
-        <p>Variacion interanual: <span style="font-size: 17px;"><b>{variacion_interanual_corr:.2f}%</b></span> ({diferencia_interanual_corr}) puestos </p>
-        <p>Promedio de empleo por mes en el año actual: <span style="font-size: 17px;"><b>{locale.format("%d",promedio_empleo_corr, grouping=True)}</b></span></p>
-        <hr>
         '''
 
-        mensaje_dos = ''''''
-        #Creacion de datos del NEA - mensaje 2
-        for cod_provincia in (54,22,34):
 
-            total_empleo_otra,variacion_mensual_otra,variacion_interanual_otra, diferencia_interanual_otra,diferencia_mensual_otra,nombre_prov_otra = self.empleo_otras_nea(cod_provincia)
+        #Estas cadenas se usan para empezar y finalizar las tablas de empleo privado
+        inicio_tabla = '''
+        <h3> TABLA DEL TRABAJO PRIVADO REGISTRADO </h3>
+        <table style="border-collapse: collapse; width: 100%;">
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> GRUPO </th>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> TOTAL EMPLEO </th>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> VARIACION MENSUAL </th>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> DIFERENCIA MENSUAL </th>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> VARIACION INTERANUAL </th>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> DIFERENCIA INTERANUAL </th>
+        '''
+        fin_tabla = '''</table>'''
 
-            cadena_aux =f''' 
-                <h3>Empleo PRIVADO registrado en {nombre_prov_otra}</h3>
-                <p>Total: <span style="font-size: 17px;"><b>{locale.format("%d",total_empleo_otra, grouping=True)}</b></span></p>
-                <p>Variacion mensual: <span style="font-size: 17px;"><b>{variacion_mensual_otra:.2f}%</b></span>  ({diferencia_mensual_otra}) puestos  </p>
-                <p>Variacion interanual: <span style="font-size: 17px;"><b>{variacion_interanual_otra:.2f}%</b></span> ({diferencia_interanual_otra}) puestos </p>
-                <hr>
-                '''
-            
-            mensaje_dos = mensaje_dos + cadena_aux
+        #Creacion de datos del NEA - mensaje 2 - Estos datos corresponden a cada provincia en particular del NEA
+        for cod_provincia in (18,54,22,34):
+
+            total_empleo_otra,variacion_mensual_otra,variacion_interanual_otra, diferencia_interanual_otra,diferencia_mensual_otra,nombre_prov_otra,promedio_empleo = self.empleo_otras_nea(cod_provincia)
+
+
+            cadena_aux = f'''
+            <tr>
+            <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {nombre_prov_otra}</td>
+            <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {total_empleo_otra}</td>
+            <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_mensual_otra:.2f}</td>
+            <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_mensual_otra}</td>
+            <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_interanual_otra:.2f}</td>
+            <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_interanual_otra}</td>
+            <tr>
+            '''
+
+            inicio_tabla = inicio_tabla + cadena_aux
+
+        
+        #Agregamos a la tabla los datos de NACION y del NEA - Respecto al EMPLEO PRIVADO
+
+        cadena_nacion_nea = f'''
+        <tr>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> NEA </td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {total_empleo_nea}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_mensual_nea:.2f}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_mensual_nea}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_interanual_nea:.2f}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_interanual_nea}</td>
+        <tr>
+
+        <tr>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> NACION </td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {total_nivel_pais_privado}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_mensual_privado:.2f}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_mensual_privado}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_interanual_privado:.2f}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_interanual_privado}</td>
+        <tr>
+
+
+        '''
+
+        inicio_tabla = inicio_tabla + cadena_nacion_nea
+
+        comentario_nacion = f'''
+
+        <p> MAXIMO HISTORICO DEL EMPLEO PRIVADO A NIVEL NACIONAL - FECHA {fecha_del_maximo} - Total: {maximo}
+
+        '''
+
 
         mensaje_tres = '''
                         <p> Instituto Provincial de Estadistica y Ciencia de Datos de Corrientes<br>
@@ -181,7 +213,7 @@ class conexionBaseDatos:
                         '''
 
         
-        mensaje = mensaje_uno + mensaje_dos + mensaje_tres
+        mensaje = mensaje_uno + inicio_tabla + fin_tabla + comentario_nacion + mensaje_tres
         em = EmailMessage()
         em['From'] = email_emisor
         em['To'] = ", ".join(email_receptores)
@@ -376,7 +408,7 @@ class conexionBaseDatos:
         diferencia_interanual = int(total_nivel_pais - total_nea_año_anterior)
 
 
-         #=== Obtencion del registro de valor maximo registrado
+        #=== Obtencion del registro de valor maximo registrado
         
         #indice del maximo
         indice_maximo = df_bdd['Cantidad_con_Estacionalidad'].idxmax()
@@ -387,8 +419,13 @@ class conexionBaseDatos:
 
         fecha_del_maximo = str(fecha_del_maximo.year) + "-" + str(fecha_del_maximo.month)
 
+        #=== Calculo del PROMEDIO de empleo DEL AÑO ACTUAL
+        grupo_año_actual = df_bdd[(df_bdd['Fecha'].dt.year == fecha_max.year )]
+        promedio_empleo = (int(sum(grupo_año_actual['Cantidad_con_Estacionalidad'])) / len(grupo_año_actual['Cantidad_con_Estacionalidad'])) * 1000
 
-        return total_nivel_pais, variacion_mensual, variacion_interanual, diferencia_mensual,diferencia_interanual, fecha_del_maximo,maximo
+
+
+        return total_nivel_pais, variacion_mensual, variacion_interanual, diferencia_mensual,diferencia_interanual, fecha_del_maximo,maximo,promedio_empleo
      
     #Calcular los valores correspondientes al NEA - Algunas variables se multiplican por 1000 porque asi estan expresadas en los EXCELS
     def empleos_nea(self): 
@@ -430,57 +467,13 @@ class conexionBaseDatos:
         #Calculos de diferencias por MES y AÑO
         diferencia_mensual = int(total_empleo - total_mes_anterior)
         diferencia_interanual = int(total_empleo - total_nea_año_anterior)
-
-        return total_empleo,variacion_mensual,variacion_interanual, diferencia_interanual,diferencia_mensual
-
-    #Datos de CORRIENTES
-    def empleo_corrientes(self):
-        
-        #Hacemos una consulta a la BDD, traemos datos correspondientes a: MISIONES(54) + CHACO(22) + CORRIENTES(18) + FORMOSA(34)
-        #No hacemos referencia al tipo de registro porque los datos ya estan guardados como PRIVADO
-        nombre_tabla = 'sipa_registro'
-        query_consulta = f'SELECT * FROM {nombre_tabla} WHERE ID_Provincia = 18'
-        df_bdd = pd.read_sql(query_consulta,self.conn)
-
-        #Obtener ultima fecha
-        fecha_max = df_bdd['Fecha'].max()
-
-        #Buscamos los registros de la ultima fecha 
-        grupo_ultima_fecha = df_bdd[(df_bdd['Fecha'] == fecha_max)]
-        
-        total_empleo = int(grupo_ultima_fecha['Cantidad_con_Estacionalidad'] * 1000)
-
-         #=== CALCULO DE LA VARIACION MENSUAL
-
-        #Buscamos el mes anterior
-        mes_anterior = int(fecha_max.month) - 1
-
-        #Convertimos la serie a datetime para buscar por año y mes
-        df_bdd['Fecha'] = pd.to_datetime(df_bdd['Fecha'])    
-        grupo_mes_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == fecha_max.year) & (df_bdd['Fecha'].dt.month == mes_anterior)]
-
-        #Total del mes anterior
-        total_mes_anterior = int(sum(grupo_mes_anterior['Cantidad_con_Estacionalidad']) * 1000)
-
-        variacion_mensual = ((total_empleo/ total_mes_anterior) - 1) * 100 
-
-        #=== Calculo de la VARIACION INTERANUAL
-        grupo_mes_actual_año_anterior= df_bdd[(df_bdd['Fecha'].dt.year == fecha_max.year-1 ) & (df_bdd['Fecha'].dt.month == fecha_max.month)]
-        total_nea_año_anterior = sum(grupo_mes_actual_año_anterior['Cantidad_con_Estacionalidad']) * 1000
-        variacion_interanual = ((total_empleo / total_nea_año_anterior) - 1) * 100
-
-
-        #Calculos de diferencias por MES y AÑO
-        diferencia_mensual = int(total_empleo - total_mes_anterior)
-        diferencia_interanual = int(total_empleo - total_nea_año_anterior)
-
-
         #=== Calculo del PROMEDIO de empleo DEL AÑO ACTUAL
         grupo_año_actual = df_bdd[(df_bdd['Fecha'].dt.year == fecha_max.year )]
         promedio_empleo = (int(sum(grupo_año_actual['Cantidad_con_Estacionalidad'])) / len(grupo_año_actual['Cantidad_con_Estacionalidad'])) * 1000
 
 
-        return total_empleo,variacion_mensual,variacion_interanual, diferencia_interanual,diferencia_mensual,promedio_empleo
+        return total_empleo,variacion_mensual,variacion_interanual, diferencia_interanual,diferencia_mensual, promedio_empleo
+
 
     #Datos de las demas pronvincias del nea
     def empleo_otras_nea(self,cod_prov):
@@ -532,7 +525,12 @@ class conexionBaseDatos:
         diferencia_interanual = int(total_empleo - total_nea_año_anterior)
 
 
-        return total_empleo,variacion_mensual,variacion_interanual, diferencia_interanual,diferencia_mensual,nombre_prov
+         #=== Calculo del PROMEDIO de empleo DEL AÑO ACTUAL
+        grupo_año_actual = df_bdd[(df_bdd['Fecha'].dt.year == fecha_max.year )]
+        promedio_empleo = (int(sum(grupo_año_actual['Cantidad_con_Estacionalidad'])) / len(grupo_año_actual['Cantidad_con_Estacionalidad'])) * 1000
+
+
+        return total_empleo,variacion_mensual,variacion_interanual, diferencia_interanual,diferencia_mensual,nombre_prov,promedio_empleo
 
 
 
