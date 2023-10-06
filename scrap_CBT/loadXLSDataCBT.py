@@ -18,11 +18,21 @@ class loadXLSDataCBT:
             'CBT_Adulto',
             'CBA_Hogar',
             'CBT_Hogar',
+        ]
+        
+        """"
+        columnas_encabezado = [
+            'Fecha',
+            'CBA_Adulto',
+            'CBT_Adulto',
+            'CBA_Hogar',
+            'CBT_Hogar',
             'CBA_NEA_Adulto',
             'CBT_NEA_Adulto',
             'CBA_NEA_Hogar',
             'CBT_NEA_Hogar'
-        ]
+        ]"""
+        
         # Crear un DataFrame con una fila de encabezados
         df_encabezado = pd.DataFrame(columns=columnas_encabezado)
         print(df_encabezado)

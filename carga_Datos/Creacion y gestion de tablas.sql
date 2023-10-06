@@ -381,9 +381,16 @@ Valor float
 
 #Tabla De Salario Minimo Vital y Movil
 CREATE TABLE salario_mvm(
-
 	fecha date, 
     salario_mvm_mensual float,
     salario_mvm_diario float,
     salario_mvm_hora float
+);
+
+CREATE TABLE Canasta_Basica(
+	Fecha date, 
+	CBA_Adulto float,
+	CBT_Adulto float,
+	CBA_Hogar float,
+	CBT_Hogar float
 );
