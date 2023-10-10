@@ -99,8 +99,8 @@ class conexionBaseDatos:
         #DATOS DE EMISOR Y RECEPTOR
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com']
-        email_receptores =  ['benitezeliogaston@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com']
         #PORCENTAJES DE EMPLEOS REGISTRADOS
         porcentaje_privado, porcentaje_publico, porcentaje_total_casas_particulares,porcentaje_total_idp_autonomo,porcentaje_total_idp_monotributo,porcentaje_total_idp_monotributo_social,cadena_ultima_fecha = self.obtener_porcentaje_clases()
 
@@ -112,6 +112,9 @@ class conexionBaseDatos:
 
         #EMPLEO PRIVADO REGISTRADO EN EL NEA
         total_empleo_nea,variacion_mensual_nea,variacion_interanual_nea, diferencia_interanual_nea,diferencia_mensual_nea, promedio_empleo_nea = self.empleos_nea()
+
+        #MAXIMO EMPLEO EN CORRIENTES
+        fecha_max_corrientes, maximo_corrientes = self.obtener_max_corrientes()
 
 
         asunto = f'SISTEMA INTEGRADO PREVISIONAL ARGENTINO(SIPA) - Fecha {cadena_ultima_fecha}'
@@ -200,6 +203,8 @@ class conexionBaseDatos:
         comentario_nacion = f'''
 
         <p> MAXIMO HISTORICO DEL EMPLEO PRIVADO A NIVEL NACIONAL - FECHA {fecha_del_maximo} - Total: {maximo}
+        <p> MAXIMO HISTORICO DEL EMPLEO PRIVADO EN CORRIENTES - FECHA {fecha_max_corrientes} - Total: {maximo_corrientes}
+
 
         '''
 
@@ -309,8 +314,6 @@ class conexionBaseDatos:
         cadena_ultima_fecha = str(ultima_fecha.year) + "-"+ str(ultima_fecha.month)
         
         return porcentaje_privado, porcentaje_publico, porcentaje_total_casas_particulares,porcentaje_total_idp_autonomo,porcentaje_total_idp_monotributo,porcentaje_total_idp_monotributo_social,cadena_ultima_fecha
-
-
 
     def empleo_registrado_pais(self):
 
@@ -532,6 +535,25 @@ class conexionBaseDatos:
 
         return total_empleo,variacion_mensual,variacion_interanual, diferencia_interanual,diferencia_mensual,nombre_prov,promedio_empleo
 
+
+    def obtener_max_corrientes(self):
+
+        nombre_tabla = 'sipa_registro'
+        query_consulta = f'SELECT * FROM {nombre_tabla} WHERE ID_Provincia = 18'
+        df_bdd = pd.read_sql(query_consulta,self.conn)
+
+        #=== Obtencion del registro de valor maximo registrado
+        
+        #indice del maximo
+        indice_maximo = df_bdd['Cantidad_con_Estacionalidad'].idxmax()
+        fila=df_bdd.loc[indice_maximo] 
+
+        fecha_del_maximo = fila['Fecha']
+        maximo = int(fila['Cantidad_con_Estacionalidad'] * 1000)
+
+        fecha_del_maximo = str(fecha_del_maximo.year) + "-" + str(fecha_del_maximo.month)
+
+        return fecha_del_maximo,maximo
 
 
 """
