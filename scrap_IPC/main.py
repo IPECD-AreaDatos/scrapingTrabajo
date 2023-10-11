@@ -19,7 +19,7 @@ lista_subdivision = list()
 lista_valores = list()
 
 #Datos de la base de datos
-host = '192.168.0.101'
+host = '172.17.16.177'
 user = 'Ivan'
 password = 'Estadistica123'
 database = 'prueba1'

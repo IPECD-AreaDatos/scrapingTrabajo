@@ -5,7 +5,7 @@ from ripte_cargaHistorico import ripte_cargaHistorico
 from ripte_cargaUltimoDato import ripte_cargaUltimoDato
 
 #Datos de la base de datos
-host = '192.168.0.101'
+host = '172.17.16.177'
 user = 'Ivan'
 password = 'Estadistica123'
 database = 'prueba1'
