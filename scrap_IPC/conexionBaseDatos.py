@@ -110,8 +110,8 @@ class conexionBaseDatos:
 
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com']
-        
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com']
         #Variaciones nacionales
         mensaje_variaciones,fecha = self.variaciones(1)
         mensaje_variaciones_nea,fecha = self.variaciones(5)
@@ -235,6 +235,7 @@ class conexionBaseDatos:
         variacion_mensual = ((total_ipc/ total_mes_anterior) - 1) * 100
 
 
+
         #=== CALCULO VARIACION INTERANUAL
 
         grupo_mes_actual_año_anterior= df_bdd[(df_bdd['Fecha'].dt.year == fecha_max.year-1 ) & (df_bdd['Fecha'].dt.month == fecha_max.month)]
@@ -244,6 +245,7 @@ class conexionBaseDatos:
         variacion_interanual = ((total_ipc / total_ipc_año_anterior) - 1) * 100
 
 
+
         #=== CALCULO VARIACION ACUMULADA - Variacion desde DIC del año anterior
 
         grupo_diciembre_año_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == fecha_max.year-1 ) & ((df_bdd['Fecha'].dt.month == 12)) ]
@@ -251,11 +253,15 @@ class conexionBaseDatos:
         total_diciembre = grupo_diciembre_año_anterior['Valor'].values[0]
 
         variacion_acumulada = ((total_ipc / total_diciembre) - 1) * 100
+        
+        variacion_mensual = round(variacion_mensual,1)
+        variacion_interanual = round(variacion_interanual,1)
+        variacion_acumulada = round(variacion_acumulada,1)
 
         cadena_variaciones =f'''
-        <p>VARIACION MENSUAL: <span style="font-size: 17px;"><b>{variacion_mensual:.2f}</b></span></p>
-        <p>VARIACION INTERANUAL: <span style="font-size: 17px;"><b>{variacion_interanual:.2f}</b></span></p>
-        <p>VARIACION ACUMULADA: <span style="font-size: 17px;"><b>{variacion_acumulada:.2f}</b></span></p>
+        <p>VARIACION MENSUAL: <span style="font-size: 17px;"><b>{variacion_mensual:.1f}%</b></span></p>
+        <p>VARIACION INTERANUAL: <span style="font-size: 17px;"><b>{variacion_interanual:.1f}%</b></span></p>
+        <p>VARIACION ACUMULADA: <span style="font-size: 17px;"><b>{variacion_acumulada:.1f}%</b></span></p>
         '''
 
         return cadena_variaciones,fecha_max
@@ -349,7 +355,7 @@ class conexionBaseDatos:
 
 
             list_var_mensual.append(var_mensual)
-            list_var_interanual.append(var_interanual)
+            list_var_interanual.append(var_interanual) 
             list_var_acumulada.append(var_acumulada)
             lista_indices.append(nombre_indice)
 
@@ -397,7 +403,7 @@ class conexionBaseDatos:
 
 
 
-"""""
+"""
 #SECCION DE PRUEBAS
 
 #Listas a tratar durante el proceso
@@ -421,4 +427,4 @@ instancia.conectar_bdd()
 cadena=instancia.variaciones_nea() #--> Nacion
 print(cadena)
 print("\n ---------  \n")
-"""""
+"""
