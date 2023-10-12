@@ -235,10 +235,6 @@ class conexionBaseDatos:
 
         variacion_mensual = ((total_ipc/ total_mes_anterior) - 1) * 100
 
-        print(f"VARIACION MENSUAL {variacion_mensual}")
-
-
-
 
         #=== CALCULO VARIACION INTERANUAL
 
@@ -257,13 +253,29 @@ class conexionBaseDatos:
         total_diciembre = grupo_diciembre_año_anterior['Valor'].values[0]
 
         variacion_acumulada = ((total_ipc / total_diciembre) - 1) * 100
+
+        #Var mensual 
+        parte_entera_mensual, parte_decimal_mensual = str(variacion_mensual).split('.')
+        numero_truncado_mensual = '.'.join([parte_entera_mensual, parte_decimal_mensual[:2]])
+        
+
+        
+        #Var interanual 
+        parte_entera_interanual, parte_decimal_interanual = str(variacion_interanual).split('.')
+        numero_truncado_interanual = '.'.join([parte_entera_interanual, parte_decimal_interanual[:2]])
+
+
+        
+        #Var Acumulada
+        parte_entera_acumulada, parte_decimal_acumuludad = str(variacion_acumulada).split('.')
+        numero_truncado_acumulado = '.'.join([parte_entera_acumulada, parte_decimal_acumuludad[:2]])
         
 
 
         cadena_variaciones =f'''
-        <p>VARIACION MENSUAL: <span style="font-size: 17px;"><b>{variacion_mensual:.2f}%</b></span></p>
-        <p>VARIACION INTERANUAL: <span style="font-size: 17px;"><b>{variacion_interanual:.2f}%</b></span></p>
-        <p>VARIACION ACUMULADA: <span style="font-size: 17px;"><b>{variacion_acumulada:.2f}%</b></span></p>
+        <p>VARIACION MENSUAL: <span style="font-size: 17px;"><b>{numero_truncado_mensual}%</b></span></p>
+        <p>VARIACION INTERANUAL: <span style="font-size: 17px;"><b>{numero_truncado_interanual}%</b></span></p>
+        <p>VARIACION ACUMULADA: <span style="font-size: 17px;"><b>{numero_truncado_acumulado}%</b></span></p>
         '''
 
         return cadena_variaciones,fecha_max
