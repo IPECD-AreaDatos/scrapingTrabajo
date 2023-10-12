@@ -6,6 +6,7 @@ import ssl
 import smtplib
 import pandas as pd
 from armadoXLSDataNacion import LoadXLSDataNacion
+from math import trunc
 
 class conexionBaseDatos:
 
@@ -234,6 +235,9 @@ class conexionBaseDatos:
 
         variacion_mensual = ((total_ipc/ total_mes_anterior) - 1) * 100
 
+        print(f"VARIACION MENSUAL {variacion_mensual}")
+
+
 
 
         #=== CALCULO VARIACION INTERANUAL
@@ -254,14 +258,12 @@ class conexionBaseDatos:
 
         variacion_acumulada = ((total_ipc / total_diciembre) - 1) * 100
         
-        variacion_mensual = round(variacion_mensual,1)
-        variacion_interanual = round(variacion_interanual,1)
-        variacion_acumulada = round(variacion_acumulada,1)
+
 
         cadena_variaciones =f'''
-        <p>VARIACION MENSUAL: <span style="font-size: 17px;"><b>{variacion_mensual:.1f}%</b></span></p>
-        <p>VARIACION INTERANUAL: <span style="font-size: 17px;"><b>{variacion_interanual:.1f}%</b></span></p>
-        <p>VARIACION ACUMULADA: <span style="font-size: 17px;"><b>{variacion_acumulada:.1f}%</b></span></p>
+        <p>VARIACION MENSUAL: <span style="font-size: 17px;"><b>{variacion_mensual:.2f}%</b></span></p>
+        <p>VARIACION INTERANUAL: <span style="font-size: 17px;"><b>{variacion_interanual:.2f}%</b></span></p>
+        <p>VARIACION ACUMULADA: <span style="font-size: 17px;"><b>{variacion_acumulada:.2f}%</b></span></p>
         '''
 
         return cadena_variaciones,fecha_max
@@ -331,8 +333,7 @@ class conexionBaseDatos:
             nombre_indice = subdivision['nombre'].values[0]
 
             #Calculo de la variacion mensual
-            var_mensual = ((valor_mes_actual / valor_mes_anterior) - 1 ) * 100
-            
+            var_mensual = ((valor_mes_actual / valor_mes_anterior) - 1 ) * 100            
 
             #=== CALCULO DE LA VARIACION INTERANUAL
 

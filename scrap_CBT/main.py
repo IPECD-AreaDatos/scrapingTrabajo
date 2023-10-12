@@ -18,3 +18,4 @@ if __name__ == '__main__':
     
     loadXLSDataCBT().readData()
     connection_db().carga_db(host, user, password, database)
+    print("- Finalizacion de revison de CBT")
