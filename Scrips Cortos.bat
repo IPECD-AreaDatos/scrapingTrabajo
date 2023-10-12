@@ -35,13 +35,6 @@ echo ------------------------------------
 echo Termino IPC
 echo ------------------------------------
 
-echo ------------------------------------
-echo PUESTOS TRABAJO
-echo ------------------------------------
-python C:\Users\Usuario\Desktop\scrapingTrabajo\scrap_PuestosTrabajoSP\main.py
-echo ------------------------------------
-echo Termino PUESTOS TRABAJO
-echo ------------------------------------
 
 echo ------------------------------------
 echo SALARIO MINIMO VITAL Y MOVIL
@@ -51,20 +44,15 @@ echo ------------------------------------
 echo Termino SALARIO MINIMO VITAL Y MOVIL
 echo ------------------------------------
 
-echo ------------------------------------
-echo SALARIO SECTOR PRIVADO Y TOTAL
-echo ------------------------------------
-python C:\Users\Usuario\Desktop\scrapingTrabajo\scrap_SalarioSP-Total\main.py
-echo ------------------------------------
-echo Termino SALARIO SECTOR PRIVADO Y TOTAL
-echo ------------------------------------
 
 echo ------------------------------------
-echo DNRPA
+echo CANASTA BASICA Y CANASTA TOTAL
 echo ------------------------------------
-python C:\Users\Usuario\Desktop\scrapingTrabajo\scrap_DNRPA\main.py
+python C:\Users\Usuario\Desktop\scrapingTrabajo\scrap_CBT\main.py
 echo ------------------------------------
-echo Termino DNRPA
+echo Termino CANASTA BASICA Y CANASTA TOTAL
 echo ------------------------------------
+
+
 
 echo Termino la ejecucion
