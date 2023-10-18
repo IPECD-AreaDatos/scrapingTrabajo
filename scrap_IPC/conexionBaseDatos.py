@@ -69,7 +69,7 @@ class conexionBaseDatos:
             #Version nueva
             cant_valores = len(df.values)
 
-            delete_query ="TRUNCATE TABLE `prueba1`.`ipc_region`"
+            delete_query ="TRUNCATE TABLE `ipecd_economico`.`ipc_region`"
             self.cursor.execute(delete_query)
 
 
@@ -113,8 +113,8 @@ class conexionBaseDatos:
 
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com']
-        email_receptores =  ['benitezeliogaston@gmail.com','rociobertonem@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com','rociobertonem@gmail.com']
         #Variaciones nacionales
         mensaje_variaciones,fecha = self.variaciones(1)
         mensaje_variaciones_nea,fecha = self.variaciones(5)
@@ -122,7 +122,7 @@ class conexionBaseDatos:
 
         fecha_ultimo_registro = self.obtener_mes_actual(fecha)
 
-        asunto = f'Actualizacion en la base de datos - INDICE DE PRECIOS AL CONSUMIDOR (IPC) - {fecha_ultimo_registro}'
+        asunto = f'ACTUALIZACION - INDICE DE PRECIOS AL CONSUMIDOR (IPC) - {fecha_ultimo_registro}'
 
         mensaje = f'''
         
@@ -458,10 +458,10 @@ lista_subdivision = list()
 lista_valores = list()
 
 #Datos de la base de datos
-host = '192.168.0.101'
-user = 'Ivan'
+host = '172.17.16.157'
+user = 'team-datos'
 password = 'Estadistica123'
-database = 'prueba1'
+database = 'ipecd_economico'
 
 instancia = conexionBaseDatos(lista_fechas, lista_region, lista_categoria, lista_division, lista_subdivision, lista_valores, host, user, password, database)
 instancia.conectar_bdd()

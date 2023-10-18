@@ -103,10 +103,10 @@ class LoadXLSDataProductos:
             
             # Configuración de la conexión a la base de datos
             db_config = {
-                'user': 'Ivan',
+                'user': 'team-datos',
                 'password': 'Estadistica123',
-                'host': '172.17.16.177',
-                'database': 'prueba1',
+                'host': '172.17.16.157',
+                'database': 'ipecd_economico',
             }
 
             # Crear una conexión a la base de datos MySQL
