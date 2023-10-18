@@ -113,8 +113,8 @@ class conexionBaseDatos:
 
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com']
-        #email_receptores =  ['benitezeliogaston@gmail.com','rociobertonem@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com']
         #Variaciones nacionales
         mensaje_variaciones,fecha = self.variaciones(1)
         mensaje_variaciones_nea,fecha = self.variaciones(5)
@@ -460,7 +460,7 @@ lista_valores = list()
 #Datos de la base de datos
 host = '172.17.16.157'
 user = 'team-datos'
-password = 'Estadistica123'
+password = 'HCj_BmbCtTuCv5}'
 database = 'ipecd_economico'
 
 instancia = conexionBaseDatos(lista_fechas, lista_region, lista_categoria, lista_division, lista_subdivision, lista_valores, host, user, password, database)

@@ -104,7 +104,7 @@ class LoadXLSDataProductos:
             # Configuración de la conexión a la base de datos
             db_config = {
                 'user': 'team-datos',
-                'password': 'Estadistica123',
+                'password': 'HCj_BmbCtTuCv5}',
                 'host': '172.17.16.157',
                 'database': 'ipecd_economico',
             }
