@@ -6,7 +6,9 @@ import ssl
 import smtplib
 import pandas as pd
 from armadoXLSDataNacion import LoadXLSDataNacion
-from math import trunc
+from datetime import datetime
+import calendar
+
 
 class conexionBaseDatos:
 
@@ -111,13 +113,16 @@ class conexionBaseDatos:
 
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com']
-        email_receptores =  ['benitezeliogaston@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com','rociobertonem@gmail.com']
         #Variaciones nacionales
         mensaje_variaciones,fecha = self.variaciones(1)
         mensaje_variaciones_nea,fecha = self.variaciones(5)
 
-        asunto = f'Actualizacion en la base de datos - INDICE DE PRECIOS AL CONSUMIDOR (IPC) - Fecha {fecha}'
+
+        fecha_ultimo_registro = self.obtener_mes_actual(fecha)
+
+        asunto = f'Actualizacion en la base de datos - INDICE DE PRECIOS AL CONSUMIDOR (IPC) - {fecha_ultimo_registro}'
 
         mensaje = f'''
         
@@ -397,13 +402,13 @@ class conexionBaseDatos:
                 <tr>
 
                  <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {nombre_mensual}</td>
-                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {var_mensual:.2f}</td>
+                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {var_mensual:.2f}%</td>
 
                  <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {nombre_interanual}</td>
-                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {var_interanual:.2f}</td>
+                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {var_interanual:.2f}%</td>
 
                  <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {nombre_acumulado}</td>
-                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {var_acumulada:.2f}</td>
+                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {var_acumulada:.2f}%</td>
                 </tr>
                 '''
 
@@ -413,7 +418,32 @@ class conexionBaseDatos:
         return cadena_de_datos
         
         
+    def obtener_mes_actual(self,fecha_ultimo_registro):
+         
 
+        # Obtener el nombre del mes actual en inglés
+        nombre_mes_ingles = calendar.month_name[fecha_ultimo_registro.month]
+
+        # Diccionario de traducción
+        traducciones_meses = {
+            'January': 'Enero',
+            'February': 'Febrero',
+            'March': 'Marzo',
+            'April': 'Abril',
+            'May': 'Mayo',
+            'June': 'Junio',
+            'July': 'Julio',
+            'August': 'Agosto',
+            'September': 'Septiembre',
+            'October': 'Octubre',
+            'November': 'Noviembre',
+            'December': 'Diciembre'
+        }
+
+        # Obtener la traducción
+        nombre_mes_espanol = traducciones_meses.get(nombre_mes_ingles, nombre_mes_ingles)
+
+        return str(fecha_ultimo_registro.day) + f" de {nombre_mes_espanol} del {fecha_ultimo_registro.year}"
 
 
 """
