@@ -5,11 +5,10 @@ from ripte_cargaHistorico import ripte_cargaHistorico
 from ripte_cargaUltimoDato import ripte_cargaUltimoDato
 
 #Datos de la base de datos
-host = '172.17.16.177'
-user = 'Ivan'
-password = 'Estadistica123'
-database = 'prueba1'
-
+host = '172.17.16.157'
+user = 'team-datos'
+password = 'HCj_BmbCtTuCv5}'
+database = 'ipecd_economico'
 
 #Instancia encargada 
 
