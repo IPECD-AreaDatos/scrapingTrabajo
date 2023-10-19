@@ -60,7 +60,7 @@ class LoadCSVData:
         cursor.execute(select_row_count_query)
         row_count_before = cursor.fetchone()[0]
         
-        delete_query ="TRUNCATE `prueba1`.`dp_puestostrabajo_sector_privado`"
+        delete_query ="TRUNCATE `ipecd_economico`.`dp_puestostrabajo_sector_privado`"
         cursor.execute(delete_query)
         
         insert_query = f"INSERT INTO {table_name} VALUES ({', '.join(['%s' for _ in range(len(df.columns))])})"

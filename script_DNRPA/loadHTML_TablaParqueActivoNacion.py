@@ -10,10 +10,10 @@ from selenium.webdriver.support.ui import Select
 import os
 
 
-host = 'localhost'
-user = 'root'
-password = 'Estadistica123'
-database = 'prueba1'
+host = '172.17.16.157'
+user = 'team-datos'
+password = 'HCj_BmbCtTuCv5}'
+database = 'ipecd_economico'
 
 class loadHTML_TablaParqueActivoNacion:
     def loadInDataBase(self, host, user, password, database):

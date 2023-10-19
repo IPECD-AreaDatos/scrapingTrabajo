@@ -8,10 +8,10 @@ import pandas as pd
 from datetime import datetime
 import os
 
-host = '172.17.22.10'
-user = 'Ivan'
-password = 'Estadistica123'
-database = 'prueba1'
+host = '172.17.16.157'
+user = 'team-datos'
+password = 'HCj_BmbCtTuCv5}'
+database = 'ipecd_economico'
 
 class loadHTML_TablaAutoInscripcionNacion:
     def loadInDataBase(self, host, user, password, database):

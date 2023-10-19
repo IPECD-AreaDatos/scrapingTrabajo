@@ -53,7 +53,7 @@ class cargaIndice:
             cursor.execute(select_row_count_query)
             row_count_before = cursor.fetchone()[0]
             
-            delete_query ="TRUNCATE `prueba1`.`emae`"
+            delete_query ="TRUNCATE `ipecd_economico`.`emae`"
             cursor.execute(delete_query)
             
             # Iterar a través de las filas a partir de la fila 3
