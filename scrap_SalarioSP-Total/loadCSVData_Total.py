@@ -33,7 +33,17 @@ class loadCSVData_Total:
         # Leer el archivo de csv y hacer transformaciones
         df = pd.read_csv(file_path)  # Leer el archivo CSV y crear el DataFrame
         df = df.replace({np.nan: None})  # Reemplazar los valores NaN(Not a Number) por None
+        
+        longitud = len(df)
+        print("total: ", longitud)
+        
+        select_row_count_query = "SELECT COUNT(*) FROM DP_salarios_total"
+        cursor.execute(select_row_count_query)
+        row_count_before = cursor.fetchone()[0]
+        print("Base: ", row_count_before)
+        
 
+        exit()
         print("columnas -- ", df.columns)
 
         # Aplicar strip() al nombre de la columna antes de acceder a ella

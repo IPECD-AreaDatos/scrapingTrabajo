@@ -11,21 +11,17 @@ nuevos_datos = []
 
 class LoadCSVDataPuestosTotal:
     def loadInDataBase(self, host, user, password, database):
-        #Se toma el tiempo de comienzo
         start_time = time.time()
-        
-        # Establecer la conexión a la base de datos
+    
         conn = mysql.connector.connect(
             host=host, user=user, password=password, database=database
         )
-
         cursor = conn.cursor()
         
         # Nombre de la tabla en MySQL
         table_name = 'dp_puestostrabajo_total'
         # Obtener la ruta del directorio actual (donde se encuentra el script)
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
-        # Construir la ruta de la carpeta "files" dentro del directorio actual
         ruta_carpeta_files = os.path.join(directorio_actual, 'files')
         file_name = "trabajoTotal.csv"
         # Construir la ruta completa del archivo CSV dentro de la carpeta "files"
@@ -34,7 +30,13 @@ class LoadCSVDataPuestosTotal:
         # Leer el archivo de csv y hacer transformaciones
         df = pd.read_csv(file_path)  # Leer el archivo CSV y crear el DataFrame
         df = df.replace({np.nan: None})  # Reemplazar los valores NaN(Not a Number) por None
+        
+        longitud = len(df)
+        print("total: ", longitud)
 
+        exit()
+        
+        
         print("columnas -- ", df.columns)
 
         # Aplicar strip() al nombre de la columna antes de acceder a ella
@@ -62,12 +64,8 @@ class LoadCSVDataPuestosTotal:
         
         for index, row in df.iterrows():
             data_tuple = tuple(row)
-        
-            # Si los valores no existen, realizar la inserción
             conn.cursor().execute(insert_query, data_tuple)
             print(data_tuple)
-            
-            # Agregar los datos nuevos a la lista
             nuevos_datos.append(data_tuple)
             
         cursor.execute(select_row_count_query)
