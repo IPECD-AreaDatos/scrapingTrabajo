@@ -6,7 +6,6 @@ from selenium.webdriver.support import expected_conditions as EC
 import os
 import pandas as pd
 from datetime import datetime
-from bs4 import BeautifulSoup 
 import re
 import time
 from selenium import webdriver
