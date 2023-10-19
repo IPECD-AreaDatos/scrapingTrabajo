@@ -19,6 +19,8 @@ class connection_db:
             database=database
         )
 
+        cursor = connection.cursor()
+
         # Leer el archivo Excel
         df = pd.read_excel(file_path)
 
@@ -45,7 +47,7 @@ class connection_db:
         df['Fecha'] = df['Fecha'].apply(try_convert_date)
         
         # Nombre de la tabla en MySQL
-        table_name = "Canasta_Basica"  # Reemplaza con el nombre de tu tabla en MySQL
+        table_name = "canasta_basica"  # Reemplaza con el nombre de tu tabla en MySQL
 
         # Crear una cadena de conexión SQLAlchemy
         connection_string = f"mysql+mysqlconnector://{user}:{password}@{host}/{database}"
@@ -54,17 +56,17 @@ class connection_db:
         engine = create_engine(connection_string)
 
         select_row_count_query = "SELECT COUNT(*) FROM Canasta_Basica"
-        connection.execute(select_row_count_query)
-        row_count_before = connection.fetchone()[0]
+        cursor.execute(select_row_count_query)
+        row_count_before = cursor.fetchone()[0]
         
-        delete_query ="TRUNCATE `prueba1`.`Canasta_Basica`"
-        connection.execute(delete_query)
+        delete_query ="TRUNCATE `ipecd_economico`.`Canasta_Basica`"
+        cursor.execute(delete_query)
 
         # Cargar los datos en MySQL
         df.to_sql(table_name, engine, if_exists="append", index=False)
         
-        connection.execute(select_row_count_query)
-        row_count_after = connection.fetchone()[0]
+        cursor.execute(select_row_count_query)
+        row_count_after = cursor.fetchone()[0]
         
         #Comparar la cantidad de antes y despues
         if row_count_after > row_count_before:
@@ -75,21 +77,23 @@ class connection_db:
         
 
         # Cerrar la conexión a MySQL
+        cursor.close()
         connection.close()
 
 def enviar_correo():
     email_emisor='departamientoactualizaciondato@gmail.com'
     email_contraseña = 'cmxddbshnjqfehka'
-    email_receptor = ['matizalazar2001@gmail.com','gastongrillo2001@gmail.com']
+    email_receptor = ['benitezeliogaston@gmail.com']
     asunto = 'Modificación en la base de datos'
     mensaje = 'Se ha producido una modificación en la base de datos.Tabla de Canasta Basica'
-    body = "Se han agregado nuevos datos:\n\n"
+    body = "Se han agregado nuevos datos"
 
     
     em = EmailMessage()
     em['From'] = email_emisor
     em['To'] = email_receptor
     em['Subject'] = asunto
+    em['body'] = body
     em.set_content(mensaje)
     
     contexto= ssl.create_default_context()
