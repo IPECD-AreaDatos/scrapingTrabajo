@@ -17,5 +17,8 @@ if __name__ == '__main__':
     home_page_Pobreza.descargar_archivo()
     
     loadXLSDataCBT().readData()
-    connection_db().carga_db(host, user, password, database)
+
+    instancia = connection_db(host, user, password, database)
+    instancia.carga_db()
+
     print("- Finalizacion de revison de CBT")
