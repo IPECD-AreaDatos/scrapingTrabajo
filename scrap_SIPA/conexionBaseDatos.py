@@ -60,7 +60,7 @@ class conexionBaseDatos:
             row_count_before = self.cursor.fetchone()[0]
             
             #Borrado de tabla para actualizacion
-            delete_query ="TRUNCATE `prueba1`.`sipa_registro`"
+            delete_query ="TRUNCATE `ipecd_economico`.`sipa_registro`"
             self.cursor.execute(delete_query)
             
             for fecha, id_prov, tipo_registro, valores_estacionales, valores_no_estacionales in zip(self.lista_fechas, self.lista_provincias, self.lista_registro, self.lista_valores_estacionalidad, self.lista_valores_sin_estacionalidad):
@@ -560,10 +560,10 @@ class conexionBaseDatos:
 SECCION PARA PRUEBAS INDEPENDIENTES DE LA CLASE
 
 #Datos de la base de datos
-host = '172.17.22.10'
-user = 'Ivan'
-password = 'Estadistica123'
-database = 'prueba1'
+host = '172.17.16.157'
+user = 'team-datos'
+password = 'HCj_BmbCtTuCv5}'
+database = 'ipecd_economico'
 
 lista_provincias = list()
 lista_valores_estacionalidad = list() 

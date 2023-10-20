@@ -66,7 +66,7 @@ class ripte_cargaHistorico:
 def enviar_correo():
     email_emisor='departamientoactualizaciondato@gmail.com'
     email_contraseña = 'oxadnhkcyjnyibao'
-    email_receptor = ['boscojfrancisco@gmail.com','gastongrillo2001@gmail.com']
+    email_receptor = ['gastongrillo2001@gmail.com']
     asunto = 'Modificación en la base de datos'
     mensaje = 'Se ha producido una modificación en la base de datos.'
     body = "Se han agregado nuevos datos:\n\n"

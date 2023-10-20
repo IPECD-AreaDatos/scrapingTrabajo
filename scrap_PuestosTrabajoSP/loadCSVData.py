@@ -12,30 +12,34 @@ nuevos_datos = []
 
 class LoadCSVData:
     def loadInDataBase(self, host, user, password, database):
-        #Se toma el tiempo de comienzo
         start_time = time.time()
         
-        # Establecer la conexión a la base de datos
         conn = mysql.connector.connect(
             host=host, user=user, password=password, database=database
         )
-
         cursor = conn.cursor()
 
-        # Nombre de la tabla en MySQL
         table_name = 'dp_puestosTrabajo_sector_privado'
         # Obtener la ruta del directorio actual (donde se encuentra el script)
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
-        # Construir la ruta de la carpeta "files" dentro del directorio actual
         ruta_carpeta_files = os.path.join(directorio_actual, 'files')
         file_name = "trabajoSectorPrivado.csv"
-        # Construir la ruta completa del archivo CSV dentro de la carpeta "files"
         file_path = os.path.join(ruta_carpeta_files, file_name)
                 
         # Leer el archivo de csv y hacer transformaciones
         df = pd.read_csv(file_path)  # Leer el archivo CSV y crear el DataFrame
         df = df.replace({np.nan: None})  # Reemplazar los valores NaN(Not a Number) por None
+        longitud = len(df)
+        print("privado: ", longitud)
+        
+        select_row_count_query = "SELECT COUNT(*) FROM dp_puestostrabajo_sector_privado"
+        cursor.execute(select_row_count_query)
+        row_count_before = cursor.fetchone()[0]
+        print("Base: ", row_count_before)
+        
 
+        exit()
+        
         print("columnas -- ", df.columns)
 
         # Aplicar strip() al nombre de la columna antes de acceder a ella
@@ -44,14 +48,9 @@ class LoadCSVData:
 
         # Verificar si la columna existe en el DataFrame
         if column_name_stripped in df.columns:
-            # Realizar transformaciones en el DataFrame utilizando el nombre de columna sin espacios
             df.loc[df[column_name_stripped] < 0, column_name_stripped] = 0 #Los datos <0 se reempalazan a 0
         else:
             print(f"La columna '{column_name_stripped}' no existe en el DataFrame.")
-
-        # Obtener los nombres y tipos de datos de las columnas
-        column_names = list(df.columns)
-        column_types = df.dtypes.to_dict()
 
         #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓CARGA EN BASE DE DATOS ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
         print("Tabla de Puestos de Trabajo Sector Privado")
@@ -60,19 +59,15 @@ class LoadCSVData:
         cursor.execute(select_row_count_query)
         row_count_before = cursor.fetchone()[0]
         
-        delete_query ="TRUNCATE `prueba1`.`dp_puestostrabajo_sector_privado`"
+        delete_query ="TRUNCATE `ipecd_economico`.`dp_puestostrabajo_sector_privado`"
         cursor.execute(delete_query)
         
         insert_query = f"INSERT INTO {table_name} VALUES ({', '.join(['%s' for _ in range(len(df.columns))])})"
         
         for index, row in df.iterrows():
             data_tuple = tuple(row)
-        
-            # Si los valores no existen, realizar la inserción
             conn.cursor().execute(insert_query, data_tuple)
             print(data_tuple)
-            
-            # Agregar los datos nuevos a la lista
             nuevos_datos.append(data_tuple)
             
         cursor.execute(select_row_count_query)

@@ -9,8 +9,7 @@ import os
 class HomePage:
     
     def __init__(self):
-        # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
-        self.driver = webdriver.Chrome()  # Reemplaza con la ubicación de tu ChromeDriver
+        self.driver = webdriver.Chrome()
 
         # URL de la página que deseas obtener
         self.url_pagina = 'https://datos.produccion.gob.ar/dataset/salarios-por-departamento-partido-y-sector-de-actividad'
@@ -31,8 +30,7 @@ class HomePage:
         # Crear la carpeta "files" si no existe
         if not os.path.exists(carpeta_guardado):
             os.makedirs(carpeta_guardado)
-
-        #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓PRIMER ARCHIVO↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+            
         # Esperar hasta que aparezca el enlace al primer archivo
         archivo_SP = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div[2]/div/div/div/div[1]/div[3]/div[3]/div/a[2]")))
 

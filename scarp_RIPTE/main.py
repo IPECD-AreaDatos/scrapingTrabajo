@@ -17,7 +17,6 @@ if __name__ == '__main__':
     #home_page = HomePage()
     #home_page.descargar_archivo()
     #ripte_cargaHistorico().loadInDataBase(host, user, password, database)
-
     
     instancia = ripte_cargaUltimoDato(host, user, password, database)
     instancia.loadInDataBase()
