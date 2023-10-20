@@ -9,6 +9,7 @@ class loadXLSDataCBT:
         directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
         ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
         file_path_desagregado = os.path.join(ruta_carpeta_files, 'CBT.xls')
+        file_path_estimaciones_nea = os.path.join(ruta_carpeta_files, 'historico_estimaciones_nea.xlsx')
         file_path_destino = os.path.join(ruta_carpeta_files, 'Calculos.xlsx')
         
         # Crear un DataFrame con las columnas de encabezado
@@ -48,6 +49,22 @@ class loadXLSDataCBT:
         indice_fila_en_blanco = df_segundaHoja.index[df_segundaHoja.isnull().all(axis=1)].tolist()[0]
         df_segundaHoja = df_segundaHoja.iloc[:indice_fila_en_blanco]
 
+        
+
+        #Estimaciones del NEA
+        df_estimaciones_nea = pd.read_excel(file_path_estimaciones_nea)
+        df_estimaciones_nea = df_estimaciones_nea.drop('Fecha',axis = 1)
+
+        print("\n\n ==================")
+        print(df_primeraHoja)
+        print("==================")
+        print(df_segundaHoja)
+        print("==================")
+        print(df_estimaciones_nea)
+        print("==================")
+
+
+
 
         # Cargar el archivo Excel existente
         excel_file = file_path_destino
@@ -57,4 +74,9 @@ class loadXLSDataCBT:
             df_primeraHoja.to_excel(writer, sheet_name=sheet_name, index=False, startrow=1, startcol=0)
             df_encabezado.to_excel(writer, sheet_name=sheet_name, index=False, startrow=0, startcol=0)
             df_segundaHoja.to_excel(writer, sheet_name=sheet_name, index=False, startrow=1, startcol=3)
+            df_estimaciones_nea.to_excel(writer, sheet_name=sheet_name, index=False, startrow=0, startcol=5)
 
+
+
+instancia = loadXLSDataCBT()
+instancia.readData()

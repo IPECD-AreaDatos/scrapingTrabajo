@@ -81,24 +81,26 @@ class connection_db:
         connection.close()
 
 def enviar_correo():
+    
+    
+
+    print("HOLA-ALGO ANDO")
+    
     email_emisor='departamientoactualizaciondato@gmail.com'
     email_contraseña = 'cmxddbshnjqfehka'
     email_receptor = ['benitezeliogaston@gmail.com']
     asunto = 'Modificación en la base de datos'
     mensaje = 'Se ha producido una modificación en la base de datos.Tabla de Canasta Basica'
-    body = "Se han agregado nuevos datos"
 
     
     em = EmailMessage()
     em['From'] = email_emisor
-    em['To'] = email_receptor
+    em['To'] = ", ".join(email_receptor)
     em['Subject'] = asunto
-    em['body'] = body
-    em.set_content(mensaje)
+    em.set_content(mensaje, subtype = 'html')
     
-    contexto= ssl.create_default_context()
+    contexto = ssl.create_default_context()
     
     with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
         smtp.login(email_emisor, email_contraseña)
-        
-        
+        smtp.sendmail(email_emisor, email_receptor, em.as_string())
