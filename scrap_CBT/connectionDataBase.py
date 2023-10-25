@@ -98,20 +98,26 @@ class connection_db:
 
 
         #Datos de indigencia y pobreza 
-        cba_nea_año_anterior,cbt_nea_año_anterior,cba_adulto_nea, cbt_adulto_nea , familia_indigente, familia_pobre,cba_mes_anterior,cbt_mes_anterior,fecha = self.persona_individual_familia()
+        cba_nea_año_anterior,cbt_nea_año_anterior,cba_adulto_nea, cbt_adulto_nea , familia_indigente, familia_pobre,cba_mes_anterior,cbt_mes_anterior,fecha, cba_adulto_nea_mes_anterior, cbt_adulto_nea_mes_anterior,familia_indigente_mes_anterior,familia_pobre_mes_anterior = self.persona_individual_familia()
 
         #Variaciones de cba y cbt 
-        var_inter_cba,var_inter_cbt = self.variaciones(cba_nea_año_anterior,cbt_nea_año_anterior,cba_adulto_nea, cbt_adulto_nea)
+        var_inter_cba,var_inter_cbt,var_mensual_cba_nea,var_mensual_cbt_nea = self.variaciones(cba_nea_año_anterior,cbt_nea_año_anterior,cba_adulto_nea, cbt_adulto_nea,cba_adulto_nea_mes_anterior, cbt_adulto_nea_mes_anterior)
+
+        #Cadenas de fecha para mostrar en el mensaje
+        cadena_fecha = str(fecha.year)+"-"+str(fecha.month)
+        cba_mes_anterior = str(fecha.year)+"-"+str(fecha.month - 1)
 
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptor = ['benitezeliogaston@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com']
 
-        asunto = 'CBA Y CBT - Actualizacion'
+        asunto = f'CBA Y CBT - Actualizacion - Fecha {cadena_fecha}'
 
-        mensaje_1 = f"""
+        mensaje_1 = f""" 
 
-        <h3> Para una persona individual </h3>
+        <html> 
+        <body>
+        <h3> Para una persona individual, a la fecha: </h3>
 
         <p>Se necesito <span style="font-size: 17px;"><b>${cba_adulto_nea:.2f}</b></span> para no ser indigente.</p>
 
@@ -119,21 +125,41 @@ class connection_db:
 
         <hr>
 
-        <h3> Para una familia compuesto por 4 integrantes: </h3>
+        <h3>En la fecha {cadena_fecha}, para una familia compuesto por 4 integrantes: </h3>
 
         <p>Se necesito <span style="font-size: 17px;"><b>${familia_indigente:.2f}</b></span> para no ser indigente.</p>
         <p>Se necesito <span style="font-size: 17px;"><b>${familia_pobre:.2f}</b></span> para no ser pobre.</p>
+
+        <h3> El mes anterior {cba_mes_anterior}, para una familia compuesta por 4 integrantes: 
+
+        <p>Se necesito <span style="font-size: 17px;"><b>${familia_indigente_mes_anterior:.2f}</b></span> para no ser indigente.</p>
+        <p>Se necesito <span style="font-size: 17px;"><b>${familia_pobre_mes_anterior:.2f}</b></span> para no ser pobre.</p>
 
         <hr>
 
        <h3> Variaciones Interanuales: </h3>
 
-        <p>CBA tuvo una variacion de: <span style="font-size: 17px;"><b>{var_inter_cba:.2f}%</b></span></p>
+        <p>CBA tuvo una variacion interanual de: <span style="font-size: 17px;"><b>{var_inter_cba:.2f}%</b></span></p>
 
-        <p>CBT tuvo una variacion de: <span style="font-size: 17px;"><b>{var_inter_cbt:.2f}%</b></span></p>
+        <p>CBT tuvo una variacion interanual de: <span style="font-size: 17px;"><b>{var_inter_cbt:.2f}%</b></span></p>
+
+
+        <h3> Variaciones Mensuales: </h3>
+
+        <p>CBA tuvo una variacion mensual de: <span style="font-size: 17px;"><b>{var_mensual_cba_nea:.2f}%</b></span></p>
+        <p>CBT tuvo una variacion mensual de: <span style="font-size: 17px;"><b>{var_mensual_cbt_nea:.2f}%</b></span></p>
+
+
         
         <hr>
 
+        <p> Instituto Provincial de Estadistica y Ciencia de Datos de Corrientes<br>
+            Dirección: Tucumán 1164 - Corrientes Capital<br>
+            Contacto Coordinación General: 3794 284993</p>
+
+
+        </body>
+        </html>
 
         """
 
@@ -141,7 +167,7 @@ class connection_db:
         mensaje_concatenado = mensaje_1
         em = EmailMessage()
         em['From'] = email_emisor
-        em['To'] = ", ".join(email_receptor)
+        em['To'] = ", ".join(email_receptores)
         em['Subject'] = asunto
         em.set_content(mensaje_concatenado, subtype = 'html')
         
@@ -149,7 +175,7 @@ class connection_db:
         
         with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
             smtp.login(email_emisor, email_contraseña)
-            smtp.sendmail(email_emisor, email_receptor, em.as_string())
+            smtp.sendmail(email_emisor, email_receptores, em.as_string())
 
 
     #Objetivo: calcular el valor para que una  persona individual o una familia, no sea pobre o no sea indigente.
@@ -173,14 +199,12 @@ class connection_db:
         año = int(fecha_maxima_nea.year)
         mes = int(fecha_maxima_nea.month)
 
-        """ 
-        Tomamos los ultimos 6 valores NO NULOS de la lista DEL NEA - TANTO CBA como CBT
-        Hacemos los mismo para GBA pero los primeros 6 valores de cada lista.
-        Tambien buscamos los ultimos valores de CBA y CBT de GBA
-        """    
+        
+
+        # // OPERABILIDAD NORMAL: 
         lista_cba_nea = (df_bdd['CBA_nea'][df_bdd['fecha'].dt.year == año].dropna())[-6:]
         lista_cbt_nea = (df_bdd['CBT_nea'][df_bdd['fecha'].dt.year == año].dropna())[-6:]
-
+            
         lista_cba_gba = (df_bdd['CBA_Adulto'][df_bdd['fecha'].dt.year == año].dropna())[:6]
         lista_cbt_gba =  (df_bdd['CBT_Adulto'][df_bdd['fecha'].dt.year == año].dropna())[:6]
 
@@ -197,21 +221,45 @@ class connection_db:
         familia_pobre = cbt_adulto_nea * 3.09
 
 
-        # === DATOS DEL MES ANTERIOR === #
+        # === DATOS DEL MES ANTERIOR DE NACION === #
         cba_mes_anterior = df_bdd['CBA_Adulto'].iloc[-2]
         cbt_mes_anterior = df_bdd['CBT_Adulto'].iloc[-2]
 
 
-        # == Datos del NEA del mes anterior === #
+        """
+        PARA CAMBIO DE PERIODO
 
-        
-        #CREACION DE CASO DE CAMBIO DE PERIODO
+        ACA SE PRODUCE UN CAMBIO DE PERIODOS: Porque algunos datos del NEA se calculan 
+        con los datos de otro periodo del NEA. Por ende es necesario crear un funcion que
+        se ejecute SOLO UNA VEZ que es cuando se produce la actualizacion de datos del nea
+
+        OPERABILIDAD DE CAMBIO DE PERIODO:
+        Tomamos los 6 valores anteriores al ultimo periodo del nea. 
 
         """
-        #Calculos para no ser indigente y no ser pobre
-        indigente_mes_anterior_familia = (sum(lista_cba_nea) / sum(lista_cba_gba)) * cba_mes_anterior
-        pobre_mes_anterior_familia = (sum(lista_cbt_nea) / sum(lista_cbt_gba)) * cbt_mes_anterior
-        """
+
+       
+        """lista_cba_nea = (df_bdd['CBA_nea'][df_bdd['fecha'].dt.year == año - 1].dropna())[-6:]
+        lista_cbt_nea = (df_bdd['CBT_nea'][df_bdd['fecha'].dt.year == año - 1].dropna())[-6:]
+
+        lista_cba_gba = (df_bdd['CBA_Adulto'][df_bdd['fecha'].dt.year == año -1].dropna())[-6:]
+        lista_cbt_gba =  (df_bdd['CBT_Adulto'][df_bdd['fecha'].dt.year == año -1].dropna())[-6:]"""
+
+
+
+        print(f"LISTA CBA: {lista_cba_nea}  || CBT: {lista_cbt_nea} DEL AÑO ANTEIROR \n  Valor CBA mes anterior {cba_mes_anterior} {cbt_mes_anterior}")
+
+
+
+        cba_adulto_nea_mes_anterior = (sum(lista_cba_nea) / sum(lista_cba_gba)) * cba_mes_anterior #--> indigente
+        cbt_adulto_nea_mes_anterior =  (sum(lista_cbt_nea) / sum(lista_cbt_gba)) * cbt_mes_anterior #--> pobre
+
+        #Calculo de familia para no ser indigente y para no ser pobre
+        familia_indigente_mes_anterior = cba_adulto_nea_mes_anterior * 3.09
+        familia_pobre_mes_anterior = cbt_adulto_nea_mes_anterior * 3.09
+
+        print(f"FAMILIA INDIGENTE: {familia_indigente_mes_anterior}")
+        print(f"FAMILIA POBRE: {familia_pobre_mes_anterior}")
 
         # === DATOS DEL AÑO ANTERIOR NEA === #
 
@@ -223,9 +271,9 @@ class connection_db:
         
         fecha = max(df_bdd['fecha'])
 
-        return cba_nea_año_anterior,cbt_nea_año_anterior,cba_adulto_nea, cbt_adulto_nea , familia_indigente, familia_pobre,cba_mes_anterior,cbt_mes_anterior, fecha
+        return cba_nea_año_anterior,cbt_nea_año_anterior,cba_adulto_nea, cbt_adulto_nea , familia_indigente, familia_pobre,cba_mes_anterior,cbt_mes_anterior, fecha, cba_adulto_nea_mes_anterior, cbt_adulto_nea_mes_anterior,familia_indigente_mes_anterior,familia_pobre_mes_anterior
 
-    def variaciones(self,cba_nea_año_anterior,cbt_nea_año_anterior,indigente, pobre):
+    def variaciones(self,cba_nea_año_anterior,cbt_nea_año_anterior,indigente, pobre, cba_adulto_nea_mes_anterior, cbt_adulto_nea_mes_anterior):
 
         #Construccion de consulta y obtencion del dataframe
         nombre_tabla = 'canasta_basica'
@@ -238,28 +286,24 @@ class connection_db:
         ano = fecha_max.year
         mes = fecha_max.month
     
-        """
-        ultimo_cba_adulto = df_bdd['CBA_Adulto'].iloc[-1]
-        ultimo_cbt_adulto = df_bdd['CBT_Adulto'].iloc[-1]
-        
-        #Valores del año anterior
-        ultimo_cba_adulto_año_anterior =  df_bdd['CBA_Adulto'][(df_bdd['fecha'].dt.year == (ano-1)) & (df_bdd['fecha'].dt.month == (mes))].values[0]
-        ultimo_cbt_adulto_año_anterior =  df_bdd['CBT_Adulto'][(df_bdd['fecha'].dt.year == (ano-1)) & (df_bdd['fecha'].dt.month == (mes))].values[0]
 
-        var_inter_cba = ((ultimo_cba_adulto / ultimo_cba_adulto_año_anterior) - 1) * 100
-        var_inter_cbt = ((ultimo_cbt_adulto / ultimo_cbt_adulto_año_anterior) - 1) * 100"""
 
-        # === Variacion INTERANUAL DE CBA
+        # === Variacion INTERANUAL DE CBA DEL NEA
 
-        var_inter_cba = ((indigente / cba_nea_año_anterior)-1) * 100
-        var_inter_cbt = (( pobre / cbt_nea_año_anterior ) - 1) * 100
+        var_inter_cba_nea = ((indigente / cba_nea_año_anterior)-1) * 100
+        var_inter_cbt_nea = (( pobre / cbt_nea_año_anterior ) - 1) * 100
+
+
+        # === Varaciones mensuales de CBA del NEA
+        var_mes_cba_nea = ((indigente / cba_adulto_nea_mes_anterior)-1) * 100
+        var_mes_cbt_nea = (( pobre / cbt_adulto_nea_mes_anterior ) - 1) * 100
     
-        return var_inter_cba,var_inter_cbt
+        return var_inter_cba_nea,var_inter_cbt_nea, var_mes_cba_nea,var_mes_cbt_nea
 
 
 
-"""#SECCION DE PRUEBAS
-host = '172.17.16.157'
+
+"""host = '172.17.16.157'
 user = 'team-datos'
 password = 'HCj_BmbCtTuCv5}'
 database = 'ipecd_economico'
@@ -268,4 +312,5 @@ instancia = connection_db(host,user,password,database)
 instancia.conectar_bdd()
 instancia.persona_individual_familia()
 instancia.variaciones()
+
 """
