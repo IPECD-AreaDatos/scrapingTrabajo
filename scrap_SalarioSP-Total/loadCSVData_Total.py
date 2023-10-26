@@ -52,7 +52,7 @@ class loadCSVData_Total:
             
             print("Tabla de Salarios Total")
             insert_query = f"INSERT INTO {table_name} VALUES ({', '.join(['%s' for _ in range(len(df_datos_nuevos.columns))])})"
-            for row in df_datos_nuevos.iterrows():
+            for index, row in df_datos_nuevos.iterrows():
                 data_tuple = tuple(row)
                 conn.cursor().execute(insert_query, data_tuple)
                 print(data_tuple)
