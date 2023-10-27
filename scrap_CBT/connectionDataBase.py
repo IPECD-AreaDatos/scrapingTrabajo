@@ -5,6 +5,8 @@ from sqlalchemy import create_engine
 from email.message import EmailMessage
 import ssl
 import smtplib
+import calendar
+
 
 class connection_db:
 
@@ -103,37 +105,51 @@ class connection_db:
         #Variaciones de cba y cbt 
         var_inter_cba,var_inter_cbt,var_mensual_cba_nea,var_mensual_cbt_nea = self.variaciones(cba_nea_año_anterior,cbt_nea_año_anterior,cba_adulto_nea, cbt_adulto_nea,cba_adulto_nea_mes_anterior, cbt_adulto_nea_mes_anterior)
 
+
+        
         #Cadenas de fecha para mostrar en el mensaje
+        fecha_formato_normal = self.obtener_ultimafecha_actual(fecha)
         cadena_fecha = str(fecha.year)+"-"+str(fecha.month)
         cba_mes_anterior = str(fecha.year)+"-"+str(fecha.month - 1)
 
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
         email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com']
-
-        asunto = f'CBA Y CBT - Actualizacion - Fecha {cadena_fecha}'
+        #email_receptores =  ['benitezeliogaston@gmail.com']
+        asunto = f'CBA Y CBT - Actualizacion - Fecha: {fecha_formato_normal}'
 
         mensaje_1 = f""" 
 
         <html> 
         <body>
+
+
+        <h2> Datos correspondientes al Nordeste Argentino(NEA) </h2>
+
+        
+        <br>
+
+        <p> Este correo contiene informacion respeto al <b>CBA</b> (Canasta Basica Alimnentaria) y <b>CBT</b>(Canasta Basica Total).  </p>
+
+        <hr>
+
         <h3> Para una persona individual, a la fecha: </h3>
 
-        <p>Se necesito <span style="font-size: 17px;"><b>${cba_adulto_nea:.2f}</b></span> para no ser indigente.</p>
+        <p>Se necesito <span style="font-size: 17px;"><b>${cba_adulto_nea:,.2f}</b></span> para no ser indigente.</p>
 
-        <p>Se necesito <span style="font-size: 17px;"><b>${cbt_adulto_nea:.2f}</b></span> para no ser pobre</p>
+        <p>Se necesito <span style="font-size: 17px;"><b>${cbt_adulto_nea:,.2f}</b></span> para no ser pobre</p>
 
         <hr>
 
         <h3>En la fecha {cadena_fecha}, para una familia compuesto por 4 integrantes: </h3>
 
-        <p>Se necesito <span style="font-size: 17px;"><b>${familia_indigente:.2f}</b></span> para no ser indigente.</p>
-        <p>Se necesito <span style="font-size: 17px;"><b>${familia_pobre:.2f}</b></span> para no ser pobre.</p>
+        <p>Se necesito <span style="font-size: 17px;"><b>${familia_indigente:,.2f}</b></span> para no ser indigente.</p>
+        <p>Se necesito <span style="font-size: 17px;"><b>${familia_pobre:,.2f}</b></span> para no ser pobre.</p>
 
         <h3> El mes anterior {cba_mes_anterior}, para una familia compuesta por 4 integrantes: 
 
-        <p>Se necesito <span style="font-size: 17px;"><b>${familia_indigente_mes_anterior:.2f}</b></span> para no ser indigente.</p>
-        <p>Se necesito <span style="font-size: 17px;"><b>${familia_pobre_mes_anterior:.2f}</b></span> para no ser pobre.</p>
+        <p>Se necesito <span style="font-size: 17px;"><b>${familia_indigente_mes_anterior:,.2f}</b></span> para no ser indigente.</p>
+        <p>Se necesito <span style="font-size: 17px;"><b>${familia_pobre_mes_anterior:,.2f}</b></span> para no ser pobre.</p>
 
         <hr>
 
@@ -236,14 +252,17 @@ class connection_db:
         OPERABILIDAD DE CAMBIO DE PERIODO:
         Tomamos los 6 valores anteriores al ultimo periodo del nea. 
 
+        ¿Como usar?
+        Descomentar las 4 lineas de codigos que siguen, y ejecutar el script "main.py" normalmente.
+
         """
 
        
-        """lista_cba_nea = (df_bdd['CBA_nea'][df_bdd['fecha'].dt.year == año - 1].dropna())[-6:]
+        lista_cba_nea = (df_bdd['CBA_nea'][df_bdd['fecha'].dt.year == año - 1].dropna())[-6:]
         lista_cbt_nea = (df_bdd['CBT_nea'][df_bdd['fecha'].dt.year == año - 1].dropna())[-6:]
 
         lista_cba_gba = (df_bdd['CBA_Adulto'][df_bdd['fecha'].dt.year == año -1].dropna())[-6:]
-        lista_cbt_gba =  (df_bdd['CBT_Adulto'][df_bdd['fecha'].dt.year == año -1].dropna())[-6:]"""
+        lista_cbt_gba =  (df_bdd['CBT_Adulto'][df_bdd['fecha'].dt.year == año -1].dropna())[-6:]
 
 
 
@@ -299,6 +318,34 @@ class connection_db:
         var_mes_cbt_nea = (( pobre / cbt_adulto_nea_mes_anterior ) - 1) * 100
     
         return var_inter_cba_nea,var_inter_cbt_nea, var_mes_cba_nea,var_mes_cbt_nea
+    
+
+    def obtener_ultimafecha_actual(self,fecha_ultimo_registro):
+         
+
+        # Obtener el nombre del mes actual en inglés
+        nombre_mes_ingles = calendar.month_name[fecha_ultimo_registro.month]
+
+        # Diccionario de traducción
+        traducciones_meses = {
+            'January': 'Enero',
+            'February': 'Febrero',
+            'March': 'Marzo',
+            'April': 'Abril',
+            'May': 'Mayo',
+            'June': 'Junio',
+            'July': 'Julio',
+            'August': 'Agosto',
+            'September': 'Septiembre',
+            'October': 'Octubre',
+            'November': 'Noviembre',
+            'December': 'Diciembre'
+        }
+
+        # Obtener la traducción
+        nombre_mes_espanol = traducciones_meses.get(nombre_mes_ingles, nombre_mes_ingles)
+
+        return str(fecha_ultimo_registro.day) + f" de {nombre_mes_espanol} del {fecha_ultimo_registro.year}"
 
 
 
