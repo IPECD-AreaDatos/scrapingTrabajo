@@ -394,3 +394,13 @@ CREATE TABLE Canasta_Basica(
 	CBA_Hogar float,
 	CBT_Hogar float
 );
+
+Create Table IPICORR(
+	Fecha date,
+    Var_Interanual_IPICORR float,
+    Var_Interanual_Alimentos float,
+    Var_Interanual_Textil float,
+    Var_Interanual_Maderas float,
+    Var_Interanual_MinNoMetalicos float,
+    Var_Interanual_Metales float
+);

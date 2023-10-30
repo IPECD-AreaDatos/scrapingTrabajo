@@ -4,9 +4,6 @@ import pandas as pd
 
 df = pd.DataFrame()
 
-#Obtener datos 
-
-
 instancia = HomePage()
 instancia.descargar_archivo()
 df = instancia.tratamiento_df()
