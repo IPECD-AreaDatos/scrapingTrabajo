@@ -33,63 +33,60 @@ class conexionBaseDatos:
 
     def cargaBaseDatos(self):
 
-        try:
-            #Conectar a la BDD 
-            self.conectar_bdd(self.host,self.user,self.password,self.database)
-            
-            #Se le asigna la lista correspondiente a la columna del data frame y se arma el "Excel"
-            df = pd.DataFrame() 
-            df['fecha'] = self.lista_fechas
-            df['id_prov'] = self.lista_provincias
-            df['tipo_registro'] = self.lista_registro
-            df['valores_estacionales'] = self.lista_valores_estacionalidad
-            df['valores_no_estacionales'] = self.lista_valores_sin_estacionalidad
-            
-            # Verificar cuantas filas tiene la tabla de mysql
-            select_query = "SELECT COUNT(*) FROM sipa_registro WHERE Fecha = %s"
-            
-            # Sentencia SQL para insertar los datos en la tabla sipa_registro
-            insert_query = "INSERT INTO sipa_registro (Fecha, ID_Provincia, ID_Tipo_Registro, Cantidad_con_Estacionalidad, Cantidad_sin_Estacionalidad) VALUES (%s, %s, %s, %s, %s)"
 
-            # Sentencia SQL para actualizar los datos en la tabla
-            update_query = "UPDATE sipa_registro SET Cantidad_con_Estacionalidad = %s, Cantidad_sin_Estacionalidad = %s WHERE Fecha = %s AND ID_Provincia = %s AND ID_Tipo_Registro = %s"
+        #Conectar a la BDD 
+        self.conectar_bdd(self.host,self.user,self.password,self.database)
+        
+        #Se le asigna la lista correspondiente a la columna del data frame y se arma el "Excel"
+        df = pd.DataFrame() 
+        df['fecha'] = self.lista_fechas
+        df['id_prov'] = self.lista_provincias
+        df['tipo_registro'] = self.lista_registro
+        df['valores_estacionales'] = self.lista_valores_estacionalidad
+        df['valores_no_estacionales'] = self.lista_valores_sin_estacionalidad
+        
+        # Verificar cuantas filas tiene la tabla de mysql
+        select_query = "SELECT COUNT(*) FROM sipa_registro WHERE Fecha = %s"
+        
+        # Sentencia SQL para insertar los datos en la tabla sipa_registro
+        insert_query = "INSERT INTO sipa_registro (Fecha, ID_Provincia, ID_Tipo_Registro, Cantidad_con_Estacionalidad, Cantidad_sin_Estacionalidad) VALUES (%s, %s, %s, %s, %s)"
 
-            #Verificar cantidad de filas anteriores 
-            select_row_count_query = "SELECT COUNT(*) FROM sipa_registro"
-            self.cursor.execute(select_row_count_query)
-            row_count_before = self.cursor.fetchone()[0]
+        # Sentencia SQL para actualizar los datos en la tabla
+        update_query = "UPDATE sipa_registro SET Cantidad_con_Estacionalidad = %s, Cantidad_sin_Estacionalidad = %s WHERE Fecha = %s AND ID_Provincia = %s AND ID_Tipo_Registro = %s"
+
+        #Verificar cantidad de filas anteriores 
+        select_row_count_query = "SELECT COUNT(*) FROM sipa_registro"
+        self.cursor.execute(select_row_count_query)
+        row_count_before = self.cursor.fetchone()[0]
+        
+        #Borrado de tabla para actualizacion
+        delete_query ="TRUNCATE `ipecd_economico`.`sipa_registro`"
+        self.cursor.execute(delete_query)
+        
+        for fecha, id_prov, tipo_registro, valores_estacionales, valores_no_estacionales in zip(self.lista_fechas, self.lista_provincias, self.lista_registro, self.lista_valores_estacionalidad, self.lista_valores_sin_estacionalidad):
+            # Convertir la fecha en formato datetime si es necesario
+            if isinstance(fecha, str):
+                fecha = datetime.datetime.strptime(fecha, '%Y-%m-%d').date()
+
+            self.cursor.execute(insert_query, (fecha, id_prov, tipo_registro, valores_estacionales, valores_no_estacionales))
+                    
+        #Obtener cantidad de filas
+        self.cursor.execute(select_row_count_query)
+        row_count_after = self.cursor.fetchone()[0]
+
+        #Comparar la cantidad de antes y despues
+        if row_count_after > row_count_before:
+            print("Se agregaron nuevos datos")
+            self.enviar_correo()   
+        else:
+            print("Se realizo una verificacion de la base de datos")
             
-            #Borrado de tabla para actualizacion
-            delete_query ="TRUNCATE `ipecd_economico`.`sipa_registro`"
-            self.cursor.execute(delete_query)
-            
-            for fecha, id_prov, tipo_registro, valores_estacionales, valores_no_estacionales in zip(self.lista_fechas, self.lista_provincias, self.lista_registro, self.lista_valores_estacionalidad, self.lista_valores_sin_estacionalidad):
-                # Convertir la fecha en formato datetime si es necesario
-                if isinstance(fecha, str):
-                    fecha = datetime.datetime.strptime(fecha, '%Y-%m-%d').date()
+        # Confirmar los cambios en la base de datos
+        self.conn.commit()
+        # Cerrar el cursor y la conexión
+        self.cursor.close()
+        self.conn.close()
 
-                self.cursor.execute(insert_query, (fecha, id_prov, tipo_registro, valores_estacionales, valores_no_estacionales))
-                        
-            #Obtener cantidad de filas
-            self.cursor.execute(select_row_count_query)
-            row_count_after = self.cursor.fetchone()[0]
-
-            #Comparar la cantidad de antes y despues
-            if row_count_after > row_count_before:
-                print("Se agregaron nuevos datos")
-                self.enviar_correo()   
-            else:
-                print("Se realizo una verificacion de la base de datos")
-                
-            # Confirmar los cambios en la base de datos
-            self.conn.commit()
-            # Cerrar el cursor y la conexión
-            self.cursor.close()
-            self.conn.close()
-
-        except Exception as e:
-            
-            print(e)   
 
     def enviar_correo(self):
 
@@ -108,10 +105,10 @@ class conexionBaseDatos:
         total_nivel_pais, variacion_mensual, variacion_interanual,diferencia_mensual,diferencia_interanual = self.empleo_registrado_pais()
 
         #EMPLEO PRIVADO REGISTRADO A NIVEL PAIS 
-        total_nivel_pais_privado, variacion_mensual_privado, variacion_interanual_privado, diferencia_mensual_privado,diferencia_interanual_privado,fecha_del_maximo,maximo, promedio_empleo_nacion = self.empleo_privado_registrado()
+        total_nivel_pais_privado, variacion_mensual_privado, variacion_interanual_privado, diferencia_mensual_privado,diferencia_interanual_privado,fecha_del_maximo,maximo, promedio_empleo_nacion, variacion_acumulada_privado, diferencia_acumulada_privado = self.empleo_privado_registrado()
 
         #EMPLEO PRIVADO REGISTRADO EN EL NEA
-        total_empleo_nea,variacion_mensual_nea,variacion_interanual_nea, diferencia_interanual_nea,diferencia_mensual_nea, promedio_empleo_nea = self.empleos_nea()
+        total_empleo_nea,variacion_mensual_nea,variacion_interanual_nea, diferencia_interanual_nea,diferencia_mensual_nea,variacion_acumulada_nea,diferencia_acumulada_nea, promedio_empleo_nea = self.empleos_nea()
 
         #MAXIMO EMPLEO EN CORRIENTES
         fecha_max_corrientes, maximo_corrientes = self.obtener_max_corrientes()
@@ -126,17 +123,17 @@ class conexionBaseDatos:
 
         <hr>
         <h3> Distribucion de los Trabajos Registrados - Argentina </h3>
-        <p>1 - Trabajo privados registrados: <span style="font-size: 17px;"><b>{porcentaje_privado:.2f}%</b></span></p>
-        <p>2 - Empleos publicos registrados: <span style="font-size: 17px;"><b>{porcentaje_publico:.2f}%</b></span></p>
-        <p>3 - Monotributistas Independientes: <span style="font-size: 17px;"><b>{porcentaje_total_idp_monotributo:.2f}%</b></span></p>
-        <p>4 - Monotributistas Sociales: <span style="font-size: 17px;"><b>{porcentaje_total_idp_monotributo_social:.2f}%</b></span></p>
-        <p>5 - Empleo en casas particulares registrado: <span style="font-size: 17px;"><b>{porcentaje_total_casas_particulares:.2f}%</b></span></p>
-        <p>6 - Trabajadores independientes autonomos: <span style="font-size: 17px;"><b>{porcentaje_total_idp_autonomo:.2f}%</b></span></p>
+        <p>1 - Empleo privados registrados: <span style="font-size: 17px;"><b>{porcentaje_privado:,.2f}%</b></span></p>
+        <p>2 - Empleos publicos registrados: <span style="font-size: 17px;"><b>{porcentaje_publico:,.2f}%</b></span></p>
+        <p>3 - Monotributistas Independientes: <span style="font-size: 17px;"><b>{porcentaje_total_idp_monotributo:,.2f}%</b></span></p>
+        <p>4 - Monotributistas Sociales: <span style="font-size: 17px;"><b>{porcentaje_total_idp_monotributo_social:,.2f}%</b></span></p>
+        <p>5 - Empleo en casas particulares registrado: <span style="font-size: 17px;"><b>{porcentaje_total_casas_particulares:,.2f}%</b></span></p>
+        <p>6 - Trabajadores independientes autonomos: <span style="font-size: 17px;"><b>{porcentaje_total_idp_autonomo:,.2f}%</b></span></p>
         <hr>
         <h3> Trabajo Registrado a nivel nacional: </h3>
         <p>Total: <span style="font-size: 17px;"><b>{locale.format("%d",total_nivel_pais, grouping=True)}</b></span></p>
-        <p>Variacion mensual: <span style="font-size: 17px;"><b>{variacion_mensual:.2f}%</b></span> ({diferencia_mensual}) puestos  </p>
-        <p>Variacion interanual: <span style="font-size: 17px;"><b>{variacion_interanual:.2f}%</b></span>  ({diferencia_interanual}) puestos  </p>
+        <p>Variacion mensual: <span style="font-size: 17px;"><b>{variacion_mensual:,.2f}%</b></span> ({diferencia_mensual} puestos)  </p>
+        <p>Variacion interanual: <span style="font-size: 17px;"><b>{variacion_interanual:,.2f}%</b></span>  ({diferencia_interanual} puestos)  </p>
         <hr>
         '''
 
@@ -151,23 +148,29 @@ class conexionBaseDatos:
         <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> DIFERENCIA MENSUAL </th>
         <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> VARIACION INTERANUAL </th>
         <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> DIFERENCIA INTERANUAL </th>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> VARIACION ACUMULADA </th>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> DIFERENCIA ACUMULADA </th>
         '''
         fin_tabla = '''</table>'''
 
         #Creacion de datos del NEA - mensaje 2 - Estos datos corresponden a cada provincia en particular del NEA
         for cod_provincia in (18,54,22,34):
 
-            total_empleo_otra,variacion_mensual_otra,variacion_interanual_otra, diferencia_interanual_otra,diferencia_mensual_otra,nombre_prov_otra,promedio_empleo = self.empleo_otras_nea(cod_provincia)
+            total_empleo_otra,variacion_mensual_otra,variacion_interanual_otra, diferencia_interanual_otra,diferencia_mensual_otra,nombre_prov_otra,variacion_acumulada,diferencia_acumulada,promedio_empleo = self.empleo_otras_nea(cod_provincia)
 
 
             cadena_aux = f'''
             <tr>
             <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {nombre_prov_otra}</td>
-            <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {total_empleo_otra}</td>
-            <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_mensual_otra:.2f}</td>
-            <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_mensual_otra}</td>
-            <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_interanual_otra:.2f}</td>
-            <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_interanual_otra}</td>
+            <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {total_empleo_otra:,}</td>
+            <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_mensual_otra:,.2f}</td>
+            <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_mensual_otra:,}</td>
+            <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_interanual_otra:,.2f}</td>
+            <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_interanual_otra:,}</td>
+            <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_acumulada:,.2f}</td>
+            <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_acumulada:,}</td>
+
+
             <tr>
             '''
 
@@ -179,20 +182,28 @@ class conexionBaseDatos:
         cadena_nacion_nea = f'''
         <tr>
         <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> NEA </td>
-        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {total_empleo_nea}</td>
-        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_mensual_nea:.2f}</td>
-        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_mensual_nea}</td>
-        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_interanual_nea:.2f}</td>
-        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_interanual_nea}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {total_empleo_nea:,}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_mensual_nea:,.2f}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_mensual_nea:,}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_interanual_nea:,.2f}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_interanual_nea:,}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_acumulada_nea:,.2f}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_acumulada_nea:,}</td>
+
+        
         <tr>
 
         <tr>
         <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> NACION </td>
-        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {total_nivel_pais_privado}</td>
-        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_mensual_privado:.2f}</td>
-        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_mensual_privado}</td>
-        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_interanual_privado:.2f}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {total_nivel_pais_privado:,}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_mensual_privado:,.2f}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_mensual_privado:,}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_interanual_privado:,.2f}</td>
         <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_interanual_privado}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_acumulada_privado:,.2f}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_acumulada_privado:,}</td>
+
+
         <tr>
 
 
@@ -202,8 +213,8 @@ class conexionBaseDatos:
 
         comentario_nacion = f'''
 
-        <p> MAXIMO HISTORICO DEL EMPLEO PRIVADO A NIVEL NACIONAL - FECHA {fecha_del_maximo} - Total: {maximo}
-        <p> MAXIMO HISTORICO DEL EMPLEO PRIVADO EN CORRIENTES - FECHA {fecha_max_corrientes} - Total: {maximo_corrientes}
+        <p> MAXIMO HISTORICO DEL EMPLEO PRIVADO A NIVEL NACIONAL - FECHA {fecha_del_maximo} - Total: {maximo:,}
+        <p> MAXIMO HISTORICO DEL EMPLEO PRIVADO EN CORRIENTES - FECHA {fecha_max_corrientes} - Total: {maximo_corrientes:,}
 
 
         '''
@@ -406,10 +417,15 @@ class conexionBaseDatos:
 
         variacion_interanual = ((total_nivel_pais / total_nea_año_anterior) - 1) * 100
 
+        #=== Calculo de la VARIACION ACUMULADA 
+        grupo_dic_año_anterior =  df_bdd[(df_bdd['Fecha'].dt.year == fecha_max.year-1 ) & (df_bdd['Fecha'].dt.month == 12)]
+        total_dic_año_anterior = sum(grupo_dic_año_anterior['Cantidad_con_Estacionalidad']) * 1000
+        variacion_acumulada = ((total_nivel_pais / total_dic_año_anterior) - 1) * 100
 
+        #DIFERENCIAS de cantidades en terminos mensuales, interanual y acumulada
         diferencia_mensual = int(total_nivel_pais - total_mes_anterior)
         diferencia_interanual = int(total_nivel_pais - total_nea_año_anterior)
-
+        diferencia_acumulada = int(total_nivel_pais - total_dic_año_anterior) 
 
         #=== Obtencion del registro de valor maximo registrado
         
@@ -428,7 +444,7 @@ class conexionBaseDatos:
 
 
 
-        return total_nivel_pais, variacion_mensual, variacion_interanual, diferencia_mensual,diferencia_interanual, fecha_del_maximo,maximo,promedio_empleo
+        return total_nivel_pais, variacion_mensual, variacion_interanual, diferencia_mensual,diferencia_interanual, fecha_del_maximo,maximo,promedio_empleo, variacion_acumulada, diferencia_acumulada
      
     #Calcular los valores correspondientes al NEA - Algunas variables se multiplican por 1000 porque asi estan expresadas en los EXCELS
     def empleos_nea(self): 
@@ -467,15 +483,23 @@ class conexionBaseDatos:
         variacion_interanual = ((total_empleo / total_nea_año_anterior) - 1) * 100
 
 
+        #=== Calculo de la VARIACION ACUMULADA
+        grupo_dic_año_anterior = df_bdd[(df_bdd['Fecha'].dt.year == fecha_max.year-1 ) & (df_bdd['Fecha'].dt.month == 12)]
+        total_dic_año_anterior = sum(grupo_dic_año_anterior['Cantidad_con_Estacionalidad']) * 1000
+        variacion_acumulada = ((total_empleo / total_dic_año_anterior) - 1) * 100
+
+
         #Calculos de diferencias por MES y AÑO
         diferencia_mensual = int(total_empleo - total_mes_anterior)
         diferencia_interanual = int(total_empleo - total_nea_año_anterior)
+        diferencia_acumulada  = int(total_empleo - variacion_acumulada)
+
         #=== Calculo del PROMEDIO de empleo DEL AÑO ACTUAL
         grupo_año_actual = df_bdd[(df_bdd['Fecha'].dt.year == fecha_max.year )]
         promedio_empleo = (int(sum(grupo_año_actual['Cantidad_con_Estacionalidad'])) / len(grupo_año_actual['Cantidad_con_Estacionalidad'])) * 1000
 
 
-        return total_empleo,variacion_mensual,variacion_interanual, diferencia_interanual,diferencia_mensual, promedio_empleo
+        return total_empleo,variacion_mensual,variacion_interanual, diferencia_interanual,diferencia_mensual, variacion_acumulada,diferencia_acumulada ,promedio_empleo
 
 
     #Datos de las demas pronvincias del nea
@@ -522,10 +546,15 @@ class conexionBaseDatos:
         total_nea_año_anterior = sum(grupo_mes_actual_año_anterior['Cantidad_con_Estacionalidad']) * 1000
         variacion_interanual = ((total_empleo / total_nea_año_anterior) - 1) * 100
 
+        #=== Calculo de la VARIACION ACUMULADA
+        grupo_diciembre_año_anterior = df_bdd[(df_bdd['Fecha'].dt.year == fecha_max.year-1 ) & (df_bdd['Fecha'].dt.month == 12)]
+        total_dic_año_anterior = sum(grupo_diciembre_año_anterior['Cantidad_con_Estacionalidad']) * 1000
+        variacion_acumulada = ((total_empleo/total_dic_año_anterior) - 1) * 100
 
         #Calculos de diferencias por MES y AÑO
         diferencia_mensual = int(total_empleo - total_mes_anterior)
         diferencia_interanual = int(total_empleo - total_nea_año_anterior)
+        diferencia_acumulada = int(total_empleo-total_dic_año_anterior)
 
 
          #=== Calculo del PROMEDIO de empleo DEL AÑO ACTUAL
@@ -533,7 +562,7 @@ class conexionBaseDatos:
         promedio_empleo = (int(sum(grupo_año_actual['Cantidad_con_Estacionalidad'])) / len(grupo_año_actual['Cantidad_con_Estacionalidad'])) * 1000
 
 
-        return total_empleo,variacion_mensual,variacion_interanual, diferencia_interanual,diferencia_mensual,nombre_prov,promedio_empleo
+        return total_empleo,variacion_mensual,variacion_interanual, diferencia_interanual,diferencia_mensual,nombre_prov,variacion_acumulada,diferencia_acumulada,promedio_empleo
 
 
     def obtener_max_corrientes(self):
