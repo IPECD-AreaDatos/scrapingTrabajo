@@ -112,6 +112,9 @@ class conexionBaseDatos:
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
         email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com']
+
+        
         #Variaciones nacionales
         mensaje_variaciones,fecha = self.variaciones(1)
         mensaje_variaciones_nea,fecha = self.variaciones(5)
