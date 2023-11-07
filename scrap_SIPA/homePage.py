@@ -12,7 +12,7 @@ class HomePage:
     driver = webdriver.Chrome()  # Reemplaza con la ubicación de tu ChromeDriver
 
     # URL de la página que deseas obtener
-    url_pagina = 'https://www.trabajo.gob.ar/estadisticas/index.asp'
+    url_pagina = 'https://www.argentina.gob.ar/trabajo/estadisticas'
 
     # Cargar la página web
     driver.get(url_pagina)
@@ -20,7 +20,7 @@ class HomePage:
     wait = WebDriverWait(driver, 10)
 
     # Encontrar el enlace al archivo
-    archivo = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/main/div[2]/div/section[2]/article/div/div[2]/div[2]/a")))
+    archivo = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/main/div[2]/div/section[2]/div/div[9]/div/div/table/tbody/tr[1]/td[4]/a")))
 
     # Obtener la URL del archivo
     url_archivo = archivo.get_attribute('href')
