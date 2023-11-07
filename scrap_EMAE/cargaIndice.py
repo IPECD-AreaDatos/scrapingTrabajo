@@ -136,7 +136,7 @@ class cargaIndice:
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
         email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com']
-        asunto = 'Modificación en la base de datos'
+        asunto = 'Actualizacion de los datos del Estimador Mensual de Actividad Económico (EMAE)'
 
 
         cadena_valores_actuales = self.ultimos_datos()
@@ -150,7 +150,7 @@ class cargaIndice:
         <html>
         <body>
 
-        <h3> ACTUALIZACION DE DATOS, se actualizaron los datos del Estimador Mensual de Actividad Económico. Fecha: {cadena_fecha_actual} </h3>
+        <h3> ACTUALIZACION DE DATOS, se actualizaron los datos del Estimador Mensual de Actividad Económico(EMAE). Fecha: {cadena_fecha_actual} </h3>
         
         <hr>
 
