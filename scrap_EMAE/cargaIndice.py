@@ -135,7 +135,8 @@ class cargaIndice:
     def enviar_correo(self):
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com']
         asunto = 'Actualizacion de los datos del Estimador Mensual de Actividad Económico (EMAE)'
 
 
@@ -145,7 +146,7 @@ class cargaIndice:
         #Construimos la cadena de la fecha actual
         cadena_fecha_actual = self.obtener_fecha_actual(fecha_maxima)
     
-        seccion_valores_actuales = f'''
+        cadena_inicio = f'''
 
         <html>
         <body>
@@ -153,23 +154,7 @@ class cargaIndice:
         <h3> ACTUALIZACION DE DATOS, se actualizaron los datos del Estimador Mensual de Actividad Económico(EMAE). Fecha: {cadena_fecha_actual} </h3>
         
         <hr>
-
-        <h3> Valores actuales Estimador Mensual de Actividad Económico (EMAE)- Argentina </h3>
-
-
-        <table style="border-collapse: collapse; width: 100%;">
-
-        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> CATEGORIA </th>
-        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;">  VALOR ACTUAL </th>
-
-        {cadena_valores_actuales}
-
-        </table>
-
-
-        <hr>
         '''
-
 
         seccion_variaciones = f'''
 
@@ -183,7 +168,7 @@ class cargaIndice:
         <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> INDICE </th>
         <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> VAR. INTERANUAL </th>
         <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> INDICE </th>
-        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> VAR. ACUMULADA </th>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> VAR. ACUMULADA</th>
         {cadena_variacion}
 
         </table> 
@@ -201,7 +186,7 @@ class cargaIndice:
 
 
 
-        mensaje_final = seccion_valores_actuales + seccion_variaciones
+        mensaje_final = cadena_inicio + seccion_variaciones
 
 
 
