@@ -96,8 +96,8 @@ class conexionBaseDatos:
         #DATOS DE EMISOR Y RECEPTOR
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com']
-        #email_receptores =  ['benitezeliogaston@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com']
         #PORCENTAJES DE EMPLEOS REGISTRADOS
         porcentaje_privado, porcentaje_publico, porcentaje_total_casas_particulares,porcentaje_total_idp_autonomo,porcentaje_total_idp_monotributo,porcentaje_total_idp_monotributo_social,cadena_ultima_fecha = self.obtener_porcentaje_clases()
 
@@ -150,6 +150,7 @@ class conexionBaseDatos:
         <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> DIFERENCIA INTERANUAL </th>
         <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> VARIACION ACUMULADA </th>
         <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> DIFERENCIA ACUMULADA </th>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> PORCENTAJE REPRESENTATIVO EN EL NEA </th>
         '''
         fin_tabla = '''</table>'''
 
@@ -158,17 +159,21 @@ class conexionBaseDatos:
 
             total_empleo_otra,variacion_mensual_otra,variacion_interanual_otra, diferencia_interanual_otra,diferencia_mensual_otra,nombre_prov_otra,variacion_acumulada,diferencia_acumulada,promedio_empleo = self.empleo_otras_nea(cod_provincia)
 
+            #Reprentacion porcentual de la provincia en el NEA
+            porcentaje_representativo = ((total_empleo_otra * 100) / total_empleo_nea)
+
 
             cadena_aux = f'''
             <tr>
             <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {nombre_prov_otra}</td>
             <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {total_empleo_otra:,}</td>
-            <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_mensual_otra:,.2f}</td>
+            <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_mensual_otra:,.2f}%</td>
             <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_mensual_otra:,}</td>
-            <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_interanual_otra:,.2f}</td>
+            <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_interanual_otra:,.2f}%</td>
             <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_interanual_otra:,}</td>
-            <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_acumulada:,.2f}</td>
+            <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_acumulada:,.2f}%</td>
             <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_acumulada:,}</td>
+            <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {porcentaje_representativo:,.2f}%</td>
 
 
             <tr>
@@ -179,7 +184,23 @@ class conexionBaseDatos:
         
         #Agregamos a la tabla los datos de NACION y del NEA - Respecto al EMPLEO PRIVADO
 
+        porcentaje_nea = ((total_empleo_nea * 100) / total_nivel_pais)
+
         cadena_nacion_nea = f'''
+
+        <h3> TABLA DEL TRABAJO PRIVADO REGISTRADO NEA </h3>
+        <table style="border-collapse: collapse; width: 100%;">
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> GRUPO </th>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> TOTAL EMPLEO </th>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> VARIACION MENSUAL </th>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> DIFERENCIA MENSUAL </th>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> VARIACION INTERANUAL </th>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> DIFERENCIA INTERANUAL </th>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> VARIACION ACUMULADA </th>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> DIFERENCIA ACUMULADA </th>
+        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> PORCENTAJE REPRESENTATIVO EN NACION </th>
+
+    
         <tr>
         <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> NEA </td>
         <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {total_empleo_nea:,}</td>
@@ -189,6 +210,8 @@ class conexionBaseDatos:
         <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_interanual_nea:,}</td>
         <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_acumulada_nea:,.2f}</td>
         <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_acumulada_nea:,}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {porcentaje_nea:,.2f}</td>
+
 
         
         <tr>
@@ -201,15 +224,14 @@ class conexionBaseDatos:
         <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_interanual_privado:,.2f}</td>
         <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_interanual_privado}</td>
         <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {variacion_acumulada_privado:,.2f}</td>
-        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_acumulada_privado:,}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {diferencia_acumulada_privado:,}%</td>
 
 
         <tr>
 
-
         '''
 
-        inicio_tabla = inicio_tabla + cadena_nacion_nea
+        tabla = inicio_tabla + fin_tabla + cadena_nacion_nea + fin_tabla
 
         comentario_nacion = f'''
 
@@ -229,7 +251,7 @@ class conexionBaseDatos:
                         '''
 
         
-        mensaje = mensaje_uno + inicio_tabla + fin_tabla + comentario_nacion + mensaje_tres
+        mensaje = mensaje_uno + tabla + comentario_nacion + mensaje_tres
         em = EmailMessage()
         em['From'] = email_emisor
         em['To'] = ", ".join(email_receptores)
@@ -510,7 +532,7 @@ class conexionBaseDatos:
         nombre_tabla_provincias = 'dp_provincias'
 
         query_consulta = f'SELECT * FROM {nombre_tabla} WHERE ID_Provincia = {cod_prov}'
-        query_nombre_prov = f'SELECT nombre_provincia_indec FROM {nombre_tabla_provincias} WHERE id_provincia_indec = {cod_prov}'
+        query_nombre_prov = f'SELECT nombre_provincia_indec FROM {nombre_tabla_provincias} WHERE id_provincia_indec = {cod_prov}'        
 
         #Construir dataframe | Obtener nombre de la provincia
         df_bdd = pd.read_sql(query_consulta,self.conn)
@@ -563,6 +585,33 @@ class conexionBaseDatos:
 
 
         return total_empleo,variacion_mensual,variacion_interanual, diferencia_interanual,diferencia_mensual,nombre_prov,variacion_acumulada,diferencia_acumulada,promedio_empleo
+    
+    #Buscamos obtener que porcetaje representa la pronvincia en cuestion en el nea
+    def porcentaje_representativo_nea(self):
+        
+        #No hacemos referencia al tipo de registro porque los datos ya estan guardados como PRIVADO
+        nombre_tabla = 'sipa_registro'
+        nombre_tabla_provincias = 'dp_provincias'
+
+        query_consulta = f'SELECT * FROM {nombre_tabla}'
+        query_nombre_prov = f'SELECT nombre_provincia_indec FROM {nombre_tabla_provincias}'        
+
+
+        #Construir dataframe | Obtener nombre de la provincia
+        df_bdd = pd.read_sql(query_consulta,self.conn)
+        print(df_bdd)
+        self.cursor.execute(query_nombre_prov)
+        resultado = self.cursor.fetchone()  # Esto obtendrá la primera fila de resultado
+        nombre_prov = resultado[0]
+
+        #Obtener ultima fecha
+        fecha_max = df_bdd['Fecha'].max()
+
+        #Buscamos los registros de la ultima fecha 
+        grupo_ultima_fecha = df_bdd[(df_bdd['Fecha'] == fecha_max)]
+
+
+
 
 
     def obtener_max_corrientes(self):
