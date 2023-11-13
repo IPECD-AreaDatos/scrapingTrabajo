@@ -85,24 +85,26 @@ class HomePage:
         self.driver.execute_script("document.getElementById('fechaHasta').removeAttribute('readonly')")
 
 
-
-        fecha_desde.send_keys("01/01/2003")
-        
-        
+        #Fecha actual y la cadena del dia anterior
         fecha_actual = datetime.now()
-        print(fecha_actual)
 
+        #Cadena del dia anterior
         dia_anterior = str((fecha_actual.day)- 1 ) +"/" + str(fecha_actual.month) + "/" + str(fecha_actual.year)
 
-        
+        #Fechas de inicio y fin
+        fecha_desde.send_keys("01/01/2003")
         fecha_hasta.send_keys(dia_anterior)
         
 
-        print(fecha_desde,fecha_hasta)
-
         #Obtener boton
         boton = self.driver.find_element(By.ID,"DescargarID")
+
+        #Establecemos direccion para el archivo
+        
+
         boton.click()
+
+        time.sleep(5)
 
 
 instancia = HomePage()
