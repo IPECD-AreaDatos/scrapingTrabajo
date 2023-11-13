@@ -111,8 +111,8 @@ class conexionBaseDatos:
     def enviar_correo(self):
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com']
-        #email_receptores =  ['benitezeliogaston@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com']
 
         
         #Variaciones nacionales
@@ -261,19 +261,19 @@ class conexionBaseDatos:
 
         #Var mensual 
         parte_entera_mensual, parte_decimal_mensual = str(variacion_mensual).split('.')
-        numero_truncado_mensual = '.'.join([parte_entera_mensual, parte_decimal_mensual[:2]])
+        numero_truncado_mensual = '.'.join([parte_entera_mensual, parte_decimal_mensual[:1]])
         
 
         
         #Var interanual 
         parte_entera_interanual, parte_decimal_interanual = str(variacion_interanual).split('.')
-        numero_truncado_interanual = '.'.join([parte_entera_interanual, parte_decimal_interanual[:2]])
+        numero_truncado_interanual = '.'.join([parte_entera_interanual, parte_decimal_interanual[:1]])
 
 
         
         #Var Acumulada
         parte_entera_acumulada, parte_decimal_acumuludad = str(variacion_acumulada).split('.')
-        numero_truncado_acumulado = '.'.join([parte_entera_acumulada, parte_decimal_acumuludad[:2]])
+        numero_truncado_acumulado = '.'.join([parte_entera_acumulada, parte_decimal_acumuludad[:1]])
         
 
 
