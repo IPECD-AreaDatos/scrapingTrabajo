@@ -124,7 +124,7 @@ class conexionBaseDatos:
     def enviar_correo(self):
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com']
         #email_receptores =  ['benitezeliogaston@gmail.com']
 
         
@@ -289,6 +289,10 @@ class conexionBaseDatos:
         numero_truncado_acumulado = '.'.join([parte_entera_acumulada, parte_decimal_acumuludad[:1]])
         
 
+        
+        if region == 5: #--> Region NEA
+            #DATOS SACOS DEL EXCEL DIRECTAMENTE
+            numero_truncado_mensual, numero_truncado_interanual = self.var_mensual_prueba()
 
         cadena_variaciones =f'''
         <p>VARIACION MENSUAL: <span style="font-size: 17px;"><b>{numero_truncado_mensual}%</b></span></p>
@@ -469,21 +473,28 @@ class conexionBaseDatos:
          
         # Leer el archivo de xls y obtener la hoja de trabajo específica
         workbook = xlrd.open_workbook(file_path_desagregado)
-        sheet = workbook.sheet_by_index(0)  # Hoja 3 (índice 2)
+        sheet = workbook.sheet_by_index(0)  # Hoja 1 (índice 0)
 
 
+        target_row_index = 154
         #Fila de variaciones mensuales del NEA
-        ultima_var_mensual = sheet.row_values(157)[-1]
+        ultima_var_mensual = sheet.row_values(target_row_index + 3)[-1]
+
+
 
         #Fila de variaciones interanuales del NEA
+        sheet = workbook.sheet_by_index(1)  # Hoja 2 (índice 1)
 
-        print(ultima_var_mensual)
+        fechas = sheet.row_values(target_row_index + 2)
+        ult_var_interanual = sheet.row_values(target_row_index + 2)[-1]
+
+        return ultima_var_mensual, ult_var_interanual
 
 
 
 
 
-"""#SECCION DE PRUEBAS
+#SECCION DE PRUEBAS
 
 #Listas a tratar durante el proceso
 lista_fechas = list()
@@ -506,4 +517,3 @@ instancia.conectar_bdd()
 cadena=instancia.var_mensual_prueba() #--> Nacion
 
 print("\n ---------  \n")
-"""
