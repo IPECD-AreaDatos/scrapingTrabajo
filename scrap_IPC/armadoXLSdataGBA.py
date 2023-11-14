@@ -45,6 +45,8 @@ class LoadXLSDataGBA:
                 lista_subdivision.append(1) #--> Cargamos subdivision
 
 
+
+
             for valor in nivel_general:
 
                 lista_valores.append(valor) #--> Cargamos valores
@@ -88,7 +90,7 @@ class LoadXLSDataGBA:
                 lista_categoria.append(2)
                 lista_division.append(3)
                 lista_subdivision.append(4) #--> Cargamos subdivision
-            
+
             for valor in pan_y_cereales:
 
                 lista_valores.append(valor)#--> Cargamos valores

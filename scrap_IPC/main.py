@@ -1,4 +1,4 @@
-from homePage import HomePage
+#from homePage import HomePage
 from armadoXLSdataGBA import LoadXLSDataGBA
 from armadoXLSDataPampeana import LoadXLSDataPampeana
 from armadoXLSDataNOA import LoadXLSDataNOA
@@ -28,8 +28,8 @@ valor_region = 2
 
 if __name__ == '__main__':
     #Descargar EXCEL - Tambien almacenamos las rutas que usaremos
-    home_page = HomePage()
-    home_page.descargar_archivo()
+    #home_page = HomePage()
+    #home_page.descargar_archivo()
     
     #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ CARGA DE IPC DESAGREGADO ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
     directorio_desagregado = os.path.dirname(os.path.abspath(__file__))

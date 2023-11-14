@@ -16,7 +16,7 @@ class LoadXLSDataNOA:
             sheet = workbook.sheet_by_index(2)  # Hoja 3 (índice 2)
 
             # Definir el índice de la fila objetivo
-            target_row_index = 105  # El índice de la fila que deseas obtener (por ejemplo, línea 3)
+            target_row_index = 103  # El índice de la fila que deseas obtener (por ejemplo, línea 3)
 
             # Obtener los valores de la fila completa a partir de la segunda columna (columna B)
             target_row_values = sheet.row_values(target_row_index, start_colx=1)  # start_colx=1 indica que se inicia desde la columna B
@@ -32,7 +32,7 @@ class LoadXLSDataNOA:
             valor_sacado2 = 226.6
             
             # Agregamos NIVEL GENERAL - CODIGO: 1
-            nivel_general = [cell.value for cell in sheet[107]][1:]
+            nivel_general = [cell.value for cell in sheet[target_row_index + 2]][1:]
 
             for i in range(len(nivel_general)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -48,7 +48,7 @@ class LoadXLSDataNOA:
 
 
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            alimento_y_bebidas_no_alcoholicas = [cell.value for cell in sheet[108]][1:]
+            alimento_y_bebidas_no_alcoholicas = [cell.value for cell in sheet[target_row_index + 3]][1:]
 
             for i in range(len(alimento_y_bebidas_no_alcoholicas)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -63,7 +63,7 @@ class LoadXLSDataNOA:
 
 
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            alimento = [cell.value for cell in sheet[109]][1:]
+            alimento = [cell.value for cell in sheet[target_row_index + 4]][1:]
 
             for i in range(len(alimento)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -77,7 +77,7 @@ class LoadXLSDataNOA:
                 lista_valores.append(valor)#--> Cargamos valores
 
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            pan_y_cereales = [cell.value for cell in sheet[110]][1:]
+            pan_y_cereales = [cell.value for cell in sheet[target_row_index + 5]][1:]
 
             for i in range(len(pan_y_cereales)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -92,7 +92,7 @@ class LoadXLSDataNOA:
                 
             
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            carnes_y_derivados = [cell.value for cell in sheet[111]][1:]
+            carnes_y_derivados = [cell.value for cell in sheet[target_row_index + 6]][1:]
 
             for i in range(len(carnes_y_derivados)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -106,7 +106,7 @@ class LoadXLSDataNOA:
                 lista_valores.append(valor)#--> Cargamos valores
 
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            leche_productoslacteos_huevos = [cell.value for cell in sheet[112]][1:]
+            leche_productoslacteos_huevos = [cell.value for cell in sheet[target_row_index + 7]][1:]
 
             for i in range(len(leche_productoslacteos_huevos)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -120,7 +120,7 @@ class LoadXLSDataNOA:
                 lista_valores.append(valor)#--> Cargamos valores
             
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            aceites_grasas_manteca = [cell.value for cell in sheet[113]][1:]
+            aceites_grasas_manteca = [cell.value for cell in sheet[target_row_index + 8]][1:]
 
             for i in range(len(aceites_grasas_manteca)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -134,7 +134,7 @@ class LoadXLSDataNOA:
                 lista_valores.append(valor)#--> Cargamos valores
 
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            frutas = [cell.value for cell in sheet[114]][1:]
+            frutas = [cell.value for cell in sheet[target_row_index + 9]][1:]
 
             for i in range(len(frutas)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -148,7 +148,7 @@ class LoadXLSDataNOA:
                 lista_valores.append(valor)#--> Cargamos valores
 
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            verduras_tuberculos_legumbres = [cell.value for cell in sheet[115]][1:]
+            verduras_tuberculos_legumbres = [cell.value for cell in sheet[target_row_index + 10]][1:]
 
             for i in range(len(verduras_tuberculos_legumbres)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -162,7 +162,7 @@ class LoadXLSDataNOA:
                 lista_valores.append(valor)#--> Cargamos valores
 
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            azucar_dulces_chocolate_golosinas = [cell.value for cell in sheet[116]][1:]
+            azucar_dulces_chocolate_golosinas = [cell.value for cell in sheet[target_row_index + 11]][1:]
 
             for i in range(len(azucar_dulces_chocolate_golosinas)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -176,7 +176,7 @@ class LoadXLSDataNOA:
                 lista_valores.append(valor)#--> Cargamos valores
             
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            bebidas_no_alcoholicas = [cell.value for cell in sheet[117]][1:]
+            bebidas_no_alcoholicas = [cell.value for cell in sheet[target_row_index + 12]][1:]
 
             for i in range(len(bebidas_no_alcoholicas)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -190,7 +190,7 @@ class LoadXLSDataNOA:
                 lista_valores.append(valor)#--> Cargamos valores
             
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            cafe_te_yerba_cacao = [cell.value for cell in sheet[118]][1:]
+            cafe_te_yerba_cacao = [cell.value for cell in sheet[target_row_index + 13]][1:]
 
             for i in range(len(cafe_te_yerba_cacao)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -204,7 +204,7 @@ class LoadXLSDataNOA:
                 lista_valores.append(valor)#--> Cargamos valores
             
             #Agregamos Alimentos y bebidas no alcohólicas - Codigo 2
-            aguas_minerales_bebidasgaseosas_jugos = [cell.value for cell in sheet[119]][1:]
+            aguas_minerales_bebidasgaseosas_jugos = [cell.value for cell in sheet[target_row_index + 14]][1:]
 
             for i in range(len(aguas_minerales_bebidasgaseosas_jugos)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -219,7 +219,7 @@ class LoadXLSDataNOA:
             
             
             #Agregamos BEBIDAS ALCHOLICAS Y TABACOS - Codigo 3
-            bebidas_alcoholicas_y_tabaco = [cell.value for cell in sheet[120]][1:]
+            bebidas_alcoholicas_y_tabaco = [cell.value for cell in sheet[target_row_index + 15]][1:]
 
             for i in range(len(bebidas_alcoholicas_y_tabaco)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -234,7 +234,7 @@ class LoadXLSDataNOA:
 
 
             #Agregamos BEBIDAS ALCHOLICAS Y TABACOS - Codigo 3
-            bebidas_alcoholicas= [cell.value for cell in sheet[121]][1:]
+            bebidas_alcoholicas= [cell.value for cell in sheet[target_row_index + 16]][1:]
 
             for i in range(len(bebidas_alcoholicas)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -248,7 +248,7 @@ class LoadXLSDataNOA:
                 lista_valores.append(valor)#--> Cargamos valores
             
             #Agregamos BEBIDAS ALCHOLICAS Y TABACOS - Codigo 3
-            tabaco= [cell.value for cell in sheet[122]][1:]
+            tabaco= [cell.value for cell in sheet[target_row_index + 17]][1:]
 
             for i in range(len(tabaco)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -263,7 +263,7 @@ class LoadXLSDataNOA:
             
             
             #Agregamos Prendas de vestir y calzado - Codigo 4
-            prendasVestir_y_calzado = [cell.value for cell in sheet[123]][1:]
+            prendasVestir_y_calzado = [cell.value for cell in sheet[target_row_index + 18]][1:]
             
             for i in range(len(prendasVestir_y_calzado)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -277,7 +277,7 @@ class LoadXLSDataNOA:
 
             
             #Agregamos Prendas de vestir y calzado - Codigo 4
-            prendasdevestir_materiales = [cell.value for cell in sheet[124]][1:]
+            prendasdevestir_materiales = [cell.value for cell in sheet[target_row_index + 19]][1:]
             
             for i in range(len(prendasdevestir_materiales)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -296,7 +296,7 @@ class LoadXLSDataNOA:
                     
         
             #Agregamos Prendas de vestir y calzado - Codigo 4
-            calzado = [cell.value for cell in sheet[125]][1:]
+            calzado = [cell.value for cell in sheet[target_row_index + 20]][1:]
             
             for i in range(len(calzado)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -314,7 +314,7 @@ class LoadXLSDataNOA:
                     lista_valores[i] = valor_sacado2
             
             #Agregamos Vivienda, agua, electricidad, gas y otros combustibles - Codigo  5         
-            vivienda_agua_electricidad_gas_y_otros_combustibles = [cell.value for cell in sheet[126]][1:]
+            vivienda_agua_electricidad_gas_y_otros_combustibles = [cell.value for cell in sheet[target_row_index + 21]][1:]
             
             for i in range(len(vivienda_agua_electricidad_gas_y_otros_combustibles)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -328,7 +328,7 @@ class LoadXLSDataNOA:
                 lista_valores.append(valor)#--> Cargamos valores
 
             #Agregamos Vivienda, agua, electricidad, gas y otros combustibles - Codigo  5         
-            alquiler_vivienda_y_gastos_conexos = [cell.value for cell in sheet[127]][1:]
+            alquiler_vivienda_y_gastos_conexos = [cell.value for cell in sheet[target_row_index + 22]][1:]
             
             for i in range(len(alquiler_vivienda_y_gastos_conexos)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -342,7 +342,7 @@ class LoadXLSDataNOA:
                 lista_valores.append(valor)#--> Cargamos valores
 
             #Agregamos Vivienda, agua, electricidad, gas y otros combustibles - Codigo  5         
-            alquiler_vivienda = [cell.value for cell in sheet[128]][1:]
+            alquiler_vivienda = [cell.value for cell in sheet[target_row_index + 23]][1:]
             
             for i in range(len(alquiler_vivienda)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -372,7 +372,7 @@ class LoadXLSDataNOA:
         
         
             #Agregamos Vivienda, agua, electricidad, gas y otros combustibles - Codigo  5         
-            electricidad_gas_otroscombustibles = [cell.value for cell in sheet[129]][1:]
+            electricidad_gas_otroscombustibles = [cell.value for cell in sheet[target_row_index + 24]][1:]
             
             for i in range(len(electricidad_gas_otroscombustibles)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -386,7 +386,7 @@ class LoadXLSDataNOA:
                 lista_valores.append(valor)#--> Cargamos valores
         
             #Agregamos Equipamiento y mantenimiento del hogar - Codigo  6         
-            equipamiento_y_mantenimiento_del_hogar = [cell.value for cell in sheet[130]][1:]
+            equipamiento_y_mantenimiento_del_hogar = [cell.value for cell in sheet[target_row_index + 25]][1:]
 
 
             for i in range(len(equipamiento_y_mantenimiento_del_hogar)):
@@ -403,7 +403,7 @@ class LoadXLSDataNOA:
 
 
             #Agregamos Equipamiento y mantenimiento del hogar - Codigo  6         
-            bienesyservicios_para_la_conservacion_del_hogar = [cell.value for cell in sheet[131]][1:]
+            bienesyservicios_para_la_conservacion_del_hogar = [cell.value for cell in sheet[target_row_index + 26]][1:]
 
 
             for i in range(len(bienesyservicios_para_la_conservacion_del_hogar)):
@@ -420,7 +420,7 @@ class LoadXLSDataNOA:
 
 
             #Agregamos salud - Codigo  7
-            salud = [cell.value for cell in sheet[132]][1:]
+            salud = [cell.value for cell in sheet[target_row_index + 27]][1:]
 
             for i in range(len(salud )):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -435,7 +435,7 @@ class LoadXLSDataNOA:
 
 
             #Agregamos salud - Codigo  7
-            productos_medicinales_artefactos_equiposparalasalud = [cell.value for cell in sheet[133]][1:]
+            productos_medicinales_artefactos_equiposparalasalud = [cell.value for cell in sheet[target_row_index + 28]][1:]
 
             for i in range(len(productos_medicinales_artefactos_equiposparalasalud )):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -450,7 +450,7 @@ class LoadXLSDataNOA:
             
             
             #Agregamos salud - Codigo  7
-            gastos_prepagas = [cell.value for cell in sheet[134]][1:]
+            gastos_prepagas = [cell.value for cell in sheet[target_row_index + 29]][1:]
 
             for i in range(len(gastos_prepagas )):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -465,7 +465,7 @@ class LoadXLSDataNOA:
             
             
             #Agregamos Transporte - Codigo  8
-            transporte = [cell.value for cell in sheet[135]][1:]
+            transporte = [cell.value for cell in sheet[target_row_index + 30]][1:]
 
             for i in range(len(transporte)):   
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -480,7 +480,7 @@ class LoadXLSDataNOA:
 
 
             #Agregamos Transporte - Codigo  8
-            adquisicion_de_vehiculos = [cell.value for cell in sheet[136]][1:]
+            adquisicion_de_vehiculos = [cell.value for cell in sheet[target_row_index + 31]][1:]
 
             for i in range(len(adquisicion_de_vehiculos)):   
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -494,7 +494,7 @@ class LoadXLSDataNOA:
                 lista_valores.append(valor)#--> Cargamos valores
             
             #Agregamos Transporte - Codigo  8
-            funcionamiento_equipos_transporte_personal = [cell.value for cell in sheet[137]][1:]
+            funcionamiento_equipos_transporte_personal = [cell.value for cell in sheet[target_row_index + 32]][1:]
 
             for i in range(len(funcionamiento_equipos_transporte_personal)):   
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -509,7 +509,7 @@ class LoadXLSDataNOA:
 
 
             #Agregamos Transporte - Codigo  8
-            combustibles_lubricantes_vehiculos_hogar = [cell.value for cell in sheet[138]][1:]
+            combustibles_lubricantes_vehiculos_hogar = [cell.value for cell in sheet[target_row_index + 33]][1:]
 
             for i in range(len(combustibles_lubricantes_vehiculos_hogar)):   
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -524,7 +524,7 @@ class LoadXLSDataNOA:
 
 
             #Agregamos Transporte - Codigo  8
-            transporte_publico = [cell.value for cell in sheet[139]][1:]
+            transporte_publico = [cell.value for cell in sheet[target_row_index + 34]][1:]
 
             for i in range(len(transporte_publico)):   
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -539,7 +539,7 @@ class LoadXLSDataNOA:
 
 
             #Agregamos Comunicacion - Codigo  9
-            comunicación = [cell.value for cell in sheet[140]][1:]
+            comunicación = [cell.value for cell in sheet[target_row_index + 35]][1:]
 
             for i in range(len(comunicación )):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -554,7 +554,7 @@ class LoadXLSDataNOA:
                 lista_valores.append(valor)#--> Cargamos valores
 
             #Agregamos Comunicacion - Codigo  9
-            servicios_telefonia_internet = [cell.value for cell in sheet[141]][1:]
+            servicios_telefonia_internet = [cell.value for cell in sheet[target_row_index + 36]][1:]
 
             for i in range(len(servicios_telefonia_internet )):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -570,7 +570,7 @@ class LoadXLSDataNOA:
 
 
             #Agregamos Recreación y cultura - Codigo  10
-            recreación_y_cultura = [cell.value for cell in sheet[142]][1:]
+            recreación_y_cultura = [cell.value for cell in sheet[target_row_index + 37]][1:]
 
             for i in range(len(recreación_y_cultura)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -597,7 +597,7 @@ class LoadXLSDataNOA:
                 lista_valores.append(valor)#--> Cargamos valores
             """
             #Agregamos Recreación y cultura - Codigo  10
-            servicios_recreativos_culturales = [cell.value for cell in sheet[143]][1:]
+            servicios_recreativos_culturales = [cell.value for cell in sheet[target_row_index + 38]][1:]
 
             for i in range(len(servicios_recreativos_culturales)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -611,7 +611,7 @@ class LoadXLSDataNOA:
 
 
             #Agregamos Recreación y cultura - Codigo  10
-            periodicos_diarios_revistas_libros_articulosdepapeleria = [cell.value for cell in sheet[144]][1:]
+            periodicos_diarios_revistas_libros_articulosdepapeleria = [cell.value for cell in sheet[target_row_index + 39]][1:]
 
             for i in range(len(periodicos_diarios_revistas_libros_articulosdepapeleria)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -625,7 +625,7 @@ class LoadXLSDataNOA:
                 
                 
             #Agregamos Educacion - Codigo  11
-            educación = [cell.value for cell in sheet[145]][1:]
+            educación = [cell.value for cell in sheet[target_row_index + 40]][1:]
 
             for i in range(len(educación)):
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -642,7 +642,7 @@ class LoadXLSDataNOA:
 
 
             #Agregamos Restaurantes y hoteles - Codigo  12
-            restaurantes_y_hoteles = [cell.value for cell in sheet[146]][1:]
+            restaurantes_y_hoteles = [cell.value for cell in sheet[target_row_index + 41]][1:]
 
             for i in range(len(restaurantes_y_hoteles)):    
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -657,7 +657,7 @@ class LoadXLSDataNOA:
 
 
             #Agregamos Restaurantes y hoteles - Codigo  12
-            restaurantes_comidas_fueradelhogar = [cell.value for cell in sheet[147]][1:]
+            restaurantes_comidas_fueradelhogar = [cell.value for cell in sheet[target_row_index + 42]][1:]
             
             for i in range(len(restaurantes_comidas_fueradelhogar)):
                 lista_fechas.append(target_row_values[i])  # Cargamos fechas
@@ -681,7 +681,7 @@ class LoadXLSDataNOA:
                 lista_valores[lista_posiciones_restaurante[i]] = lista_arreglo[i]
             
             #Agregamos Bienes y servicios varios - Codigo  13
-            bienes_y_servicios_varios = [cell.value for cell in sheet[148]][1:]
+            bienes_y_servicios_varios = [cell.value for cell in sheet[target_row_index + 43]][1:]
             
             for i in range(len(bienes_y_servicios_varios)):     
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas
@@ -695,7 +695,7 @@ class LoadXLSDataNOA:
                 lista_valores.append(valor)#--> Cargamos valores
 
             #Agregamos Bienes y servicios varios - Codigo  13
-            cuidado_personal = [cell.value for cell in sheet[149]][1:]
+            cuidado_personal = [cell.value for cell in sheet[target_row_index + 44]][1:]
             
             for i in range(len(cuidado_personal)):     
                 lista_fechas.append(target_row_values[i]) #--> Cargamos fechas

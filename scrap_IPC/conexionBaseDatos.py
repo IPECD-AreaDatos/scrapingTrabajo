@@ -8,6 +8,8 @@ import pandas as pd
 from armadoXLSDataNacion import LoadXLSDataNacion
 from datetime import datetime
 import calendar
+import os
+import xlrd
 
 
 class conexionBaseDatos:
@@ -52,6 +54,7 @@ class conexionBaseDatos:
             df['subdivision']= self.lista_subdivision
             df['valor'] = self.lista_valores
             
+            
            # Sentencia SQL para comprobar si la fecha ya existe en la tabla
             select_query = "SELECT COUNT(*) FROM ipc_region WHERE Fecha = %s AND ID_Region = %s AND ID_Categoria = %s AND ID_Division = %s AND ID_Categoria = %s"
 
@@ -72,14 +75,24 @@ class conexionBaseDatos:
             delete_query ="TRUNCATE TABLE `ipecd_economico`.`ipc_region`"
             self.cursor.execute(delete_query)
 
+            print("DATAFRAME  \n\n")
+            #for valor in df.iterrows():
+
+                #print(valor)
+            print("============")
+
+            #exit()
+
 
             for fecha, region, categoria, division, subdivision, valor in zip(self.lista_fechas, self.lista_region, self.lista_categoria, self.lista_division, self.lista_subdivision, self.lista_valores):
+
+
                 # Convertir la fecha en formato datetime si es necesario
                 if isinstance(fecha, str):
-                    fecha = datetime.datetime.strptime(fecha, '%Y-%m-%d').date()
+                    fecha = datetime.strptime(fecha, '%Y-%m-%d').date()
 
                 self.cursor.execute(insert_query, (fecha, region, categoria, division, subdivision, valor))
-                print("Leyendo el valor de IPC: ", valor)
+                #print("Leyendo el valor de IPC: ", valor)
 
             
             # Confirmar los cambios en la base de datos
@@ -446,8 +459,31 @@ class conexionBaseDatos:
         return str(fecha_ultimo_registro.day) + f" de {nombre_mes_espanol} del {fecha_ultimo_registro.year}"
 
 
-"""
-#SECCION DE PRUEBAS
+    def var_mensual_prueba(self):
+
+
+        #Construccion de la direccion
+        directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
+        ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
+        file_path_desagregado = os.path.join(ruta_carpeta_files, 'IPC_Desagregado.xls')
+         
+        # Leer el archivo de xls y obtener la hoja de trabajo específica
+        workbook = xlrd.open_workbook(file_path_desagregado)
+        sheet = workbook.sheet_by_index(0)  # Hoja 3 (índice 2)
+
+
+        #Fila de variaciones mensuales del NEA
+        ultima_var_mensual = sheet.row_values(157)[-1]
+
+        #Fila de variaciones interanuales del NEA
+
+        print(ultima_var_mensual)
+
+
+
+
+
+"""#SECCION DE PRUEBAS
 
 #Listas a tratar durante el proceso
 lista_fechas = list()
@@ -467,7 +503,7 @@ instancia = conexionBaseDatos(lista_fechas, lista_region, lista_categoria, lista
 instancia.conectar_bdd()
 
 
-cadena=instancia.variaciones_nea() #--> Nacion
-print(cadena)
+cadena=instancia.var_mensual_prueba() #--> Nacion
+
 print("\n ---------  \n")
 """
