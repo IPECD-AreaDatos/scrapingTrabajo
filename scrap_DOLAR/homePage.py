@@ -107,27 +107,20 @@ class HomePage:
         time.sleep(5)
 
     
-    #Obtencion de datos del dolar blue de ambito
-    def dolar_blue(self):
+    """
+    Con esta funcion buscamos obtener los datos de multiples dolares
+    desde el sitio oficial de Ambito, es posible reutilizar esta funcion
+    desde un main.py pasandole como parametro el valor de un atributo
+    de la instancia.
+    """
+    def dolar_blue_ccl_mep(self,url):
 
         # Desactivar advertencias de solicitud no segura
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-        # Cargar la página web y esperamos un momento para que aparezcan las publicidades
-        self.driver.get(self.url_blue)
+        # Cargar la página web y esperamos un momento para que aparezcan las publicidades 
+        self.driver.get(url)
         time.sleep(10)
-
-        #Cerrar publicidad y POPUP de Notificaciones
-
-        #boton_no_aceptar_notificacion = self.driver.find_element(By.XPATH,"/html/body/div[5]/div/div/div[2]/button[2]") #--> Boton de notificaciones
-        #(self.driver, 10).until(EC.invisibility_of_element_located((By.XPATH,"/html/body/div[5]/div/div/div[2]/button[2]")))
-        #WebDriverWait(self.driver, 10).until(EC.invisibility_of_element_located((By.XPATH,"/html/body/div[2]/div[2]/div/img")))
-        #boton = self.driver.find_element(By.XPATH,"/html/body/div[5]/div/div/div[2]/button[2]")
-        #boton.click()
-
-        #cerrar_publicidad = self.driver.find_element(By.XPATH,"/html/body/div[2]/div[2]/div/img")#--> Imagen de X que se hace click para cerrar la publicidad
-        #cerrar_publicidad.click()
-        #cerrar_publicidad.click()
 
         #Obtencion de los inputs de fecha minima y maxima
         input_desde = self.driver.find_element(By.XPATH,"/html/body/main/div/div[1]/div[1]/div/div[2]/div[1]/div[1]/input")
@@ -155,7 +148,7 @@ class HomePage:
 
 
 instancia = HomePage()
-instancia.dolar_blue()
+instancia.dolar_blue_ccl_mep(instancia.url_mep)
 
 
 
