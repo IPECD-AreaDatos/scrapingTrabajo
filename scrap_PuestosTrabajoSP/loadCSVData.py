@@ -73,7 +73,7 @@ class LoadCSVData:
 def enviar_correo():
     email_emisor='departamientoactualizaciondato@gmail.com'
     email_contraseña = 'cmxddbshnjqfehka'
-    email_receptor = ['matizalazar2001@gmail.com','gastongrillo2001@gmail.com']
+    email_receptor = ['matizalazar2001@gmail.com','benitezeliogaston@gmail.com']
     asunto = 'Modificación en la base de datos'
     mensaje = 'Se ha producido una modificación en la base de datos.Tabla de Puestos de Trabajo Sector Privado'
     body = "Se han agregado nuevos datos:\n\n"

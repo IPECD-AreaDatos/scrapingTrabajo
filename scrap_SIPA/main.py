@@ -4,13 +4,19 @@ from loadXLSTrabajoRegistrado import LoadXLSTrabajoRegistrado
 from conexionBaseDatos import conexionBaseDatos
 import os
 import pandas as pd
+import sys
+
+# Obtener la ruta al directorio actual del script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+credenciales_dir = os.path.join(script_dir, '..', 'Credenciales_folder')
+# Agregar la ruta al sys.path
+sys.path.append(credenciales_dir)
 
 
-#Datos de la base de datos
-host = '172.17.16.157'
-user = 'team-datos'
-password = 'HCj_BmbCtTuCv5}'
-database = 'ipecd_economico'
+from credenciales_bdd import Credenciales
+
+
+credenciales = Credenciales()
 
 
 if __name__ == '__main__':
@@ -34,7 +40,7 @@ if __name__ == '__main__':
     LoadXLSTrabajoRegistrado().loadInDataBase(file_path, lista_provincias, lista_valores_estacionalidad, lista_valores_sin_estacionalidad, lista_registro,lista_fechas)
 
     #Conectar/Cargar/Actualizar la BDD 
-    instancia_bdd = conexionBaseDatos(host, user, password, database, lista_provincias, lista_valores_estacionalidad, lista_valores_sin_estacionalidad, lista_registro,lista_fechas)
+    instancia_bdd = conexionBaseDatos(credenciales.host, credenciales.user, credenciales.password, credenciales.database, lista_provincias, lista_valores_estacionalidad, lista_valores_sin_estacionalidad, lista_registro,lista_fechas)
     instancia_bdd.cargaBaseDatos()
 
 

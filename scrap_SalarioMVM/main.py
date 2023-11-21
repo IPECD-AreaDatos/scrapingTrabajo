@@ -1,6 +1,21 @@
 from homePage import HomePage
 from conexion_bdd import conexionBaseDatos
 import pandas as pd
+import sys
+import os
+
+# Obtener la ruta al directorio actual del script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+credenciales_dir = os.path.join(script_dir, '..', 'Credenciales_folder')
+# Agregar la ruta al sys.path
+sys.path.append(credenciales_dir)
+
+
+from credenciales_bdd import Credenciales
+
+
+credenciales = Credenciales()
+
 
 df = pd.DataFrame()
 
@@ -10,14 +25,7 @@ df = instancia.tratamiento_df()
 
 
 #Conexion con BASE DE DATOS
-
-#Datos de la base de datos
-host = '172.17.16.157'
-user = 'team-datos'
-password = 'HCj_BmbCtTuCv5}'
-database = 'ipecd_economico'
-
-conexion = conexionBaseDatos(host,user,password,database)
+conexion = conexionBaseDatos(credenciales.host,credenciales.user,credenciales.password,credenciales.database)
 
 conexion.conectar_bdd()
 

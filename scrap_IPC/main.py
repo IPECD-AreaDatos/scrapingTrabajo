@@ -10,7 +10,13 @@ from conexionBaseDatos import conexionBaseDatos
 from armadoXLSProductos import LoadXLSDataProductos
 import os
 import sys
-import conn_credenciales #--> Ejecucion del script 
+
+
+# Obtener la ruta al directorio actual del script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+credenciales_dir = os.path.join(script_dir, '..', 'Credenciales_folder')
+# Agregar la ruta al sys.path
+sys.path.append(credenciales_dir)
 
 
 

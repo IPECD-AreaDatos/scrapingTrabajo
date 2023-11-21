@@ -96,8 +96,8 @@ class conexionBaseDatos:
         #DATOS DE EMISOR Y RECEPTOR
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com']
-        email_receptores =  ['benitezeliogaston@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com']
         #PORCENTAJES DE EMPLEOS REGISTRADOS
         porcentaje_privado, porcentaje_publico, porcentaje_total_casas_particulares,porcentaje_total_idp_autonomo,porcentaje_total_idp_monotributo,porcentaje_total_idp_monotributo_social,cadena_ultima_fecha = self.obtener_porcentaje_clases()
 

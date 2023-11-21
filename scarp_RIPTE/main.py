@@ -3,12 +3,20 @@ import os
 import pandas as pd
 from ripte_cargaHistorico import ripte_cargaHistorico
 from ripte_cargaUltimoDato import ripte_cargaUltimoDato
+import sys
+import os
 
-#Datos de la base de datos
-host = '172.17.16.157'
-user = 'team-datos'
-password = 'HCj_BmbCtTuCv5}'
-database = 'ipecd_economico'
+# Obtener la ruta al directorio actual del script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+credenciales_dir = os.path.join(script_dir, '..', 'Credenciales_folder')
+# Agregar la ruta al sys.path
+sys.path.append(credenciales_dir)
+
+
+from credenciales_bdd import Credenciales
+
+
+credenciales = Credenciales()
 
 #Instancia encargada 
 
@@ -18,5 +26,5 @@ if __name__ == '__main__':
     #home_page.descargar_archivo()
     #ripte_cargaHistorico().loadInDataBase(host, user, password, database)
     
-    instancia = ripte_cargaUltimoDato(host, user, password, database)
+    instancia = ripte_cargaUltimoDato(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
     instancia.loadInDataBase()
