@@ -1,4 +1,5 @@
 #from homePage import HomePage
+# Agrega la ruta del folder que contiene los módulos al sistema de rutas de Python
 from armadoXLSdataGBA import LoadXLSDataGBA
 from armadoXLSDataPampeana import LoadXLSDataPampeana
 from armadoXLSDataNOA import LoadXLSDataNOA
@@ -8,7 +9,15 @@ from armadoXLSDataPatagonia import LoadXLSDataPatagonia
 from conexionBaseDatos import conexionBaseDatos
 from armadoXLSProductos import LoadXLSDataProductos
 import os
+import sys
+import conn_credenciales #--> Ejecucion del script 
 
+
+
+from credenciales_bdd import Credenciales
+
+# Crea una instancia de la clase "Credenciales"
+instancia_credenciales = Credenciales()
 
 #Listas a tratar durante el proceso
 lista_fechas = list()
@@ -18,11 +27,7 @@ lista_division = list()
 lista_subdivision = list()
 lista_valores = list()
 
-#Datos de la base de datos
-host = '172.17.16.157'
-user = 'team-datos'
-password = 'HCj_BmbCtTuCv5}'
-database = 'ipecd_economico'
+print("Las credenciales son", instancia_credenciales.host,instancia_credenciales.user,instancia_credenciales.password,instancia_credenciales.database)
 
 valor_region = 2
 
@@ -48,7 +53,18 @@ if __name__ == '__main__':
       regiones().loadInDataBase(file_path_desagregado, valor_region, lista_fechas, lista_region,  lista_categoria, lista_division, lista_subdivision, lista_valores)
       valor_region = valor_region + 1
     
-    instancia = conexionBaseDatos(lista_fechas, lista_region, lista_categoria, lista_division, lista_subdivision, lista_valores, host, user, password, database)
+    instancia = conexionBaseDatos(lista_fechas,
+                                  lista_region,
+                                  lista_categoria,
+                                  lista_division,
+                                  lista_subdivision,
+                                  lista_valores,
+                                  instancia_credenciales.host,
+                                  instancia_credenciales.user,
+                                  instancia_credenciales.password,
+                                  instancia_credenciales.database)
+    
+    
     instancia.cargaBaseDatos()
     
     #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ CARGA DE IPC PRODUCTOS ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓

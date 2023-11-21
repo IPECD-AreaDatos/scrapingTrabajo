@@ -105,7 +105,7 @@ class LoadXLSDataProductos:
             db_config = {
                 'user': 'team-datos',
                 'password': 'HCj_BmbCtTuCv5}',
-                'host': '172.17.16.157',
+                'host': '172.17.22.23',
                 'database': 'ipecd_economico',
             }
 
