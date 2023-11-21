@@ -16,3 +16,17 @@ class Credenciales:
         self.password = 'HCj_BmbCtTuCv5}'
         self.database = 'ipecd_economico'
 
+        #Asi se debe colocar
+        """
+        import os
+        import sys 
+        # Obtener la ruta al directorio actual del script
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        credenciales_dir = os.path.join(script_dir, '..', 'Credenciales_folder')
+        # Agregar la ruta al sys.path
+        sys.path.append(credenciales_dir)
+        
+        credenciales = Credenciales()
+    
+        credenciales.host, credenciales.user, credenciales.password, credenciales.database
+        """
