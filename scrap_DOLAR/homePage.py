@@ -61,8 +61,7 @@ class HomePage:
         self.driver.get(self.url_oficial)
 
         #Temporizador para que cargue la pagina
-        wait = WebDriverWait(self.driver, 5)
-
+        wait = WebDriverWait(self.driver, 25)
 
         time.sleep(3)
 
@@ -121,30 +120,10 @@ class HomePage:
         # Cargar la página web y esperamos un momento para que aparezcan las publicidades 
         self.driver.get(url)
         time.sleep(10)
-
-        #Obtencion de los inputs de fecha minima y maxima
-        input_desde = self.driver.find_element(By.XPATH,"/html/body/main/div/div[1]/div[1]/div/div[2]/div[1]/div[1]/input")
-        input_hasta = self.driver.find_element(By.XPATH,"/html/body/main/div/div[1]/div[1]/div/div[2]/div[1]/div[2]/input")
-
-
-
-        #Fecha actual y la cadena del dia anterior
-        fecha_actual = datetime.now()
-
-        #Cadena del dia anterior
-        dia_anterior = str((fecha_actual.day)- 1 ) +"/" + str(fecha_actual.month) + "/" + str(fecha_actual.year)
-
-        #Fechas de inicio y fin
-        input_desde.send_keys("01/01/2001")
-        input_hasta.send_keys(dia_anterior)
-
-        #Boton para ver datos
-        self.driver.execute_script("document.querySelector('button.general-historical__button.boton').click()")
-
-
-        time.sleep(5)
         
-
+        wait = WebDriverWait(self.driver, 10)
+        popup = wait.until(EC.presence_of_element_located((By.ID, "onesignal-slidedown-cancel-button")))
+        popup.click()
 
 
 instancia = HomePage()
