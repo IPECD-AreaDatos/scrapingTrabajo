@@ -46,8 +46,8 @@ class HomePage:
         # URLs de las paginas del dolar
         self.url_oficial = 'https://www.bna.com.ar/Personas'
         self.url_blue = 'https://www.ambito.com/contenidos/dolar-informal-historico.html'
-        self.url_mep = 'https://www.ambito.com/contenidos/dolar-mep.html'
-        self.url_ccl = 'https://www.ambito.com/contenidos/dolar-cl.html'
+        self.url_mep = 'https://www.ambito.com/contenidos/dolar-mep-historico.html'
+        self.url_ccl = 'https://www.ambito.com/contenidos/dolar-cl-historico.html'
 
         #Dataframe correspondiente a los datos del dolar
         self.dataframe_dolar = pd.DataFrame(columns=['tipo_dolar','fecha','precio_compra','precio_cierre'])
@@ -203,7 +203,9 @@ class HomePage:
         print(df)
         
 instancia = HomePage()
-instancia.dolar_blue_ccl_mep('https://www.ambito.com/contenidos/dolar-informal-historico.html')
+#instancia.dolar_blue_ccl_mep('https://www.ambito.com/contenidos/dolar-informal-historico.html')
+#instancia.dolar_blue_ccl_mep('https://www.ambito.com/contenidos/dolar-mep-historico.html')
+instancia.dolar_blue_ccl_mep('https://www.ambito.com/contenidos/dolar-cl-historico.html')
 
 
 
