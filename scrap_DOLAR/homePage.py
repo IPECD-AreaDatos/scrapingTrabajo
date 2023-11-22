@@ -14,6 +14,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
 import os
 import pandas as pd
 import urllib3
@@ -38,9 +40,7 @@ class HomePage:
         chromeOptions = webdriver.ChromeOptions() #--> Instancia de crhome
         prefs = {"download.default_directory" : carpeta_guardado} #--> Directorio de descarga por defecto
 
-        exe_brave = 'c:\ProgramData\Microsoft\Windows\Start Menu\Programs\brave.exe'
         chromeOptions.add_experimental_option("prefs", prefs)
-        chromeOptions.binary_location = exe_brave
         self.driver = webdriver.Chrome(options=chromeOptions)
 
         # URLs de las paginas del dolar
@@ -125,12 +125,85 @@ class HomePage:
         time.sleep(10)
         
         wait = WebDriverWait(self.driver, 10)
-        popup = wait.until(EC.presence_of_element_located((By.ID, "onesignal-slidedown-cancel-button")))
+        # Verificar si hay iframes presentes
+        iframes = self.driver.find_elements(By.TAG_NAME, "iframe")
+        
+        popup = wait.until(EC.element_to_be_clickable((By.ID, "onesignal-slidedown-cancel-button")))
+        self.driver.execute_script("arguments[0].scrollIntoView();", popup)
         popup.click()
+        
+        if iframes:
+            self.driver.switch_to.default_content()
 
+            wait = WebDriverWait(self.driver, 30)
+            wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "general-historical__datepicker.datepicker.desde.form-control")))
+            wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "general-historical__datepicker.datepicker.hasta.form-control")))
 
+            # Encontrar elementos de fecha desde y fecha hasta
+            fecha_desde = self.driver.find_element(By.CLASS_NAME, "general-historical__datepicker.datepicker.desde.form-control")
+            fecha_hasta = self.driver.find_element(By.CLASS_NAME, "general-historical__datepicker.datepicker.hasta.form-control")
+
+            # Fecha actual y cadena del día anterior
+            fecha_actual = datetime.now()
+
+            # Cadena del día anterior
+            dia_anterior = str((fecha_actual.day) - 1) + "/" + str(fecha_actual.month) + "/" + str(fecha_actual.year)
+
+            # Fechas de inicio y fin
+            fecha_desde.clear()
+            fecha_desde.send_keys("01/01/2003")
+            fecha_hasta.clear()
+            fecha_hasta.send_keys(dia_anterior)
+            
+            # Esperar hasta que el botón sea clickeable
+            boton = wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "general-historical__button.boton")))
+            # Desplazarse hasta el elemento
+            ActionChains(self.driver).move_to_element(boton).perform()
+            boton.click()
+            time.sleep(20)
+            
+        else:
+            wait = WebDriverWait(self.driver, 20)
+            #wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "general-historical__datepicker datepicker desde form-control")))
+            #wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "general-historical__datepicker datepicker hasta form-control")))
+            
+            fecha_desde = self.driver.find_element(By.CLASS_NAME, "general-historical__datepicker.datepicker.desde.form-control")
+            fecha_hasta = self.driver.find_element(By.CLASS_NAME, "general-historical__datepicker.datepicker.hasta.form-control")
+            
+            #Fecha actual y la cadena del dia anterior
+            fecha_actual = datetime.now()
+
+            #Cadena del dia anterior
+            dia_anterior = str((fecha_actual.day)- 1 ) +"/" + str(fecha_actual.month) + "/" + str(fecha_actual.year)
+
+            #Fechas de inicio y fin
+            fecha_desde.clear() 
+            fecha_desde.send_keys("01/01/2003")
+            fecha_hasta.clear()
+            fecha_hasta.send_keys(dia_anterior)
+            
+            wait = WebDriverWait(self.driver, 20)
+            #Obtener boton
+            boton = wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "general-historical__button.boton")))
+            # Desplazarse hasta el elemento
+            ActionChains(self.driver).move_to_element(boton).perform()
+            boton.click()
+            time.sleep(20)
+            
+        table = self.driver.find_element(By.CLASS_NAME, 'general-historical__table')
+
+        # Obtener el HTML de la tabla
+        table_html = table.get_attribute('outerHTML')
+
+        # Reemplazar comas por puntos en los datos
+        table_html = table_html.replace(',', '.')
+
+        # Leer la tabla HTML en un DataFrame de pandas
+        df = pd.read_html(table_html)[0]
+        print(df)
+        
 instancia = HomePage()
-instancia.dolar_blue_ccl_mep(instancia.dolar_oficial)
+instancia.dolar_blue_ccl_mep('https://www.ambito.com/contenidos/dolar-informal-historico.html')
 
 
 
