@@ -25,19 +25,6 @@ class loadXLSDataCBT:
             'CBT_Hogar',
         ]
         
-        """"
-        columnas_encabezado = [
-            'Fecha',
-            'CBA_Adulto',
-            'CBT_Adulto',
-            'CBA_Hogar',
-            'CBT_Hogar',
-            'CBA_NEA_Adulto',
-            'CBT_NEA_Adulto',
-            'CBA_NEA_Hogar',
-            'CBT_NEA_Hogar'
-        ]"""
-        
         # Crear un DataFrame con una fila de encabezados
         df_encabezado = pd.DataFrame(columns=columnas_encabezado)
         print(df_encabezado)
@@ -45,6 +32,8 @@ class loadXLSDataCBT:
         # Leer el archivo Excel y seleccionar las columnas 1, 2 y 4 desde la fila 8
         df_primeraHoja = pd.read_excel(file_path_desagregado, sheet_name=0, usecols=[0, 1, 3], skiprows=7)
         df_segundaHoja = pd.read_excel(file_path_desagregado, sheet_name=3, usecols=[2,6], skiprows=7)
+
+        
 
         # Encuentra la fila en blanco y elimina las filas posteriores
         indice_fila_en_blanco = df_primeraHoja.index[df_primeraHoja.isnull().all(axis=1)].tolist()[0]
@@ -67,7 +56,8 @@ class loadXLSDataCBT:
         print(df_estimaciones_nea)
         print("==================")
 
-
+        #Transformacion de los ultimos datos
+        
 
 
         # Cargar el archivo Excel existente
@@ -79,6 +69,14 @@ class loadXLSDataCBT:
             df_encabezado.to_excel(writer, sheet_name=sheet_name, index=False, startrow=0, startcol=0)
             df_segundaHoja.to_excel(writer, sheet_name=sheet_name, index=False, startrow=1, startcol=3)
             df_estimaciones_nea.to_excel(writer, sheet_name=sheet_name, index=False, startrow=0, startcol=5)
+
+
+    def calcular_estimaciones(self,cba,cbt,estimaciones):
+
+        cba_cbt_gba = pd.concat(cba,cbt)
+
+        #Calculo para julio que representa un cambio de periodo
+        lista_valores_periodo_anterior_cba = 
 
 
     #Objetivo: detectar si hay datos nuevos en el archivo del NEA sobre CBT y CBA

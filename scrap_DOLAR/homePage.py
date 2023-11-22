@@ -37,7 +37,10 @@ class HomePage:
 
         chromeOptions = webdriver.ChromeOptions() #--> Instancia de crhome
         prefs = {"download.default_directory" : carpeta_guardado} #--> Directorio de descarga por defecto
+
+        exe_brave = 'c:\ProgramData\Microsoft\Windows\Start Menu\Programs\brave.exe'
         chromeOptions.add_experimental_option("prefs", prefs)
+        chromeOptions.binary_location = exe_brave
         self.driver = webdriver.Chrome(options=chromeOptions)
 
         # URLs de las paginas del dolar
@@ -127,7 +130,7 @@ class HomePage:
 
 
 instancia = HomePage()
-instancia.dolar_blue_ccl_mep(instancia.url_mep)
+instancia.dolar_blue_ccl_mep(instancia.dolar_oficial)
 
 
 
