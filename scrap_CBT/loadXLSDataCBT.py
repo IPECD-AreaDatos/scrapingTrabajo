@@ -1,3 +1,9 @@
+"""
+En este script manejamos dos hojas del mismo excel,
+"primera_hoja": corresponde a los datos de CBA y CBT de ADULTOS. Es decir, por individuo.
+"segunda_hoja": corresponde a los datos de CBA y CBT de FAMILIAS. El tipo de familia es el 2, que es un grupo de 4 personas
+"""
+
 import datetime
 import time
 import os
@@ -27,11 +33,40 @@ class loadXLSDataCBT:
         
         # Crear un DataFrame con una fila de encabezados
         df_encabezado = pd.DataFrame(columns=columnas_encabezado)
-        print(df_encabezado)
         
-        # Leer el archivo Excel y seleccionar las columnas 1, 2 y 4 desde la fila 8
+        """ 
+        Leer el archivo Excel y seleccionar las columnas 1, 2 y 4 desde la fila 8
+
+        En este caso l oque hacemos es, 
+        1 - Leer datos del Excel
+        2- A leer se toman algunos valores como nombres para las columnas
+        3- Arreglamos el indice, ya que se rompe
+        4 - Sort_index() resetea el indice
+        """
+
         df_primeraHoja = pd.read_excel(file_path_desagregado, sheet_name=0, usecols=[0, 1, 3], skiprows=7)
+        valores_que_estan_como_columna = df_primeraHoja.columns.to_list()
+        df_primeraHoja.loc[-1] = valores_que_estan_como_columna
+        df_primeraHoja.index = df_primeraHoja.index + 1
+        df_primeraHoja = df_primeraHoja.sort_index()
+
+
+        df_primeraHoja.columns = ['Fecha','CBA_Adulto','CBT_Adulto']
+
+
+
+        #Datos de la primera fila
+
         df_segundaHoja = pd.read_excel(file_path_desagregado, sheet_name=3, usecols=[2,6], skiprows=7)
+        valores_que_estan_como_columna = df_segundaHoja.columns.to_list()
+        df_segundaHoja.loc[-1] = valores_que_estan_como_columna
+        df_segundaHoja.index = df_segundaHoja.index + 1
+        df_segundaHoja = df_segundaHoja.sort_index()
+
+
+        df_segundaHoja.columns = ['CBA_Hogar','CBT_Hogar']
+
+
 
         
 
@@ -45,47 +80,125 @@ class loadXLSDataCBT:
         
 
         #Estimaciones del NEA
-        df_estimaciones_nea = pd.read_excel(file_path_estimaciones_nea)
-        df_estimaciones_nea = df_estimaciones_nea.drop('Fecha',axis = 1)
+        concatenacion_df = pd.read_excel(file_path_estimaciones_nea)
+        concatenacion_df = concatenacion_df.drop('Fecha',axis = 1)
 
-        print("\n\n ======= CBA ========")
-        print(df_primeraHoja)
-        print("\n ======CBT========")
-        print(df_segundaHoja)
-        print("======CBA y CBT NEA=======")
-        print(df_estimaciones_nea)
-        print("==================")
+
 
         #Transformacion de los ultimos datos
-        
+        concatenacion_df = pd.concat([df_primeraHoja,df_segundaHoja,concatenacion_df],axis=1)
+        df_final = self.calcular_estimaciones(concatenacion_df)
 
-
+        print(df_final)
         # Cargar el archivo Excel existente
         excel_file = file_path_destino
         sheet_name = 'Hoja1'
 
         with pd.ExcelWriter(excel_file, mode='a', engine='openpyxl', if_sheet_exists='overlay') as writer:
-            df_primeraHoja.to_excel(writer, sheet_name=sheet_name, index=False, startrow=1, startcol=0)
-            df_encabezado.to_excel(writer, sheet_name=sheet_name, index=False, startrow=0, startcol=0)
-            df_segundaHoja.to_excel(writer, sheet_name=sheet_name, index=False, startrow=1, startcol=3)
-            df_estimaciones_nea.to_excel(writer, sheet_name=sheet_name, index=False, startrow=0, startcol=5)
+            df_final.to_excel(writer, sheet_name=sheet_name, index=False, startrow=0, startcol=0)
+           
 
 
-    def calcular_estimaciones(self,cba,cbt,estimaciones):
+    
 
-        cba_cbt_gba = pd.concat(cba,cbt)
+    def calcular_estimaciones(self,concatenacion_df):
+        
+        
 
-        #Calculo para julio que representa un cambio de periodo
-        lista_valores_periodo_anterior_cba = 
-
-
-    #Objetivo: detectar si hay datos nuevos en el archivo del NEA sobre CBT y CBA
-    #Recordatorio: CBA y CBT se encuentran en la hoja 5.7 del archivo 'Pobreza.xls'
-    def detectar_datos_nea(self,path_nea):
-        pass
+        concatenacion_df['Fecha'] = pd.to_datetime(concatenacion_df['Fecha'])
 
 
+        # ==== CALCULOS DEL CBA DEL NEA ==== #
+
+        #Valores para julio, donde se produce el cambio de periodo (es decir que para julio se usan datos del periodo anterior, este periodo es de 6 meses)
+        lista_valores_periodo_anterior_cba_gba = concatenacion_df['CBA_Adulto'][(concatenacion_df['Fecha'].dt.year == 2022) & (concatenacion_df['Fecha'].dt.month >= 7)]
+        lista_valores_periodo_anterior_cba_nea = concatenacion_df['cba_nea'][(concatenacion_df['Fecha'].dt.year == 2022) & (concatenacion_df['Fecha'].dt.month >= 7)]
+
+        #Suma de listados conseguidos
+        suma_cba_gba = sum(lista_valores_periodo_anterior_cba_gba)
+        suma_cba_nea = sum(lista_valores_periodo_anterior_cba_nea)
+        
+        valor_julio_cba_gba = concatenacion_df['CBA_Adulto'][(concatenacion_df['Fecha'].dt.year == 2023) & (concatenacion_df['Fecha'].dt.month == 7)] #--> Buscamos el valor de julio de CBA
+
+        valor_julio_cba_nea = (suma_cba_nea / suma_cba_gba) * valor_julio_cba_gba #--> Estimacion del cba del nea
 
 
-instancia = loadXLSDataCBT()
-instancia.readData()
+        #=== Calculos del CBA en el ultimo periodo
+
+        #Ultima fecha del dataset
+        fecha_maxima = concatenacion_df['Fecha'].max()
+        ultimo_año = fecha_maxima.year
+        mes_donde_salio_nuevo_periodo = 8 #--> Actualmente Agosto
+
+        #Conseguimos los ultimos valores oficiales correspondientes al NEA de CBA
+        lista_cba_nea = (concatenacion_df['cba_nea'][concatenacion_df['Fecha'].dt.year == ultimo_año].dropna())[-6:]
+        suma_cba_nea = sum(lista_cba_nea)
+ 
+
+        #Conseguimos los ultimos valores que le siguen a Julio y la lista de valores del ultimo periodo
+        lista_ultimos_valores_cba = list(concatenacion_df['CBA_Adulto'][(concatenacion_df['Fecha'].dt.year == ultimo_año) & (concatenacion_df['Fecha'].dt.month >= 8)]) #--> Buscamos el valor de julio de CBA
+        suma_cba_gba = sum((concatenacion_df['CBA_Adulto'][concatenacion_df['Fecha'].dt.year == ultimo_año].dropna())[:6])
+
+        lista_ultimos_valores_cba_nea = [valor_julio_cba_nea]
+
+        for i in lista_ultimos_valores_cba:
+
+            estimacion_gba = (suma_cba_nea / suma_cba_gba ) * i
+            lista_ultimos_valores_cba_nea.append(estimacion_gba)
+
+
+    #Valores para julio, donde se produce el cambio de periodo (es decir que para julio se usan datos del periodo anterior, este periodo es de 6 meses)
+        lista_valores_periodo_anterior_cbt_gba = concatenacion_df['CBT_Adulto'][(concatenacion_df['Fecha'].dt.year == 2022) & (concatenacion_df['Fecha'].dt.month >= 7)]
+        lista_valores_periodo_anterior_cbt_nea = concatenacion_df['cbt_nea'][(concatenacion_df['Fecha'].dt.year == 2022) & (concatenacion_df['Fecha'].dt.month >= 7)]
+
+        #Suma de listados conseguidos
+        suma_cbt_gba = sum(lista_valores_periodo_anterior_cbt_gba)
+        suma_cbt_nea = sum(lista_valores_periodo_anterior_cbt_nea)
+        
+        valor_julio_cbt_gba = concatenacion_df['CBT_Adulto'][(concatenacion_df['Fecha'].dt.year == 2023) & (concatenacion_df['Fecha'].dt.month == 7)] #--> Buscamos el valor de julio de CBA
+
+        valor_julio_cbt_nea = (suma_cbt_gba / suma_cbt_nea) * valor_julio_cbt_gba #--> Estimacion del cba del nea
+
+
+        #=== Calculos del CBT en el ultimo periodo
+
+        #Ultima fecha del dataset
+        fecha_maxima = concatenacion_df['Fecha'].max()
+        ultimo_año = fecha_maxima.year
+        mes_donde_salio_nuevo_periodo = 8 #--> Actualmente Agosto
+
+        #Conseguimos los ultimos valores oficiales correspondientes al NEA de CBA
+        lista_cbt_nea = (concatenacion_df['cbt_nea'][concatenacion_df['Fecha'].dt.year == ultimo_año].dropna())[-6:]
+        suma_cbt_nea = sum(lista_cbt_nea)
+ 
+
+        #Conseguimos los ultimos valores que le siguen a Julio y la lista de valores del ultimo periodo
+        lista_ultimos_valores_cbt = list(concatenacion_df['CBT_Adulto'][(concatenacion_df['Fecha'].dt.year == ultimo_año) & (concatenacion_df['Fecha'].dt.month >= 8)]) #--> Buscamos el valor de julio de CBA
+        suma_cbt_gba = sum((concatenacion_df['CBT_Adulto'][concatenacion_df['Fecha'].dt.year == ultimo_año].dropna())[:6])
+
+        lista_ultimos_valores_cbt_nea = [valor_julio_cbt_nea]
+
+        for i in lista_ultimos_valores_cbt:
+
+            estimacion_gba = (suma_cbt_nea / suma_cbt_gba ) * i
+            lista_ultimos_valores_cbt_nea.append(estimacion_gba)
+
+
+
+        tamaño_lista_cba = len(lista_ultimos_valores_cba_nea)
+
+
+        # Obtiene el índice de las últimas 4 filas
+        ultimos_indices = concatenacion_df.index[-int(tamaño_lista_cba):]
+        
+        for lugar_a_insertar,valor_cba,valor_cbt in zip(ultimos_indices,lista_ultimos_valores_cba_nea,lista_ultimos_valores_cbt_nea):
+            
+            concatenacion_df['cba_nea'].loc[lugar_a_insertar] = valor_cba
+            concatenacion_df['cbt_nea'].loc[lugar_a_insertar] = valor_cbt
+
+
+        concatenacion_df = concatenacion_df.sort_index() 
+
+        return concatenacion_df
+    
+        
