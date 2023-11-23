@@ -404,3 +404,10 @@ Create Table IPICORR(
     Var_Interanual_MinNoMetalicos float,
     Var_Interanual_Metales float
 );
+
+#Dolar
+Create Table dolar_oficial(
+	Fecha date,
+    Compra float,
+    Venta float
+);
