@@ -99,11 +99,8 @@ class connection_db:
     def enviar_correo(self):
 
 
-        #Datos de indigencia y pobreza 
-        cba_nea_año_anterior,cbt_nea_año_anterior,cba_adulto_nea, cbt_adulto_nea , familia_indigente, familia_pobre,cba_mes_anterior,cbt_mes_anterior,fecha, cba_adulto_nea_mes_anterior, cbt_adulto_nea_mes_anterior,familia_indigente_mes_anterior,familia_pobre_mes_anterior = self.persona_individual_familia()
+        cba_individuo,cbt_individuo,familia_indigente,familia_indigente_mes_anterior,familia_pobre,familia_pobre_mes_anterior,var_mensual_cba,var_mensual_cbt,var_interanual_cba,var_interanual_cbt,fecha = self.persona_individual_familia()
 
-        #Variaciones de cba y cbt 
-        var_inter_cba,var_inter_cbt,var_mensual_cba_nea,var_mensual_cbt_nea = self.variaciones(cba_nea_año_anterior,cbt_nea_año_anterior,cba_adulto_nea, cbt_adulto_nea,cba_adulto_nea_mes_anterior, cbt_adulto_nea_mes_anterior)
 
 
         
@@ -114,8 +111,8 @@ class connection_db:
 
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com']
-        email_receptores =  ['benitezeliogaston@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com']
         asunto = f'CBA Y CBT - Actualizacion - Fecha: {fecha_formato_normal}'
 
         mensaje_1 = f""" 
@@ -135,9 +132,9 @@ class connection_db:
 
         <h3> Para una persona individual, a la fecha: </h3>
 
-        <p>Se necesito <span style="font-size: 17px;"><b>${cba_adulto_nea:,.2f}</b></span> para no ser indigente.</p>
+        <p>Se necesito <span style="font-size: 17px;"><b>${cba_individuo:,.2f}</b></span> para no ser indigente.</p>
 
-        <p>Se necesito <span style="font-size: 17px;"><b>${cbt_adulto_nea:,.2f}</b></span> para no ser pobre</p>
+        <p>Se necesito <span style="font-size: 17px;"><b>${cbt_individuo:,.2f}</b></span> para no ser pobre</p>
 
         <hr>
 
@@ -155,15 +152,15 @@ class connection_db:
 
        <h3> Variaciones Interanuales: </h3>
 
-        <p>CBA tuvo una variacion interanual de: <span style="font-size: 17px;"><b>{var_inter_cba:.2f}%</b></span></p>
+        <p>CBA tuvo una variacion interanual de: <span style="font-size: 17px;"><b>{var_interanual_cba:.2f}%</b></span></p>
 
-        <p>CBT tuvo una variacion interanual de: <span style="font-size: 17px;"><b>{var_inter_cbt:.2f}%</b></span></p>
+        <p>CBT tuvo una variacion interanual de: <span style="font-size: 17px;"><b>{var_interanual_cbt:.2f}%</b></span></p>
 
 
         <h3> Variaciones Mensuales: </h3>
 
-        <p>CBA tuvo una variacion mensual de: <span style="font-size: 17px;"><b>{var_mensual_cba_nea:.2f}%</b></span></p>
-        <p>CBT tuvo una variacion mensual de: <span style="font-size: 17px;"><b>{var_mensual_cbt_nea:.2f}%</b></span></p>
+        <p>CBA tuvo una variacion mensual de: <span style="font-size: 17px;"><b>{var_mensual_cba:.2f}%</b></span></p>
+        <p>CBT tuvo una variacion mensual de: <span style="font-size: 17px;"><b>{var_mensual_cbt:.2f}%</b></span></p>
 
 
         
@@ -204,81 +201,57 @@ class connection_db:
         df_bdd = pd.read_sql(consulta,self.conn)
         df_bdd['fecha'] = pd.to_datetime(df_bdd['fecha'])
 
-        #Buscamos la fecha maxima del NEA registrado
-        no_nulos = df_bdd['CBA_nea'].dropna()
         
-        #Buscamos los indices, y agarramos el ultimo --> Este numero de fila nos interesa para obtener la ultima fecha
-        indice_ultimo_valor = no_nulos.index[-1]
-        fecha_maxima_nea = df_bdd['fecha'].iloc[indice_ultimo_valor]
-
-        #Buscamos el año de la fecha y obtenemos la lista de valores correspondiente al año
-        año = int(fecha_maxima_nea.year)
-        mes = int(fecha_maxima_nea.month)
-
-        
-
-        # // OPERABILIDAD NORMAL: 
-        lista_cba_nea = (df_bdd['CBA_nea'][df_bdd['fecha'].dt.year == año].dropna())[-6:]
-        lista_cbt_nea = (df_bdd['CBT_nea'][df_bdd['fecha'].dt.year == año].dropna())[-6:]
-            
-        lista_cba_gba = (df_bdd['CBA_Adulto'][df_bdd['fecha'].dt.year == año].dropna())[:6]
-        lista_cbt_gba =  (df_bdd['CBT_Adulto'][df_bdd['fecha'].dt.year == año].dropna())[:6]
-
-
-        ultimo_cba = df_bdd['CBA_Adulto'].iloc[-1]
-        ultimo_cbt = df_bdd['CBT_Adulto'].iloc[-1]
-
-        #Calculos para no ser indigente y no ser pobre
-        cba_adulto_nea = (sum(lista_cba_nea) / sum(lista_cba_gba)) * ultimo_cba #--> indigente
-        cbt_adulto_nea = (sum(lista_cbt_nea) / sum(lista_cbt_gba)) * ultimo_cbt #--> pobre
+        #Obtencion de datos INDIVIDUALES POR PERSONA de CBA y CBT
+        cba_individuo = df_bdd['CBA_nea'].values[-1]
+        cbt_individuo = df_bdd['CBT_nea'].values[-1]
 
         #Calculo de familia para no ser indigente y para no ser pobre
-        familia_indigente = cba_adulto_nea * 3.09
-        familia_pobre = cbt_adulto_nea * 3.09
+        familia_indigente = cba_individuo * 3.09
+        familia_pobre = cbt_individuo * 3.09
 
 
         # === DATOS DEL MES ANTERIOR DE NACION === #
-        cba_mes_anterior = df_bdd['CBA_Adulto'].iloc[-2]
-        cbt_mes_anterior = df_bdd['CBT_Adulto'].iloc[-2]
+        cba_mes_anterior = df_bdd['CBA_nea'].iloc[-2]
+        cbt_mes_anterior = df_bdd['CBT_nea'].iloc[-2]
 
-
-        """
-        PARA CAMBIO DE PERIODO
-
-        ACA SE PRODUCE UN CAMBIO DE PERIODOS: Porque algunos datos del NEA se calculan 
-        con los datos de otro periodo del NEA. Por ende es necesario crear un funcion que
-        se ejecute SOLO UNA VEZ que es cuando se produce la actualizacion de datos del nea
-
-        OPERABILIDAD DE CAMBIO DE PERIODO:
-        Tomamos los 6 valores anteriores al ultimo periodo del nea. 
-
-        ¿Como usar?
-        Descomentar las 4 lineas de codigos que siguen, y ejecutar el script "main.py" normalmente.
-
-        """
-
-       
-        lista_cba_nea = (df_bdd['CBA_nea'][df_bdd['fecha'].dt.year == año - 1].dropna())[-6:]
-        lista_cbt_nea = (df_bdd['CBT_nea'][df_bdd['fecha'].dt.year == año - 1].dropna())[-6:]
-
-        lista_cba_gba = (df_bdd['CBA_Adulto'][df_bdd['fecha'].dt.year == año -1].dropna())[-6:]
-        lista_cbt_gba =  (df_bdd['CBT_Adulto'][df_bdd['fecha'].dt.year == año -1].dropna())[-6:]
-
-
-
-        print(f"LISTA CBA: {lista_cba_nea}  || CBT: {lista_cbt_nea} DEL AÑO ANTEIROR \n  Valor CBA mes anterior {cba_mes_anterior} {cbt_mes_anterior}")
-
-
-
-        cba_adulto_nea_mes_anterior = (sum(lista_cba_nea) / sum(lista_cba_gba)) * cba_mes_anterior #--> indigente
-        cbt_adulto_nea_mes_anterior =  (sum(lista_cbt_nea) / sum(lista_cbt_gba)) * cbt_mes_anterior #--> pobre
 
         #Calculo de familia para no ser indigente y para no ser pobre
-        familia_indigente_mes_anterior = cba_adulto_nea_mes_anterior * 3.09
-        familia_pobre_mes_anterior = cbt_adulto_nea_mes_anterior * 3.09
+        familia_indigente_mes_anterior = cba_mes_anterior * 3.09
+        familia_pobre_mes_anterior = cbt_mes_anterior * 3.09
 
-        print(f"FAMILIA INDIGENTE: {familia_indigente_mes_anterior}")
-        print(f"FAMILIA POBRE: {familia_pobre_mes_anterior}")
+
+
+
+        # ==== VARIACIONES ==== #
+
+        #=== Variaciones Mensuales
+        var_mensual_cba = ((cba_individuo / cba_mes_anterior) - 1) * 100  #--> indigente
+        var_mensual_cbt =  ((cbt_individuo / cbt_mes_anterior) -1) * 100 #--> pobre
+
+        #=== Variaciones Intearanual
+        ultima_fecha = df_bdd['fecha'].max()
+        año_anterior = ultima_fecha.year - 1
+        mes= ultima_fecha.month
+
+        valor_dic_año_anterior_cba = df_bdd['CBA_nea'][ (df_bdd['fecha'].dt.year == año_anterior) & (df_bdd['fecha'].dt.month == mes) ].values[0]
+        valor_dic_año_anterior_cbt = df_bdd['CBT_nea'][ (df_bdd['fecha'].dt.year == año_anterior) & (df_bdd['fecha'].dt.month == mes) ].values[0]
+
+        var_interanual_cba = ((cba_individuo /  valor_dic_año_anterior_cba) - 1) * 100
+        var_interanual_cbt = ((cbt_individuo / valor_dic_año_anterior_cbt) - 1) * 100
+
+        print(f"""
+        
+        *CBT Individuo: {cba_individuo}
+        *CBA Individuo: {cbt_individuo}
+        *Familia Indigente: {familia_indigente} - Mes anterior: {familia_indigente_mes_anterior}
+        *Familia Pobre: {familia_pobre} - Mes anterior: {familia_pobre_mes_anterior}
+        *Var. Mensual CBA: {var_mensual_cba}
+        *Var. Mensual CBT: {var_mensual_cbt}
+        *Var. Interanual CBA: {var_interanual_cba}
+        *Var. Interanual CBT: {var_interanual_cbt}
+        """)
+
 
         # === DATOS DEL AÑO ANTERIOR NEA === #
 
@@ -290,36 +263,8 @@ class connection_db:
         
         fecha = max(df_bdd['fecha'])
 
-        return cba_nea_año_anterior,cbt_nea_año_anterior,cba_adulto_nea, cbt_adulto_nea , familia_indigente, familia_pobre,cba_mes_anterior,cbt_mes_anterior, fecha, cba_adulto_nea_mes_anterior, cbt_adulto_nea_mes_anterior,familia_indigente_mes_anterior,familia_pobre_mes_anterior
-
-    def variaciones(self,cba_nea_año_anterior,cbt_nea_año_anterior,indigente, pobre, cba_adulto_nea_mes_anterior, cbt_adulto_nea_mes_anterior):
-
-        #Construccion de consulta y obtencion del dataframe
-        nombre_tabla = 'canasta_basica'
-        consulta = f'SELECT * FROM {nombre_tabla}'
-        df_bdd = pd.read_sql(consulta,self.conn)
-        df_bdd['fecha'] = pd.to_datetime(df_bdd['fecha'])
-
-        #Ultima fecha
-        fecha_max = max(df_bdd['fecha'])
-        ano = fecha_max.year
-        mes = fecha_max.month
+        return cba_individuo,cbt_individuo,familia_indigente,familia_indigente_mes_anterior,familia_pobre,familia_pobre_mes_anterior,var_mensual_cba,var_mensual_cbt,var_interanual_cba,var_interanual_cbt,ultima_fecha
     
-
-
-        # === Variacion INTERANUAL DE CBA DEL NEA
-
-        var_inter_cba_nea = ((indigente / cba_nea_año_anterior)-1) * 100
-        var_inter_cbt_nea = (( pobre / cbt_nea_año_anterior ) - 1) * 100
-
-
-        # === Varaciones mensuales de CBA del NEA
-        var_mes_cba_nea = ((indigente / cba_adulto_nea_mes_anterior)-1) * 100
-        var_mes_cbt_nea = (( pobre / cbt_adulto_nea_mes_anterior ) - 1) * 100
-    
-        return var_inter_cba_nea,var_inter_cbt_nea, var_mes_cba_nea,var_mes_cbt_nea
-    
-
     def obtener_ultimafecha_actual(self,fecha_ultimo_registro):
 
         # Obtener el nombre del mes actual en inglés
@@ -348,8 +293,8 @@ class connection_db:
 
 
 
-
-"""host = '172.17.16.157'
+"""
+host = '172.17.22.23'
 user = 'team-datos'
 password = 'HCj_BmbCtTuCv5}'
 database = 'ipecd_economico'
@@ -357,6 +302,4 @@ database = 'ipecd_economico'
 instancia = connection_db(host,user,password,database)
 instancia.conectar_bdd()
 instancia.persona_individual_familia()
-instancia.variaciones()
-
 """
