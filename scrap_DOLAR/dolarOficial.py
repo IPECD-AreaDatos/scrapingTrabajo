@@ -20,6 +20,14 @@ nuevos_datos = []
 
 class dolarOficial:
     
+    def __init__(self,host,user,database,password):
+        
+        self.host = host
+        self.user = user
+        self.database = database
+        self.password = password
+        
+        
     def descargaArchivo(self):
         # Obtener la ruta de la carpeta de guardado
         carpeta_guardado = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'files')
@@ -94,11 +102,17 @@ class dolarOficial:
         # Espera un tiempo suficiente para que la descarga se complete
         time.sleep(10)
         
-    def lecturaDolarOficial(self, host, user, database, password):
+    def lecturaDolarOficial(self):
+        
         conn = mysql.connector.connect(
-            host='172.17.22.23', user='team-datos', password='HCj_BmbCtTuCv5}', database='ipecd_economico'
+            host=self.host, user=self.user, password=self.password, database= self.database
         )
+        
+        print(conn)
+        exit()
         cursor= conn.cursor()
+        
+        
         table_name= 'dolar_oficial'
         directorio_actual= os.path.dirname(os.path.abspath(__file__))
         ruta_carpeta_files = os.path.join(directorio_actual, 'files')
