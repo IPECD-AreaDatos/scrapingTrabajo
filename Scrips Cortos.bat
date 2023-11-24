@@ -12,6 +12,14 @@ echo Termino RIPTE
 echo ------------------------------------
 
 echo ------------------------------------
+echo DOLAR
+echo ------------------------------------
+python C:\Users\Usuario\Desktop\scrapingTrabajo\scrap_DOLAR\main.py
+echo ------------------------------------
+echo Termino EMAE
+echo ------------------------------------
+
+echo ------------------------------------
 echo EMAE
 echo ------------------------------------
 python C:\Users\Usuario\Desktop\scrapingTrabajo\scrap_EMAE\main.py
@@ -44,6 +52,13 @@ echo ------------------------------------
 echo Termino SALARIO MINIMO VITAL Y MOVIL
 echo ------------------------------------
 
+echo ------------------------------------
+echo DOLAR
+echo ------------------------------------
+python C:\Users\Usuario\Desktop\scrapingTrabajo\scrap_DOLAR\main.py
+echo ------------------------------------
+echo Termino EMAE
+echo ------------------------------------
 
 echo ------------------------------------
 echo CANASTA BASICA Y CANASTA TOTAL
