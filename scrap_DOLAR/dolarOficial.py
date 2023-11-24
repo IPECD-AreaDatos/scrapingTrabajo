@@ -115,7 +115,7 @@ class dolarOficial:
         print(df)
         
         longitud_datos_excel = len(df)
-        print("privado: ", longitud_datos_excel)
+        print("Longitud Datos Dolar Oficial: ", longitud_datos_excel)
         
         select_row_count_query = "SELECT COUNT(*) FROM dolar_oficial"
         cursor.execute(select_row_count_query)

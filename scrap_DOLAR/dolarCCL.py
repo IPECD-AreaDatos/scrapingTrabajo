@@ -13,15 +13,15 @@ import mysql.connector
 
 nuevos_datos = []
 
-class dolarBlue:
-    def tomaDolarBlue(self):
-        self.url_blue = 'https://www.ambito.com/contenidos/dolar-informal-historico.html'
+class dolarCCL:
+    def tomaDolarCCL(self):
+        self.url_ccl = 'https://www.ambito.com/contenidos/dolar-cl-historico.html'
         self.driver = webdriver.Chrome()  # Reemplaza con la ubicación de tu ChromeDriver
         self.driver.maximize_window()
         
         # Desactivar advertencias de solicitud no segura
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-        self.driver.get(self.url_blue)
+        self.driver.get(self.url_ccl)
         time.sleep(10)
         
         wait = WebDriverWait(self.driver, 30)
@@ -79,7 +79,7 @@ class dolarBlue:
             )
             cursor = conn.cursor()
             
-            table_name = 'dolar_blue'
+            table_name = 'dolar_ccl'
             
             longitud_datos_excel = len(df)
             print("Longitud Datos Dolar Blue: ", longitud_datos_excel)
@@ -92,7 +92,7 @@ class dolarBlue:
             if longitud_datos_excel != filas_BD:
                 df_datos_nuevos = df.tail(longitud_datos_excel - filas_BD)
 
-                print("Dolar Oficial")
+                print("Dolar CCL")
                 insert_query = f"INSERT INTO {table_name} VALUES ({', '.join(['%s' for _ in range(len(df.columns))])})"
 
                 for index, row in df_datos_nuevos.iterrows():
@@ -112,8 +112,3 @@ class dolarBlue:
             if 'conn' in locals() and conn.is_connected():
                 cursor.close()
                 conn.close()
-
-        # Uso
-        
-        self.url_mep = 'https://www.ambito.com/contenidos/dolar-mep-historico.html'
-        self.url_ccl = 'https://www.ambito.com/contenidos/dolar-cl-historico.html'

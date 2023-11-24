@@ -416,3 +416,11 @@ Create Table dolar_blue(
     Compra float,
     Venta float
 );
+Create Table dolar_ccl(
+	Fecha date,
+    Referencia float
+);
+Create Table dolar_mep(
+	Fecha date,
+    Referencia float
+    );
