@@ -5,7 +5,7 @@ import pandas as pd
 from cargaIndice import cargaIndice
 
 #Datos de la base de datos
-host = '172.17.16.157'
+host = '172.17.22.23'
 user = 'team-datos'
 password = 'HCj_BmbCtTuCv5}'
 database = 'ipecd_economico'
