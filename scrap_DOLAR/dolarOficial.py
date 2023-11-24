@@ -76,7 +76,7 @@ class dolarOficial:
         fecha_actual = datetime.now()
 
         #Cadena del dia anterior
-        dia_anterior = str((fecha_actual.day)- 1 ) +"/" + str(fecha_actual.month) + "/" + str(fecha_actual.year)
+        dia_anterior = str((fecha_actual.day)) +"/" + str(fecha_actual.month) + "/" + str(fecha_actual.year)
 
         #Fechas de inicio y fin
         fecha_desde.send_keys("01/01/2003")

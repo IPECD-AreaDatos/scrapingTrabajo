@@ -411,3 +411,8 @@ Create Table dolar_oficial(
     Compra float,
     Venta float
 );
+Create Table dolar_blue(
+	Fecha date,
+    Compra float,
+    Venta float
+);
