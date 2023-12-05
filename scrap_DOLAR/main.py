@@ -19,24 +19,11 @@ from dolarBlue import dolarBlue
 from dolarMEP import dolarMEP
 from dolarCCL import dolarCCL
 
-
-
 credenciales = Credenciales()
 
-print(credenciales.host,credenciales.user,credenciales.password,credenciales.database)
-
-host = str(credenciales.host)
-user = str(credenciales.user)
-password = str(credenciales.password)
-database = str(credenciales.database)
-
-
 if __name__ == '__main__': 
-    
-    instancia_dolar = dolarOficial(credenciales.host,credenciales.user,credenciales.password,credenciales.database)
-    instancia_dolar.descargaArchivo()
-    instancia_dolar.lecturaDolarOficial()
-    #dolarBlue().tomaDolarBlue()
-    #dolarMEP().tomaDolarMEP()
-    #dolarCCL().tomaDolarCCL()
-    
+    dolarOficial().descargaArchivo()
+    dolarOficial().lecturaDolarOficial(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    dolarBlue().tomaDolarBlue()
+    dolarMEP().tomaDolarMEP()
+    dolarCCL().tomaDolarCCL()

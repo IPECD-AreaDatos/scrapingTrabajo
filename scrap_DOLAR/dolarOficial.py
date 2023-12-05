@@ -19,14 +19,6 @@ import shutil
 nuevos_datos = []
 
 class dolarOficial:
-    
-    def __init__(self,host,user,database,password):
-        
-        self.host = host
-        self.user = user
-        self.database = database
-        self.password = password
-        
         
     def descargaArchivo(self):
         # Obtener la ruta de la carpeta de guardado
@@ -102,14 +94,12 @@ class dolarOficial:
         # Espera un tiempo suficiente para que la descarga se complete
         time.sleep(10)
         
-    def lecturaDolarOficial(self):
+    def lecturaDolarOficial(self, host, user, database, password):
         
         conn = mysql.connector.connect(
-            host=self.host, user=self.user, password=self.password, database= self.database
+            host='172.17.22.23', user='team-datos', password='HCj_BmbCtTuCv5}', database='ipecd_economico'
         )
         
-        print(conn)
-        exit()
         cursor= conn.cursor()
         
         
