@@ -88,11 +88,13 @@ class HomePage_IPI:
 
 
         #Nombre de columnas
-        nombre_cols = ['fecha','var_IPI','var_interanual_alimentos','var_interanual_textil','var_interanual_maderas','var_interanual_sustancias','var_interanual_MinNoMetalicos','var_interanual_metales']
+        nombre_cols = ['var_IPI','var_interanual_alimentos','var_interanual_textil','var_interanual_maderas','var_interanual_sustancias','var_interanual_MinNoMetalicos','var_interanual_metales']
 
         # Crear el dataframe - especificamos, HOJA - QUE COLUMNAS USAMOS - LOS NOMBRES DE LAS COLUMNAS -LA FILA DONDE ARRANCA
-        self.df = pd.read_excel(path_guardado,sheet_name='Cuadro 3',usecols='C,D,E,V,AE,AO,BB,BM',names=nombre_cols,skiprows=16)
+        self.df = pd.read_excel(path_guardado,sheet_name='Cuadro 3',usecols='D,E,V,AE,AO,BB,BM',names=nombre_cols,skiprows=16)
         self.df = self.df.dropna()
+
+        self.df = self.df / 100
 
         #Generador de fechas
         fecha_inicio = date(2017, 1,1)

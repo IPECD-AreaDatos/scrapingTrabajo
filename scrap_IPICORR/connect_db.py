@@ -26,16 +26,19 @@ class connect_db:
 
         if filas_BD != len(df):
             df_datos_nuevos = df.tail(longitud_df - filas_BD)
+
+
+
             print(df_datos_nuevos)
             print("Tabla de IPICORR")
             for index, row in df_datos_nuevos.iterrows():
                 #Datos
-                var_interanual_ipicorr = float(row['Var_Interanual_IPICORR'].replace(',', '').replace('%', '')) / 10
-                var_interanual_alimentos = float(row['Var_Interanual_Alimentos'].replace(',', '').replace('%', '')) / 10
-                var_interanual_textil = float(row['Var_Interanual_Textil'].replace(',', '').replace('%', '')) / 10
-                var_interanual_maderas = float(row['Var_Interanual_Maderas'].replace(',', '').replace('%', '')) / 10
-                var_interanual_minnoMetalicos = float(row['Var_Interanual_MinNoMetalicos'].replace(',', '').replace('%', '')) / 10
-                var_interanual_metales = float(row['Var_Interanual_Metales'].replace(',', '').replace('%', '')) / 10
+                var_interanual_ipicorr =(float(row['Var_Interanual_IPICORR'].replace(',', '').replace('%', '')) / 10) / 100
+                var_interanual_alimentos = (float(row['Var_Interanual_Alimentos'].replace(',', '').replace('%', '')) / 10) / 100
+                var_interanual_textil = (float(row['Var_Interanual_Textil'].replace(',', '').replace('%', '')) / 10) / 100
+                var_interanual_maderas = (float(row['Var_Interanual_Maderas'].replace(',', '').replace('%', '')) / 10) / 100
+                var_interanual_minnoMetalicos = (float(row['Var_Interanual_MinNoMetalicos'].replace(',', '').replace('%', '')) / 10) / 100
+                var_interanual_metales = (float(row['Var_Interanual_Metales'].replace(',', '').replace('%', '')) / 10) / 100
 
                 # Luego, puedes usar estos valores en tu consulta SQL
                 sql_insert = f"INSERT INTO {table_name} (Fecha, var_interanual_ipicorr, var_interanual_alimentos, var_interanual_textil, var_interanual_maderas, var_interanual_minnoMetalicos, var_interanual_metales) VALUES ('{row['Fecha']}', {var_interanual_ipicorr}, {var_interanual_alimentos}, {var_interanual_textil}, {var_interanual_maderas}, {var_interanual_minnoMetalicos}, {var_interanual_metales})"
