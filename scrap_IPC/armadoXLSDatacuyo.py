@@ -13,8 +13,14 @@ class LoadXLSDataCuyo:
             workbook = xlrd.open_workbook(file_path)
             sheet = workbook.sheet_by_index(2)  # Hoja 3 (índice 2)
 
+            target_value="Región Cuyo"
+            
+            filasFecha= buscar_fila_por_valor(sheet, target_value)
+            
+            print("Numero de fila", filasFecha)
+            
             # Definir el índice de la fila objetivo
-            target_row_index = 203 # El índice de la fila que deseas obtener (por ejemplo, línea 3)
+            target_row_index = filasFecha # El índice de la fila que deseas obtener (por ejemplo, línea 3)
 
             #FILA INICIAL
 
@@ -715,3 +721,17 @@ class LoadXLSDataCuyo:
             # Manejar cualquier excepción ocurrida durante la carga de datos
             print(f"Data Cuyo: Ocurrió un error durante la carga de datos: {str(e)}")
 
+def buscar_fila_por_valor(sheet, target_value):
+    # Iterar sobre las filas de la hoja de trabajo
+    for i in range(sheet.nrows):
+        # Iterar sobre las celdas de la fila actual
+        for j in range(sheet.ncols):
+            # Obtener el valor de la celda actual
+            cell_value = sheet.cell_value(i, j)
+            
+            # Verificar si el valor objetivo está presente en la celda
+            if target_value == cell_value:
+                return i # Devolver el número de fila (se suma 1 porque los índices comienzan desde 0)
+
+    # Si no se encuentra el valor en ninguna celda, devolver None
+    return None

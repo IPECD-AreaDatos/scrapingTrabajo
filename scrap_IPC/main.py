@@ -1,4 +1,3 @@
-#from homePage import HomePage
 # Agrega la ruta del folder que contiene los módulos al sistema de rutas de Python
 from armadoXLSdataGBA import LoadXLSDataGBA
 from armadoXLSDataPampeana import LoadXLSDataPampeana
