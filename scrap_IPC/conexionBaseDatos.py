@@ -39,86 +39,83 @@ class conexionBaseDatos:
 
     def cargaBaseDatos(self):
         
-        #try:
-
-            print("\n****************************************************")
-            print("************* Inicio de la sección IPC *************")
-            print("\n****************************************************")
-            
-            self.conectar_bdd()
-            df = pd.DataFrame()        
-            df['fecha'] = self.lista_fechas
-            df['region'] = self.lista_region
-            df['categoria'] = self.lista_categoria
-            df['division']= self.lista_division
-            df['subdivision']= self.lista_subdivision
-            df['valor'] = self.lista_valores
-            
-            
-           # Sentencia SQL para comprobar si la fecha ya existe en la tabla
-            select_query = "SELECT COUNT(*) FROM ipc_region WHERE Fecha = %s AND ID_Region = %s AND ID_Categoria = %s AND ID_Division = %s AND ID_Categoria = %s"
-
-            # Sentencia SQL para insertar los datos en la tabla
-            insert_query = "INSERT INTO ipc_region (Fecha, ID_Region, ID_Categoria, ID_Division, ID_Subdivision, Valor) VALUES (%s, %s, %s, %s, %s, %s)"
-
-            #Verificar cantidad de filas anteriores 
-            select_row_count_query = "SELECT COUNT(*) FROM ipc_region"
-            self.cursor.execute(select_row_count_query)
 
 
-            #Version anterior
-            row_count_before = self.cursor.fetchone()[0]
+        print("\n****************************************************")
+        print("************* Inicio de la sección IPC *************")
+        print("\n****************************************************")
+        
+        self.conectar_bdd()
+        df = pd.DataFrame()        
+        df['fecha'] = self.lista_fechas
+        df['region'] = self.lista_region
+        df['categoria'] = self.lista_categoria
+        df['division']= self.lista_division
+        df['subdivision']= self.lista_subdivision
+        df['valor'] = self.lista_valores
 
-            #Version nueva
-            cant_valores = len(df.values)
+        
+        
+        # Sentencia SQL para comprobar si la fecha ya existe en la tabla
+        select_query = "SELECT COUNT(*) FROM ipc_region WHERE Fecha = %s AND ID_Region = %s AND ID_Categoria = %s AND ID_Division = %s AND ID_Categoria = %s"
 
-            delete_query ="TRUNCATE TABLE `ipecd_economico`.`ipc_region`"
-            self.cursor.execute(delete_query)
+        # Sentencia SQL para insertar los datos en la tabla
+        insert_query = "INSERT INTO ipc_region (Fecha, ID_Region, ID_Categoria, ID_Division, ID_Subdivision, Valor) VALUES (%s, %s, %s, %s, %s, %s)"
 
-            print("DATAFRAME  \n\n")
-            #for valor in df.iterrows():
-
-                #print(valor)
-            print("============")
-
-            #exit()
-
-
-            for fecha, region, categoria, division, subdivision, valor in zip(self.lista_fechas, self.lista_region, self.lista_categoria, self.lista_division, self.lista_subdivision, self.lista_valores):
-
-
-                # Convertir la fecha en formato datetime si es necesario
-                if isinstance(fecha, str):
-                    fecha = datetime.strptime(fecha, '%Y-%m-%d').date()
-
-                self.cursor.execute(insert_query, (fecha, region, categoria, division, subdivision, valor))
-                #print("Leyendo el valor de IPC: ", valor)
-
-            
-            # Confirmar los cambios en la base de datos
-            self.conn.commit()
-            # Cerrar el cursor y la conexión
-            self.cursor.close()
-            self.conn.close()
-
-            #CARGA DE LOS DATOS DE ID NACION
-            LoadXLSDataNacion().loadInDataBase(self.host, self.user, self.password, self.database)
+        #Verificar cantidad de filas anteriores 
+        select_row_count_query = "SELECT COUNT(*) FROM ipc_region"
+        self.cursor.execute(select_row_count_query)
 
 
+        #Version anterior
+        row_count_before = self.cursor.fetchone()[0]
 
-            self.conectar_bdd()
-            self.verificar_cantidad(row_count_before)
+        #Version nueva
+        cant_valores = len(df.values)
+
+        delete_query ="TRUNCATE TABLE `ipecd_economico`.`ipc_region`"
+        self.cursor.execute(delete_query)
+
+        print("DATAFRAME  \n\n")
+        #for valor in df.iterrows():
+
+            #print(valor)
+        print("============")
+
+        #exit()
 
 
-            # Cerrar el cursor y la conexión
-            self.cursor.close()
-            self.conn.close()
+        for fecha, region, categoria, division, subdivision, valor in zip(self.lista_fechas, self.lista_region, self.lista_categoria, self.lista_division, self.lista_subdivision, self.lista_valores):
 
-            
-            
-        #except Exception as e:
-            
-        #    print("EL ERROR ES: ",e)   
+
+            # Convertir la fecha en formato datetime si es necesario
+            if isinstance(fecha, str):
+                fecha = datetime.strptime(fecha, '%Y-%m-%d').date()
+
+            self.cursor.execute(insert_query, (fecha, region, categoria, division, subdivision, valor))
+            #print("Leyendo el valor de IPC: ", valor)
+
+        
+        # Confirmar los cambios en la base de datos
+        self.conn.commit()
+        # Cerrar el cursor y la conexión
+        self.cursor.close()
+        self.conn.close()
+
+        #CARGA DE LOS DATOS DE ID NACION
+        LoadXLSDataNacion().loadInDataBase(self.host, self.user, self.password, self.database)
+
+
+
+        self.conectar_bdd()
+        self.verificar_cantidad(row_count_before)
+
+
+        # Cerrar el cursor y la conexión
+        self.cursor.close()
+        self.conn.close()
+
+        
 
 
     def enviar_correo(self):

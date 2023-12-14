@@ -14,7 +14,7 @@ class LoadXLSDataCuyo:
             sheet = workbook.sheet_by_index(2)  # Hoja 3 (índice 2)
 
             # Definir el índice de la fila objetivo
-            target_row_index = 199  # El índice de la fila que deseas obtener (por ejemplo, línea 3)
+            target_row_index = 203 # El índice de la fila que deseas obtener (por ejemplo, línea 3)
 
             #FILA INICIAL
 

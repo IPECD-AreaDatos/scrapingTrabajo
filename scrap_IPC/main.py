@@ -10,6 +10,7 @@ from conexionBaseDatos import conexionBaseDatos
 from armadoXLSProductos import LoadXLSDataProductos
 import os
 import sys
+from homePage import HomePage
 
 
 # Obtener la ruta al directorio actual del script
@@ -39,8 +40,8 @@ valor_region = 2
 
 if __name__ == '__main__':
     #Descargar EXCEL - Tambien almacenamos las rutas que usaremos
-    #home_page = HomePage()
-    #home_page.descargar_archivo()
+    home_page = HomePage()
+    home_page.descargar_archivo()
     
     #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ CARGA DE IPC DESAGREGADO ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
     directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
@@ -58,7 +59,7 @@ if __name__ == '__main__':
       print("Valor region: ", valor_region)
       regiones().loadInDataBase(file_path_desagregado, valor_region, lista_fechas, lista_region,  lista_categoria, lista_division, lista_subdivision, lista_valores)
       valor_region = valor_region + 1
-    
+
     instancia = conexionBaseDatos(lista_fechas,
                                   lista_region,
                                   lista_categoria,

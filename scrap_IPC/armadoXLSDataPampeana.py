@@ -17,7 +17,7 @@ class LoadXLSDataPampeana:
             sheet = workbook.sheet_by_index(2)  # Hoja 3 (índice 2)
 
             # Definir el índice de la fila objetivo
-            target_row_index = 55  # El índice de la fila que deseas obtener (por ejemplo, línea 3)
+            target_row_index = 56  # El índice de la fila que deseas obtener (por ejemplo, línea 3)
 
             # Obtener los valores de la fila completa a partir de la segunda columna (columna B)
             target_row_values = sheet.row_values(target_row_index, start_colx=1)  # start_colx=1 indica que se inicia desde la columna B
