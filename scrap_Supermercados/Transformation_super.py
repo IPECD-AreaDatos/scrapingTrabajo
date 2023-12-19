@@ -26,13 +26,12 @@ class Transformation_Data:
         df_aux = pd.read_excel(path_archivo,sheet_name=5,skiprows=5, usecols='C',names=nombre_columna)
 
         tamaño_secciones = self.construccion_lista_meses(df_aux['fecha'])
-        print(tamaño_secciones)
 
         nombre_columnas = ['bebidas','almacen','panaderia','lacteos','carnes','verduleria_fruteria','alimentos_preparados_rostiseria',
                           'articulo_limpieza_perfumeria','indumentaria_calzado_textiles_hogar','electronica_hogar','otros']
         df = pd.read_excel(path_archivo,sheet_name=5,skiprows=5, usecols='e,f,g,h,i,j,k,l,m,n,o',names=nombre_columnas, nrows=tamaño_secciones)  
 
-        print(df)
+        self.concatenar_dataframes(tamaño_secciones,path_archivo)
    
 
     #Construimos una lista con todos los meses de la primera seccion
@@ -65,5 +64,22 @@ class Transformation_Data:
         path_archivo = directorio_actual + nombre_archivo
         return path_archivo
 
+    def concatenar_dataframes(self,tamaño_secciones,path_archivo):
+        
+        var_aux = 7
+        nombre_columnas = ['bebidas','almacen','panaderia','lacteos','carnes','verduleria_fruteria','alimentos_preparados_rostiseria',
+                            'articulo_limpieza_perfumeria','indumentaria_calzado_textiles_hogar','electronica_hogar','otros']
+        
+        print("=========================")
+        df = pd.read_excel(path_archivo,sheet_name=5,skiprows= tamaño_secciones + 7 , usecols='e,f,g,h,i,j,k,l,m,n,o',names=nombre_columnas, nrows=tamaño_secciones)  
+        print(df)
+        print("=================================")
+
+        for iteracacion in range(2,25):
+
+            print("=========================")
+            df = pd.read_excel(path_archivo,sheet_name=5,skiprows= tamaño_secciones * iteracacion + (var_aux + (2 * (iteracacion - 1))), usecols='e,f,g,h,i,j,k,l,m,n,o',names=nombre_columnas, nrows=tamaño_secciones)  
+            print(df)
+            print("=================================")
 
 Transformation_Data().contruccion_df()
