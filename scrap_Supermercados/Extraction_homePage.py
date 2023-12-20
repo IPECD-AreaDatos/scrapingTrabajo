@@ -54,4 +54,3 @@ class HomePage:
         with open(ruta_guardado_1, 'wb') as file:
             file.write(response_1.content)
 
-
