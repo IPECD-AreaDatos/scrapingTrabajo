@@ -44,7 +44,7 @@ class HomePage:
         url_archivo_super = archivo_Super.get_attribute('href')
 
         # Nombre del primer archivo
-        nombre_archivo_super = 'encuesta_supermercado.xlsx'
+        nombre_archivo_super = 'encuesta_supermercado.xls'
 
         # Descargar el primer archivo
         response_1 = requests.get(url_archivo_super, verify=False)
@@ -53,4 +53,6 @@ class HomePage:
         ruta_guardado_1 = os.path.join(carpeta_guardado, nombre_archivo_super)
         with open(ruta_guardado_1, 'wb') as file:
             file.write(response_1.content)
+
+
 

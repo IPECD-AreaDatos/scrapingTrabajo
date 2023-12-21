@@ -25,10 +25,11 @@ class Transformation_Data:
 
         tamaño_secciones = self.construccion_lista_meses(df_aux['fecha']) #--> Obtenemos el tamaño que es la misma para cada pronvicia
 
-        nombre_columnas = ['bebidas','almacen','panaderia','lacteos','carnes','verduleria_fruteria','alimentos_preparados_rostiseria',
-                          'articulo_limpieza_perfumeria','indumentaria_calzado_textiles_hogar','electronica_hogar','otros']
+        nombre_columnas = ['provincia','fecha','bebidas','almacen','panaderia','lacteos','carnes','verduleria_fruteria','alimentos_preparados_rostiseria',
+                'articulo_limpieza_perfumeria','indumentaria_calzado_textiles_hogar','electronica_hogar','otros']
         
-        self.construccion_datframes(tamaño_secciones,path_archivo,nombre_columna)
+        return self.construccion_datframes(tamaño_secciones,path_archivo,nombre_columnas)
+        
 
     #Construimos una lista con todos los meses de la primera seccion
     def construccion_lista_meses(self,lista_fechas):
@@ -57,24 +58,6 @@ class Transformation_Data:
         path_archivo = directorio_actual + nombre_archivo
         return path_archivo
 
-    def concatenar_dataframes(self,tamaño_secciones,path_archivo):
-        
-        var_aux = 7
-        nombre_columnas = ['bebidas','almacen','panaderia','lacteos','carnes','verduleria_fruteria','alimentos_preparados_rostiseria',
-                            'articulo_limpieza_perfumeria','indumentaria_calzado_textiles_hogar','electronica_hogar','otros']
-        
-        print("=========================")
-        df = pd.read_excel(path_archivo,sheet_name=5,skiprows= tamaño_secciones + 7 , usecols='e,f,g,h,i,j,k,l,m,n,o',names=nombre_columnas, nrows=tamaño_secciones)  
-        print(df)
-        print("=================================")
-
-        for iteracacion in range(2,25):
-
-            print("=========================")
-            df = pd.read_excel(path_archivo,sheet_name=5,skiprows= tamaño_secciones * iteracacion + (var_aux + (2 * (iteracacion - 1))), usecols='e,f,g,h,i,j,k,l,m,n,o',names=nombre_columnas, nrows=tamaño_secciones)  
-            print(df)
-            print("=================================")
-
 
     def construccion_datframes(self,tamaño_secciones,path_archivo,nombres_columnas):
         
@@ -88,15 +71,12 @@ class Transformation_Data:
         """
         
         # ==== PASO 1 - Construccion del dataframe GENERAl
-        nombre_columnas = ['provincia','fecha','bebidas','almacen','panaderia','lacteos','carnes','verduleria_fruteria','alimentos_preparados_rostiseria',
-                'articulo_limpieza_perfumeria','indumentaria_calzado_textiles_hogar','electronica_hogar','otros']
-
-        df = pd.read_excel(path_archivo,sheet_name=5,skiprows= 4,usecols='a,c,e,f,g,h,i,j,k,l,m,n,o',names=nombre_columnas)
+        df = pd.read_excel(path_archivo,sheet_name=5,skiprows= 4,usecols='a,c,e,f,g,h,i,j,k,l,m,n,o',names=nombres_columnas)
 
         # ===# PASO 2 - Recorrido del dataframe
 
         #Dataframe que contendra todos los datos
-        df_provincias = pd.DataFrame(columns = nombre_columnas)
+        df_provincias = pd.DataFrame(columns = nombres_columnas)
         
         #La lista esta compuesta por (Nombre de pronvicia, numero de ID de la BDD)
         lista_provincias = [
@@ -149,9 +129,21 @@ class Transformation_Data:
             df_por_provincia['fecha'] = lista_fechas
 
             df_provincias = pd.concat([df_provincias,df_por_provincia])
-        
 
-        print(df_provincias)
-        
 
-Transformation_Data().contruccion_df()
+        
+        #Cambios algunos tipos de datos por omisiones de datos
+        df_provincias['alimentos_preparados_rostiseria'] = df_provincias['alimentos_preparados_rostiseria'].replace('s',None)
+        df_provincias['indumentaria_calzado_textiles_hogar'] = df_provincias['indumentaria_calzado_textiles_hogar'].replace('s',None)
+        df_provincias['electronica_hogar'] = df_provincias['electronica_hogar'].replace('s',None)
+
+        df_provincias['alimentos_preparados_rostiseria'] = df_provincias['alimentos_preparados_rostiseria'].apply(lambda x: float(x) if pd.notnull(x) else None)
+        df_provincias['indumentaria_calzado_textiles_hogar'] = df_provincias['indumentaria_calzado_textiles_hogar'].apply(lambda x: float(x) if pd.notnull(x) else None)
+        df_provincias['electronica_hogar'] = df_provincias['electronica_hogar'].apply(lambda x: float(x) if pd.notnull(x) else None)
+
+
+
+        return df_provincias        
+
+
+
