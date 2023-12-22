@@ -66,6 +66,7 @@ class Transformation_Data:
         1 - Creamos un dataframe que contendra todos los datos en bruto.
         2 - Recorremos cada seccion del dataframe, iterando y detectando cada numero de FILA que corresponde a una seccion nueva.
         2.1 - En cada iteraccion asignamos numero de provincia y fechas.
+        3 - Transformaciones y finales y retorno
 
         El dataframe resultante es una concatenacion de todas las secciones, con clave de provincia, y un campo mas, la fecha.
         """
@@ -80,6 +81,7 @@ class Transformation_Data:
         
         #La lista esta compuesta por (Nombre de pronvicia, numero de ID de la BDD)
         lista_provincias = [
+            ['Total',1],
             ['Ciudad Autónoma de Buenos Aires',2],
             ['24 partidos del Gran Buenos Aires ',6], #--> EL ESPACIO ES NECESARIO EN ESTA CADENA, VA A FINAL DESPUES DE 'Aires'
             ['Resto de Buenos Aires',6],
@@ -131,19 +133,14 @@ class Transformation_Data:
             df_provincias = pd.concat([df_provincias,df_por_provincia])
 
 
-        
+        #==== PASO 3 - Pasos finales
+            
         #Cambios algunos tipos de datos por omisiones de datos
-        df_provincias['alimentos_preparados_rostiseria'] = df_provincias['alimentos_preparados_rostiseria'].replace('s',None)
-        df_provincias['indumentaria_calzado_textiles_hogar'] = df_provincias['indumentaria_calzado_textiles_hogar'].replace('s',None)
-        df_provincias['electronica_hogar'] = df_provincias['electronica_hogar'].replace('s',None)
+        columnas_a_transformar = ['alimentos_preparados_rostiseria','indumentaria_calzado_textiles_hogar','electronica_hogar']
 
-        df_provincias['alimentos_preparados_rostiseria'] = df_provincias['alimentos_preparados_rostiseria'].apply(lambda x: float(x) if pd.notnull(x) else None)
-        df_provincias['indumentaria_calzado_textiles_hogar'] = df_provincias['indumentaria_calzado_textiles_hogar'].apply(lambda x: float(x) if pd.notnull(x) else None)
-        df_provincias['electronica_hogar'] = df_provincias['electronica_hogar'].apply(lambda x: float(x) if pd.notnull(x) else None)
-
-
-
-        return df_provincias        
-
-
-
+        df_provincias[columnas_a_transformar] = df_provincias[columnas_a_transformar].replace('s',None) #--> Cambios caracter 's' por None
+        df_provincias[columnas_a_transformar] = df_provincias[columnas_a_transformar].applymap(lambda x: float(x) if pd.notnull(x) else None) #--> Transformamos la columna a flotante
+        
+        #Aplicamos redondeo al final para evitar 
+        return df_provincias
+    

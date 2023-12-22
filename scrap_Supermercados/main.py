@@ -23,6 +23,6 @@ if __name__ == '__main__':
 
     #Obtencion del dataframe con formato solicitado
     df = Transformation_Data().contruccion_df()
-    
+
     #Almacenamos los datos
     conexionBaseDatos(instancia_credenciales.host,instancia_credenciales.user,instancia_credenciales.password,instancia_credenciales.database).cargar_datos(df)
