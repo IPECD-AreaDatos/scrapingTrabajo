@@ -62,12 +62,22 @@ echo Termino CANASTA BASICA Y CANASTA TOTAL
 echo ------------------------------------
 
 echo ------------------------------------
+echo Supermercados
+echo ------------------------------------
+python C:\Users\Usuario\Desktop\scrapingTrabajo\scrap_Supermercados\main.py
+echo ------------------------------------
+echo Termino CANASTA BASICA Y CANASTA TOTAL
+echo ------------------------------------
+
+echo ------------------------------------
 echo IPICORR
 echo ------------------------------------
 python C:\Users\Usuario\Desktop\scrapingTrabajo\scrap_IPICORR\main.py
 echo ------------------------------------
-echo Termino CANASTA BASICA Y CANASTA TOTAL
+echo Termino IPICOR 
 echo ------------------------------------
+
+
 
 
 echo Termino la ejecucion
