@@ -43,7 +43,7 @@ class dolarBlue:
 
         # Fecha actual y cadena del día anterior
         fecha_actual = datetime.now()
-
+        print("LA FECHA ACTUAL ES", fecha_actual)
         # Cadena del día anterior
         dia_anterior = str((fecha_actual.day)) + "/" + str(fecha_actual.month) + "/" + str(fecha_actual.year)
 

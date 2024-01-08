@@ -2,7 +2,7 @@ import mysql.connector
 from datetime import datetime, date
 import pandas as pd
 from dateutil.relativedelta import relativedelta
-
+from correo_ipi_nacion import Correo_ipi_nacion
 
 class Database_ipi:
 
@@ -48,6 +48,13 @@ class Database_ipi:
                 self.cursor.execute(sql_insert,values)
                 print(sql_insert)
                 # Ejecutar la sentencia SQL de inserción
+
+            #SECCION DE ENVIO DE CORREO     
+            instancia_correo = Correo_ipi_nacion()
+            instancia_correo.connect(self.host, self.user, self.password, self.database)
+            instancia_correo.construccion_correo()
+
+    
             self.conn.commit()
 
 

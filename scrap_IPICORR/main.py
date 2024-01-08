@@ -4,7 +4,7 @@ from homePage_IPI import HomePage_IPI
 from database_ipi import Database_ipi
 import os
 import sys
-
+from correo_ipi_nacion import Correo_ipi_nacion
 #Datos de la base de datos
 host = '172.17.22.23'
 user = 'team-datos'
@@ -35,6 +35,7 @@ if __name__ == "__main__":
 
  
     home_page = HomePage_IPI()
+    home_page.descargar_archivo()
     df_ipi = home_page.construir_df()
 
     
