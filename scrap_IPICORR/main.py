@@ -28,9 +28,8 @@ instancia_credenciales = Credenciales()
 
 
 if __name__ == "__main__":
-    #df = readSheets().tratar_datos()
-    #print(df)
-    #connect_db().connect(df, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    df = readSheets().tratar_datos()
+    connect_db().connect(df, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
 
  
     home_page = HomePage_IPI()

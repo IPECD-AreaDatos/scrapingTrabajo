@@ -27,9 +27,7 @@ class connect_db:
         if filas_BD != len(df):
             df_datos_nuevos = df.tail(longitud_df - filas_BD)
 
-
-
-            print(df_datos_nuevos)
+            print("aca:", df_datos_nuevos)
             print("Tabla de IPICORR")
             for index, row in df_datos_nuevos.iterrows():
                 #Datos

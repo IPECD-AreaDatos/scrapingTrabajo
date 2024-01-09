@@ -36,11 +36,20 @@ class readSheets:
 
         # Imprime los valores
         for row in values:
-            if len(row)== 7:
+            if len(row)== 8:
                 df.append(row)
-
-        df = pd.DataFrame(df, columns=['Fecha', 'Var_Interanual_IPICORR', 'Var_Interanual_Alimentos', 'Var_Interanual_Textil', 'Var_Interanual_Maderas', 'Var_Interanual_MinNoMetalicos', 'Var_Interanual_Metales'])
+        df = pd.DataFrame(df, columns=['Fecha', 'Var_Interanual_IPICORR', 'Var_Interanual_Alimentos', 'Var_Interanual_Textil', 'Var_Interanual_Maderas', 'Var_Interanual_MinNoMetalicos', 'Var_Interanual_Metales', 'Estado'])
         df['Fecha'] = df['Fecha'].apply(convertir_fecha)
+        # Imprime el DataFrame antes de eliminar la última columna
+        print("Antes de eliminar la última columna:")
+        print(df)
+
+        # Elimina la última columna
+        df = df.drop('Estado', axis=1)
+
+        # Imprime el DataFrame después de eliminar la última columna
+        print("\nDespués de eliminar la última columna:")
+        print(df)
         return df
     
 def convertir_fecha(fecha_str):
