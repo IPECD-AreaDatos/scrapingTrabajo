@@ -97,7 +97,7 @@ class conexionBaseDatos:
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
         email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com']
-        #email_receptores =  ['benitezeliogaston@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
         #PORCENTAJES DE EMPLEOS REGISTRADOS
         porcentaje_privado, porcentaje_publico, porcentaje_total_casas_particulares,porcentaje_total_idp_autonomo,porcentaje_total_idp_monotributo,porcentaje_total_idp_monotributo_social,cadena_ultima_fecha = self.obtener_porcentaje_clases()
 
@@ -131,7 +131,7 @@ class conexionBaseDatos:
         <p>6 - Trabajadores independientes autonomos: <span style="font-size: 17px;"><b>{porcentaje_total_idp_autonomo:,.2f}%</b></span></p>
         <hr>
         <h3> Trabajo Registrado a nivel nacional: </h3>
-        <p>Total: <span style="font-size: 17px;"><b>{locale.format("%d",total_nivel_pais, grouping=True)}</b></span></p>
+        <p>Total: <span style="font-size: 17px;"><b>{"{:n}".format(total_nivel_pais)}</b></span></p>
         <p>Variacion mensual: <span style="font-size: 17px;"><b>{variacion_mensual:,.2f}%</b></span> ({diferencia_mensual} puestos)  </p>
         <p>Variacion interanual: <span style="font-size: 17px;"><b>{variacion_interanual:,.2f}%</b></span>  ({diferencia_interanual} puestos)  </p>
         <hr>
