@@ -99,7 +99,6 @@ class connect_db:
 
 
     def obtener_ultimafecha_actual(self,fecha_ultimo_registro):
-        print(fecha_ultimo_registro)
         
         # Obtener el nombre del mes actual en inglés
         nombre_mes_ingles = calendar.month_name[fecha_ultimo_registro.month]

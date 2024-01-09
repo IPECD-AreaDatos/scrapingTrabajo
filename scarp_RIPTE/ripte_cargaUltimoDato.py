@@ -98,15 +98,16 @@ class ripte_cargaUltimoDato:
 
         #Construccion de la cadena de la fecha actual
         nueva_fecha = nueva_fecha.date()
+        fecha_cadena = self.obtener_mes_actual(nueva_fecha)
 
         cadena_nueva_fecha = str(nueva_fecha.year) +"-"+str(nueva_fecha.month)
 
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com']
-        #email_receptores = ['benitezeliogaston@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com']
+        email_receptores = ['benitezeliogaston@gmail.com']
 
-        asunto = f'Modificación en la base de datos - Remuneración Imponible Promedio de los Trabajadores Estables (RIPTE) - Fecha {cadena_nueva_fecha}'
+        asunto = f'Modificación en la base de datos - Remuneración Imponible Promedio de los Trabajadores Estables (RIPTE) - Fecha {fecha_cadena}'
         mensaje = f'''\
             <html>
             <body>
@@ -208,3 +209,30 @@ class ripte_cargaUltimoDato:
 
 
         return variacion_interanual, variacion_acumulada,cadena_mes_anterior,cadena_mes_añoAnterior,cadena_dic_añoAnterior
+    
+    def obtener_mes_actual(self,fecha_ultimo_registro):
+        
+
+        # Obtener el nombre del mes actual en inglés
+        nombre_mes_ingles = calendar.month_name[fecha_ultimo_registro.month]
+
+        # Diccionario de traducción
+        traducciones_meses = {
+            'January': 'Enero',
+            'February': 'Febrero',
+            'March': 'Marzo',
+            'April': 'Abril',
+            'May': 'Mayo',
+            'June': 'Junio',
+            'July': 'Julio',
+            'August': 'Agosto',
+            'September': 'Septiembre',
+            'October': 'Octubre',
+            'November': 'Noviembre',
+            'December': 'Diciembre'
+        }
+
+        # Obtener la traducción
+        nombre_mes_espanol = traducciones_meses.get(nombre_mes_ingles, nombre_mes_ingles)
+
+        return f"{nombre_mes_espanol} del {fecha_ultimo_registro.year}"

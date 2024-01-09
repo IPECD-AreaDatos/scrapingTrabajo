@@ -4,7 +4,6 @@ from homePage_IPI import HomePage_IPI
 from database_ipi import Database_ipi
 import os
 import sys
-from correo_ipi_nacion import Correo_ipi_nacion
 #Datos de la base de datos
 host = '172.17.22.23'
 user = 'team-datos'
@@ -29,14 +28,17 @@ instancia_credenciales = Credenciales()
 
 
 if __name__ == "__main__":
-    df = readSheets().tratar_datos()
-    print(df)
-    connect_db().connect(df, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    #df = readSheets().tratar_datos()
+    #print(df)
+    #connect_db().connect(df, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
 
  
     home_page = HomePage_IPI()
     home_page.descargar_archivo()
     df_ipi = home_page.construir_df()
+
+    print(df_ipi)
+
 
     
     Database_ipi().cargar_datos(credenciales.host, credenciales.user, credenciales.password, credenciales.database,df_ipi)

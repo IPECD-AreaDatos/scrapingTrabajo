@@ -33,31 +33,36 @@ class Correo_ipi_nacion():
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
         email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com']
-
+        #email_receptores = ['benitezeliogaston@gmail.com']
         table_name = 'ipi'
         query_consulta = f'SELECT * FROM {table_name} ORDER BY fecha DESC LIMIT 1'
         df_bdd = pd.read_sql(query_consulta,self.conn)
+        fecha_cadena = self.obtener_ultimafecha_actual(df_bdd["fecha"].iloc[-1])
+        df_bdd = df_bdd.drop("fecha",axis=1)
+        df_bdd = df_bdd.multiply(100) #--> Todos los valores se multiplican por 100
 
-        asunto = f'ACTUALIZACION - Índice de producción industrial manufacturero(IPI) - {df_bdd["fecha"].iloc[-1]}'
+
+
+
+        asunto = f'ACTUALIZACION - Índice de producción industrial manufacturero(IPI) - {fecha_cadena}'
 
         mensaje = f'''\
             <html>
             <body>
             <h2>Se ha producido una modificación en la base de datos. La tabla de IPI contiene nuevos datos.</h2>
-            <p>*Variacion Interanual IPI: <span style="font-size: 17px;"><b>{df_bdd["var_IPI"].iloc[-1]}</b></span></p>
+            <p>*Variacion Interanual IPI: <span style="font-size: 17px;"><b>{df_bdd["var_IPI"].iloc[-1]:,.2f}%</b></span></p>
             <hr>
-            <p>*Variacion Interanual Alimentos: <span style="font-size: 17px;"><b>{df_bdd["var_interanual_alimentos"].iloc[-1]}</b></span></p>
+            <p>*Variacion Interanual Alimentos: <span style="font-size: 17px;"><b>{df_bdd["var_interanual_alimentos"].iloc[-1]:,.2f}%</b></span></p>
             <hr>
-            <p>*Variacion Interanual Textil: <span style="font-size: 17px;"><b>{df_bdd["var_interanual_textil"].iloc[-1]}</b></span></p>
+            <p>*Variacion Interanual Textil: <span style="font-size: 17px;"><b>{df_bdd["var_interanual_textil"].iloc[-1]:,.2f}%</b></span></p>
             <hr>
+            <p>*Variacion Interanual Sustancias: <span style="font-size: 17px;"><b>{df_bdd["var_interanual_sustancias"].iloc[-1]:,.2f}%</b></span></p>
             <hr>
-            <p>*Variacion Interanual Sustancias: <span style="font-size: 17px;"><b>{df_bdd["var_interanual_sustancias"].iloc[-1]}</b></span></p>
+            <p>*Variacion Interanual Maderas: <span style="font-size: 17px;"><b>{df_bdd["var_interanual_maderas"].iloc[-1]:,.2f}%</b></span></p>
             <hr>
-            <p>*Variacion Interanual Maderas: <span style="font-size: 17px;"><b>{df_bdd["var_interanual_maderas"].iloc[-1]}</b></span></p>
+            <p>*Variacion Interanual min. No Metalicos: <span style="font-size: 17px;"><b>{df_bdd["var_interanual_MinNoMetalicos"].iloc[-1]:,.2f}%</b></span></p>
             <hr>
-            <p>*Variacion Interanual min. No Metalicos: <span style="font-size: 17px;"><b>{df_bdd["var_interanual_MinNoMetalicos"].iloc[-1]}</b></span></p>
-            <hr>
-            <p>*Variacion Interanual Metales: <span style="font-size: 17px;"><b>{df_bdd["var_interanual_metales"].iloc[-1]}</b></span></p>
+            <p>*Variacion Interanual Metales: <span style="font-size: 17px;"><b>{df_bdd["var_interanual_metales"].iloc[-1]:,.2f}%</b></span></p>
             <hr>
             <p> Instituto Provincial de Estadistica y Ciencia de Datos de Corrientes<br>
             Dirección: Tucumán 1164 - Corrientes Capital<br>
@@ -78,13 +83,28 @@ class Correo_ipi_nacion():
             smtp.login(email_emisor, email_contraseña)
             smtp.sendmail(email_emisor, email_receptores, em.as_string())
 
+    def obtener_ultimafecha_actual(self,fecha_ultimo_registro):
+        
+        # Obtener el nombre del mes actual en inglés
+        nombre_mes_ingles = calendar.month_name[fecha_ultimo_registro.month]
 
-#Datos de la base de datos
-host = '172.17.22.23'
-user = 'team-datos'
-password = 'HCj_BmbCtTuCv5}'
-database = 'ipecd_economico'
+        # Diccionario de traducción
+        traducciones_meses = {
+            'January': 'Enero',
+            'February': 'Febrero',
+            'March': 'Marzo',
+            'April': 'Abril',
+            'May': 'Mayo',
+            'June': 'Junio',
+            'July': 'Julio',
+            'August': 'Agosto',
+            'September': 'Septiembre',
+            'October': 'Octubre',
+            'November': 'Noviembre',
+            'December': 'Diciembre'
+        }
 
-instancia = Correo_ipi_nacion()
-instancia.connect(host, user, password, database)
-instancia.construccion_correo()
+        # Obtener la traducción
+        nombre_mes_espanol = traducciones_meses.get(nombre_mes_ingles, nombre_mes_ingles)
+
+        return f"{nombre_mes_espanol} del {fecha_ultimo_registro.year}"

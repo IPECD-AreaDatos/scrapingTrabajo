@@ -289,7 +289,7 @@ class connection_db:
         # Obtener la traducción
         nombre_mes_espanol = traducciones_meses.get(nombre_mes_ingles, nombre_mes_ingles)
 
-        return str(fecha_ultimo_registro.day) + f" de {nombre_mes_espanol} del {fecha_ultimo_registro.year}"
+        return f"{nombre_mes_espanol} del {fecha_ultimo_registro.year}"
 
 
 

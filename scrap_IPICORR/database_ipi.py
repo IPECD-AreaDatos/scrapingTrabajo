@@ -8,6 +8,7 @@ class Database_ipi:
 
     def __init__(self):
         
+
         self.conn = None
         self.cursor = None
 
@@ -31,6 +32,8 @@ class Database_ipi:
         self.cursor.execute(select_row_count_query)
         filas_BD = self.cursor.fetchone()[0]
 
+        print("Tamaño base de datos:", filas_BD)
+        print("Tamaño del dataframe construido",len(df))
 
 
         #Vemos las longitudes de los datos guardados, y del archivo descargado. Para cargar solo  lo nuevo
@@ -49,13 +52,14 @@ class Database_ipi:
                 print(sql_insert)
                 # Ejecutar la sentencia SQL de inserción
 
+            self.conn.commit()
+
             #SECCION DE ENVIO DE CORREO     
             instancia_correo = Correo_ipi_nacion()
-            instancia_correo.connect(self.host, self.user, self.password, self.database)
+            instancia_correo.connect(host, user, password,database)
             instancia_correo.construccion_correo()
 
     
-            self.conn.commit()
 
 
     
