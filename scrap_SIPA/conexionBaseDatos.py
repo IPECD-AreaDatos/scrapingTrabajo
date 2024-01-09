@@ -6,7 +6,7 @@ import ssl
 import smtplib
 import pandas as pd
 import locale
-
+import calendar
 class conexionBaseDatos:
 
     #Inicializacion de variables en la clase
@@ -344,8 +344,8 @@ class conexionBaseDatos:
 
         #Ultima fecha registrada
         ultima_fecha = df_bdd['Fecha'].max()
-        cadena_ultima_fecha = str(ultima_fecha.year) + "-"+ str(ultima_fecha.month)
         
+        cadena_ultima_fecha = self.obtener_mes_actual(ultima_fecha)
         return porcentaje_privado, porcentaje_publico, porcentaje_total_casas_particulares,porcentaje_total_idp_autonomo,porcentaje_total_idp_monotributo,porcentaje_total_idp_monotributo_social,cadena_ultima_fecha
 
     def empleo_registrado_pais(self):
@@ -633,6 +633,33 @@ class conexionBaseDatos:
 
         return fecha_del_maximo,maximo
 
+
+    def obtener_mes_actual(self,fecha_ultimo_registro):
+        
+
+        # Obtener el nombre del mes actual en inglés
+        nombre_mes_ingles = calendar.month_name[fecha_ultimo_registro.month]
+
+        # Diccionario de traducción
+        traducciones_meses = {
+            'January': 'Enero',
+            'February': 'Febrero',
+            'March': 'Marzo',
+            'April': 'Abril',
+            'May': 'Mayo',
+            'June': 'Junio',
+            'July': 'Julio',
+            'August': 'Agosto',
+            'September': 'Septiembre',
+            'October': 'Octubre',
+            'November': 'Noviembre',
+            'December': 'Diciembre'
+        }
+
+        # Obtener la traducción
+        nombre_mes_espanol = traducciones_meses.get(nombre_mes_ingles, nombre_mes_ingles)
+
+        return f"{nombre_mes_espanol} del {fecha_ultimo_registro.year}"
 
 """
 SECCION PARA PRUEBAS INDEPENDIENTES DE LA CLASE
