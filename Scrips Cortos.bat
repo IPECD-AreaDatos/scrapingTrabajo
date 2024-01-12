@@ -10,7 +10,6 @@ python C:\Users\Usuario\Desktop\scrapingTrabajo\scarp_RIPTE\main.py
 echo ------------------------------------
 echo Termino RIPTE
 echo ------------------------------------
-
 echo ------------------------------------
 echo EMAE
 echo ------------------------------------
@@ -18,7 +17,6 @@ python C:\Users\Usuario\Desktop\scrapingTrabajo\scrap_EMAE\main.py
 echo ------------------------------------
 echo Termino EMAE
 echo ------------------------------------
-
 echo ------------------------------------
 echo SIPA
 echo ------------------------------------
@@ -26,7 +24,6 @@ python C:\Users\Usuario\Desktop\scrapingTrabajo\scrap_SIPA\main.py
 echo ------------------------------------
 echo Termino SIPA
 echo ------------------------------------
-
 echo ------------------------------------
 echo IPC
 echo ------------------------------------
@@ -34,7 +31,6 @@ python C:\Users\Usuario\Desktop\scrapingTrabajo\scrap_IPC\main.py
 echo ------------------------------------
 echo Termino IPC
 echo ------------------------------------
-
 echo ------------------------------------
 echo CANASTA BASICA Y CANASTA TOTAL
 echo ------------------------------------
@@ -42,7 +38,6 @@ python C:\Users\Usuario\Desktop\scrapingTrabajo\scrap_CBT\main.py
 echo ------------------------------------
 echo Termino CANASTA BASICA Y CANASTA TOTAL
 echo ------------------------------------
-
 echo ------------------------------------
 echo SALARIO MINIMO VITAL Y MOVIL
 echo ------------------------------------
