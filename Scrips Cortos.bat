@@ -12,14 +12,6 @@ echo Termino RIPTE
 echo ------------------------------------
 
 echo ------------------------------------
-echo DOLAR
-echo ------------------------------------
-python C:\Users\Usuario\Desktop\scrapingTrabajo\scrap_DOLAR\main.py
-echo ------------------------------------
-echo Termino DOLAR
-echo ------------------------------------
-
-echo ------------------------------------
 echo EMAE
 echo ------------------------------------
 python C:\Users\Usuario\Desktop\scrapingTrabajo\scrap_EMAE\main.py
@@ -43,16 +35,6 @@ echo ------------------------------------
 echo Termino IPC
 echo ------------------------------------
 
-
-echo ------------------------------------
-echo SALARIO MINIMO VITAL Y MOVIL
-echo ------------------------------------
-python C:\Users\Usuario\Desktop\scrapingTrabajo\scrap_SalarioMVM\main.py
-echo ------------------------------------
-echo Termino SALARIO MINIMO VITAL Y MOVIL
-echo ------------------------------------
-
-
 echo ------------------------------------
 echo CANASTA BASICA Y CANASTA TOTAL
 echo ------------------------------------
@@ -62,22 +44,11 @@ echo Termino CANASTA BASICA Y CANASTA TOTAL
 echo ------------------------------------
 
 echo ------------------------------------
-echo Supermercados
+echo SALARIO MINIMO VITAL Y MOVIL
 echo ------------------------------------
-python C:\Users\Usuario\Desktop\scrapingTrabajo\scrap_Supermercados\main.py
+python C:\Users\Usuario\Desktop\scrapingTrabajo\scrap_SalarioMVM\main.py
 echo ------------------------------------
-echo Termino CANASTA BASICA Y CANASTA TOTAL
+echo Termino SALARIO MINIMO VITAL Y MOVIL
 echo ------------------------------------
-
-echo ------------------------------------
-echo IPICORR
-echo ------------------------------------
-python C:\Users\Usuario\Desktop\scrapingTrabajo\scrap_IPICORR\main.py
-echo ------------------------------------
-echo Termino IPICOR 
-echo ------------------------------------
-
-
-
 
 echo Termino la ejecucion
