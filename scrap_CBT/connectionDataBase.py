@@ -108,6 +108,8 @@ class connection_db:
         fecha_formato_normal = self.obtener_ultimafecha_actual(fecha)
         cadena_fecha = str(fecha.year)+"-"+str(fecha.month)
         cba_mes_anterior = str(fecha.year)+"-"+str(fecha.month - 1)
+        fecha_mes_anterior= self.obtener_ultimafecha_actual(fecha_mes_anterior)
+
 
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
@@ -126,7 +128,7 @@ class connection_db:
         
         <br>
 
-        <p> Este correo contiene informacion respeto al <b>CBA</b> (Canasta Basica Alimnentaria) y <b>CBT</b>(Canasta Basica Total).  </p>
+        <p> Este correo contiene informacion respeto a <b>CBA</b> (Canasta Basica Alimnentaria) y <b>CBT</b>(Canasta Basica Total).  </p>
 
         <hr>
 
@@ -176,7 +178,76 @@ class connection_db:
 
         """
 
+        asunto_wpp = f'CBA Y CBT - Actualizacion - Fecha: {fecha_formato_normal}'
+
+        mensaje_wpp = f""" 
+
+        <html> 
+        <body>
+
+
+        <h2> Datos correspondientes al Nordeste Argentino(NEA) </h2>
+
         
+        <br>
+
+        <p> Este correo contiene informacion respeto a <b>CBA</b> (Canasta Basica Alimnentaria) y <b>CBT</b>(Canasta Basica Total).  </p>
+
+        <hr>
+
+        <p>
+        En <span style="font-weight: bold;">{fecha_formato_normal}</span>, en el NEA una persona necesitó
+        <span style="font-size: 17px; font-weight: bold;">${cba_individuo:,.2f}</span> para no ser
+        <b>indigente</b> y
+        <span style="font-size: 17px; font-weight: bold;">${cbt_individuo:,.2f}</span> para no ser
+        <b>pobre</b>
+        </p>
+
+        <hr>
+
+        <h3>En la fecha {cadena_fecha}, para una familia compuesto por 4 integrantes: </h3>
+
+        <p> Una familia tipo (compuesta por 4 integrantes) necesitó de 
+        <span style="font-size: 17px;"><b>${familia_indigente:,.2f}</b></span> para no ser indigente y
+        <span style="font-size: 17px;"><b>${familia_pobre:,.2f}</b></span> para no ser pobre. En {fecha_mes_anterior}, una
+        misma familia habia necesitado 
+        <span style="font-size: 17px;"><b>${familia_indigente_mes_anterior:,.2f}</b></span> para no ser indigente y 
+        <span style="font-size: 17px;"><b>${familia_pobre_mes_anterior:,.2f}</b></span> para no ser pobre.
+        </p> 
+
+        <hr>
+
+        <p>La canasta básica  alimentaria aumento interanualmente un 
+        <span style="font-size: 17px;"><b>{var_interanual_cba:.2f}%</b></span> mientras que la canasta básica total aumento para el mismo periodo un 
+        <span style="font-size: 17px;"><b>{var_interanual_cbt:.2f}%</b></span>
+
+        </p>La canasta básica  alimentaria aumento mensualmente un 
+        <span style="font-size: 17px;"><b>{var_mensual_cba:.2f}%</b></span> mientras que la canasta básica total aumento para el mismo periodo un 
+        <span style="font-size: 17px;"><b>{var_mensual_cbt:.2f}%</b></span></span>
+        
+        <p>
+
+        </p>
+
+        <h3> Variaciones Mensuales: </h3>
+
+        <p>CBA tuvo una variacion mensual de: <span style="font-size: 17px;"><b>{var_mensual_cba:.2f}%</b></span></p>
+        <p>CBT tuvo una variacion mensual de: <span style="font-size: 17px;"><b>{var_mensual_cbt:.2f}%</b></span></p>
+
+
+        
+        <hr>
+
+        <p> Instituto Provincial de Estadistica y Ciencia de Datos de Corrientes<br>
+            Dirección: Tucumán 1164 - Corrientes Capital<br>
+            Contacto Coordinación General: 3794 284993</p>
+
+
+        </body>
+        </html>
+
+        """
+
         mensaje_concatenado = mensaje_1
         em = EmailMessage()
         em['From'] = email_emisor
