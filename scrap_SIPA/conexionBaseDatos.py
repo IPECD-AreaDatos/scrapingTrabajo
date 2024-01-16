@@ -7,6 +7,9 @@ import smtplib
 import pandas as pd
 import locale
 import calendar
+import pywhatkit as kit
+
+
 class conexionBaseDatos:
 
     #Inicializacion de variables en la clase
@@ -77,7 +80,7 @@ class conexionBaseDatos:
         #Comparar la cantidad de antes y despues
         if row_count_after > row_count_before:
             print("Se agregaron nuevos datos")
-            self.enviar_correo()   
+            self.enviar_mensajes()   
         else:
             print("Se realizo una verificacion de la base de datos")
             
@@ -88,7 +91,7 @@ class conexionBaseDatos:
         self.conn.close()
 
 
-    def enviar_correo(self):
+    def enviar_mensajes(self):
 
         #Transformador de formato - Transforma una cadena al formato manejado en la region (Argentina)
         locale.setlocale(locale.LC_ALL, 'es_ES.UTF-8')
@@ -96,8 +99,11 @@ class conexionBaseDatos:
         #DATOS DE EMISOR Y RECEPTOR
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
+
+        # === OBTENCION DE TODOS LOS DATOS
+
         #PORCENTAJES DE EMPLEOS REGISTRADOS
         porcentaje_privado, porcentaje_publico, porcentaje_total_casas_particulares,porcentaje_total_idp_autonomo,porcentaje_total_idp_monotributo,porcentaje_total_idp_monotributo_social,cadena_ultima_fecha = self.obtener_porcentaje_clases()
 
@@ -113,9 +119,104 @@ class conexionBaseDatos:
         #MAXIMO EMPLEO EN CORRIENTES
         fecha_max_corrientes, maximo_corrientes = self.obtener_max_corrientes()
 
+        #Enviamos el correo por GMAIL con todos los datos
+        self.enviar_correo(
+                      cadena_ultima_fecha,
+                      porcentaje_privado,
+                      porcentaje_publico,
+                      porcentaje_total_idp_monotributo,
+                      porcentaje_total_idp_monotributo_social,
+                      porcentaje_total_casas_particulares,
+                      porcentaje_total_idp_autonomo,
+                      total_nivel_pais,
+                      variacion_mensual,
+                      diferencia_mensual,
+                      variacion_interanual,
+                      diferencia_interanual,
+                      total_empleo_nea,
+                      variacion_mensual_nea,
+                      diferencia_mensual_nea,
+                      variacion_interanual_nea,
+                      diferencia_interanual_nea,
+                      variacion_acumulada_nea,
+                      diferencia_acumulada_nea,
+                      total_nivel_pais_privado,
+                      variacion_mensual_privado,
+                      diferencia_mensual_privado,
+                      variacion_interanual_privado,
+                      diferencia_interanual_privado,
+                      variacion_acumulada_privado,
+                      diferencia_acumulada_privado,
+                      fecha_del_maximo,
+                      maximo,
+                      fecha_max_corrientes,
+                      maximo_corrientes,
+                      email_receptores,
+                      email_emisor,
+                      email_contraseña
+                      )
 
-        asunto = f'SISTEMA INTEGRADO PREVISIONAL ARGENTINO(SIPA) - Fecha {cadena_ultima_fecha}'
+        self.enviar_wpp(cadena_ultima_fecha,                      
+                   porcentaje_privado,
+                    porcentaje_publico,
+                    porcentaje_total_idp_monotributo,
+                    porcentaje_total_idp_monotributo_social,
+                    porcentaje_total_casas_particulares,
+                    porcentaje_total_idp_autonomo,                      
+                    total_nivel_pais,
+                    variacion_mensual,
+                    diferencia_mensual,
+                    variacion_interanual,
+                    diferencia_interanual,
+                    total_empleo_nea,                  
+                    variacion_mensual_nea,
+                    diferencia_mensual_nea,
+                    variacion_interanual_nea,
+                    diferencia_interanual_nea,
+                    variacion_acumulada_nea,
+                    diferencia_acumulada_nea,
+                    fecha_del_maximo,
+                    maximo,)
+
+    #Objetivo: enviar por correo el informe de SIPA
+    def enviar_correo(self,
+                      cadena_ultima_fecha,
+                      porcentaje_privado,
+                      porcentaje_publico,
+                      porcentaje_total_idp_monotributo,
+                      porcentaje_total_idp_monotributo_social,
+                      porcentaje_total_casas_particulares,
+                      porcentaje_total_idp_autonomo,
+                      total_nivel_pais,
+                      variacion_mensual,
+                      diferencia_mensual,
+                      variacion_interanual,
+                      diferencia_interanual,
+                      total_empleo_nea,
+                      variacion_mensual_nea,
+                      diferencia_mensual_nea,
+                      variacion_interanual_nea,
+                      diferencia_interanual_nea,
+                      variacion_acumulada_nea,
+                      diferencia_acumulada_nea,
+                      total_nivel_pais_privado,
+                      variacion_mensual_privado,
+                      diferencia_mensual_privado,
+                      variacion_interanual_privado,
+                      diferencia_interanual_privado,
+                      variacion_acumulada_privado,
+                      diferencia_acumulada_privado,
+                      fecha_del_maximo,
+                      maximo,
+                      fecha_max_corrientes,
+                      maximo_corrientes,
+                      email_receptores,
+                      email_emisor,
+                      email_contraseña
+                      ):
         
+        asunto = f'SISTEMA INTEGRADO PREVISIONAL ARGENTINO(SIPA) - Fecha {cadena_ultima_fecha}'
+
         mensaje_uno = f'''\
         <html>
         <body>
@@ -263,6 +364,118 @@ class conexionBaseDatos:
         with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
             smtp.login(email_emisor, email_contraseña)
             smtp.sendmail(email_emisor, email_receptores, em.as_string())
+
+
+    def enviar_wpp(self,cadena_ultima_fecha,                      
+                   porcentaje_privado,
+                    porcentaje_publico,
+                    porcentaje_total_idp_monotributo,
+                    porcentaje_total_idp_monotributo_social,
+                    porcentaje_total_casas_particulares,
+                    porcentaje_total_idp_autonomo,                      
+                    total_nivel_pais,
+                    variacion_mensual,
+                    diferencia_mensual,
+                    variacion_interanual,
+                    diferencia_interanual,
+                    total_empleo_nea,                  
+                    variacion_mensual_nea,
+                    diferencia_mensual_nea,
+                    variacion_interanual_nea,
+                    diferencia_interanual_nea,
+                    variacion_acumulada_nea,
+                    diferencia_acumulada_nea,
+                    fecha_del_maximo,
+                    maximo,):
+
+
+        # ==== CADENA DE NACION
+
+        cadena_wpp_cabecera = f"""
+
+        *SIPA {cadena_ultima_fecha}*
+
+        *Composicion a nivel nacional:*
+        - Empleos privados: {porcentaje_privado:,.1f}%
+        - Empleos públicos registrados: {porcentaje_publico:,.1f}%
+        - monotributistas independientes: {porcentaje_total_idp_monotributo:,.1f}%
+        - Monotributistas sociales: {porcentaje_total_idp_monotributo_social:,.1f}%
+        - Empleos en casas particulares registrados: {porcentaje_total_casas_particulares:,.1f}%
+        - Trabajadores independientes autónomos: {porcentaje_total_idp_autonomo:,.1f}%
+
+        *Trabajores registrados a nivel Pais:*
+        Total: {total_nivel_pais:,} trabajadores
+        Variacion mensual: {variacion_mensual:,.1f}%  ({diferencia_mensual:,.1f} puestos) 
+        Variacion interanual: {variacion_interanual:,.1f}% ({diferencia_interanual:,.1f} puestos)
+
+        *Maximo historico:*
+        FECHA {fecha_del_maximo} - Total: {maximo:,}
+
+        """
+
+        
+        porcentaje_nea = ((total_empleo_nea * 100) / total_nivel_pais)
+
+        cadena_datos_nea = f"""
+        *DATOS CORRESPONDIENTES A LA TOTALIDAD DEL NEA*
+        - Total empleo: {total_empleo_nea:,} trabajadores
+        - Variacion mensual: {variacion_mensual_nea:,.1f}% ({diferencia_mensual_nea:,} puestos)
+        - Variacion interanual: {variacion_interanual_nea:,.1f}% ({diferencia_interanual_nea:,} puestos)
+        - Variacion acumulada: {variacion_acumulada_nea:,.1f}% ({diferencia_acumulada_nea:,} puestos)
+        - Porcentaje que representa el NEA en el trabajo privado de NACION: {porcentaje_nea:,.1f}%
+        """
+
+
+        # === CADENA DEL NEA
+        cadena_datos_nea_por_provincia = f"""
+        *NEA:*
+
+        """
+
+
+        lista_id_provincias = [18,54,22,34]
+         #Creacion de datos del NEA - mensaje 2 - Estos datos corresponden a cada provincia en particular del NEA
+        for cod_provincia in lista_id_provincias:
+
+            total_empleo_otra,variacion_mensual_otra,variacion_interanual_otra, diferencia_interanual_otra,diferencia_mensual_otra,nombre_prov_otra,variacion_acumulada,diferencia_acumulada,promedio_empleo = self.empleo_otras_nea(cod_provincia)
+
+            #Reprentacion porcentual de la provincia en el NEA
+            porcentaje_representativo = ((total_empleo_otra * 100) / total_empleo_nea)
+            fecha_del_maximo,maximo = self.obtener_max_por_provincia(cod_provincia)
+        
+            cadena_aux = f'''
+            * *{nombre_prov_otra}*
+            - Total empleo:{total_empleo_otra:,} trabajadores
+            - Variacion mensual: {variacion_mensual_otra:,.1f}% ({diferencia_mensual_otra:,} puestos)
+            - Variacion interanual: {variacion_interanual_otra:,.1f}% ( {diferencia_interanual_otra:,} puestos)
+            - Variacion Acumulada: {variacion_acumulada:,.1f}% ({diferencia_acumulada:,} puestos)
+            - Porcentaje que representa en el NEA: {porcentaje_representativo:,.2f}%
+            - Maximo historico del empleo privado: {maximo:,} trabajadores - Fecha: {fecha_del_maximo}
+            '''
+
+            cadena_datos_nea_por_provincia = cadena_datos_nea_por_provincia + cadena_aux
+
+        cadena_final = cadena_wpp_cabecera + cadena_datos_nea + cadena_datos_nea_por_provincia 
+
+
+        #==== Enviamos a grupo de wpp
+
+        #Id del grupo
+        id_group = "HLDflq1b7Zn3iT4zNSAIhF"
+
+
+        # Obtén la hora y los minutos actuales
+        now = datetime.datetime.now()
+        hours = now.hour
+        minutes = now.minute + 1  # Suma 1 minuto al tiempo actual
+
+        # Envía el mensaje programado
+        kit.sendwhatmsg_to_group_instantly(id_group, cadena_final)
+
+
+
+
+
 
 
     """
@@ -632,6 +845,27 @@ class conexionBaseDatos:
         fecha_del_maximo = str(fecha_del_maximo.year) + "-" + str(fecha_del_maximo.month)
 
         return fecha_del_maximo,maximo
+
+
+    def obtener_max_por_provincia(self,id_provincia):
+
+        nombre_tabla = 'sipa_registro'
+        query_consulta = f'SELECT * FROM {nombre_tabla} WHERE ID_Provincia = {id_provincia}'
+        df_bdd = pd.read_sql(query_consulta,self.conn)
+
+        #=== Obtencion del registro de valor maximo registrado
+        
+        #indice del maximo
+        indice_maximo = df_bdd['Cantidad_con_Estacionalidad'].idxmax()
+        fila=df_bdd.loc[indice_maximo] 
+
+        fecha_del_maximo = fila['Fecha']
+        maximo = int(fila['Cantidad_con_Estacionalidad'] * 1000)
+
+        fecha_del_maximo = str(fecha_del_maximo.year) + "-" + str(fecha_del_maximo.month)
+
+        return fecha_del_maximo,maximo
+
 
 
     def obtener_mes_actual(self,fecha_ultimo_registro):
