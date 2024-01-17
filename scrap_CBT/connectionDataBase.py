@@ -113,8 +113,8 @@ class connection_db:
 
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com', 'samaniego18@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
         asunto = f'CBA Y CBT - Actualizacion - Fecha: {fecha_formato_normal}'
 
         mensaje_1 = f""" 
@@ -178,7 +178,7 @@ class connection_db:
 
         """
         #-------------------------------- Mensaje nuevo --------------------------------
-        asunto_wpp = f'CBA Y CBT - Actualizacion - Fecha: {fecha_formato_normal}'
+        asunto_wpp = f'CBA Y CBT - Actualización - Fecha: {fecha_formato_normal}'
 
         mensaje_wpp = f""" 
 
@@ -191,12 +191,12 @@ class connection_db:
         
         <br>
 
-        <p> Este correo contiene informacion respeto a <b>CBA</b> (Canasta Basica Alimnentaria) y <b>CBT</b>(Canasta Basica Total).  </p>
+        <p> Este correo contiene información respecto a <b>CBA</b> (Canasta Básica Alimentaria) y <b>CBT</b>(Canasta Básica Total).  </p>
 
         <hr>
 
         <p>
-        En <span style="font-weight: bold;">{fecha_formato_normal}</span>, en el NEA una persona necesitó
+        🗓️En <span style="font-weight: bold;">{fecha_formato_normal}</span>, en el NEA una persona necesitó
         <span style="font-size: 17px; font-weight: bold;">${cba_individuo:,.2f}</span> para no ser
         <b>indigente</b> y
         <span style="font-size: 17px; font-weight: bold;">${cbt_individuo:,.2f}</span> para no ser
@@ -205,10 +205,10 @@ class connection_db:
 
         <hr>
 
-        <p> Una familia tipo (compuesta por 4 integrantes) necesitó de 
+        <p> 👥👥Una familia tipo (compuesta por 4 integrantes) necesitó de 
         <span style="font-size: 17px;"><b>${familia_indigente:,.2f}</b></span> para no ser indigente y
         <span style="font-size: 17px;"><b>${familia_pobre:,.2f}</b></span> para no ser pobre. En Noviembre, una
-        misma familia habia necesitado 
+        misma familia había necesitado 
         <span style="font-size: 17px;"><b>${familia_indigente_mes_anterior:,.2f}</b></span> para no ser indigente y 
         <span style="font-size: 17px;"><b>${familia_pobre_mes_anterior:,.2f}</b></span> para no ser pobre.
         </p> 
@@ -216,14 +216,14 @@ class connection_db:
         <hr>
 
         <p>
-        La canasta básica alimentaria aumentó interanualmente un 
+        ⬆️La canasta básica alimentaria aumentó interanualmente un 
         <span style="font-size: 17px; font-weight: bold;">{var_interanual_cba:.2f}%</span>
         mientras que la canasta básica total aumentó para el mismo periodo un 
         <span style="font-size: 17px; font-weight: bold;">{var_interanual_cbt:.2f}%</span>.
         </p>
 
         <p>
-        La canasta básica alimentaria aumentó mensualmente un 
+        ⬆️La canasta básica alimentaria aumentó mensualmente un 
         <span style="font-size: 17px; font-weight: bold;">{var_mensual_cba:.2f}%</span>
         mientras que la canasta básica total aumentó para el mismo periodo un 
         <span style="font-size: 17px; font-weight: bold;">{var_mensual_cbt:.2f}%</span>.
@@ -232,8 +232,6 @@ class connection_db:
         <hr>
 
         {mensaje_variaciones_nea} <hr>
-
-        
 
         <p> Instituto Provincial de Estadistica y Ciencia de Datos de Corrientes<br>
             Dirección: Tucumán 1164 - Corrientes Capital<br>
@@ -444,7 +442,7 @@ class connection_db:
             cadena_variaciones =f"""
             
             <p>
-            Respecto al Índice de Precios al Consumidor del NEA, para el mes de {cadena_fecha} la variación general de precios respecto al mes anterior fue de 
+            📈Respecto al Índice de Precios al Consumidor del NEA, para el mes de {cadena_fecha} la variación general de precios respecto al mes anterior fue de 
             <span style="font-size: 17px;"><b>{numero_truncado_mensual}%</b></span>. La variación interanual fue de <span style="font-size: 17px;"><b>{numero_truncado_interanual}%</b></span>
             (Diciembre 2023 vs Diciembre 2022)
             </p>
