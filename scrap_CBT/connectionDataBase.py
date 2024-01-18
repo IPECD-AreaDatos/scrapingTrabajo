@@ -7,6 +7,7 @@ import ssl
 import smtplib
 import calendar
 import xlrd
+from datetime import datetime, timedelta
 
 
 class connection_db:
@@ -107,76 +108,15 @@ class connection_db:
         mensaje_variaciones_nea = self.variaciones(5)
         #Cadenas de fecha para mostrar en el mensaje
         fecha_formato_normal = self.obtener_ultimafecha_actual(fecha)
-        cadena_fecha = str(fecha.year)+"-"+str(fecha.month)
         cba_mes_anterior = str(fecha.year)+"-"+str(fecha.month - 1)
-
+        cba_mes_anterior = datetime.strptime(cba_mes_anterior, "%Y-%m")
+        fecha_anterior_formato_normal = self.obtener_ultimafecha_actual(cba_mes_anterior)
+        fecha_ano_anterior_formato_normal = self.obtener_ultimafecha_anoAnterior(fecha)
 
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
         email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com', 'samaniego18@gmail.com']
         #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
-        asunto = f'CBA Y CBT - Actualizacion - Fecha: {fecha_formato_normal}'
-
-        mensaje_1 = f""" 
-
-        <html> 
-        <body>
-
-
-        <h2> Datos correspondientes al Nordeste Argentino(NEA) </h2>
-
-        
-        <br>
-
-        <p> Este correo contiene informacion respeto a <b>CBA</b> (Canasta Basica Alimnentaria) y <b>CBT</b>(Canasta Basica Total).  </p>
-
-        <hr>
-
-        <h3> Para una persona individual, a la fecha: </h3>
-
-        <p>Se necesito <span style="font-size: 17px;"><b>${cba_individuo:,.2f}</b></span> para no ser indigente.</p>
-
-        <p>Se necesito <span style="font-size: 17px;"><b>${cbt_individuo:,.2f}</b></span> para no ser pobre</p>
-
-        <hr>
-
-        <h3>En la fecha {cadena_fecha}, para una familia compuesto por 4 integrantes: </h3>
-
-        <p>Se necesito <span style="font-size: 17px;"><b>${familia_indigente:,.2f}</b></span> para no ser indigente.</p>
-        <p>Se necesito <span style="font-size: 17px;"><b>${familia_pobre:,.2f}</b></span> para no ser pobre.</p>
-
-        <h3> El mes anterior {cba_mes_anterior}, para una familia compuesta por 4 integrantes: 
-
-        <p>Se necesito <span style="font-size: 17px;"><b>${familia_indigente_mes_anterior:,.2f}</b></span> para no ser indigente.</p>
-        <p>Se necesito <span style="font-size: 17px;"><b>${familia_pobre_mes_anterior:,.2f}</b></span> para no ser pobre.</p>
-
-        <hr>
-
-       <h3> Variaciones Interanuales: </h3>
-
-        <p>CBA tuvo una variacion interanual de: <span style="font-size: 17px;"><b>{var_interanual_cba:.2f}%</b></span></p>
-
-        <p>CBT tuvo una variacion interanual de: <span style="font-size: 17px;"><b>{var_interanual_cbt:.2f}%</b></span></p>
-
-
-        <h3> Variaciones Mensuales: </h3>
-
-        <p>CBA tuvo una variacion mensual de: <span style="font-size: 17px;"><b>{var_mensual_cba:.2f}%</b></span></p>
-        <p>CBT tuvo una variacion mensual de: <span style="font-size: 17px;"><b>{var_mensual_cbt:.2f}%</b></span></p>
-
-
-        
-        <hr>
-
-        <p> Instituto Provincial de Estadistica y Ciencia de Datos de Corrientes<br>
-            Dirección: Tucumán 1164 - Corrientes Capital<br>
-            Contacto Coordinación General: 3794 284993</p>
-
-
-        </body>
-        </html>
-
-        """
         #-------------------------------- Mensaje nuevo --------------------------------
         asunto_wpp = f'CBA Y CBT - Actualización - Fecha: {fecha_formato_normal}'
 
@@ -207,7 +147,7 @@ class connection_db:
 
         <p> 👥👥Una familia tipo (compuesta por 4 integrantes) necesitó de 
         <span style="font-size: 17px;"><b>${familia_indigente:,.2f}</b></span> para no ser indigente y
-        <span style="font-size: 17px;"><b>${familia_pobre:,.2f}</b></span> para no ser pobre. En Noviembre, una
+        <span style="font-size: 17px;"><b>${familia_pobre:,.2f}</b></span> para no ser pobre. En {fecha_anterior_formato_normal}, una
         misma familia había necesitado 
         <span style="font-size: 17px;"><b>${familia_indigente_mes_anterior:,.2f}</b></span> para no ser indigente y 
         <span style="font-size: 17px;"><b>${familia_pobre_mes_anterior:,.2f}</b></span> para no ser pobre.
@@ -216,14 +156,14 @@ class connection_db:
         <hr>
 
         <p>
-        ⬆️La canasta básica alimentaria aumentó interanualmente un 
+        ⬆️La canasta básica alimentaria aumentó interanualmente ({fecha_formato_normal} vs {fecha_ano_anterior_formato_normal}) un 
         <span style="font-size: 17px; font-weight: bold;">{var_interanual_cba:.2f}%</span>
         mientras que la canasta básica total aumentó para el mismo periodo un 
         <span style="font-size: 17px; font-weight: bold;">{var_interanual_cbt:.2f}%</span>.
         </p>
 
         <p>
-        ⬆️La canasta básica alimentaria aumentó mensualmente un 
+        ⬆️La canasta básica alimentaria aumentó mensualmente ({fecha_formato_normal} vs {fecha_anterior_formato_normal}) un 
         <span style="font-size: 17px; font-weight: bold;">{var_mensual_cba:.2f}%</span>
         mientras que la canasta básica total aumentó para el mismo periodo un 
         <span style="font-size: 17px; font-weight: bold;">{var_mensual_cbt:.2f}%</span>.
@@ -295,7 +235,7 @@ class connection_db:
         var_mensual_cba = ((cba_individuo / cba_mes_anterior) - 1) * 100  #--> indigente
         var_mensual_cbt =  ((cbt_individuo / cbt_mes_anterior) -1) * 100 #--> pobre
 
-        #=== Variaciones Intearanual
+        #=== Variaciones Interanual
         ultima_fecha = df_bdd['fecha'].max()
         año_anterior = ultima_fecha.year - 1
         mes= ultima_fecha.month
@@ -333,6 +273,31 @@ class connection_db:
 
         return cba_individuo,cbt_individuo,familia_indigente,familia_indigente_mes_anterior,familia_pobre,familia_pobre_mes_anterior,var_mensual_cba,var_mensual_cbt,var_interanual_cba,var_interanual_cbt,ultima_fecha
     
+    def obtener_ultimafecha_anoAnterior(self,fecha_ultimo_registro):
+        # Obtener el nombre del mes actual en inglés
+        nombre_mes_ingles = calendar.month_name[fecha_ultimo_registro.month]
+
+        # Diccionario de traducción
+        traducciones_meses = {
+            'January': 'Enero',
+            'February': 'Febrero',
+            'March': 'Marzo',
+            'April': 'Abril',
+            'May': 'Mayo',
+            'June': 'Junio',
+            'July': 'Julio',
+            'August': 'Agosto',
+            'September': 'Septiembre',
+            'October': 'Octubre',
+            'November': 'Noviembre',
+            'December': 'Diciembre'
+        }
+
+        # Obtener la traducción
+        nombre_mes_espanol = traducciones_meses.get(nombre_mes_ingles, nombre_mes_ingles)
+
+        return f"{nombre_mes_espanol} del {fecha_ultimo_registro.year-1}"
+
     def obtener_ultimafecha_actual(self,fecha_ultimo_registro):
 
         # Obtener el nombre del mes actual en inglés
@@ -436,15 +401,17 @@ class connection_db:
 
             cba_individuo,cbt_individuo,familia_indigente,familia_indigente_mes_anterior,familia_pobre,familia_pobre_mes_anterior,var_mensual_cba,var_mensual_cbt,var_interanual_cba,var_interanual_cbt,fecha = self.persona_individual_familia()
             fecha_formato_normal = self.obtener_ultimafecha_actual(fecha)
-            cadena_fecha = str(fecha.year)+"-"+str(fecha.month)
             cba_mes_anterior = str(fecha.year)+"-"+str(fecha.month - 1)
+            cba_mes_anterior = datetime.strptime(cba_mes_anterior, "%Y-%m")
+            fecha_anterior_formato_normal = self.obtener_ultimafecha_actual(cba_mes_anterior)
+
 
             cadena_variaciones =f"""
             
             <p>
-            📈Respecto al Índice de Precios al Consumidor del NEA, para el mes de {cadena_fecha} la variación general de precios respecto al mes anterior fue de 
+            📈Respecto al Índice de Precios al Consumidor del NEA, para el mes de {fecha_formato_normal} la variación general de precios respecto al mes anterior fue de 
             <span style="font-size: 17px;"><b>{numero_truncado_mensual}%</b></span>. La variación interanual fue de <span style="font-size: 17px;"><b>{numero_truncado_interanual}%</b></span>
-            (Diciembre 2023 vs Diciembre 2022)
+            ({fecha_formato_normal} vs {fecha_anterior_formato_normal})
             </p>
             """
 
