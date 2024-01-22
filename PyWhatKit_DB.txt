@@ -73,3 +73,18 @@ Time: 12:35
 Group ID: HLDflq1b7Zn3iT4zNSAIhF
 Message: *SIPA octubre del 2023* *Composicion a nivel nacional:* - Empleos privados: 47.7% - Empleos públicos registrados 26.1% - monotributistas independientes 15.1% - Monotributistas sociales 4.7% - Empleos en casas particulares registrados 3.5% - Trabajadores independientes autónomos 2.9% *Trabajores registrados a nivel Pais:* Total: 13,375,244 trabajadores Variacion mensual: 0.1% (15,075.0 puestos) Variacion interanual: 3.3% (421,112.0 puestos) *Maximo historico:* FECHA 2023-8 - Total: 6,384,350 *DATOS CORRESPONDIENTES A LA TOTALIDAD DEL NEA* - Total empleo: 290,045 trabajadores - Variacion mensual: -2.6% (-7,684 puestos) - Variacion interanual: -0.3% (-900 puestos) - Variacion acumulada: -0.5% (290,045 puestos) - Porcentaje que representa el NEA en el trabajo privado de NACION: 2.2% *NEA:* * *Corrientes* - Total empleo:80,873 trabajadores - Variacion mensual: -0.4% (-353 puestos) - Variacion interanual: 1.1% ( 862 puestos) - Variacion Acumulada: 1.1% (875 puestos) - Porcentaje que representa en el NEA: 27.88% - Maximo historico del empleo privado: 81,746 trabajadores - Fecha: 2023-8 * *Misiones* - Total empleo:105,718 trabajadores - Variacion mensual: -4.7% (-5,202 puestos) - Variacion interanual: 1.0% ( 1,066 puestos) - Variacion Acumulada: 0.8% (889 puestos) - Porcentaje que representa en el NEA: 36.45% - Maximo historico del empleo privado: 114,311 trabajadores - Fecha: 2023-7 * *Chaco* - Total empleo:78,197 trabajadores - Variacion mensual: -1.9% (-1,527 puestos) - Variacion interanual: 0.0% ( 2 puestos) - Variacion Acumulada: -1.2% (-921 puestos) - Porcentaje que representa en el NEA: 26.96% - Maximo historico del empleo privado: 81,302 trabajadores - Fecha: 2023-6 * *Formosa* - Total empleo:25,257 trabajadores - Variacion mensual: -2.3% (-602 puestos) - Variacion interanual: -10.1% ( -2,830 puestos) - Variacion Acumulada: -8.4% (-2,325 puestos) - Porcentaje que representa en el NEA: 8.71% - Maximo historico del empleo privado: 29,212 trabajadores - Fecha: 2015-10
 --------------------
+Date: 22/1/2024
+Time: 9:32
+Group ID: HLDflq1b7Zn3iT4zNSAIhF
+Message: *RIPTE* - Datos actualizados: Ultimo valor: 447079.57 Fecha: 2023-11 - Mensual: Datos Correspondientes al mes anterior. Valor: 420707.0 Fecha: 2023-10 Var. Mensual: 6.27 - Interanual: Var. interanual de (2023-11|2022-11): 142.70 - Acumulado: Var. Acumulada de (2022-12|2023-11): 130.25
+--------------------
+Date: 22/1/2024
+Time: 9:38
+Group ID: HLDflq1b7Zn3iT4zNSAIhF
+Message: *RIPTE* - Datos actualizados: Ultimo valor: 447079.57 Fecha: 2023-11 - Mensual: Datos Correspondientes al mes anterior. Valor: 420707.0 Fecha: 2023-10 Var. Mensual: 6.27% - Interanual: Var. interanual de (2023-11||2022-11): 142.70% - Acumulado: Var. Acumulada de (2022-12||2023-11): 130.25%
+--------------------
+Date: 22/1/2024
+Time: 9:41
+Group ID: HLDflq1b7Zn3iT4zNSAIhF
+Message: *RIPTE* - Datos actualizados: Ultimo valor: 447079.57 Fecha: 2023-11 - Mensual: Datos Correspondientes al mes anterior. Valor: 420707.0 Fecha: 2023-10 Var. Mensual: 6.27% - Interanual: Var. interanual de 2023-11 al 2022-11: 142.70% - Acumulado: Var. Acumulada de 2022-12 al 2023-11: 130.25%
+--------------------

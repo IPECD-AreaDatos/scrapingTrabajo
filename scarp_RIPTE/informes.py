@@ -1,111 +1,55 @@
-import time
-import mysql.connector
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from datetime import datetime, timedelta
+#Archivo destino a la construccion de informes que se envian por Whatsapp y Gmail.
 import calendar
 from email.message import EmailMessage
-import ssl
-import smtplib
-import os
+from smtplib import SMTP_SSL
 import pandas as pd
 from datetime import datetime
+from ssl import create_default_context
+from pywhatkit import sendwhatmsg_to_group_instantly
+import mysql.connector
 
-from informes import InformesRipte
 
-class ripte_cargaUltimoDato:
+class InformesRipte:
 
-    #Inicializacion de variables
-    def __init__(self, host, user, password, database):
-        self.driver = None
+    def __init__(self,host,user,password,database):
+
+        #Declaramos las variables
         self.conn = None
+        self.cursor = None
         self.host = host
         self.user = user
         self.password = password
         self.database = database
 
+        #Cuando se instancia la clase ya se conecta a la BDD para construir automaticamente los informes
+        self.conectar_bdd()
 
     #Establecemos la conexion a la BDD
     def conectar_bdd(self):
         self.conn = mysql.connector.connect(host=self.host, user=self.user, password=self.password, database=self.database)
-        self.cursor = self.conn.cursor() #--cursor para usar BDD
+        self.cursor = self.conn.cursor()
+
+    def enviar_mensajes(self,nueva_fecha, nuevo_valor, valor_anterior):
 
 
-    #Cargamos los datos
-    def loadInDataBase(self):  
+            #Obtencion de valores para informe por CORREO
+            variacion_mensual = ((nuevo_valor / valor_anterior) - 1) * 100
+            variacion_interanual, variacion_acumulada, fecha_mes_anterior,fecha_mes_AñoAnterior, diciembre_AñoAnterior = self.obtener_datos(nueva_fecha,nuevo_valor)
 
-        # Se toma el tiempo de comienzo
-        start_time = time.time()
-        tolerancia = 1.99         
-        
-        #Conexion a la BDD
-        self.conectar_bdd()
-        
+            #Construccion de la cadena de la fecha actual
+            nueva_fecha = nueva_fecha.date()
+            fecha_cadena = self.obtener_mes_actual(nueva_fecha)
 
-        #Carga de pagina
-        driver = webdriver.Chrome()
-        driver.get('https://www.argentina.gob.ar/trabajo/seguridadsocial/ripte')
-       
-       #Buscamos la tabla que contiene los datos
-        elemento = driver.find_element(By.XPATH, '//*[@id="block-system-main"]/section/article/div/div[9]/div/div/div/div/div[1]/div/h3')
-        contenido_texto = elemento.text
-        contenido_numerico = contenido_texto.replace('$', '').replace('.','').replace(',', '.')
+            cadena_nueva_fecha = str(nueva_fecha.year) +"-"+str(nueva_fecha.month)
 
-        try:
-            contenido_float = float(contenido_numerico)
-            print("Contenido como float:", contenido_float)
-        except ValueError:
-            print("El contenido no es un número válido.")
+            #==== ENVIO DE MENSAJES
+            self.enviar_correo(fecha_cadena,cadena_nueva_fecha,nuevo_valor,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada)
+            self.enviar_wpp(cadena_nueva_fecha,nuevo_valor,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada)
             
-        # Obtener la última fecha y el último valor de ripte de la base de datos
-        cursor = self.conn.cursor()
-        cursor.execute("SELECT Fecha, ripte FROM ripte ORDER BY Fecha DESC LIMIT 1")
-        ultima_fecha, ultimo_ripte = cursor.fetchone()
 
-        print("Último ripte en la base de datos:", ultimo_ripte)
-
-        # Convertir la fecha a objeto datetime
-        fecha_base = datetime.strptime(str(ultima_fecha), "%Y-%m-%d")
-
-        # Sumar días a la fecha
-        nueva_fecha = fecha_base + timedelta(days=calendar.monthrange(fecha_base.year, fecha_base.month)[1])
-        print("Nueva fecha:", nueva_fecha.strftime("%Y-%m-%d"))
-
-
-        if abs(contenido_float - ultimo_ripte) < tolerancia:
-            print("El valor de ripte es el mismo, no se agregaron nuevos datos")
-        else:
-            # Sentencia SQL para insertar los datos en la tabla ripte
-            insert_query = "INSERT INTO ripte (Fecha, ripte) VALUES (%s, %s)"
-
-            # Insertar nuevos datos
-            cursor.execute(insert_query, (nueva_fecha, contenido_float))
-            self.conn.commit()
-
-            print("Se agregaron nuevos datos")
-
-            InformesRipte(self.host,self.user,self.password,self.database).enviar_mensajes(nueva_fecha, contenido_float, ultimo_ripte)
-            #self.enviar_correo(nueva_fecha, contenido_float, ultimo_ripte)  # Pasar los valores a la función
-
-        cursor.close()
-        self.conn.close()
-            
-            
-            
-    def enviar_correo(self,nueva_fecha, nuevo_valor, valor_anterior):  # Recibir los valores como argumentos
-
-
-        #Obtencion de valores para informe por CORREO
-        variacion_mensual = ((nuevo_valor / valor_anterior) - 1) * 100
-        variacion_interanual, variacion_acumulada, fecha_mes_anterior,fecha_mes_AñoAnterior, diciembre_AñoAnterior = self.obtener_datos(nueva_fecha,nuevo_valor)
-
-
-        #Construccion de la cadena de la fecha actual
-        nueva_fecha = nueva_fecha.date()
-        fecha_cadena = self.obtener_mes_actual(nueva_fecha)
-
-        cadena_nueva_fecha = str(nueva_fecha.year) +"-"+str(nueva_fecha.month)
-
+    #Envio de correos por GMAIL
+    def enviar_correo(self,fecha_cadena,cadena_nueva_fecha,nuevo_valor,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada):
+                
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
         email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
@@ -140,12 +84,50 @@ class ripte_cargaUltimoDato:
         em['Subject'] = asunto
         em.set_content(mensaje, subtype = 'html')
         
-        contexto = ssl.create_default_context()
+        contexto = create_default_context()
         
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
+        with SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
             smtp.login(email_emisor, email_contraseña)
             smtp.sendmail(email_emisor, email_receptores, em.as_string())
 
+    def enviar_wpp(self,cadena_nueva_fecha,nuevo_valor,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada):
+
+        #Id del grupo de WPP
+        id_group = "HLDflq1b7Zn3iT4zNSAIhF"
+
+        # Obtén la hora y los minutos actuales
+        now = datetime.now()
+        hours = now.hour
+        minutes = now.minute + 1  # Suma 1 minuto al tiempo actual
+
+
+        #Definimos el mensaje
+        mensaje = f"""
+        *RIPTE*
+
+        - Datos actualizados:
+        Ultimo valor: {nuevo_valor}
+        Fecha: {cadena_nueva_fecha}
+
+        - Mensual:
+
+        Datos Correspondientes al mes anterior.
+        Valor: {valor_anterior}
+        Fecha: {fecha_mes_anterior}
+        Var. Mensual: {variacion_mensual:.2f}%
+
+        - Interanual:
+
+        Var. interanual de {cadena_nueva_fecha} al {fecha_mes_AñoAnterior}: {variacion_interanual:.2f}%
+
+        - Acumulado:
+
+        Var. Acumulada de {diciembre_AñoAnterior} al {cadena_nueva_fecha}: {variacion_acumulada:.2f}%
+        """
+    
+
+        # Envía el mensaje programado
+        sendwhatmsg_to_group_instantly(id_group, mensaje)
 
     #Objetivo 
     def obtener_datos(self,nueva_fecha,nuevo_valor):
@@ -213,9 +195,9 @@ class ripte_cargaUltimoDato:
 
 
         return variacion_interanual, variacion_acumulada,cadena_mes_anterior,cadena_mes_añoAnterior,cadena_dic_añoAnterior
-    
+
     def obtener_mes_actual(self,fecha_ultimo_registro):
-        
+    
 
         # Obtener el nombre del mes actual en inglés
         nombre_mes_ingles = calendar.month_name[fecha_ultimo_registro.month]
@@ -238,5 +220,3 @@ class ripte_cargaUltimoDato:
 
         # Obtener la traducción
         nombre_mes_espanol = traducciones_meses.get(nombre_mes_ingles, nombre_mes_ingles)
-
-        return f"{nombre_mes_espanol} del {fecha_ultimo_registro.year}"

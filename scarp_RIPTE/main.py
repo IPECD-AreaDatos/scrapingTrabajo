@@ -1,7 +1,7 @@
-from homePage import HomePage
+from extract import HomePage
 import os
 import pandas as pd
-#from ripte_cargaHistorico import ripte_cargaHistorico
+from ripte_cargaHistorico import ripte_cargaHistorico
 from ripte_cargaUltimoDato import ripte_cargaUltimoDato
 import sys
 import os
