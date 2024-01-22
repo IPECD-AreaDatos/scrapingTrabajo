@@ -8,6 +8,7 @@ from email.message import EmailMessage
 import ssl
 import smtplib
 import calendar
+from informes import InformesEmae
 
 class cargaIndice:
 
@@ -120,7 +121,9 @@ class cargaIndice:
         
         if row_count_after > row_count_before:
             print("Se agregaron nuevos datos")
-            self.enviar_correo()   
+
+            InformesEmae(host, user, password, database).enviar_mensajes()
+            #self.enviar_correo()   
         else:
             print("Se realizo una verificacion de la base de datos")
             
@@ -135,13 +138,12 @@ class cargaIndice:
     def enviar_correo(self):
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
         asunto = 'Actualizacion de los datos del Estimador Mensual de Actividad Económico (EMAE)'
 
 
-        cadena_valores_actuales = self.ultimos_datos()
-        cadena_variacion,fecha_maxima = self.variaciones_mensual_interanual_acumulada()
+        df_mensual,df_interanual,df_acumulado,fecha_maxima = self.variaciones_mensual_interanual_acumulada()
 
         #Construimos la cadena de la fecha actual
         cadena_fecha_actual = self.obtener_fecha_actual(fecha_maxima)
@@ -156,7 +158,8 @@ class cargaIndice:
         <hr>
         '''
 
-        seccion_variaciones = f'''
+        # Cabeza de tabla
+        cabeza_tabla_variaciones = f'''
 
         <h3> Variaciones a nivel Nacional del Estimador Mensual de Actividad Económico (EMAE)- Argentina </h3>
 
@@ -169,8 +172,30 @@ class cargaIndice:
         <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> VAR. INTERANUAL </th>
         <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> INDICE </th>
         <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> VAR. ACUMULADA</th>
-        {cadena_variacion}
+        '''
 
+
+        #Datos correspondientes a cada variacion
+        for nombre_mensual,var_mensual,nombre_interanual,var_interanual, nombre_acumulado,var_acumulada in zip(df_mensual['nombre_indices'],df_mensual['var_mensual'],df_interanual['nombre_indices'],df_interanual['var_interanual'],df_acumulado['nombre_indices'],df_acumulado['var_acumulada']):
+        
+            fila_de_nea = f'''
+                <tr>
+
+                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {nombre_mensual}</td>
+                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {var_mensual:.2f}%</td>
+
+                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {nombre_interanual}</td>
+                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {var_interanual:.2f}%</td>
+
+                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {nombre_acumulado}</td>
+                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {var_acumulada:.2f}%</td>
+                </tr>
+                '''
+
+            cabeza_tabla_variaciones = cabeza_tabla_variaciones + fila_de_nea
+    
+
+        fin_mensaje = f'''
         </table> 
 
 
@@ -186,7 +211,7 @@ class cargaIndice:
 
 
 
-        mensaje_final = cadena_inicio + seccion_variaciones
+        mensaje_final = cadena_inicio + cabeza_tabla_variaciones + fin_mensaje
 
 
 
@@ -202,44 +227,6 @@ class cargaIndice:
             smtp.login(email_emisor, email_contraseña)
             smtp.sendmail(email_emisor, email_receptores, em.as_string())
 
-
-    def ultimos_datos(self):
-
-        #Buscamos los datos de la tabla emae, y lo transformamos a un dataframe
-        nombre_tabla = 'emae'
-        query_select = f'SELECT * from {nombre_tabla}' 
-        df_bdd = pd.read_sql(query_select,self.conn)
-        df_bdd['Fecha'] = pd.to_datetime(df_bdd['Fecha'])#--> Cambiamos formato de la fecha para su manipulacion
-
-        #OBTENCION DEL GRUPO DE LA FECHA MAXIMA 
-        fecha_maxima = max(df_bdd['Fecha'])
-        df_bdd_ultima_fecha = df_bdd[df_bdd['Fecha'] == fecha_maxima]
-
-
-
-        
-        #Buscamos los datos de las categorias del emae, para lograr un for con cada indice, y para organizar la tabla por |INDICE|VALOR
-        nombre_tabla = 'emae_categoria'
-        query_select = f'SELECT * from {nombre_tabla}' 
-        df_categorias = pd.read_sql(query_select,self.conn)
-
-
-        cadena = str()
-
-        for descripcion_categoria,valor in zip(df_categorias['categoria_descripcion'],df_bdd_ultima_fecha['Valor']):
-
-
-                fila = f'''<tr>
-                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {descripcion_categoria}</td>
-                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {valor:.2f}</td>
-                </tr>'''
-
-                cadena = cadena + fila
-
-
-        return cadena
-
-            
 
 
     def variaciones_mensual_interanual_acumulada(self):
@@ -326,35 +313,11 @@ class cargaIndice:
         df_mensual = df.sort_values(by='var_mensual',ascending=[False])
         df_interanual = df.sort_values(by='var_interanual',ascending=[False])
         df_acumulado = df.sort_values(by='var_acumulada',ascending=[False])
-
         
-        cadena_de_datos = str()
-        
-        #Armado de cadena para correo
-        for nombre_mensual,var_mensual,nombre_interanual,var_interanual, nombre_acumulado,var_acumulada in zip(df_mensual['nombre_indices'],df_mensual['var_mensual'],df_interanual['nombre_indices'],df_interanual['var_interanual'],df_acumulado['nombre_indices'],df_acumulado['var_acumulada']):
-        
-            fila_de_nea = f'''
-                <tr>
-
-                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {nombre_mensual}</td>
-                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {var_mensual:.2f}%</td>
-
-                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {nombre_interanual}</td>
-                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {var_interanual:.2f}%</td>
-
-                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {nombre_acumulado}</td>
-                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {var_acumulada:.2f}%</td>
-                </tr>
-                '''
-
-            cadena_de_datos = cadena_de_datos + fila_de_nea
-    
-        
-        return cadena_de_datos, fecha_maxima
+        return df_mensual,df_interanual,df_acumulado, fecha_maxima
 
 
     
-
     def obtener_fecha_actual(self,fecha_ultimo_registro):
         
 
@@ -382,28 +345,3 @@ class cargaIndice:
 
         return str(fecha_ultimo_registro.day) + f" de {nombre_mes_espanol} del {fecha_ultimo_registro.year}"
 
-
-
-"""import os
-import pandas as pd
-
-#Datos de la base de datos
-host = '172.17.16.157'
-user = 'team-datos'
-password = 'HCj_BmbCtTuCv5}'
-database = 'ipecd_economico'
-
-
-directorio_actual = os.path.dirname(os.path.abspath(__file__))
-ruta_carpeta_files = os.path.join(directorio_actual, 'files')
-file_path = os.path.join(ruta_carpeta_files, 'EMAE.xls')
-
-#Inicializamos el data frame y la listas de datos
-df = pd.DataFrame() 
-lista_fechas= list()
-lista_SectorProductivo = list()
-lista_valores= list() 
-
-instancia = cargaIndice()
-instancia.conecta_bdd(host,user,password,database)
-instancia.ultimos_datos()"""
