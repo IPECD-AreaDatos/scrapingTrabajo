@@ -103,9 +103,8 @@ class connection_db:
 
         cba_individuo,cbt_individuo,familia_indigente,familia_indigente_mes_anterior,familia_pobre,familia_pobre_mes_anterior,var_mensual_cba,var_mensual_cbt,var_interanual_cba,var_interanual_cbt,fecha = self.persona_individual_familia()
 
-
-
         mensaje_variaciones_nea = self.variaciones(5)
+        mensaje_variaciones_CBTCBA = self.mensaje_variacion_interanual()
         #Cadenas de fecha para mostrar en el mensaje
         fecha_formato_normal = self.obtener_ultimafecha_actual(fecha)
         cba_mes_anterior = str(fecha.year)+"-"+str(fecha.month - 1)
@@ -115,11 +114,10 @@ class connection_db:
 
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com', 'samaniego18@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com', 'samaniego18@gmail.com', 'guillermobenasulin@gmail.com', 'leclerc.mauricio@gmail.com']
         #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
         #-------------------------------- Mensaje nuevo --------------------------------
         asunto_wpp = f'CBA Y CBT - Actualización - Fecha: {fecha_formato_normal}'
-
         mensaje_wpp = f""" 
 
         <html> 
@@ -154,21 +152,7 @@ class connection_db:
         </p> 
 
         <hr>
-
-        <p>
-        ⬆️La canasta básica alimentaria aumentó interanualmente ({fecha_formato_normal} vs {fecha_ano_anterior_formato_normal}) un 
-        <span style="font-size: 17px; font-weight: bold;">{var_interanual_cba:.2f}%</span>
-        mientras que la canasta básica total aumentó para el mismo periodo un 
-        <span style="font-size: 17px; font-weight: bold;">{var_interanual_cbt:.2f}%</span>.
-        </p>
-
-        <p>
-        ⬆️La canasta básica alimentaria aumentó mensualmente ({fecha_formato_normal} vs {fecha_anterior_formato_normal}) un 
-        <span style="font-size: 17px; font-weight: bold;">{var_mensual_cba:.2f}%</span>
-        mientras que la canasta básica total aumentó para el mismo periodo un 
-        <span style="font-size: 17px; font-weight: bold;">{var_mensual_cbt:.2f}%</span>.
-        </p>
-
+        {mensaje_variaciones_CBTCBA}
         <hr>
 
         {mensaje_variaciones_nea} <hr>
@@ -195,7 +179,6 @@ class connection_db:
         with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
             smtp.login(email_emisor, email_contraseña)
             smtp.sendmail(email_emisor, email_receptores, em.as_string())
-
 
     #Objetivo: calcular el valor para que una  persona individual o una familia, no sea pobre o no sea indigente.
     #PERSONA INDIVIDUAL --> Correspondencia con CBA || FAMILIA DE 4 PERSONAS --> Correspondiente al calculo de 
@@ -326,96 +309,143 @@ class connection_db:
 
     def variaciones(self,region):
 
-            nombre_tabla = 'ipc_region'
+        nombre_tabla = 'ipc_region'
 
-            query_consulta = f'SELECT * FROM {nombre_tabla} WHERE ID_Region = {region} and ID_Categoria = 1'
+        query_consulta = f'SELECT * FROM {nombre_tabla} WHERE ID_Region = {region} and ID_Categoria = 1'
 
-            #query_prueba = 'SELECT * FROM ipc_region WHERE ID_Region = 1 and ID_Categoria = 1'
-            df_bdd = pd.read_sql(query_consulta,self.conn)
-
-
-            #==== IPC registrado en el AÑO Y MES actual ==== #
-
-            #Obtener ultima fecha
-            fecha_max = df_bdd['Fecha'].max()
-            
-            #Buscamos los registros de la ultima fecha - Sumamos todos los campos
-            grupo_ultima_fecha = df_bdd[(df_bdd['Fecha'] == fecha_max)]
-
-            total_ipc = grupo_ultima_fecha['Valor'].values[0]
-
-            #=== CALCULO DE LA VARIACION MENSUAL
-
-            #Buscamos el mes anterior
-            mes_anterior = int(fecha_max.month) - 1
-
-            #Convertimos la serie a datetime para buscar por año y mes
-            df_bdd['Fecha'] = pd.to_datetime(df_bdd['Fecha'])    
-            grupo_mes_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == fecha_max.year) & (df_bdd['Fecha'].dt.month == mes_anterior)]
-
-            #Total del mes anterior y calculo de la variacion mensual
-            total_mes_anterior = grupo_mes_anterior['Valor'].values[0]
-
-            variacion_mensual = ((total_ipc/ total_mes_anterior) - 1) * 100
+        #query_prueba = 'SELECT * FROM ipc_region WHERE ID_Region = 1 and ID_Categoria = 1'
+        df_bdd = pd.read_sql(query_consulta,self.conn)
 
 
-            #=== CALCULO VARIACION INTERANUAL
+        #==== IPC registrado en el AÑO Y MES actual ==== #
 
-            grupo_mes_actual_año_anterior= df_bdd[(df_bdd['Fecha'].dt.year == fecha_max.year-1 ) & (df_bdd['Fecha'].dt.month == fecha_max.month)]
+        #Obtener ultima fecha
+        fecha_max = df_bdd['Fecha'].max()
+        
+        #Buscamos los registros de la ultima fecha - Sumamos todos los campos
+        grupo_ultima_fecha = df_bdd[(df_bdd['Fecha'] == fecha_max)]
 
-            total_ipc_año_anterior =  grupo_mes_actual_año_anterior['Valor'].values[0]
+        total_ipc = grupo_ultima_fecha['Valor'].values[0]
 
-            variacion_interanual = ((total_ipc / total_ipc_año_anterior) - 1) * 100
+        #=== CALCULO DE LA VARIACION MENSUAL
 
+        #Buscamos el mes anterior
+        mes_anterior = int(fecha_max.month) - 1
 
+        #Convertimos la serie a datetime para buscar por año y mes
+        df_bdd['Fecha'] = pd.to_datetime(df_bdd['Fecha'])    
+        grupo_mes_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == fecha_max.year) & (df_bdd['Fecha'].dt.month == mes_anterior)]
 
-            #=== CALCULO VARIACION ACUMULADA - Variacion desde DIC del año anterior
+        #Total del mes anterior y calculo de la variacion mensual
+        total_mes_anterior = grupo_mes_anterior['Valor'].values[0]
 
-            grupo_diciembre_año_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == fecha_max.year-1 ) & ((df_bdd['Fecha'].dt.month == 12)) ]
-
-            total_diciembre = grupo_diciembre_año_anterior['Valor'].values[0]
-
-            variacion_acumulada = ((total_ipc / total_diciembre) - 1) * 100
-
-            #Var mensual 
-            parte_entera_mensual, parte_decimal_mensual = str(variacion_mensual).split('.')
-            numero_truncado_mensual = '.'.join([parte_entera_mensual, parte_decimal_mensual[:1]])
-            
-
-            
-            #Var interanual 
-            parte_entera_interanual, parte_decimal_interanual = str(variacion_interanual).split('.')
-            numero_truncado_interanual = '.'.join([parte_entera_interanual, parte_decimal_interanual[:1]])
+        variacion_mensual = ((total_ipc/ total_mes_anterior) - 1) * 100
 
 
-            
-            #Var Acumulada
-            parte_entera_acumulada, parte_decimal_acumuludad = str(variacion_acumulada).split('.')
-            numero_truncado_acumulado = '.'.join([parte_entera_acumulada, parte_decimal_acumuludad[:1]])
-            
+        #=== CALCULO VARIACION INTERANUAL
 
-            
-            if region == 5: #--> Region NEA
-                #DATOS SACOS DEL EXCEL DIRECTAMENTE
-                numero_truncado_mensual, numero_truncado_interanual = self.var_mensual_prueba()
+        grupo_mes_actual_año_anterior= df_bdd[(df_bdd['Fecha'].dt.year == fecha_max.year-1 ) & (df_bdd['Fecha'].dt.month == fecha_max.month)]
 
-            cba_individuo,cbt_individuo,familia_indigente,familia_indigente_mes_anterior,familia_pobre,familia_pobre_mes_anterior,var_mensual_cba,var_mensual_cbt,var_interanual_cba,var_interanual_cbt,fecha = self.persona_individual_familia()
-            fecha_formato_normal = self.obtener_ultimafecha_actual(fecha)
-            cba_mes_anterior = str(fecha.year)+"-"+str(fecha.month - 1)
-            cba_mes_anterior = datetime.strptime(cba_mes_anterior, "%Y-%m")
-            fecha_anterior_formato_normal = self.obtener_ultimafecha_actual(cba_mes_anterior)
+        total_ipc_año_anterior =  grupo_mes_actual_año_anterior['Valor'].values[0]
+
+        variacion_interanual = ((total_ipc / total_ipc_año_anterior) - 1) * 100
 
 
-            cadena_variaciones =f"""
-            
-            <p>
-            📈Respecto al Índice de Precios al Consumidor del NEA, para el mes de {fecha_formato_normal} la variación general de precios respecto al mes anterior fue de 
-            <span style="font-size: 17px;"><b>{numero_truncado_mensual}%</b></span>. La variación interanual fue de <span style="font-size: 17px;"><b>{numero_truncado_interanual}%</b></span>
-            ({fecha_formato_normal} vs {fecha_anterior_formato_normal})
-            </p>
-            """
 
-            return cadena_variaciones
+        #=== CALCULO VARIACION ACUMULADA - Variacion desde DIC del año anterior
+
+        grupo_diciembre_año_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == fecha_max.year-1 ) & ((df_bdd['Fecha'].dt.month == 12)) ]
+
+        total_diciembre = grupo_diciembre_año_anterior['Valor'].values[0]
+
+        variacion_acumulada = ((total_ipc / total_diciembre) - 1) * 100
+
+        #Var mensual 
+        parte_entera_mensual, parte_decimal_mensual = str(variacion_mensual).split('.')
+        numero_truncado_mensual = '.'.join([parte_entera_mensual, parte_decimal_mensual[:1]])
+        
+
+        
+        #Var interanual 
+        parte_entera_interanual, parte_decimal_interanual = str(variacion_interanual).split('.')
+        numero_truncado_interanual = '.'.join([parte_entera_interanual, parte_decimal_interanual[:1]])
+
+
+        
+        #Var Acumulada
+        parte_entera_acumulada, parte_decimal_acumuludad = str(variacion_acumulada).split('.')
+        numero_truncado_acumulado = '.'.join([parte_entera_acumulada, parte_decimal_acumuludad[:1]])
+        
+
+        
+        if region == 5: #--> Region NEA
+            #DATOS SACOS DEL EXCEL DIRECTAMENTE
+            numero_truncado_mensual, numero_truncado_interanual = self.var_mensual_prueba()
+
+        cba_individuo,cbt_individuo,familia_indigente,familia_indigente_mes_anterior,familia_pobre,familia_pobre_mes_anterior,var_mensual_cba,var_mensual_cbt,var_interanual_cba,var_interanual_cbt,fecha = self.persona_individual_familia()
+        fecha_formato_normal = self.obtener_ultimafecha_actual(fecha)
+        cba_mes_anterior = str(fecha.year)+"-"+str(fecha.month - 1)
+        cba_mes_anterior = datetime.strptime(cba_mes_anterior, "%Y-%m")
+        fecha_anterior_formato_normal = self.obtener_ultimafecha_actual(cba_mes_anterior)
+
+
+        cadena_variaciones =f"""
+        
+        <p>
+        📈Respecto al Índice de Precios al Consumidor del NEA, para el mes de {fecha_formato_normal} la variación general de precios respecto al mes anterior fue de 
+        <span style="font-size: 17px;"><b>{numero_truncado_mensual}%</b></span>. La variación interanual fue de <span style="font-size: 17px;"><b>{numero_truncado_interanual}%</b></span>
+        ({fecha_formato_normal} vs {fecha_anterior_formato_normal})
+        </p>
+        """
+
+        return cadena_variaciones
+    
+    def mensaje_variacion_interanual(self):
+        cba_individuo,cbt_individuo,familia_indigente,familia_indigente_mes_anterior,familia_pobre,familia_pobre_mes_anterior,var_mensual_cba,var_mensual_cbt,var_interanual_cba,var_interanual_cbt,fecha = self.persona_individual_familia()
+        fecha_formato_normal = self.obtener_ultimafecha_actual(fecha)
+        cba_mes_anterior = str(fecha.year)+"-"+str(fecha.month - 1)
+        cba_mes_anterior = datetime.strptime(cba_mes_anterior, "%Y-%m")
+        fecha_anterior_formato_normal = self.obtener_ultimafecha_actual(cba_mes_anterior)
+        fecha_ano_anterior_formato_normal = self.obtener_ultimafecha_anoAnterior(fecha)
+
+        # Verificar si var_interanual_cba es negativa o positiva
+        if var_interanual_cba < 0:
+            aumento_disminucion = "disminuyó⬇️"
+        else:
+            aumento_disminucion = "aumentó⬆️"
+        
+        if var_interanual_cbt < 0:
+            aumento_canastaBasica = "disminuyó⬇️"
+        else:
+            aumento_canastaBasica = "aumentó⬆️"
+
+        if var_mensual_cba < 0:
+            aumento_mensual_canastaBasica= "disminuyó⬇️"
+        else:
+            aumento_mensual_canastaBasica = "aumentó⬆️"
+
+        if var_mensual_cbt < 0:
+            aumento_mensual_canastaTotal=  "disminuyó⬇️"
+        else:
+            aumento_mensual_canastaTotal = "aumentó⬆️"
+        
+        cadena_variaciones = f"""
+        <p>
+        La canasta básica alimentaria {aumento_disminucion} interanualmente ({fecha_formato_normal} vs {fecha_ano_anterior_formato_normal}) un 
+        <span style="font-size: 17px; font-weight: bold;">{abs(var_interanual_cba):.2f}%</span>,
+        mientras que la canasta básica total {aumento_canastaBasica} para el mismo periodo un 
+        <span style="font-size: 17px; font-weight: bold;">{var_interanual_cbt:.2f}%</span>.
+        </p>
+        <p>
+        La canasta básica alimentaria {aumento_mensual_canastaBasica} mensualmente ({fecha_formato_normal} vs {fecha_anterior_formato_normal}) un 
+        <span style="font-size: 17px; font-weight: bold;">{var_mensual_cba:.2f}%</span>
+        mientras que la canasta básica total {aumento_mensual_canastaTotal} para el mismo periodo un 
+        <span style="font-size: 17px; font-weight: bold;">{var_mensual_cbt:.2f}%</span>.
+        </p>
+        """
+        return cadena_variaciones
+    
+    
     def var_mensual_prueba(self):
         #Construccion de la direccion
         directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
