@@ -1,4 +1,4 @@
-#from extract import HomePage
+from extract import HomePage
 import os
 import pandas as pd
 #from homePage import HomePage
@@ -14,7 +14,7 @@ database = 'ipecd_economico'
 if __name__ == '__main__':
     
     #Obtencion del archivo
-    #url = HomePage()
+    url = HomePage()
     directorio_actual = os.path.dirname(os.path.abspath(__file__))
     ruta_carpeta_files = os.path.join(directorio_actual, 'files')
     
@@ -28,6 +28,6 @@ if __name__ == '__main__':
     lista_fechas= list()
     lista_SectorProductivo = list()
     lista_valores= list() 
-    
-    #cargaIndice().loadXLSIndiceEMAE(file_path, lista_fechas, lista_SectorProductivo, lista_valores, host, user, password, database)
+
     cargaIndice().loadXLSVariacionEMAE(file_path_variacion, lista_fechas, host, user, password, database)
+    cargaIndice().loadXLSIndiceEMAE(file_path, lista_fechas, lista_SectorProductivo, lista_valores, host, user, password, database)

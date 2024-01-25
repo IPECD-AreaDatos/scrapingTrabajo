@@ -66,7 +66,8 @@ class InformesEmae:
 
             <h3> ACTUALIZACION DE DATOS, se actualizaron los datos del Estimador Mensual de Actividad Económico(EMAE). Fecha: {cadena_fecha_actual} </h3>
 
-            <h3>Variación Interanual Última: {variacion_interanual_ultima}, Variación Mensual Última: {variacion_mensual_ultima}</h3>
+            <h3>Variación Mensual Desestacionalizada: {variacion_mensual_ultima:.1f}%<br>
+            Variación Interanual: {variacion_interanual_ultima:.1f}%</h3>
             
             <hr>
             '''

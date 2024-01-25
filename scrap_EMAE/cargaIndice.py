@@ -103,7 +103,7 @@ class cargaIndice:
             
         
         self.conn.commit()
-        # Cerrar la conexión a la base de datos
+        #Cerrar la conexión a la base de datos
         self.cursor.close()
         self.conn.close()
             
