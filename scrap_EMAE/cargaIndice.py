@@ -122,17 +122,6 @@ class cargaIndice:
 
         lista_fechas = [fecha_inicio + relativedelta(months=i) for i in range(num_meses)]
 
-        lista_valores = []
-        # Iterar a través de las filas a partir de la fila 3
-        for index, row in df.iterrows():
-            if index >= 2:  # Fila 3 en adelante
-                fecha = lista_fechas[index - 1]  # Restar 2 para compensar el índice
-                for columna in lista_columnas:
-                    # Buscamos el valor por FILA|COLUMNA y lo agregamos a la lista
-                    valor = df.at[index, columna]
-                    lista_valores.append(valor)
-                    print(f"Fecha: {fecha}, Valor: {valor}")
-
         #Conectamos a la BDD 
         self.conecta_bdd(host, user, password, database)
 
@@ -140,27 +129,27 @@ class cargaIndice:
         select_row_count_query = "SELECT COUNT(*) FROM emae_variaciones"
         self.cursor.execute(select_row_count_query)
         row_count_before = self.cursor.fetchone()[0]
-        
-        delete_query ="TRUNCATE `ipecd_economico`.`emae_variaciones`"
-        self.cursor.execute(delete_query)
-        
-        # Iterar a través de las filas a partir de la fila 3
-        for index, row in df.iterrows():
-            if index >= 3:  # Fila 3 en adelante
-                fecha = lista_fechas[index - 2]  # Restar 2 para compensar el índice
-                for columna in lista_columnas:
 
-                    #Buscamos el valor por FILA|COLUMNA y lo agregamos a la lista
+        # Truncate de la tabla
+        delete_query = "TRUNCATE `ipecd_economico`.`emae_variaciones`"
+        self.cursor.execute(delete_query)
+
+        # Iterar a través de las filas
+        for index, row in df.iterrows():
+            if index >= 2:  # Fila 3 en adelante
+                fecha = lista_fechas[index - 1]  # Restar 1 para compensar el índice
+                for columna in lista_columnas:
+                    # Buscamos el valor por FILA|COLUMNA y lo agregamos a la lista
                     valor = df.at[index, columna]
                     indice_sector_productivo = lista_columnas.index(columna) + 1
+
+                    # Imprimir los valores
+                    print(f"Fecha: {fecha}, Valor: {valor}")
 
                     # Insertar en la tabla MySQL
                     query = "INSERT INTO emae_variaciones (Fecha, Variacion_Interanual, Variacion_Mensual) VALUES (%s, %s, %s)"
                     values = (fecha, indice_sector_productivo, valor)
                     self.cursor.execute(query, values)
-
-        self.conn.commit()
-
         
         self.cursor.execute(select_row_count_query)
         row_count_after = self.cursor.fetchone()[0]
