@@ -44,12 +44,17 @@ class InformesEmae:
 
     #Construccion de correo a mandar
     def enviar_correo(self,df_mensual,df_interanual,df_acumulado,fecha_maxima):
-            
             email_emisor='departamientoactualizaciondato@gmail.com'
             email_contraseña = 'cmxddbshnjqfehka'
             email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
             #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
+            
             asunto = 'Actualizacion de los datos del Estimador Mensual de Actividad Económico (EMAE)'
+            datos_ultimos, datos_penultimos = self.obtener_variacion_anualymensual()
+            # Desempaquetar los datos
+            fecha_ultima, variacion_interanual_ultima, variacion_mensual_ultima = datos_ultimos
+            fecha_penultima, variacion_interanual_penultima, variacion_mensual_penultima = datos_penultimos
+
 
             #Construimos la cadena de la fecha actual
             cadena_fecha_actual = self.obtener_fecha_actual(fecha_maxima)
@@ -60,6 +65,8 @@ class InformesEmae:
             <body>
 
             <h3> ACTUALIZACION DE DATOS, se actualizaron los datos del Estimador Mensual de Actividad Económico(EMAE). Fecha: {cadena_fecha_actual} </h3>
+
+            <h3>Variación Interanual Última: {variacion_interanual_ultima}, Variación Mensual Última: {variacion_mensual_ultima}</h3>
             
             <hr>
             '''
@@ -293,3 +300,34 @@ class InformesEmae:
         nombre_mes_espanol = traducciones_meses.get(nombre_mes_ingles, nombre_mes_ingles)
 
         return str(fecha_ultimo_registro.day) + f" de {nombre_mes_espanol} del {fecha_ultimo_registro.year}"
+    
+    def obtener_variacion_anualymensual(self):
+        # Buscamos los datos de la tabla emae_variaciones y lo transformamos a un DataFrame
+        nombre_tabla = 'emae_variaciones'
+        query_select = f'SELECT * FROM {nombre_tabla} ORDER BY Fecha DESC LIMIT 2' 
+        df_bdd = pd.read_sql(query_select, self.conn)
+
+        # Verificar que haya al menos dos registros en el DataFrame
+        if len(df_bdd) >= 2:
+            # Obtener los valores de los últimos dos registros
+            ultima_fila = df_bdd.iloc[0]
+            penultima_fila = df_bdd.iloc[1]
+
+            # Acceder a los valores específicos
+            fecha_ultima = ultima_fila['Fecha']
+            variacion_interanual_ultima = ultima_fila['Variacion_Interanual']
+            variacion_mensual_ultima = ultima_fila['Variacion_Mensual']
+
+            fecha_penultima = penultima_fila['Fecha']
+            variacion_interanual_penultima = penultima_fila['Variacion_Interanual']
+            variacion_mensual_penultima = penultima_fila['Variacion_Mensual']
+
+            # Puedes imprimir o retornar los valores según tus necesidades
+            print(f"Última Fecha: {fecha_ultima}, Variación Interanual: {variacion_interanual_ultima}, Variación Mensual: {variacion_mensual_ultima}")
+            print(f"Penúltima Fecha: {fecha_penultima}, Variación Interanual: {variacion_interanual_penultima}, Variación Mensual: {variacion_mensual_penultima}")
+
+            # También puedes retornar los valores si quieres usarlos fuera de la función
+            return (fecha_ultima, variacion_interanual_ultima, variacion_mensual_ultima), (fecha_penultima, variacion_interanual_penultima, variacion_mensual_penultima)
+        else:
+            print("No hay suficientes registros en la tabla.")
+            return None, None
