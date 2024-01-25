@@ -24,9 +24,6 @@ class cargaIndice:
 
         
     def loadXLSIndiceEMAE(self, file_path, lista_fechas, lista_SectorProductivo, lista_valores, host, user, password, database):
-
-
-
         # Leer el archivo Excel en un DataFrame de pandas
         df = pd.read_excel(file_path, sheet_name=0, skiprows=1)  # Leer el archivo XLSX y crear el DataFrame
         df = df.replace({np.nan: None})  # Reemplazar los valores NaN(Not a Number) por None
@@ -113,5 +110,81 @@ class cargaIndice:
         self.cursor.close()
         self.conn.close()
             
+    def loadXLSVariacionEMAE(self, file_path_variacion, lista_fechas, host, user, password, database):
+        # Leer el archivo Excel en un DataFrame de pandas
+        df = pd.read_excel(file_path_variacion, sheet_name=0, skiprows=2)  # Leer el archivo XLSX y crear el DataFrame
+        df = df.replace({np.nan: None})  # Reemplazar los valores NaN(Not a Number) por None
+        # Eliminar la última fila que contiene "Fuente: INDEC"
+        df = df.drop(df.index[-1])
+        df = df.drop(df.index[-1])
 
+        # Obtener las columnas D y F
+        columnas_valores = df[['D', 'F']]
+
+        lista_columnas = list(columnas_valores)
+   
+        fecha_inicio = datetime(2004, 1, 1)
+        num_meses = len(df) - 2  # Restar 2 para compensar las filas de encabezados
+
+        lista_fechas = [fecha_inicio + relativedelta(months=i) for i in range(num_meses)]
+
+        lista_valores = []
+
+
+        # Iterar a través de las filas a partir de la fila 3
+        for index, row in df.iterrows():
+            if index >= 2:  # Fila 3 en adelante
+                fecha = lista_fechas[index - 2]  # Restar 2 para compensar el índice
+                for columna in columnas_valores:
+
+                    #Buscamos el valor por FILA|COLUMNA y lo agregamos a la lista
+                    valor = df.at[index, columna]
+                    lista_valores.append(valor)
+        
+        print("aca: ", df)
+        exit()
+        #Conectamos a la BDD 
+        self.conecta_bdd(host, user, password, database)
+
+        #Verificar cantidad de filas anteriores 
+        select_row_count_query = "SELECT COUNT(*) FROM emae"
+        self.cursor.execute(select_row_count_query)
+        row_count_before = self.cursor.fetchone()[0]
+        
+        delete_query ="TRUNCATE `ipecd_economico`.`emae`"
+        self.cursor.execute(delete_query)
+        
+        # Iterar a través de las filas a partir de la fila 3
+        for index, row in df.iterrows():
+            if index >= 3:  # Fila 3 en adelante
+                fecha = lista_fechas[index - 2]  # Restar 2 para compensar el índice
+                for columna in columnas_valores:
+
+                    #Buscamos el valor por FILA|COLUMNA y lo agregamos a la lista
+                    valor = df.at[index, columna]
+                    indice_sector_productivo = lista_columnas.index(columna) + 1
+
+                    # Insertar en la tabla MySQL
+                    query = "INSERT INTO emae (Fecha, Sector_Productivo, Valor) VALUES (%s, %s, %s)"
+                    values = (fecha, indice_sector_productivo, valor)
+                    self.cursor.execute(query, values)
+
+        self.conn.commit()
+
+        
+        self.cursor.execute(select_row_count_query)
+        row_count_after = self.cursor.fetchone()[0]
+        #Comparar la cantidad de antes y despues
+        
+        if row_count_after > row_count_before:
+            print("Se agregaron nuevos datos")
+            InformesEmae(host, user, password, database).enviar_mensajes()
+        else:
+            print("Se realizo una verificacion de la base de datos")
+            
+        
+        self.conn.commit()
+        # Cerrar la conexión a la base de datos
+        self.cursor.close()
+        self.conn.close()
 
