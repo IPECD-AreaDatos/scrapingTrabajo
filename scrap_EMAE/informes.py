@@ -6,7 +6,7 @@ from smtplib import SMTP_SSL
 import pandas as pd
 from datetime import datetime
 from ssl import create_default_context
-from pywhatkit import sendwhatmsg_to_group_instantly
+#from pywhatkit import sendwhatmsg_to_group_instantly
 import mysql.connector
 
 class InformesEmae:

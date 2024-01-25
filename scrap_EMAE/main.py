@@ -29,5 +29,5 @@ if __name__ == '__main__':
     lista_SectorProductivo = list()
     lista_valores= list() 
     
-    cargaIndice().loadXLSIndiceEMAE(file_path, lista_fechas, lista_SectorProductivo, lista_valores, host, user, password, database)
-    #cargaIndice().loadXLSVariacionEMAE(file_path_variacion, lista_fechas, host, user, password, database)
+    #cargaIndice().loadXLSIndiceEMAE(file_path, lista_fechas, lista_SectorProductivo, lista_valores, host, user, password, database)
+    cargaIndice().loadXLSVariacionEMAE(file_path_variacion, lista_fechas, host, user, password, database)

@@ -49,7 +49,6 @@ class cargaIndice:
             if index >= 2:  # Fila 3 en adelante
                 fecha = lista_fechas[index - 2]  # Restar 2 para compensar el índice
                 for columna in columnas_valores:
-
                     #Buscamos el valor por FILA|COLUMNA y lo agregamos a la lista
                     valor = df.at[index, columna]
                     lista_valores.append(valor)
@@ -62,8 +61,6 @@ class cargaIndice:
 
                     lista_SectorProductivo.append(indice_sector_productivo)
                     print(f"Fecha: {fecha}, Valor: {valor}, Sector Productivo: {indice_sector_productivo}")
-        
-        print("aca: ", df)
 
         #Conectamos a la BDD 
         self.conecta_bdd(host, user, password, database)
@@ -112,59 +109,53 @@ class cargaIndice:
             
     def loadXLSVariacionEMAE(self, file_path_variacion, lista_fechas, host, user, password, database):
         # Leer el archivo Excel en un DataFrame de pandas
-        df = pd.read_excel(file_path_variacion, sheet_name=0, skiprows=2)  # Leer el archivo XLSX y crear el DataFrame
+        df = pd.read_excel(file_path_variacion, sheet_name=0, skiprows=2, usecols="D,F")  # Leer el archivo XLSX y crear el DataFrame
         df = df.replace({np.nan: None})  # Reemplazar los valores NaN(Not a Number) por None
         # Eliminar la última fila que contiene "Fuente: INDEC"
         df = df.drop(df.index[-1])
         df = df.drop(df.index[-1])
 
-        # Obtener las columnas D y F
-        columnas_valores = df.loc[:, ["Var % respecto a igual período del año anterior", "Var % respecto al mes anterior"]]
+        lista_columnas = list(df.columns)
 
-        lista_columnas = list(columnas_valores)
-   
         fecha_inicio = datetime(2004, 1, 1)
         num_meses = len(df) - 2  # Restar 2 para compensar las filas de encabezados
 
         lista_fechas = [fecha_inicio + relativedelta(months=i) for i in range(num_meses)]
 
         lista_valores = []
-
         # Iterar a través de las filas a partir de la fila 3
         for index, row in df.iterrows():
             if index >= 2:  # Fila 3 en adelante
-                fecha = lista_fechas[index - 2]  # Restar 2 para compensar el índice
-                for columna in columnas_valores:
-
-                    #Buscamos el valor por FILA|COLUMNA y lo agregamos a la lista
+                fecha = lista_fechas[index - 1]  # Restar 2 para compensar el índice
+                for columna in lista_columnas:
+                    # Buscamos el valor por FILA|COLUMNA y lo agregamos a la lista
                     valor = df.at[index, columna]
                     lista_valores.append(valor)
-        
-        print("aca: ", df)
-        exit()
+                    print(f"Fecha: {fecha}, Valor: {valor}")
+
         #Conectamos a la BDD 
         self.conecta_bdd(host, user, password, database)
 
         #Verificar cantidad de filas anteriores 
-        select_row_count_query = "SELECT COUNT(*) FROM emae"
+        select_row_count_query = "SELECT COUNT(*) FROM emae_variaciones"
         self.cursor.execute(select_row_count_query)
         row_count_before = self.cursor.fetchone()[0]
         
-        delete_query ="TRUNCATE `ipecd_economico`.`emae`"
+        delete_query ="TRUNCATE `ipecd_economico`.`emae_variaciones`"
         self.cursor.execute(delete_query)
         
         # Iterar a través de las filas a partir de la fila 3
         for index, row in df.iterrows():
             if index >= 3:  # Fila 3 en adelante
                 fecha = lista_fechas[index - 2]  # Restar 2 para compensar el índice
-                for columna in columnas_valores:
+                for columna in lista_columnas:
 
                     #Buscamos el valor por FILA|COLUMNA y lo agregamos a la lista
                     valor = df.at[index, columna]
                     indice_sector_productivo = lista_columnas.index(columna) + 1
 
                     # Insertar en la tabla MySQL
-                    query = "INSERT INTO emae (Fecha, Sector_Productivo, Valor) VALUES (%s, %s, %s)"
+                    query = "INSERT INTO emae_variaciones (Fecha, Variacion_Interanual, Variacion_Mensual) VALUES (%s, %s, %s)"
                     values = (fecha, indice_sector_productivo, valor)
                     self.cursor.execute(query, values)
 
