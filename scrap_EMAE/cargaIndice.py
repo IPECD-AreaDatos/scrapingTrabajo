@@ -63,7 +63,7 @@ class cargaIndice:
                     lista_SectorProductivo.append(indice_sector_productivo)
                     print(f"Fecha: {fecha}, Valor: {valor}, Sector Productivo: {indice_sector_productivo}")
         
-        
+        print("aca: ", df)
 
         #Conectamos a la BDD 
         self.conecta_bdd(host, user, password, database)
@@ -119,7 +119,7 @@ class cargaIndice:
         df = df.drop(df.index[-1])
 
         # Obtener las columnas D y F
-        columnas_valores = df[['D', 'F']]
+        columnas_valores = df.loc[:, ["Var % respecto a igual período del año anterior", "Var % respecto al mes anterior"]]
 
         lista_columnas = list(columnas_valores)
    
@@ -129,7 +129,6 @@ class cargaIndice:
         lista_fechas = [fecha_inicio + relativedelta(months=i) for i in range(num_meses)]
 
         lista_valores = []
-
 
         # Iterar a través de las filas a partir de la fila 3
         for index, row in df.iterrows():
