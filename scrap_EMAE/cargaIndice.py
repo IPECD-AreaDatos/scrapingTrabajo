@@ -114,56 +114,55 @@ class cargaIndice:
         # Eliminar la última fila que contiene "Fuente: INDEC"
         df = df.drop(df.index[-1])
         df = df.drop(df.index[-1])
+        # Reemplazar los valores None por 0
+        df = df.iloc[1:]
+        df = df.fillna(0)
 
-        lista_columnas = list(df.columns)
-
+        # Agregar una columna con fechas desde enero de 2004
         fecha_inicio = datetime(2004, 1, 1)
-        num_meses = len(df) - 2  # Restar 2 para compensar las filas de encabezados
+        num_filas = len(df)
+        lista_fechas = [fecha_inicio + relativedelta(months=i) for i in range(num_filas)]
 
-        lista_fechas = [fecha_inicio + relativedelta(months=i) for i in range(num_meses)]
+        # Asegurarse de que la longitud de lista_fechas coincida con la cantidad de filas del DataFrame
+        if len(lista_fechas) == len(df):
+            df.insert(0, "Fecha", lista_fechas)
 
-        #Conectamos a la BDD 
-        self.conecta_bdd(host, user, password, database)
+            # Realizar el insert en la tabla MySQL
+            # Asegurarse de que la conexión a la base de datos esté establecida antes de realizar el insert
+            self.conecta_bdd(host, user, password, database)
+            #Verificar cantidad de filas anteriores 
+            select_row_count_query = "SELECT COUNT(*) FROM emae_variaciones"
+            self.cursor.execute(select_row_count_query)
+            row_count_before = self.cursor.fetchone()[0]
+            
+            delete_query ="TRUNCATE `ipecd_economico`.`emae_variaciones`"
+            self.cursor.execute(delete_query)
 
-        #Verificar cantidad de filas anteriores 
-        select_row_count_query = "SELECT COUNT(*) FROM emae_variaciones"
-        self.cursor.execute(select_row_count_query)
-        row_count_before = self.cursor.fetchone()[0]
+            # Iterar a través de las filas e insertar en la tabla MySQL
+            for index, row in df.iterrows():
+                fecha = row["Fecha"].strftime('%Y-%m-%d %H:%M:%S')  # Convertir a cadena de texto en formato MySQL
+                variacion_interanual = row["Var % respecto a igual período del año anterior"]
+                variacion_mensual = row["Var % respecto al mes anterior"]
 
-        # Truncate de la tabla
-        delete_query = "TRUNCATE `ipecd_economico`.`emae_variaciones`"
-        self.cursor.execute(delete_query)
+                print(f"Insertando: Fecha={fecha}, Variacion_Interanual={variacion_interanual}, Variacion_Mensual={variacion_mensual}")
 
-        # Iterar a través de las filas
-        for index, row in df.iterrows():
-            if index >= 2:  # Fila 3 en adelante
-                fecha = lista_fechas[index - 1]  # Restar 1 para compensar el índice
-                for columna in lista_columnas:
-                    # Buscamos el valor por FILA|COLUMNA y lo agregamos a la lista
-                    valor = df.at[index, columna]
-                    indice_sector_productivo = lista_columnas.index(columna) + 1
+                # Insertar en la tabla MySQL
+                query = "INSERT INTO emae_variaciones (Fecha, Variacion_Interanual, Variacion_Mensual) VALUES (%s, %s, %s)"
+                values = (fecha, variacion_interanual, variacion_mensual)
+                self.cursor.execute(query, values)
 
-                    # Imprimir los valores
-                    print(f"Fecha: {fecha}, Valor: {valor}")
-
-                    # Insertar en la tabla MySQL
-                    query = "INSERT INTO emae_variaciones (Fecha, Variacion_Interanual, Variacion_Mensual) VALUES (%s, %s, %s)"
-                    values = (fecha, indice_sector_productivo, valor)
-                    self.cursor.execute(query, values)
+            self.conn.commit()
+            print("Inserción completada.")
+        else:
+            print("Las longitudes no coinciden.")
         
         self.cursor.execute(select_row_count_query)
         row_count_after = self.cursor.fetchone()[0]
-        #Comparar la cantidad de antes y despues
-        
         if row_count_after > row_count_before:
             print("Se agregaron nuevos datos")
-            InformesEmae(host, user, password, database).enviar_mensajes()
+            #InformesEmae(host, user, password, database).enviar_mensajes()
         else:
             print("Se realizo una verificacion de la base de datos")
             
-        
-        self.conn.commit()
-        # Cerrar la conexión a la base de datos
-        self.cursor.close()
-        self.conn.close()
+        print(df)
 

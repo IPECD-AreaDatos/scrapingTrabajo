@@ -64,12 +64,15 @@ class connection_db:
     def determinar_tamaños(self,nombre_tabla,df):
 
         #Obtenemos la cantidad de datos almacenados
-        query_consulta = f"SELECT COUNT(*) FROM {nombre_tabla}"
-        tamaño_bdd = self.cursor.execute(query_consulta)
-
+        query_consulta = "SELECT COUNT(*) FROM cbt_cba"
+        self.cursor.execute(query_consulta) #Ejecutamos la consulta
+        tamaño_bdd = self.cursor.fetchone()[0] #Obtenemos el tamaño de la bdd
+        
         #Obtenemos la cantidad de datos del dataframe construido
         tamaño_df = len(df)
         
+        print(tamaño_bdd,tamaño_df)
+
         return tamaño_df,tamaño_bdd
     
     #Objetivo: almacenar en la tabla cbt_cba con los datos nuevos

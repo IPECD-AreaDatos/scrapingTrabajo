@@ -13,13 +13,16 @@ sys.path.append(credenciales_dir)
 from credenciales_bdd import Credenciales
 
 if __name__ == '__main__':
+
     credenciales = Credenciales()
+
+    """    
     home_page_CBT = HomePageCBT()
     home_page_CBT.descargar_archivo()
-    
+
     home_page_Pobreza= HomePagePobreza()
     home_page_Pobreza.descargar_archivo()
-    
+
 
     loadXLSDataCBT().readData()
 
@@ -28,10 +31,11 @@ if __name__ == '__main__':
 
     print("- Finalizacion de revison de CBT")
 
-
+    """
 
     #PRUEBAS DE DATALAKE
 
-    df = loadXLSDataCBT.transform_datalake() #--> Transformar y concatenar datos del EXCEL
-    connection_db(credenciales.host, credenciales.user, credenciales.password, "datalake_sociodemografico").load_datalake()
+    df = loadXLSDataCBT().transform_datalake() #--> Transformar y concatenar datos del EXCEL
+    conexion_datalake = connection_db(credenciales.host, credenciales.user, credenciales.password,'datalake_sociodemografico')
+    conexion_datalake.load_datalake(df)
 
