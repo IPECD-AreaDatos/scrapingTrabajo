@@ -17,23 +17,10 @@ class loadXLSDataCBT:
         directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
         ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
         file_path_desagregado = os.path.join(ruta_carpeta_files, 'CBT.xls')
-
         file_path_estimaciones_nea = os.path.join(ruta_carpeta_files, 'historico_estimaciones_nea.xlsx')
-
         file_path_destino = os.path.join(ruta_carpeta_files, 'Calculos.xlsx')
         
-        # Crear un DataFrame con las columnas de encabezado
-        columnas_encabezado = [
-            'Fecha',
-            'CBA_Adulto',
-            'CBT_Adulto',
-            'CBA_Hogar',
-            'CBT_Hogar',
-        ]
-        
-        # Crear un DataFrame con una fila de encabezados
-        df_encabezado = pd.DataFrame(columns=columnas_encabezado)
-        
+
         """ 
         Leer el archivo Excel y seleccionar las columnas 1, 2 y 4 desde la fila 8
 
@@ -49,26 +36,15 @@ class loadXLSDataCBT:
         df_primeraHoja.loc[-1] = valores_que_estan_como_columna
         df_primeraHoja.index = df_primeraHoja.index + 1
         df_primeraHoja = df_primeraHoja.sort_index()
-
-
         df_primeraHoja.columns = ['Fecha','CBA_Adulto','CBT_Adulto']
 
-
-
         #Datos de la primera fila
-
         df_segundaHoja = pd.read_excel(file_path_desagregado, sheet_name=3, usecols=[2,6], skiprows=7)
         valores_que_estan_como_columna = df_segundaHoja.columns.to_list()
         df_segundaHoja.loc[-1] = valores_que_estan_como_columna
         df_segundaHoja.index = df_segundaHoja.index + 1
         df_segundaHoja = df_segundaHoja.sort_index()
-
-
         df_segundaHoja.columns = ['CBA_Hogar','CBT_Hogar']
-
-
-
-        
 
         # Encuentra la fila en blanco y elimina las filas posteriores
         indice_fila_en_blanco = df_primeraHoja.index[df_primeraHoja.isnull().all(axis=1)].tolist()[0]
@@ -77,16 +53,19 @@ class loadXLSDataCBT:
         indice_fila_en_blanco = df_segundaHoja.index[df_segundaHoja.isnull().all(axis=1)].tolist()[0]
         df_segundaHoja = df_segundaHoja.iloc[:indice_fila_en_blanco]
 
-        
-
-        #Estimaciones del NEA
+        #Datos oficiales de CBA y CBT del NEA
         concatenacion_df = pd.read_excel(file_path_estimaciones_nea)
         concatenacion_df = concatenacion_df.drop('Fecha',axis = 1)
 
-
-
-        #Transformacion de los ultimos datos
+        #Transformacion de los ultimos datos --> Objetivo de datalake?
         concatenacion_df = pd.concat([df_primeraHoja,df_segundaHoja,concatenacion_df],axis=1)
+        concatenacion_df['Fecha'] = pd.to_datetime(concatenacion_df['Fecha'])
+
+        
+        return concatenacion_df
+
+
+        # ESTIMACIONES, VARIACIONES Y CALCULOS, ALMACENAR EN EL DATAWAREHOUSE
         df_final = self.calcular_estimaciones(concatenacion_df)
 
         print(df_final)
@@ -128,7 +107,6 @@ class loadXLSDataCBT:
         #Ultima fecha del dataset
         fecha_maxima = concatenacion_df['Fecha'].max()
         ultimo_año = fecha_maxima.year
-        mes_donde_salio_nuevo_periodo = 8 #--> Actualmente Agosto
 
         #Conseguimos los ultimos valores oficiales correspondientes al NEA de CBA
         lista_cba_nea = (concatenacion_df['cba_nea'][concatenacion_df['Fecha'].dt.year == ultimo_año].dropna())[-6:]
@@ -165,7 +143,6 @@ class loadXLSDataCBT:
         #Ultima fecha del dataset
         fecha_maxima = concatenacion_df['Fecha'].max()
         ultimo_año = fecha_maxima.year
-        mes_donde_salio_nuevo_periodo = 8 #--> Actualmente Agosto
 
         #Conseguimos los ultimos valores oficiales correspondientes al NEA de CBA
         lista_cbt_nea = (concatenacion_df['cbt_nea'][concatenacion_df['Fecha'].dt.year == ultimo_año].dropna())[-6:]
@@ -201,4 +178,56 @@ class loadXLSDataCBT:
 
         return concatenacion_df
     
+    
+    #Esta funcion la usaremos para transformar y concatenar los datos que corresponde al datalake
+    def transform_datalake(self):
+
+        directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
+        ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
+        file_path_desagregado = os.path.join(ruta_carpeta_files, 'CBT.xls')
+        file_path_estimaciones_nea = os.path.join(ruta_carpeta_files, 'historico_estimaciones_nea.xlsx')
         
+
+        """ 
+        Leer el archivo Excel y seleccionar las columnas 1, 2 y 4 desde la fila 8
+
+        En este caso l oque hacemos es, 
+        1 - Leer datos del Excel
+        2- A leer se toman algunos valores como nombres para las columnas
+        3- Arreglamos el indice, ya que se rompe
+        4 - Sort_index() resetea el indice
+        """
+
+        df_primeraHoja = pd.read_excel(file_path_desagregado, sheet_name=0, usecols=[0, 1, 3], skiprows=7)
+        valores_que_estan_como_columna = df_primeraHoja.columns.to_list()
+        df_primeraHoja.loc[-1] = valores_que_estan_como_columna
+        df_primeraHoja.index = df_primeraHoja.index + 1
+        df_primeraHoja = df_primeraHoja.sort_index()
+        df_primeraHoja.columns = ['Fecha','CBA_Adulto','CBT_Adulto']
+
+        #Datos de la primera fila
+        df_segundaHoja = pd.read_excel(file_path_desagregado, sheet_name=3, usecols=[2,6], skiprows=7)
+        valores_que_estan_como_columna = df_segundaHoja.columns.to_list()
+        df_segundaHoja.loc[-1] = valores_que_estan_como_columna
+        df_segundaHoja.index = df_segundaHoja.index + 1
+        df_segundaHoja = df_segundaHoja.sort_index()
+        df_segundaHoja.columns = ['CBA_Hogar','CBT_Hogar']
+
+        # Encuentra la fila en blanco y elimina las filas posteriores
+        indice_fila_en_blanco = df_primeraHoja.index[df_primeraHoja.isnull().all(axis=1)].tolist()[0]
+        df_primeraHoja = df_primeraHoja.iloc[:indice_fila_en_blanco]
+
+        indice_fila_en_blanco = df_segundaHoja.index[df_segundaHoja.isnull().all(axis=1)].tolist()[0]
+        df_segundaHoja = df_segundaHoja.iloc[:indice_fila_en_blanco]
+
+        #Datos oficiales de CBA y CBT del NEA
+        concatenacion_df = pd.read_excel(file_path_estimaciones_nea)
+        concatenacion_df = concatenacion_df.drop('Fecha',axis = 1)
+
+        #Transformacion de los ultimos datos --> Objetivo de datalake?
+        concatenacion_df = pd.concat([df_primeraHoja,df_segundaHoja,concatenacion_df],axis=1)
+        concatenacion_df['Fecha'] = pd.to_datetime(concatenacion_df['Fecha'])
+
+        
+        return concatenacion_df
+

@@ -20,9 +20,18 @@ if __name__ == '__main__':
     home_page_Pobreza= HomePagePobreza()
     home_page_Pobreza.descargar_archivo()
     
+
     loadXLSDataCBT().readData()
 
     instancia = connection_db(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
     instancia.carga_db()
 
     print("- Finalizacion de revison de CBT")
+
+
+
+    #PRUEBAS DE DATALAKE
+
+    df = loadXLSDataCBT.transform_datalake() #--> Transformar y concatenar datos del EXCEL
+    connection_db(credenciales.host, credenciales.user, credenciales.password, "datalake_sociodemografico").load_datalake()
+

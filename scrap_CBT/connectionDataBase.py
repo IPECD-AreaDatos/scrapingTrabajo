@@ -21,6 +21,7 @@ class connection_db:
         self.conn = None
         self.cursor = None
 
+
     def conectar_bdd(self):
 
         self.conn = mysql.connector.connect(
@@ -28,7 +29,71 @@ class connection_db:
         )
 
         self.cursor = self.conn.cursor()
+
+   
+
+# =========================================================================================== #
+                # ==== SECCION CORRESPONDIENTE AL DATALAKE ==== #
+# =========================================================================================== #
+        
+
+
+    #Objetivo: Almacenar los datos de CBA y CBT sin procesar en el datalake. Datos sin procesar
+    def load_datalake(self,df):
+        
+        #Nos conectamos a la BDD
+        self.conectar_bdd()
+
+        #Obtenemos los tamaños
+        tamanio_df,tamanio_bdd = self.determinar_tamaños("cbt_cba",df)
+
+        if tamanio_df > tamanio_bdd: #Si el DF es mayor que lo almacenado, cargar los datos nuevos
+            
+            #Obtengo diferencia de filas a cargar - En el nuevo dataframe solo estaran los datos nuevos
+            df_datos_nuevos = df.tail(tamanio_df - tamanio_bdd)
+            self.cargar_tabla_datalake(df_datos_nuevos)
+            print("==== SE CARGARON DATOS NUEVOS CORRESPONDIENTES A CBT Y CBA DEL DATALAKE ====")
+            
+        else: #Si no hay datos nuevos AVISAR
+            
+            print("==== NO HAY DATOS NUEVOS CORRESPONDIENTES A CBT Y CBA DEL DATALAKE ====")
+
+        pass
+
+    #Objetivo: Obtener tamaños de los datos para realizar verificaciones de varga
+    def determinar_tamaños(self,nombre_tabla,df):
+
+        #Obtenemos la cantidad de datos almacenados
+        query_consulta = f"SELECT COUNT(*) FROM {nombre_tabla}"
+        tamaño_bdd = self.cursor.execute(query_consulta)
+
+        #Obtenemos la cantidad de datos del dataframe construido
+        tamaño_df = len(df)
+        
+        return tamaño_df,tamaño_bdd
     
+    #Objetivo: almacenar en la tabla cbt_cba con los datos nuevos
+    def cargar_tabla_datalake(self,df_cargar):
+
+        query_insertar_datos = "INSERT INTO cbt_cba VALUES (%s, %s, %s, %s, %s,%s, %s, %s, %s, %s,%s, %s, %s)"
+
+        for index,row in df_cargar.iterrows():
+            
+            #Obtenemos los valores de cada fila del DF
+            values = (row['Fecha'],row['CBA_Adulto'],row['CBT_Adulto'],row['CBA_Hogar'],row['CBT_Hogar'],row['cba_nea'],row['cbt_nea'])
+
+            #Realizamos carga
+            self.cursor.execute(query_insertar_datos,values)
+
+        # Confirmar los cambios en la base de datos y cerramos conexiones
+        self.conn.commit()
+        self.cursor.close()
+        self.conn.close()
+
+# =========================================================================================== #        
+# =========================================================================================== #
+
+
     def carga_db(self):
 
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
@@ -474,6 +539,10 @@ class connection_db:
         ult_var_interanual = sheet.row_values(target_row_index + 2)[-1]
 
         return ultima_var_mensual, ult_var_interanual
+
+
+
+
 
 """
 host = '172.17.22.23'
