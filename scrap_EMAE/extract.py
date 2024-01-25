@@ -45,5 +45,24 @@ class HomePage:
     with open(ruta_guardado, 'wb') as file:
         file.write(response.content)
 
+    #Segundo archivo
+    # Encontrar el enlace al segundo archivo
+    archivo_2 = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[2]/div[1]/div[2]/div[4]/div[1]/div[2]/div/div/div/div/a[1]"))) 
+    # Obtener la URL del segundo archivo
+    url_archivo_2 = archivo_2.get_attribute('href')
+    # Imprimir la URL del segundo archivo
+    print(url_archivo_2)
+
+    # Nombre del segundo archivo
+    nombre_archivo_2 = 'EMAEVAR.xls'  # Reemplaza con el nombre deseado para el segundo archivo
+
+    # Descargar el segundo archivo
+    response_2 = requests.get(url_archivo_2)
+
+    # Guardar el segundo archivo en la carpeta especificada
+    ruta_guardado_2 = f'{carpeta_guardado}\\{nombre_archivo_2}'
+    with open(ruta_guardado_2, 'wb') as file:
+        file.write(response_2.content)
+
     # Cerrar el navegador
     driver.quit()
