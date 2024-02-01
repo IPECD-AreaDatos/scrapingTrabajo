@@ -39,7 +39,7 @@ class loadCSVData_SP:
         filas_BD = cursor.fetchone()[0]
         print("Base salarios privado: ", filas_BD)
         
-        if longitud_datos_excel != filas_BD:
+        if longitud_datos_excel > filas_BD:
             df_datos_nuevos = df.tail(longitud_datos_excel - filas_BD)
 
             column_name = ' w_mean ' 
