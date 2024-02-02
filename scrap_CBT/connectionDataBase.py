@@ -8,29 +8,75 @@ import smtplib
 import calendar
 import xlrd
 from datetime import datetime, timedelta
-
+from sshtunnel import SSHTunnelForwarder #--> Controlamos la conexion ssh
+from paramiko import RSAKey # Para manejar la clave en formato .pem
+import pymysql
 
 class connection_db:
 
-    def __init__(self,host, user, password, database):
-
-        self.host = host
-        self.user = user
-        self.password = password
+    def __init__(self, ssh_host, ssh_user, ssh_pem_key_path, mysql_host,mysql_port, mysql_user, mysql_password, database):
+        self.ssh_host = ssh_host
+        self.ssh_user = ssh_user
+        self.ssh_pem_key_path = ssh_pem_key_path
+        self.mysql_host = mysql_host
+        self.mysql_port = mysql_port
+        self.mysql_user = mysql_user
+        self.mysql_password = mysql_password
         self.database = database
+        self.tunel = None
         self.conn = None
         self.cursor = None
 
 
-    def conectar_bdd(self):
+    # =========================================================================================== #
+            # ==== SECCION CORRESPONDIENTE A LAS CONEXIONES ==== #
+    # =========================================================================================== #
 
-        self.conn = mysql.connector.connect(
-            host=self.host, user=self.user, password=self.password, database=self.database
+    #Objetivo: Crear un tunel por SSH a la base de datos instalada en EC2
+    def tunelizacion(self):
+
+        # ==== CONFIGURACION DE SSH
+
+        print("* CONEXION - SSH INICADA")
+        # Configurar el túnel SSH
+        self.tunel = SSHTunnelForwarder(
+            (self.ssh_host, 22),
+            ssh_username=self.ssh_user, #--> El definido para entrar al servidor
+            ssh_pkey=self.ssh_pem_key_path,  # Ruta al archivo .pem
+            remote_bind_address=('127.0.0.1', 3306)
+        )
+
+        # Iniciar el túnel SSH
+        self.tunel.start()
+        print("* CONEXION - SSH EN FUNCIONAMIENTO")
+
+
+        # ==== CONFIGURACION DE LA BASE DE DATOS
+
+        print("CONEXION - BASE DE DATOS")
+        # Conectar a MySQL a través del túnel SSH
+        self.conn = pymysql.connect(
+            host=self.mysql_host,
+            user=self.mysql_user,
+            password=self.mysql_password,
+            database=self.database,
+            port = self.tunel.local_bind_port
         )
 
         self.cursor = self.conn.cursor()
+        print("CONEXION - BASE DE DATOS EN FUNCIONAMIENTO")
 
-   
+
+    def close_conections(self):
+
+        # Confirmar los cambios en la base de datos y cerramos conexiones
+        self.conn.commit()
+        self.cursor.close()
+        self.conn.close()
+
+        #Cerrar conexion con tunel
+        self.tunel.close()
+
 
 # =========================================================================================== #
                 # ==== SECCION CORRESPONDIENTE AL DATALAKE ==== #
@@ -41,11 +87,8 @@ class connection_db:
     #Objetivo: Almacenar los datos de CBA y CBT sin procesar en el datalake. Datos sin procesar
     def load_datalake(self,df):
         
-        #Nos conectamos a la BDD
-        self.conectar_bdd()
-
         #Obtenemos los tamaños
-        tamanio_df,tamanio_bdd = self.determinar_tamaños("cbt_cba",df)
+        tamanio_df,tamanio_bdd = self.determinar_tamaños(df)
 
         if tamanio_df > tamanio_bdd: #Si el DF es mayor que lo almacenado, cargar los datos nuevos
             
@@ -56,12 +99,10 @@ class connection_db:
             
         else: #Si no hay datos nuevos AVISAR
             
-            print("==== NO HAY DATOS NUEVOS CORRESPONDIENTES A CBT Y CBA DEL DATALAKE ====")
-
-        pass
+            print("==== NO HAY DATOS NUEVOS CORRESPONDIENTES A CBT Y CBA DEL DATALAKE ====")     
 
     #Objetivo: Obtener tamaños de los datos para realizar verificaciones de varga
-    def determinar_tamaños(self,nombre_tabla,df):
+    def determinar_tamaños(self,df):
 
         #Obtenemos la cantidad de datos almacenados
         query_consulta = "SELECT COUNT(*) FROM cbt_cba"
@@ -78,20 +119,23 @@ class connection_db:
     #Objetivo: almacenar en la tabla cbt_cba con los datos nuevos
     def cargar_tabla_datalake(self,df_cargar):
 
-        query_insertar_datos = "INSERT INTO cbt_cba VALUES (%s, %s, %s, %s, %s,%s, %s, %s, %s, %s,%s, %s, %s)"
+        query_insertar_datos = "INSERT INTO cbt_cba VALUES (%s, %s, %s, %s, %s,%s, %s)"
 
         for index,row in df_cargar.iterrows():
             
             #Obtenemos los valores de cada fila del DF
             values = (row['Fecha'],row['CBA_Adulto'],row['CBT_Adulto'],row['CBA_Hogar'],row['CBT_Hogar'],row['cba_nea'],row['cbt_nea'])
 
+
+            # Convertir valores NaN a None --> Lo hacemos porque los valores 'nan' no son reconocidos por MYSQL
+            values = [None if pd.isna(v) else v for v in values]
+
             #Realizamos carga
             self.cursor.execute(query_insertar_datos,values)
 
-        # Confirmar los cambios en la base de datos y cerramos conexiones
-        self.conn.commit()
-        self.cursor.close()
-        self.conn.close()
+        #Cerramos conexiones
+        self.close_conections()
+
 
 # =========================================================================================== #        
 # =========================================================================================== #
@@ -544,16 +588,3 @@ class connection_db:
         return ultima_var_mensual, ult_var_interanual
 
 
-
-
-
-"""
-host = '172.17.22.23'
-user = 'team-datos'
-password = 'HCj_BmbCtTuCv5}'
-database = 'ipecd_economico'
-
-instancia = connection_db(host,user,password,database)
-instancia.conectar_bdd()
-instancia.persona_individual_familia()
-"""

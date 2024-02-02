@@ -1,0 +1,15 @@
+Servicio EC2 aws
+
+IP = 54.94.131.196
+Puerto = 22
+User = ubuntu
+Pass = usar clave privada
+
+
+Servicio S3 aws
+
+bucket= s3-bucket-ipecd
+region= sa-east-1
+accesskey= AKIAR2XZ6NCKPX7FVQ4P
+secretkey= 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
+

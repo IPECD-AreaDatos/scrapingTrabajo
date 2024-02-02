@@ -1,6 +1,6 @@
 from homePage_CBT import HomePageCBT
 from homePage_Pobreza import HomePagePobreza
-from loadXLSDataCBT import loadXLSDataCBT
+from Transform_CbtCba import loadXLSDataCBT
 from connectionDataBase import connection_db
 import os
 import sys 
@@ -10,7 +10,14 @@ credenciales_dir = os.path.join(script_dir, '..', 'Credenciales_folder')
 # Agregar la ruta al sys.path
 sys.path.append(credenciales_dir)
 
+
+#Tunel
+
+
+
+
 from credenciales_bdd import Credenciales
+from credenciales_tunel import CredencialesTunel
 
 if __name__ == '__main__':
 
@@ -33,9 +40,28 @@ if __name__ == '__main__':
 
     """
 
-    #PRUEBAS DE DATALAKE
+    #=== CREDENCIALES DE SSH Y BDD
+    cred_tunel = CredencialesTunel()
+
+
+    #=== SECCION DE DATALAKE
 
     df = loadXLSDataCBT().transform_datalake() #--> Transformar y concatenar datos del EXCEL
-    conexion_datalake = connection_db(credenciales.host, credenciales.user, credenciales.password,'datalake_sociodemografico')
-    conexion_datalake.load_datalake(df)
+
+    #Conectamos al tunel, y a la bdd
+    conexion_datalake = connection_db(
+        cred_tunel.ssh_host,
+        cred_tunel.ssh_user,
+        cred_tunel.ssh_pem_key_path,
+        cred_tunel.mysql_host,
+        cred_tunel.mysql_port,
+        cred_tunel.mysql_user,
+        cred_tunel.mysql_password,
+        'datalake_sociodemografico' #--> La base de datos se especifica
+        )
+    conexion_datalake.tunelizacion()
+    conexion_datalake.load_datalake(df) #--> Cargamos la bdd
+
+
+    #==== SECCCION DEL DATAWAREHOUSE
 

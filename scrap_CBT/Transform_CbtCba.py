@@ -62,8 +62,6 @@ class loadXLSDataCBT:
         concatenacion_df['Fecha'] = pd.to_datetime(concatenacion_df['Fecha'])
 
         
-        return concatenacion_df
-
 
         # ESTIMACIONES, VARIACIONES Y CALCULOS, ALMACENAR EN EL DATAWAREHOUSE
         df_final = self.calcular_estimaciones(concatenacion_df)
