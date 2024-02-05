@@ -1,5 +1,4 @@
 import os
-import mysql.connector
 import pandas as pd
 from sqlalchemy import create_engine
 from email.message import EmailMessage
@@ -9,7 +8,6 @@ import calendar
 import xlrd
 from datetime import datetime, timedelta
 from sshtunnel import SSHTunnelForwarder #--> Controlamos la conexion ssh
-from paramiko import RSAKey # Para manejar la clave en formato .pem
 import pymysql
 
 class connection_db:
@@ -588,3 +586,26 @@ class connection_db:
         return ultima_var_mensual, ult_var_interanual
 
 
+import os
+
+class TuClase:
+
+    def tunelizacion(self):
+        environment = os.getenv('ENVIRONMENT', 'local')
+
+        if environment == 'local':
+            # Configurar túnel SSH para el entorno local
+            print("Configurando túnel SSH para entorno local...")
+            # Código para configurar túnel SSH
+        elif environment == 'ec2':
+            # Configurar la conexión directa a la base de datos en EC2
+            print("Configurando conexión directa a la base de datos en EC2...")
+            # Código para conectar directamente a la base de datos en EC2
+        else:
+            raise ValueError("Entorno no válido: {}".format(environment))
+
+        # Resto del código...
+
+# Ejemplo de uso
+objeto = TuClase()
+objeto.tunelizacion()
