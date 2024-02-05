@@ -2,6 +2,7 @@ from extract import HomePage
 from loadXLSProvincias import LoadXLSProvincias
 from loadXLSTrabajoRegistrado import LoadXLSTrabajoRegistrado
 from conexionBaseDatos import conexionBaseDatos
+from armadoInformePDF import googleSheets
 import os
 import pandas as pd
 import sys
@@ -43,5 +44,6 @@ if __name__ == '__main__':
     instancia_bdd = conexionBaseDatos(credenciales.host, credenciales.user, credenciales.password, credenciales.database, lista_provincias, lista_valores_estacionalidad, lista_valores_sin_estacionalidad, lista_registro,lista_fechas)
     instancia_bdd.cargaBaseDatos()
 
-
+    #Armado de Informe
+    googleSheets().pruebaAbrirCarpeta()
 
