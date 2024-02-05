@@ -9,6 +9,7 @@ import xlrd
 from datetime import datetime, timedelta
 from sshtunnel import SSHTunnelForwarder #--> Controlamos la conexion ssh
 import pymysql
+import platform
 
 class connection_db:
 
@@ -609,3 +610,5 @@ class TuClase:
 # Ejemplo de uso
 objeto = TuClase()
 objeto.tunelizacion()
+
+print(platform.system())
