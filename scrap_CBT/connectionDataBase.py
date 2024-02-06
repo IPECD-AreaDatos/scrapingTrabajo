@@ -7,7 +7,6 @@ import smtplib
 import calendar
 import xlrd
 from datetime import datetime
-from sshtunnel import SSHTunnelForwarder #--> Controlamos la conexion ssh
 import pymysql
 
 class connection_db:
@@ -36,6 +35,9 @@ class connection_db:
 
         #Si trabajamos sobre windows es necesario crear un tunel y conectar a la base de datos de forma remota
         if self.system_operative == 'Windows':
+            
+            #La peor practica que vas a ver en tu vida- pero funciona
+            from sshtunnel import SSHTunnelForwarder
 
             # ==== CONFIGURACION DE SSH
 
