@@ -6,10 +6,9 @@ import ssl
 import smtplib
 import calendar
 import xlrd
-from datetime import datetime, timedelta
+from datetime import datetime
 from sshtunnel import SSHTunnelForwarder #--> Controlamos la conexion ssh
 import pymysql
-import platform
 
 class connection_db:
 
@@ -72,7 +71,14 @@ class connection_db:
 
         #El caso de linux es usada para el servidor - No es necesario crear un tunel. solo conectar a la BDD.
         else:
-            self.conn
+            self.conn = pymysql.connect(
+                host = '10.1.11.13',
+                user = self.mysql_user,
+                password = self.mysql_password,
+                database = self.database
+            )
+
+            self.cursor = self.conn.cursor()
 
 
     def close_conections(self):
@@ -595,29 +601,3 @@ class connection_db:
 
         return ultima_var_mensual, ult_var_interanual
 
-
-import os
-
-class TuClase:
-
-    def tunelizacion(self):
-        environment = os.getenv('ENVIRONMENT', 'local')
-
-        if environment == 'local':
-            # Configurar túnel SSH para el entorno local
-            print("Configurando túnel SSH para entorno local...")
-            # Código para configurar túnel SSH
-        elif environment == 'ec2':
-            # Configurar la conexión directa a la base de datos en EC2
-            print("Configurando conexión directa a la base de datos en EC2...")
-            # Código para conectar directamente a la base de datos en EC2
-        else:
-            raise ValueError("Entorno no válido: {}".format(environment))
-
-        # Resto del código...
-
-# Ejemplo de uso
-objeto = TuClase()
-objeto.tunelizacion()
-
-print(platform.system())
