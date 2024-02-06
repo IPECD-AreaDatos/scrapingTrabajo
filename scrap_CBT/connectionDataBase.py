@@ -13,7 +13,7 @@ import platform
 
 class connection_db:
 
-    def __init__(self, ssh_host, ssh_user, ssh_pem_key_path, mysql_host,mysql_port, mysql_user, mysql_password, database):
+    def __init__(self, ssh_host, ssh_user, ssh_pem_key_path, mysql_host,mysql_port, mysql_user, mysql_password, system_operative ,database):
         self.ssh_host = ssh_host
         self.ssh_user = ssh_user
         self.ssh_pem_key_path = ssh_pem_key_path
@@ -21,6 +21,7 @@ class connection_db:
         self.mysql_port = mysql_port
         self.mysql_user = mysql_user
         self.mysql_password = mysql_password
+        self.system_operative = system_operative
         self.database = database
         self.tunel = None
         self.conn = None
@@ -34,36 +35,44 @@ class connection_db:
     #Objetivo: Crear un tunel por SSH a la base de datos instalada en EC2
     def tunelizacion(self):
 
-        # ==== CONFIGURACION DE SSH
+        #Si trabajamos sobre windows es necesario crear un tunel y conectar a la base de datos de forma remota
+        if self.system_operative == 'Windows':
 
-        print("* CONEXION - SSH INICADA")
-        # Configurar el túnel SSH
-        self.tunel = SSHTunnelForwarder(
-            (self.ssh_host, 22),
-            ssh_username=self.ssh_user, #--> El definido para entrar al servidor
-            ssh_pkey=self.ssh_pem_key_path,  # Ruta al archivo .pem
-            remote_bind_address=('127.0.0.1', 3306)
-        )
+            # ==== CONFIGURACION DE SSH
 
-        # Iniciar el túnel SSH
-        self.tunel.start()
-        print("* CONEXION - SSH EN FUNCIONAMIENTO")
+            print("* CONEXION - SSH INICADA")
+            # Configurar el túnel SSH
+            self.tunel = SSHTunnelForwarder(
+                (self.ssh_host, 22),
+                ssh_username=self.ssh_user, #--> El definido para entrar al servidor
+                ssh_pkey=self.ssh_pem_key_path,  # Ruta al archivo .pem
+                remote_bind_address=('127.0.0.1', 3306)
+            )
+
+            # Iniciar el túnel SSH
+            self.tunel.start()
+            print("* CONEXION - SSH EN FUNCIONAMIENTO")
 
 
-        # ==== CONFIGURACION DE LA BASE DE DATOS
+            # ==== CONFIGURACION DE LA BASE DE DATOS
 
-        print("CONEXION - BASE DE DATOS")
-        # Conectar a MySQL a través del túnel SSH
-        self.conn = pymysql.connect(
-            host=self.mysql_host,
-            user=self.mysql_user,
-            password=self.mysql_password,
-            database=self.database,
-            port = self.tunel.local_bind_port
-        )
+            print("CONEXION - BASE DE DATOS")
+            # Conectar a MySQL a través del túnel SSH
+            self.conn = pymysql.connect(
+                host=self.mysql_host,
+                user=self.mysql_user,
+                password=self.mysql_password,
+                database=self.database,
+                port = self.tunel.local_bind_port
+            )
 
-        self.cursor = self.conn.cursor()
-        print("CONEXION - BASE DE DATOS EN FUNCIONAMIENTO")
+            self.cursor = self.conn.cursor()
+            print("CONEXION - BASE DE DATOS EN FUNCIONAMIENTO")
+
+
+        #El caso de linux es usada para el servidor - No es necesario crear un tunel. solo conectar a la BDD.
+        else:
+            self.conn
 
 
     def close_conections(self):
@@ -86,8 +95,8 @@ class connection_db:
     #Objetivo: Almacenar los datos de CBA y CBT sin procesar en el datalake. Datos sin procesar
     def load_datalake(self,df):
         
-        #Obtenemos los tamaños
-        tamanio_df,tamanio_bdd = self.determinar_tamaños(df)
+        #Obtenemos los tamanios
+        tamanio_df,tamanio_bdd = self.determinar_tamanios(df)
 
         if tamanio_df > tamanio_bdd: #Si el DF es mayor que lo almacenado, cargar los datos nuevos
             
@@ -101,19 +110,19 @@ class connection_db:
             print("==== NO HAY DATOS NUEVOS CORRESPONDIENTES A CBT Y CBA DEL DATALAKE ====")     
 
     #Objetivo: Obtener tamaños de los datos para realizar verificaciones de varga
-    def determinar_tamaños(self,df):
+    def determinar_tamanios(self,df):
 
         #Obtenemos la cantidad de datos almacenados
         query_consulta = "SELECT COUNT(*) FROM cbt_cba"
         self.cursor.execute(query_consulta) #Ejecutamos la consulta
-        tamaño_bdd = self.cursor.fetchone()[0] #Obtenemos el tamaño de la bdd
+        tamanio_bdd = self.cursor.fetchone()[0] #Obtenemos el tamaño de la bdd
         
         #Obtenemos la cantidad de datos del dataframe construido
-        tamaño_df = len(df)
+        tamanio_df = len(df)
         
-        print(tamaño_bdd,tamaño_df)
+        print(tamanio_bdd,tamanio_df)
 
-        return tamaño_df,tamaño_bdd
+        return tamanio_df,tamanio_bdd
     
     #Objetivo: almacenar en la tabla cbt_cba con los datos nuevos
     def cargar_tabla_datalake(self,df_cargar):
@@ -224,7 +233,7 @@ class connection_db:
         fecha_ano_anterior_formato_normal = self.obtener_ultimafecha_anoAnterior(fecha)
 
         email_emisor='departamientoactualizaciondato@gmail.com'
-        email_contraseña = 'cmxddbshnjqfehka'
+        email_contrasenia = 'cmxddbshnjqfehka'
         email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com', 'samaniego18@gmail.com', 'guillermobenasulin@gmail.com', 'leclerc.mauricio@gmail.com']
         #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
         #-------------------------------- Mensaje nuevo --------------------------------
@@ -288,7 +297,7 @@ class connection_db:
         contexto = ssl.create_default_context()
         
         with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
-            smtp.login(email_emisor, email_contraseña)
+            smtp.login(email_emisor, email_contrasenia)
             smtp.sendmail(email_emisor, email_receptores, em.as_string())
 
     #Objetivo: calcular el valor para que una  persona individual o una familia, no sea pobre o no sea indigente.
@@ -331,14 +340,14 @@ class connection_db:
 
         #=== Variaciones Interanual
         ultima_fecha = df_bdd['fecha'].max()
-        año_anterior = ultima_fecha.year - 1
+        anio_anterior = ultima_fecha.year - 1
         mes= ultima_fecha.month
 
-        valor_dic_año_anterior_cba = df_bdd['CBA_nea'][ (df_bdd['fecha'].dt.year == año_anterior) & (df_bdd['fecha'].dt.month == mes) ].values[0]
-        valor_dic_año_anterior_cbt = df_bdd['CBT_nea'][ (df_bdd['fecha'].dt.year == año_anterior) & (df_bdd['fecha'].dt.month == mes) ].values[0]
+        valor_dic_anio_anterior_cba = df_bdd['CBA_nea'][ (df_bdd['fecha'].dt.year == anio_anterior) & (df_bdd['fecha'].dt.month == mes) ].values[0]
+        valor_dic_anio_anterior_cbt = df_bdd['CBT_nea'][ (df_bdd['fecha'].dt.year == anio_anterior) & (df_bdd['fecha'].dt.month == mes) ].values[0]
 
-        var_interanual_cba = ((cba_individuo /  valor_dic_año_anterior_cba) - 1) * 100
-        var_interanual_cbt = ((cbt_individuo / valor_dic_año_anterior_cbt) - 1) * 100
+        var_interanual_cba = ((cba_individuo /  valor_dic_anio_anterior_cba) - 1) * 100
+        var_interanual_cbt = ((cbt_individuo / valor_dic_anio_anterior_cbt) - 1) * 100
 
         print(f"""
         
@@ -357,8 +366,8 @@ class connection_db:
 
         #--> Hacemos -13 por un tema de indices, el dato que buscamos es el mismo de la fecha pero del año anterior (osea 12 meses atras)
         #La bdd toma un valor atrasado
-        cba_nea_año_anterior = df_bdd['CBA_nea'].iloc[-13] 
-        cbt_nea_año_anterior = df_bdd['CBT_nea'].iloc[-13]
+        cba_nea_anio_anterior = df_bdd['CBA_nea'].iloc[-13] 
+        cbt_nea_anio_anterior = df_bdd['CBT_nea'].iloc[-13]
                 
         
         fecha = max(df_bdd['fecha'])
@@ -455,19 +464,19 @@ class connection_db:
 
         #=== CALCULO VARIACION INTERANUAL
 
-        grupo_mes_actual_año_anterior= df_bdd[(df_bdd['Fecha'].dt.year == fecha_max.year-1 ) & (df_bdd['Fecha'].dt.month == fecha_max.month)]
+        grupo_mes_actual_anio_anterior= df_bdd[(df_bdd['Fecha'].dt.year == fecha_max.year-1 ) & (df_bdd['Fecha'].dt.month == fecha_max.month)]
 
-        total_ipc_año_anterior =  grupo_mes_actual_año_anterior['Valor'].values[0]
+        total_ipc_anio_anterior =  grupo_mes_actual_anio_anterior['Valor'].values[0]
 
-        variacion_interanual = ((total_ipc / total_ipc_año_anterior) - 1) * 100
+        variacion_interanual = ((total_ipc / total_ipc_anio_anterior) - 1) * 100
 
 
 
         #=== CALCULO VARIACION ACUMULADA - Variacion desde DIC del año anterior
 
-        grupo_diciembre_año_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == fecha_max.year-1 ) & ((df_bdd['Fecha'].dt.month == 12)) ]
+        grupo_diciembre_anio_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == fecha_max.year-1 ) & ((df_bdd['Fecha'].dt.month == 12)) ]
 
-        total_diciembre = grupo_diciembre_año_anterior['Valor'].values[0]
+        total_diciembre = grupo_diciembre_anio_anterior['Valor'].values[0]
 
         variacion_acumulada = ((total_ipc / total_diciembre) - 1) * 100
 

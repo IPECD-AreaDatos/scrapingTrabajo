@@ -4,6 +4,7 @@ from Transform_CbtCba import loadXLSDataCBT
 from connectionDataBase import connection_db
 import os
 import sys 
+import platform
 # Obtener la ruta al directorio actual del script
 script_dir = os.path.dirname(os.path.abspath(__file__))
 credenciales_dir = os.path.join(script_dir, '..', 'Credenciales_folder')
@@ -47,6 +48,10 @@ if __name__ == '__main__':
     #=== SECCION DE DATALAKE
 
     df = loadXLSDataCBT().transform_datalake() #--> Transformar y concatenar datos del EXCEL
+    
+
+    #Deteccion del sistema operativo - en base a esto la carga y la operabilidad varian
+    system_operative = platform.system() #--> Retorna el nombre del sistema operativo (windows / linux)
 
     #Conectamos al tunel, y a la bdd
     conexion_datalake = connection_db(
@@ -57,6 +62,7 @@ if __name__ == '__main__':
         cred_tunel.mysql_port,
         cred_tunel.mysql_user,
         cred_tunel.mysql_password,
+        system_operative,
         'datalake_sociodemografico' #--> La base de datos se especifica
         )
     conexion_datalake.tunelizacion()
