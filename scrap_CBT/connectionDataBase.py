@@ -75,7 +75,7 @@ class connection_db:
         #El caso de linux es usada para el servidor - No es necesario crear un tunel. solo conectar a la BDD.
         else:
             self.conn = pymysql.connect(
-                host = '10.1.11.13',
+                host = self.mysql_host,
                 user = self.mysql_user,
                 password = self.mysql_password,
                 database = self.database
