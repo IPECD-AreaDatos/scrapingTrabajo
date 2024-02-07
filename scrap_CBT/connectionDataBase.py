@@ -109,9 +109,12 @@ class connection_db:
 
         if tamanio_df > tamanio_bdd: #Si el DF es mayor que lo almacenado, cargar los datos nuevos
             
-            #Obtengo diferencia de filas a cargar - En el nuevo dataframe solo estaran los datos nuevos
-            df_datos_nuevos = df.tail(tamanio_df - tamanio_bdd)
-            self.cargar_tabla_datalake(df_datos_nuevos)
+            #Es necesario el borrado ya que posteriormente las estimaciones tendremos que recalcularlas
+            delete_query = 'TRUNCATE cbt_cba'
+            self.cursor.execute(delete_query)
+
+
+            self.cargar_tabla_datalake(df)
             print("==== SE CARGARON DATOS NUEVOS CORRESPONDIENTES A CBT Y CBA DEL DATALAKE ====")
             
         else: #Si no hay datos nuevos AVISAR
