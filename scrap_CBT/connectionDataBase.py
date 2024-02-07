@@ -156,7 +156,7 @@ class connection_db:
 # =========================================================================================== #        
 # =========================================================================================== #
 
-
+    """
     def carga_db(self):
 
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
@@ -224,7 +224,7 @@ class connection_db:
 
         # Cerrar la conexión a MySQL
         self.cursor.close()
-        self.conn.close()
+        self.conn.close()"""
 
     def enviar_correo(self):
 
