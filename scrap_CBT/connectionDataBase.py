@@ -91,8 +91,11 @@ class connection_db:
         self.cursor.close()
         self.conn.close()
 
-        #Cerrar conexion con tunel
-        self.tunel.close()
+        if self.system_operative == 'Windows':
+            #Cerrar conexion con tunel
+            self.tunel.close()
+
+
 
 
 # =========================================================================================== #
