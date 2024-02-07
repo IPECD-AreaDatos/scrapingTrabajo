@@ -49,7 +49,8 @@ if __name__ == '__main__':
 
     df = loadXLSDataCBT().transform_datalake() #--> Transformar y concatenar datos del EXCEL
     
-
+    print(df)
+    exit()
     #Deteccion del sistema operativo - en base a esto la carga y la operabilidad varian
     system_operative = platform.system() #--> Retorna el nombre del sistema operativo (windows / linux)
 
