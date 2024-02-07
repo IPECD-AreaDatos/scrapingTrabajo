@@ -21,10 +21,10 @@ from credenciales_bdd import Credenciales
 from credenciales_tunel import CredencialesTunel
 
 if __name__ == '__main__':
-
+    """
     credenciales = Credenciales()
 
-    """    
+   
     home_page_CBT = HomePageCBT()
     home_page_CBT.descargar_archivo()
 
@@ -38,9 +38,9 @@ if __name__ == '__main__':
     instancia.carga_db()
 
     print("- Finalizacion de revison de CBT")
-
     """
 
+    
     #=== CREDENCIALES DE SSH Y BDD
     cred_tunel = CredencialesTunel()
 
@@ -48,10 +48,10 @@ if __name__ == '__main__':
     #=== SECCION DE DATALAKE
 
     df = loadXLSDataCBT().transform_datalake() #--> Transformar y concatenar datos del EXCEL
-    
+    print(df)
     #Deteccion del sistema operativo - en base a esto la carga y la operabilidad varian
     system_operative = platform.system() #--> Retorna el nombre del sistema operativo (windows / linux)
-    print(system_operative)
+    
     #Conectamos al tunel, y a la bdd
     conexion_datalake = connection_db(
         cred_tunel.ssh_host,
