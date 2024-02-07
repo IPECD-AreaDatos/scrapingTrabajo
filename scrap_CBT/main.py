@@ -49,11 +49,9 @@ if __name__ == '__main__':
 
     df = loadXLSDataCBT().transform_datalake() #--> Transformar y concatenar datos del EXCEL
     
-    print(df)
-    exit()
     #Deteccion del sistema operativo - en base a esto la carga y la operabilidad varian
     system_operative = platform.system() #--> Retorna el nombre del sistema operativo (windows / linux)
-
+    print(system_operative)
     #Conectamos al tunel, y a la bdd
     conexion_datalake = connection_db(
         cred_tunel.ssh_host,
@@ -66,7 +64,7 @@ if __name__ == '__main__':
         system_operative,
         'datalake_sociodemografico' #--> La base de datos se especifica
         )
-    conexion_datalake.tunelizacion()
+    conexion_datalake.connect_db()
     conexion_datalake.load_datalake(df) #--> Cargamos la bdd
 
 

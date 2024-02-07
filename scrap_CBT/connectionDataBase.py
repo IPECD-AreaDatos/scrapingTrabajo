@@ -30,24 +30,23 @@ class connection_db:
             # ==== SECCION CORRESPONDIENTE A LAS CONEXIONES ==== #
     # =========================================================================================== #
 
-    #Objetivo: Crear un tunel por SSH a la base de datos instalada en EC2
-    def tunelizacion(self):
+    #Objetivo: Distiguir la conexion por SSH o por localhost
+    def connect_db(self):
 
         #Si trabajamos sobre windows es necesario crear un tunel y conectar a la base de datos de forma remota
         if self.system_operative == 'Windows':
             
-            #La peor practica que vas a ver en tu vida- pero funciona
+            #En caso de utilizar windows es necesario la importacion de 'sshtunel'
             from sshtunnel import SSHTunnelForwarder
 
             # ==== CONFIGURACION DE SSH
 
             print("* CONEXION - SSH INICADA")
-            # Configurar el túnel SSH
             self.tunel = SSHTunnelForwarder(
-                (self.ssh_host, 22),
+                (self.ssh_host, 22), #--> Usando la IP publica, y el puerto 22
                 ssh_username=self.ssh_user, #--> El definido para entrar al servidor
                 ssh_pkey=self.ssh_pem_key_path,  # Ruta al archivo .pem
-                remote_bind_address=('127.0.0.1', 3306)
+                remote_bind_address=('127.0.0.1', 3306) #--> Al puerto que nos conectamos de la EC2 es al 3306, de por medio usando el 22.
             )
 
             # Iniciar el túnel SSH
@@ -69,6 +68,8 @@ class connection_db:
 
             self.cursor = self.conn.cursor()
             print("CONEXION - BASE DE DATOS EN FUNCIONAMIENTO")
+            print("SE HA CONECTADO UTILIZANDO UN SISTEMA OPERATIVO WINDOWS")
+
 
 
         #El caso de linux es usada para el servidor - No es necesario crear un tunel. solo conectar a la BDD.
@@ -81,7 +82,7 @@ class connection_db:
             )
 
             self.cursor = self.conn.cursor()
-
+            print("SE HA CONECTADO UTILIZANDO UN SISTEMA OPERATIVO LINUX")
 
     def close_conections(self):
 
