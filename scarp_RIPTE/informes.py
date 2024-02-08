@@ -44,7 +44,7 @@ class InformesRipte:
 
             #==== ENVIO DE MENSAJES
             self.enviar_correo(fecha_cadena,cadena_nueva_fecha,nuevo_valor,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada)
-            self.enviar_wpp(cadena_nueva_fecha,nuevo_valor,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada)
+            #self.enviar_wpp(cadena_nueva_fecha,nuevo_valor,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada)
             
 
     #Envio de correos por GMAIL

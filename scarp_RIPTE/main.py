@@ -26,5 +26,10 @@ if __name__ == '__main__':
     #home_page.descargar_archivo()
     #ripte_cargaHistorico().loadInDataBase(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
     
+
+    ultimo_valor_ripte = HomePage().extract_last_date()
+    print(ultimo_valor_ripte)
+
+    exit()
     instancia = ripte_cargaUltimoDato(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
     instancia.loadInDataBase()

@@ -47,3 +47,24 @@ class HomePage:
         ruta_guardado_1 = os.path.join(carpeta_guardado, nombre_archivo_SP)
         with open(ruta_guardado_1, 'wb') as file:
             file.write(response_1.content)
+
+
+    #Objetivo: extraer el ultimo dato de ripte de la pagina de seguridad social. Luego el valor se reporta
+    def extract_last_date(self):
+
+        #Carga de pagina
+        driver = webdriver.Chrome()
+        driver.get('https://www.argentina.gob.ar/trabajo/seguridadsocial/ripte')
+       
+       #Buscamos la tabla que contiene los datos
+        elemento = driver.find_element(By.XPATH, '//*[@id="block-system-main"]/section/article/div/div[9]/div/div/div/div/div[1]/div/h3')
+        contenido_texto = elemento.text
+        contenido_numerico = contenido_texto.replace('$', '').replace('.','').replace(',', '.')
+
+        try:
+            contenido_float = float(contenido_numerico)
+            print("Contenido como float:", contenido_float)
+        except ValueError:
+            print("El contenido no es un número válido.")
+
+        return contenido_numerico

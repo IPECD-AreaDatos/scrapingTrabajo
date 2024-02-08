@@ -21,7 +21,7 @@ from credenciales_bdd import Credenciales
 from credenciales_tunel import CredencialesTunel
 
 if __name__ == '__main__':
-    """
+
     credenciales = Credenciales()
 
    
@@ -38,9 +38,9 @@ if __name__ == '__main__':
     instancia.carga_db()
 
     print("- Finalizacion de revison de CBT")
-    """
 
-    
+
+    exit()
     #=== CREDENCIALES DE SSH Y BDD
     cred_tunel = CredencialesTunel()
 
