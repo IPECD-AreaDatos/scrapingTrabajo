@@ -87,4 +87,3 @@ class googleSheets:
         # Cerrar el navegador
         driver.quit()
 
-googleSheets().pruebaAbrirCarpeta()

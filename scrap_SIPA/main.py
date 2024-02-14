@@ -45,5 +45,5 @@ if __name__ == '__main__':
     instancia_bdd.cargaBaseDatos()
 
     #Armado de Informe
-    googleSheets().pruebaAbrirCarpeta()
+    #googleSheets().pruebaAbrirCarpeta()
 
