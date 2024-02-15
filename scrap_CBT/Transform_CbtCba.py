@@ -227,5 +227,72 @@ class loadXLSDataCBT:
         concatenacion_df['Fecha'] = pd.to_datetime(concatenacion_df['Fecha'])
 
         
-        return concatenacion_df
+        df_definitivo = self.estimaciones_nea(concatenacion_df)
+
+        print(df_definitivo)
+
+        return df_definitivo
+    
+
+    def estimaciones_nea(self,concatenacion_df):
+
+        """
+        Explicacion de condicional if: se revisa si existen valores nulos en los datos oficiales del NEA
+        Por ejemplo: el mes que sale los datos oficiales, no hay valores nulos, y por ende no hay que calcular estimaciones.
+        Si despues de salir los datos oficiales, pasan "n" meses sin salir mas oficiales, entonces es necesario calcular las estimaciones.
+        """
+
+        #Verificacion para ver si es necesario o no calcular estimaciones del NEA - Se supone que el mismo mes que salen DATOS OFICIALES no se tiene que calcular
+        if not(pd.isna(concatenacion_df['cba_nea']).any()):
+            return
+
+        #En caso de que no, se calculas las estimaciones teniendo en cuenta los ultimos datos oficiales del NEA
+        else:
+
+            for index,row in concatenacion_df.iterrows():
+
+                if pd.isna(row['cba_nea']):
+                    row['cba_nea'] = 0
+            
+
+            #Establecemos la fecha del ultimo periodo valido (recodar que para estimaciones se usa los ultimos 6 valores oficiales del NEA)
+            fecha_ultima_publicacion_oficial = pd.to_datetime("2023-06-01")
+            
+            #En base a la fecha buscamos los ultimos 6 valores de CBA y CBT DE GBA ,CBA y CBT de NEA
+            df_sin_nulos = concatenacion_df[concatenacion_df['Fecha'] <= fecha_ultima_publicacion_oficial][-6:]
+
+            #Sumamos los valores de los grupos que vamos a usar
+            suma_cba = sum(df_sin_nulos['CBA_Adulto'])
+            suma_cbt = sum(df_sin_nulos['CBT_Adulto'])
+            suma_cba_nea =sum(df_sin_nulos['cba_nea'])
+            suma_cbt_nea = sum(df_sin_nulos['cbt_nea'])
+    
+
+            #Insersion al dataframe de las estimaciones
+            df_con_nulos = concatenacion_df[concatenacion_df['Fecha'] > fecha_ultima_publicacion_oficial]
+
+            
+            #Recorremos los datos nulos, calculamos sus estimaciones y finalmente los insertamos al DF definitivo
+            for index,row in df_con_nulos.iterrows():
+                
+                #Calculos de las estimaciones
+                estimacion_cba = row['CBA_Adulto'] * ( suma_cba_nea / suma_cba)
+                estimacion_cbt = row['CBT_Adulto'] * (suma_cbt_nea / suma_cbt)
+
+
+                concatenacion_df.at[index:'cba_nea'] = 1
+                concatenacion_df.at[index:'cbt_nea'] = 1
+
+
+            return concatenacion_df
+    
+
+
+
+
+concatenacion_df = loadXLSDataCBT().transform_datalake()
+
+
+
+
 

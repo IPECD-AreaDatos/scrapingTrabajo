@@ -11,9 +11,9 @@ class Credenciales:
     def __init__(self):
 
         #Datos de la base de datos
-        self.host = '172.17.22.23'
-        self.user = 'team-datos'
-        self.password = 'HCj_BmbCtTuCv5}'
+        self.host = '54.94.131.196'
+        self.user = 'estadistica'
+        self.password = 'Estadistica2024!!'
         self.database = 'ipecd_economico'
 
         #Asi se debe colocar

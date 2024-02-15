@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-#from sqlalchemy import create_engine
+from sqlalchemy import create_engine
 from email.message import EmailMessage
 import ssl
 import smtplib
@@ -11,15 +11,11 @@ import pymysql
 
 class connection_db:
 
-    def __init__(self, ssh_host, ssh_user, ssh_pem_key_path, mysql_host,mysql_port, mysql_user, mysql_password, system_operative ,database):
-        self.ssh_host = ssh_host
-        self.ssh_user = ssh_user
-        self.ssh_pem_key_path = ssh_pem_key_path
+    def __init__(self,mysql_host,mysql_user, mysql_password ,database):
+
         self.mysql_host = mysql_host
-        self.mysql_port = mysql_port
         self.mysql_user = mysql_user
         self.mysql_password = mysql_password
-        self.system_operative = system_operative
         self.database = database
         self.tunel = None
         self.conn = None
@@ -29,51 +25,11 @@ class connection_db:
     # =========================================================================================== #
             # ==== SECCION CORRESPONDIENTE A LAS CONEXIONES ==== #
     # =========================================================================================== #
+        
 
-    #Objetivo: Distiguir la conexion por SSH o por localhost
+    #Conexion a la BDD
     def connect_db(self):
 
-        #Si trabajamos sobre windows es necesario crear un tunel y conectar a la base de datos de forma remota
-        if self.system_operative == 'Windows':
-            
-            #En caso de utilizar windows es necesario la importacion de 'sshtunel'
-            from sshtunnel import SSHTunnelForwarder
-
-            # ==== CONFIGURACION DE SSH
-
-            print("* CONEXION - SSH INICADA")
-            self.tunel = SSHTunnelForwarder(
-                (self.ssh_host, 22), #--> Usando la IP publica, y el puerto 22
-                ssh_username=self.ssh_user, #--> El definido para entrar al servidor
-                ssh_pkey=self.ssh_pem_key_path,  # Ruta al archivo .pem
-                remote_bind_address=('127.0.0.1', 3306) #--> Al puerto que nos conectamos de la EC2 es al 3306, de por medio usando el 22.
-            )
-
-            # Iniciar el túnel SSH
-            self.tunel.start()
-            print("* CONEXION - SSH EN FUNCIONAMIENTO")
-
-
-            # ==== CONFIGURACION DE LA BASE DE DATOS
-
-            print("CONEXION - BASE DE DATOS")
-            # Conectar a MySQL a través del túnel SSH
-            self.conn = pymysql.connect(
-                host=self.mysql_host,
-                user=self.mysql_user,
-                password=self.mysql_password,
-                database=self.database,
-                port = self.tunel.local_bind_port
-            )
-
-            self.cursor = self.conn.cursor()
-            print("CONEXION - BASE DE DATOS EN FUNCIONAMIENTO")
-            print("SE HA CONECTADO UTILIZANDO UN SISTEMA OPERATIVO WINDOWS")
-
-
-
-        #El caso de linux es usada para el servidor - No es necesario crear un tunel. solo conectar a la BDD.
-        else:
             self.conn = pymysql.connect(
                 host = self.mysql_host,
                 user = self.mysql_user,
@@ -82,7 +38,6 @@ class connection_db:
             )
 
             self.cursor = self.conn.cursor()
-            print("SE HA CONECTADO UTILIZANDO UN SISTEMA OPERATIVO LINUX")
 
     def close_conections(self):
 
@@ -90,11 +45,6 @@ class connection_db:
         self.conn.commit()
         self.cursor.close()
         self.conn.close()
-
-        if self.system_operative == 'Windows':
-            #Cerrar conexion con tunel
-            self.tunel.close()
-
 
 
 
@@ -162,6 +112,17 @@ class connection_db:
 
 # =========================================================================================== #        
 # =========================================================================================== #
+        
+
+# =========================================================================================== #
+                # ==== SECCION CORRESPONDIENTE AL DATAWAREHOUSE ==== #
+# =========================================================================================== #
+        
+
+
+
+# =========================================================================================== #        
+# =========================================================================================== #
 
 
     def carga_db(self):
@@ -171,7 +132,7 @@ class connection_db:
         file_path = os.path.join(ruta_carpeta_files, 'Calculos.xlsx')
 
         #Conectar la BDD
-        self.conectar_bdd()
+        self.connect_db()
         
 
         # Leer el archivo Excel
@@ -203,16 +164,16 @@ class connection_db:
         table_name = "canasta_basica"  # Reemplaza con el nombre de tu tabla en MySQL
 
         # Crear una cadena de conexión SQLAlchemy
-        connection_string = f"mysql+mysqlconnector://{self.user}:{self.password}@{self.host}/{self.database}"
+        connection_string = f"mysql+mysqlconnector://{self.mysql_user}:{self.mysql_password}@{self.mysql_host}/{self.database}"
 
         # Crear una conexión a la base de datos utilizando SQLAlchemy
         engine = create_engine(connection_string)
 
-        select_row_count_query = "SELECT COUNT(*) FROM Canasta_Basica"
+        select_row_count_query = "SELECT COUNT(*) FROM canasta_basica"
         self.cursor.execute(select_row_count_query)
         row_count_before = self.cursor.fetchone()[0]
         
-        delete_query ="TRUNCATE `ipecd_economico`.`Canasta_Basica`"
+        delete_query ="TRUNCATE `ipecd_economico`.`canasta_basica`"
         self.cursor.execute(delete_query)
 
         # Cargar los datos en MySQL
@@ -249,8 +210,8 @@ class connection_db:
 
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contrasenia = 'cmxddbshnjqfehka'
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com', 'samaniego18@gmail.com', 'guillermobenasulin@gmail.com', 'leclerc.mauricio@gmail.com']
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com', 'samaniego18@gmail.com', 'guillermobenasulin@gmail.com', 'leclerc.mauricio@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
         #-------------------------------- Mensaje nuevo --------------------------------
         asunto_wpp = f'CBA Y CBT - Actualización - Fecha: {fecha_formato_normal}'
         mensaje_wpp = f""" 
@@ -358,8 +319,8 @@ class connection_db:
         anio_anterior = ultima_fecha.year - 1
         mes= ultima_fecha.month
 
-        valor_dic_anio_anterior_cba = df_bdd['CBA_nea'][ (df_bdd['fecha'].dt.year == anio_anterior) & (df_bdd['fecha'].dt.month == mes) ].values[0]
-        valor_dic_anio_anterior_cbt = df_bdd['CBT_nea'][ (df_bdd['fecha'].dt.year == anio_anterior) & (df_bdd['fecha'].dt.month == mes) ].values[0]
+        valor_dic_anio_anterior_cba = df_bdd['CBA_nea'][ (df_bdd['fecha'].dt.year == 2023) & (df_bdd['fecha'].dt.month == 12) ].values[0]
+        valor_dic_anio_anterior_cbt = df_bdd['CBT_nea'][ (df_bdd['fecha'].dt.year == 2023) & (df_bdd['fecha'].dt.month == 12) ].values[0]
 
         var_interanual_cba = ((cba_individuo /  valor_dic_anio_anterior_cba) - 1) * 100
         var_interanual_cbt = ((cbt_individuo / valor_dic_anio_anterior_cbt) - 1) * 100
@@ -465,11 +426,11 @@ class connection_db:
         #=== CALCULO DE LA VARIACION MENSUAL
 
         #Buscamos el mes anterior
-        mes_anterior = int(fecha_max.month) - 1
+        mes_anterior = 12
 
         #Convertimos la serie a datetime para buscar por año y mes
         df_bdd['Fecha'] = pd.to_datetime(df_bdd['Fecha'])    
-        grupo_mes_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == fecha_max.year) & (df_bdd['Fecha'].dt.month == mes_anterior)]
+        grupo_mes_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == 2023) & (df_bdd['Fecha'].dt.month == mes_anterior)]
 
         #Total del mes anterior y calculo de la variacion mensual
         total_mes_anterior = grupo_mes_anterior['Valor'].values[0]
@@ -479,7 +440,7 @@ class connection_db:
 
         #=== CALCULO VARIACION INTERANUAL
 
-        grupo_mes_actual_anio_anterior= df_bdd[(df_bdd['Fecha'].dt.year == fecha_max.year-1 ) & (df_bdd['Fecha'].dt.month == fecha_max.month)]
+        grupo_mes_actual_anio_anterior= df_bdd[(df_bdd['Fecha'].dt.year == 2023 ) & (df_bdd['Fecha'].dt.month == fecha_max.month)]
 
         total_ipc_anio_anterior =  grupo_mes_actual_anio_anterior['Valor'].values[0]
 
@@ -489,7 +450,7 @@ class connection_db:
 
         #=== CALCULO VARIACION ACUMULADA - Variacion desde DIC del año anterior
 
-        grupo_diciembre_anio_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == fecha_max.year-1 ) & ((df_bdd['Fecha'].dt.month == 12)) ]
+        grupo_diciembre_anio_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == 2023) & ((df_bdd['Fecha'].dt.month == 12)) ]
 
         total_diciembre = grupo_diciembre_anio_anterior['Valor'].values[0]
 
@@ -519,7 +480,7 @@ class connection_db:
 
         cba_individuo,cbt_individuo,familia_indigente,familia_indigente_mes_anterior,familia_pobre,familia_pobre_mes_anterior,var_mensual_cba,var_mensual_cbt,var_interanual_cba,var_interanual_cbt,fecha = self.persona_individual_familia()
         fecha_formato_normal = self.obtener_ultimafecha_actual(fecha)
-        cba_mes_anterior = str(fecha.year)+"-"+str(fecha.month - 1)
+        cba_mes_anterior = "2023-12"
         cba_mes_anterior = datetime.strptime(cba_mes_anterior, "%Y-%m")
         fecha_anterior_formato_normal = self.obtener_ultimafecha_actual(cba_mes_anterior)
 

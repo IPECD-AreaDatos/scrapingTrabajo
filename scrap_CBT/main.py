@@ -22,9 +22,11 @@ from credenciales_tunel import CredencialesTunel
 
 if __name__ == '__main__':
 
+    #Obtencion de credenciales
     credenciales = Credenciales()
 
-   
+
+    #ZONA DE EXTRACT -- Donde se buscan los datos
     home_page_CBT = HomePageCBT()
     home_page_CBT.descargar_archivo()
 
@@ -32,40 +34,13 @@ if __name__ == '__main__':
     home_page_Pobreza.descargar_archivo()
 
 
-    loadXLSDataCBT().readData()
-
-    instancia = connection_db(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
-    instancia.carga_db()
-
-    print("- Finalizacion de revison de CBT")
-
-
-    exit()
-    #=== CREDENCIALES DE SSH Y BDD
-    cred_tunel = CredencialesTunel()
-
+    #Creamos la instancia con la que logramos las operabilidad de la BDD
+    instancia_conexion_bdd = connection_db(credenciales.host, credenciales.user, credenciales.password, 'datalake_sociodemografico')
 
     #=== SECCION DE DATALAKE
-
     df = loadXLSDataCBT().transform_datalake() #--> Transformar y concatenar datos del EXCEL
-    print(df)
-    #Deteccion del sistema operativo - en base a esto la carga y la operabilidad varian
-    system_operative = platform.system() #--> Retorna el nombre del sistema operativo (windows / linux)
-    
-    #Conectamos al tunel, y a la bdd
-    conexion_datalake = connection_db(
-        cred_tunel.ssh_host,
-        cred_tunel.ssh_user,
-        cred_tunel.ssh_pem_key_path,
-        cred_tunel.mysql_host,
-        cred_tunel.mysql_port,
-        cred_tunel.mysql_user,
-        cred_tunel.mysql_password,
-        system_operative,
-        'datalake_sociodemografico' #--> La base de datos se especifica
-        )
-    conexion_datalake.connect_db()
-    conexion_datalake.load_datalake(df) #--> Cargamos la bdd
+    instancia_conexion_bdd.connect_db()
+    instancia_conexion_bdd.load_datalake(df) #--> Cargamos la bdd
 
 
     #==== SECCCION DEL DATAWAREHOUSE
