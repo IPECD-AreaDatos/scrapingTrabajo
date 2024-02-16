@@ -21,6 +21,12 @@ class connection_db:
         self.conn = None
         self.cursor = None
 
+    # =========================================================================================== #
+                    # ==== SECCION CORRESPONDIENTE A SETTERS Y GETTERS ==== #
+    # =========================================================================================== #
+            
+        
+
 
     # =========================================================================================== #
             # ==== SECCION CORRESPONDIENTE A LAS CONEXIONES ==== #
@@ -117,7 +123,66 @@ class connection_db:
 # =========================================================================================== #
                 # ==== SECCION CORRESPONDIENTE AL DATAWAREHOUSE ==== #
 # =========================================================================================== #
+
+    """
+    Tabla a1: Contiene los datos que corresponden al correo de CBA y CBT.
+    Datos:
+        - Fecha
+        - CBA de GBA
+        - CBT de GBA
+        - CBA de NEA 
+        - CBT de NEA
+        - CBA FAMILIAR EN EL NEA
+        - CBT FAMILIAR EN EL NEA
+        - Var. Mensual, Interanual, Y acumulado de CBA y CBT del NEA.
+        - Var. mensual e Interanual de IPC.
+
+    """
+
+    def table_a1(self):
+
+        #Conectamos la BDD para empezar a hacer los calculos
+        self.connect_db()
+        self.create_date_a1()
+    
+        pass
+
+    #Objetivo: calcular los valores necesarios para tabla A1
+    def create_date_a1(self):
+
+        #Extraemos datalake
+        select_query = "SELECT * FROM cbt_cba"
+        df_bdd = pd.read_sql(select_query,self.conn)
+
+        #Creamos dataframe
+        columnas = ["fecha","cba_gba","cbt_gba","cba_nea","cbt_nea","cba_nea_familia","cbt_nea_familia","vmensual_cba","vinter_cba","vacum_cba",
+                    "vmensual_cbt","vinter_cbt","vacum_cbt","vmensual_ipc","vinter_ipc"]
         
+        df = pd.DataFrame(columns=[columnas])
+
+
+        #Asignacion de CBA y CBT de nacion y del NEA. Tambien fecha
+        df['fecha'] = df_bdd['fecha']
+        df['cba_gba'] = df_bdd['cba_adulto']
+        df['cbt_gna'] =  df_bdd['cbt_adulto']
+        df['cba_nea'] = df_bdd['cba_nea']
+        df['cbt_nea'] = df_bdd['cbt_nea']
+
+        #Asignacion de los valores familiares en el nea. Valor de ponderacion: 3.09
+        df['cba_nea_familia'] = df['cba_nea'] * 3.09
+        df['cbt_nea_familia'] = df['cbt_nea'] * 3.09
+
+        #=== Creacion de variaciones mensual, interanual, y acumulado PARA CBA
+        df['vmensual_cba'] = ((df['cba_nea'].iloc[-1] / df['cba_nea'].iloc[-2]) - 1) * 100  #--> Var. Mensual de cba NEA
+        df['vinter_cba'] = ((df['cba_nea'].iloc[-1] / df['cba_nea'].iloc[-12]) - 1) * 100 #--> Var. Interanual de cba NEA
+
+        #Para el acumulado necesitamos detectar diciembre, vamos a usar la fecha maxima para esto
+        fecha_max = df['fecha'].max()
+        año_anterior = fecha_max.year - 1
+        valor_diciembre_año_anterior = df['cba_nea'][df['fecha'].year == año_anterior & df['fecha'].month == 12]
+
+        print(df)
+
 
 
 
@@ -304,8 +369,6 @@ class connection_db:
         #Calculo de familia para no ser indigente y para no ser pobre
         familia_indigente_mes_anterior = cba_mes_anterior * 3.09
         familia_pobre_mes_anterior = cbt_mes_anterior * 3.09
-
-
 
 
         # ==== VARIACIONES ==== #

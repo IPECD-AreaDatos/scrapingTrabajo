@@ -75,9 +75,6 @@ class loadXLSDataCBT:
             df_final.to_excel(writer, sheet_name=sheet_name, index=False, startrow=0, startcol=0)
            
 
-
-    
-
     def calcular_estimaciones(self,concatenacion_df):
         
         
@@ -226,7 +223,7 @@ class loadXLSDataCBT:
         concatenacion_df = pd.concat([df_primeraHoja,df_segundaHoja,concatenacion_df],axis=1)
         concatenacion_df['Fecha'] = pd.to_datetime(concatenacion_df['Fecha'])
 
-        
+        print(concatenacion_df)
         df_definitivo = self.estimaciones_nea(concatenacion_df)
 
         print(df_definitivo)
@@ -236,27 +233,31 @@ class loadXLSDataCBT:
 
     def estimaciones_nea(self,concatenacion_df):
 
+    
+        #Establecemos la fecha del ultimo periodo valido (recodar que para estimaciones se usa los ultimos 6 valores oficiales del NEA)
+        fecha_ultima_publicacion_oficial = pd.to_datetime("2023-06-01")
+
+
         """
         Explicacion de condicional if: se revisa si existen valores nulos en los datos oficiales del NEA
         Por ejemplo: el mes que sale los datos oficiales, no hay valores nulos, y por ende no hay que calcular estimaciones.
-        Si despues de salir los datos oficiales, pasan "n" meses sin salir mas oficiales, entonces es necesario calcular las estimaciones.
+        Si despues de salir los datos oficiales, pasan "n" meses sin salir mas datos oficiales, mes por mes supongamos ,
+        entonces es necesario calcular las estimaciones.
+
+        Para esto, en el if se hace especificamente:
+            1 - Tomamos algunos de los datos de cba o cbt del nea, es indistinto.
+            2 - Teniendo en cuenta la ultima publicacion se calcula el tamaño de los "Posibles datos faltantes".
+            3 - Si el valor es 0, quiere decir que estamos en el mes que salieron datos nuevos.
+            4 - Si es != 0, entonces quiere decir que ya paso 1 o mas meses de la ultima publicacion de datos oficiales.
         """
 
         #Verificacion para ver si es necesario o no calcular estimaciones del NEA - Se supone que el mismo mes que salen DATOS OFICIALES no se tiene que calcular
-        if not(pd.isna(concatenacion_df['cba_nea']).any()):
-            return
+        if len(concatenacion_df['cba_nea'][concatenacion_df['Fecha'] > fecha_ultima_publicacion_oficial]) == 0:
+            return concatenacion_df
 
-        #En caso de que no, se calculas las estimaciones teniendo en cuenta los ultimos datos oficiales del NEA
+        #En caso de que no estemos en el mismo mes de publicacion, se calculas las estimaciones teniendo en cuenta los ultimos datos oficiales del NEA
         else:
 
-            for index,row in concatenacion_df.iterrows():
-
-                if pd.isna(row['cba_nea']):
-                    row['cba_nea'] = 0
-            
-
-            #Establecemos la fecha del ultimo periodo valido (recodar que para estimaciones se usa los ultimos 6 valores oficiales del NEA)
-            fecha_ultima_publicacion_oficial = pd.to_datetime("2023-06-01")
             
             #En base a la fecha buscamos los ultimos 6 valores de CBA y CBT DE GBA ,CBA y CBT de NEA
             df_sin_nulos = concatenacion_df[concatenacion_df['Fecha'] <= fecha_ultima_publicacion_oficial][-6:]
@@ -279,20 +280,9 @@ class loadXLSDataCBT:
                 estimacion_cba = row['CBA_Adulto'] * ( suma_cba_nea / suma_cba)
                 estimacion_cbt = row['CBT_Adulto'] * (suma_cbt_nea / suma_cbt)
 
-
-                concatenacion_df.at[index:'cba_nea'] = 1
-                concatenacion_df.at[index:'cbt_nea'] = 1
+                concatenacion_df.loc[index, 'cba_nea'] = estimacion_cba
+                concatenacion_df.loc[index, 'cbt_nea'] = estimacion_cbt
 
 
             return concatenacion_df
     
-
-
-
-
-concatenacion_df = loadXLSDataCBT().transform_datalake()
-
-
-
-
-
