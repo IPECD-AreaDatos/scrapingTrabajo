@@ -7,14 +7,35 @@ tanto en los arreglos posteriores.
 
 #Clase orientada a contener las credenciales de la BDD
 class Credenciales:
-        
-    def __init__(self):
-
-        #Datos de la base de datos
-        self.host = '54.94.131.196'
-        self.user = 'estadistica'
-        self.password = 'Estadistica2024!!'
-        self.database = 'ipecd_economico'
+    def __init__(self, database_name):
+        # Datos de las bases de datos
+        if database_name == 'ipecd_economico':
+            self.host = '54.94.131.196'
+            self.user = 'estadistica'
+            self.password = 'Estadistica2024!!'
+            self.database = 'ipecd_economico'
+        elif database_name == 'datalake_sociodemografico':
+            self.host = '54.94.131.196'
+            self.user = 'estadistica'
+            self.password = 'Estadistica2024!!'
+            self.database = 'datalake_sociodemografico'
+        elif database_name == 'dwh_sociodemografico':
+            self.host = '54.94.131.196'
+            self.user = 'estadistica'
+            self.password = 'Estadistica2024!!'
+            self.database = 'dwh_sociodemografico'
+        elif database_name == 'datalake_economico':
+            self.host = '54.94.131.196'
+            self.user = 'estadistica'
+            self.password = 'Estadistica2024!!'
+            self.database = 'datalake_economico'
+        elif database_name == 'dwh_economico':
+            self.host = '54.94.131.196'
+            self.user = 'estadistica'
+            self.password = 'Estadistica2024!!'
+            self.database = 'dwh_economico'
+        else:
+            raise ValueError("Nombre de base de datos no válido")
 
         #Asi se debe colocar
         """
