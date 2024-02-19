@@ -14,16 +14,18 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 credenciales_dir = os.path.join(script_dir, '..', 'Credenciales_folder')
 # Agregar la ruta al sys.path
 sys.path.append(credenciales_dir)
+# Ahora puedes importar tus credenciales
 from credenciales_bdd import Credenciales
+# Después puedes crear una instancia de Credenciales
+credenciales = Credenciales('ipecd_economico')
 from dolarBlue import dolarBlue
 from dolarMEP import dolarMEP
 from dolarCCL import dolarCCL
 
-credenciales = Credenciales()
 
 if __name__ == '__main__': 
     dolarOficial().descargaArchivo()
     dolarOficial().lecturaDolarOficial(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
-    dolarBlue().tomaDolarBlue()
-    dolarMEP().tomaDolarMEP()
-    dolarCCL().tomaDolarCCL()
+    dolarBlue().tomaDolarBlue(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    dolarMEP().tomaDolarMEP(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    dolarCCL().tomaDolarCCL(credenciales.host, credenciales.user, credenciales.password, credenciales.database)

@@ -14,7 +14,7 @@ import mysql.connector
 nuevos_datos = []
 
 class dolarMEP:
-    def tomaDolarMEP(self):
+    def tomaDolarMEP(self, host, user, password,database):
         self.url_mep = 'https://www.ambito.com/contenidos/dolar-mep-historico.html'
         self.driver = webdriver.Chrome()  # Reemplaza con la ubicación de tu ChromeDriver
         self.driver.maximize_window()
@@ -72,10 +72,7 @@ class dolarMEP:
 
         try:
             conn = mysql.connector.connect(
-                host='172.17.22.23',
-                user='team-datos',
-                password='HCj_BmbCtTuCv5}',
-                database='ipecd_economico'
+                host=host, user=user, password=password, database=database
             )
             cursor = conn.cursor()
             

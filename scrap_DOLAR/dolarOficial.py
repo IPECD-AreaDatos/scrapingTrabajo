@@ -94,12 +94,11 @@ class dolarOficial:
         # Espera un tiempo suficiente para que la descarga se complete
         time.sleep(10)
         
-    def lecturaDolarOficial(self, host, user, database, password):
-        
+    def lecturaDolarOficial(self, host, user, password,database):
         conn = mysql.connector.connect(
-            host='172.17.22.23', user='team-datos', password='HCj_BmbCtTuCv5}', database='ipecd_economico'
+            host=host, user=user, password=password, database=database
         )
-        
+
         cursor= conn.cursor()
         
         

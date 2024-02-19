@@ -8,18 +8,20 @@ import calendar
 import xlrd
 from datetime import datetime
 import pymysql
+import mysql
+import mysql.connector
 
 class connection_db:
 
-    def __init__(self,mysql_host,mysql_user, mysql_password ,database):
+    def __init__(self,host, user, password, database):
 
-        self.mysql_host = mysql_host
-        self.mysql_user = mysql_user
-        self.mysql_password = mysql_password
+        self.host = host
+        self.user = user
+        self.password = password
         self.database = database
-        self.tunel = None
         self.conn = None
         self.cursor = None
+
 
     # =========================================================================================== #
                     # ==== SECCION CORRESPONDIENTE A SETTERS Y GETTERS ==== #
@@ -36,14 +38,11 @@ class connection_db:
     #Conexion a la BDD
     def connect_db(self):
 
-            self.conn = pymysql.connect(
-                host = self.mysql_host,
-                user = self.mysql_user,
-                password = self.mysql_password,
-                database = self.database
-            )
-
-            self.cursor = self.conn.cursor()
+        self.conn = mysql.connector.connect(
+            host=self.host, user=self.user, password=self.password, database=self.database
+        )
+        print("conecto")
+        self.cursor = self.conn.cursor()
 
     def close_conections(self):
 
