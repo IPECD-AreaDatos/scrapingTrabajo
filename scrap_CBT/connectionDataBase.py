@@ -8,20 +8,18 @@ import calendar
 import xlrd
 from datetime import datetime
 import pymysql
-import mysql
-import mysql.connector
 
 class connection_db:
 
-    def __init__(self,host, user, password, database):
+    def __init__(self,mysql_host,mysql_user, mysql_password ,database):
 
-        self.host = host
-        self.user = user
-        self.password = password
+        self.mysql_host = mysql_host
+        self.mysql_user = mysql_user
+        self.mysql_password = mysql_password
         self.database = database
+        self.tunel = None
         self.conn = None
         self.cursor = None
-
 
     # =========================================================================================== #
                     # ==== SECCION CORRESPONDIENTE A SETTERS Y GETTERS ==== #
@@ -38,11 +36,14 @@ class connection_db:
     #Conexion a la BDD
     def connect_db(self):
 
-        self.conn = mysql.connector.connect(
-            host=self.host, user=self.user, password=self.password, database=self.database
-        )
-        print("conecto")
-        self.cursor = self.conn.cursor()
+            self.conn = pymysql.connect(
+                host = self.mysql_host,
+                user = self.mysql_user,
+                password = self.mysql_password,
+                database = self.database
+            )
+
+            self.cursor = self.conn.cursor()
 
     def close_conections(self):
 
@@ -153,11 +154,8 @@ class connection_db:
         select_query = "SELECT * FROM cbt_cba"
         df_bdd = pd.read_sql(select_query,self.conn)
 
-        #Creamos dataframe
-        columnas = ["fecha","cba_gba","cbt_gba","cba_nea","cbt_nea","cba_nea_familia","cbt_nea_familia","vmensual_cba","vinter_cba","vacum_cba",
-                    "vmensual_cbt","vinter_cbt","vacum_cbt","vmensual_ipc","vinter_ipc"]
         
-        df = pd.DataFrame(columns=[columnas])
+        df = pd.DataFrame()
 
 
         #Asignacion de CBA y CBT de nacion y del NEA. Tambien fecha
@@ -171,16 +169,42 @@ class connection_db:
         df['cba_nea_familia'] = df['cba_nea'] * 3.09
         df['cbt_nea_familia'] = df['cbt_nea'] * 3.09
 
+
+        #==== CALCULOS DE LA CANASTA BASICA ALIMENTARIA
+
         #=== Creacion de variaciones mensual, interanual, y acumulado PARA CBA
-        df['vmensual_cba'] = ((df['cba_nea'].iloc[-1] / df['cba_nea'].iloc[-2]) - 1) * 100  #--> Var. Mensual de cba NEA
-        df['vinter_cba'] = ((df['cba_nea'].iloc[-1] / df['cba_nea'].iloc[-12]) - 1) * 100 #--> Var. Interanual de cba NEA
+        df['vmensual_cba'] = ((df['cba_nea'] / df['cba_nea'].shift(1)) - 1) * 100  #--> Var. Mensual de cba NEA
+        df['vinter_cba'] = ((df['cba_nea'] / df['cba_nea'].shift(12)) - 1) * 100 #--> Var. Interanual de cba NEA
 
         #Para el acumulado necesitamos detectar diciembre, vamos a usar la fecha maxima para esto
-        fecha_max = df['fecha'].max()
-        año_anterior = fecha_max.year - 1
-        valor_diciembre_año_anterior = df['cba_nea'][df['fecha'].year == año_anterior & df['fecha'].month == 12]
 
-        print(df)
+        df['fecha'] = pd.to_datetime(df['fecha'])#--> Transformamos los datos para maniobrarlos
+
+        #Tomamos los años para recorrerlos
+        anios = list(set(df['fecha'].dt.year))
+
+        #Lista de variaciones acumuladas
+        var_acumuladas = list()
+
+        for anio in anios:
+
+            valores_anio = list(df['cba_nea'][df['fecha'].dt.year == anio].values)
+            print(valores_anio)
+            #Rescatamos valor diciembre del año anterior - Si falla quiere decir que no tenemos ese dato
+            try:
+                val_diciembre_año_anterior = df['cba_nea'][ (df['fecha'].dt.year == (anio - 1)) & (df['fecha'].dt.month == 12) ].values[0]
+                #Calculamos variaciones acumuladas por cada año valido
+                for valor in valores_anio:
+
+                    var_acumulada = ((valor / val_diciembre_año_anterior) - 1) * 100
+                    var_acumuladas.append(var_acumulada)
+
+            except:
+                pass
+
+
+
+        print(var_acumuladas)
 
 
 
