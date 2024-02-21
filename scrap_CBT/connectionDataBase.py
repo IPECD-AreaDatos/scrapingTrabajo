@@ -138,7 +138,6 @@ class connection_db:
         - Var. mensual e Interanual de IPC.
 
     """
-
     def table_a1(self):
 
         #Conectamos la BDD para empezar a hacer los calculos
@@ -147,7 +146,7 @@ class connection_db:
     
         pass
 
-    #Objetivo: calcular los valores necesarios para tabla A1
+    #Objetivo: calcular los valores necesarios para tabla A1. Los datos de IPC lo tratamos en otra funcion
     def create_date_a1(self):
 
         #Extraemos datalake
@@ -172,10 +171,12 @@ class connection_db:
 
         #==== CALCULOS DE LA CANASTA BASICA ALIMENTARIA
 
-        #=== Creacion de variaciones mensual, interanual, y acumulado PARA CBA
+        #=== Creacion de variaciones mensual, interanual PARA CBA
         df['vmensual_cba'] = ((df['cba_nea'] / df['cba_nea'].shift(1)) - 1) * 100  #--> Var. Mensual de cba NEA
         df['vinter_cba'] = ((df['cba_nea'] / df['cba_nea'].shift(12)) - 1) * 100 #--> Var. Interanual de cba NEA
 
+
+        # === Creacion de las variaciones acumuladas
         #Para el acumulado necesitamos detectar diciembre, vamos a usar la fecha maxima para esto
 
         df['fecha'] = pd.to_datetime(df['fecha'])#--> Transformamos los datos para maniobrarlos
@@ -183,32 +184,66 @@ class connection_db:
         #Tomamos los años para recorrerlos
         anios = list(set(df['fecha'].dt.year))
 
-        #Lista de variaciones acumuladas
-        var_acumuladas = list()
+        #Lista de variaciones acumuladas de canasta basica alimentaria
+        var_acumuladas_cba = list()
 
         for anio in anios:
 
             valores_anio = list(df['cba_nea'][df['fecha'].dt.year == anio].values)
-            print(valores_anio)
+
             #Rescatamos valor diciembre del año anterior - Si falla quiere decir que no tenemos ese dato
             try:
-                val_diciembre_año_anterior = df['cba_nea'][ (df['fecha'].dt.year == (anio - 1)) & (df['fecha'].dt.month == 12) ].values[0]
+                val_diciembre_año_anterior = df['cba_nea'][ (df['fecha'].dt.year == (anio - 1)) & (df['fecha'].dt.month == 12) ].values[0] #--> Obtencion del valor puro de cba NEA
                 #Calculamos variaciones acumuladas por cada año valido
                 for valor in valores_anio:
 
                     var_acumulada = ((valor / val_diciembre_año_anterior) - 1) * 100
-                    var_acumuladas.append(var_acumulada)
+                    var_acumuladas_cba.append(var_acumulada)
 
-            except:
-                pass
+            except: #No se encontro el valor de diciembre, por ende no se calculara estimaciones para ese periodo. Se asignan valores nulos
+                for valor_error in valores_anio:
+                    var_acumuladas_cba.append(None)
+
+        
+        #Asignaciones de valores nulos        
+        df['vacum_cba'] = var_acumuladas_cba
 
 
 
-        print(var_acumuladas)
+        #==== CALCULOS DE LA CANASTA BASICA TOTAL
+        
+        #=== Creacion de variaciones mensual, interanual PARA CBT
+        df['vmensual_cbt'] = ((df['cbt_nea'] / df['cbt_nea'].shift(1)) - 1) * 100  #--> Var. Mensual de cbt NEA
+        df['vinter_cbt'] = ((df['cbt_nea'] / df['cbt_nea'].shift(12)) - 1) * 100 #--> Var. Interanual de cbt NEA
+
+        #Lista de variaciones acumuladas de canasta basica alimentaria
+        var_acumuladas_cbt = list()
+
+        for anio in anios:
+
+            valores_anio = list(df['cbt_nea'][df['fecha'].dt.year == anio].values)
+
+            #Rescatamos valor diciembre del año anterior - Si falla quiere decir que no tenemos ese dato
+            try:
+                val_diciembre_año_anterior = df['cbt_nea'][ (df['fecha'].dt.year == (anio - 1)) & (df['fecha'].dt.month == 12) ].values[0] #--> Obtencion del valor puro de cbt NEA
+
+                #Calculamos variaciones acumuladas por cada año valido
+                for valor in valores_anio:
+
+                    var_acumulada = ((valor / val_diciembre_año_anterior) - 1) * 100
+                    var_acumuladas_cbt.append(var_acumulada)
+
+            except: #No se encontro el valor de diciembre, por ende no se calculara estimaciones para ese periodo. Se asignan valores nulos
+                for valor_error in valores_anio:
+                    var_acumuladas_cbt.append(None)
+
+        #Asignaciones de valores nulos        
+        df['vacum_cbt'] = var_acumuladas_cbt 
 
 
-
-
+    #En esta funcion realizamos los calculos sobre las variaciones de IPC
+    def connecting_with_ipc(df):
+        pass
 # =========================================================================================== #        
 # =========================================================================================== #
 

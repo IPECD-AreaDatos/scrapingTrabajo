@@ -23,7 +23,7 @@ sys.path.append(credenciales_dir)
 from credenciales_bdd import Credenciales
 
 # Crea una instancia de la clase "Credenciales"
-instancia_credenciales = Credenciales()
+instancia_credenciales = Credenciales("datalake_economico")
 
 #Listas a tratar durante el proceso
 lista_fechas = list()

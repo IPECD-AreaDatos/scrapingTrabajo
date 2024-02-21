@@ -73,7 +73,7 @@ class conexionBaseDatos:
         #Version nueva
         cant_valores = len(df.values)
 
-        delete_query ="TRUNCATE TABLE `ipecd_economico`.`ipc_region`"
+        delete_query ="TRUNCATE TABLE ipc_region"
         self.cursor.execute(delete_query)
 
         print("DATAFRAME  \n\n")
