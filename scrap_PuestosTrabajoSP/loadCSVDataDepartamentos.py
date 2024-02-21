@@ -4,7 +4,7 @@ import pandas as pd
 import time
 
 class LoadCSVDataDepartamentos:
-    def loadInDataBase(file_path, host, user, password, database):
+    def loadInDataBase(self, host, user, password, database):
         #Se toma el tiempo de comienzo
         start_time = time.time()
         
@@ -12,9 +12,9 @@ class LoadCSVDataDepartamentos:
         conn = mysql.connector.connect(
             host=host, user=user, password=password, database=database
         )
-
+        file_path="C:\\Users\\Matias\\Desktop\\scrapingTrabajo\\scrap_PuestosTrabajoSP\\files\\diccionario_cod_depto.csv"
         # Nombre de la tabla en MySQL
-        table_name = 'dp_localidades'
+        table_name = 'identificador_localidades'
         
         # Leer el archivo de csv y hacer transformaciones
         df = pd.read_csv(file_path)  # Leer el archivo CSV y crear el DataFrame

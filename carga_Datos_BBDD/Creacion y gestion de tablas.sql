@@ -1,53 +1,53 @@
 USE prueba1;
 -- Diccionario Regiones
-CREATE TABLE regiones (
+CREATE TABLE identificador_regiones (
 ID_Region INT PRIMARY KEY NOT NULL,
 descripcion_region varchar(30)
 );
 
-INSERT INTO regiones(id_region , descripcion_region) Values (1, "Nacion");
-INSERT INTO regiones(id_region , descripcion_region) Values (2, "GBA");
-INSERT INTO regiones(id_region , descripcion_region) Values (3, "Pampeana");
-INSERT INTO regiones(id_region , descripcion_region) Values (4, "NOA");
-INSERT INTO regiones(id_region , descripcion_region) Values (5, "NEA");
-INSERT INTO regiones(id_region , descripcion_region) Values (6, "Cuyo");
-INSERT INTO regiones(id_region , descripcion_region) Values (7, "Patagonia");
+INSERT INTO identificador_regiones(id_region , descripcion_region) Values (1, "Nacion");
+INSERT INTO identificador_regiones(id_region , descripcion_region) Values (2, "GBA");
+INSERT INTO identificador_regiones(id_region , descripcion_region) Values (3, "Pampeana");
+INSERT INTO identificador_regiones(id_region , descripcion_region) Values (4, "NOA");
+INSERT INTO identificador_regiones(id_region , descripcion_region) Values (5, "NEA");
+INSERT INTO identificador_regiones(id_region , descripcion_region) Values (6, "Cuyo");
+INSERT INTO identificador_regiones(id_region , descripcion_region) Values (7, "Patagonia");
 
 
--- Tabla de dp_provincias
-CREATE TABLE dp_provincias(
+-- Tabla de identificador_provincias
+CREATE TABLE identificador_provincias(
 id_provincia_indec int primary key not null,
 nombre_provincia_indec varchar(20)
 );
-insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) values (1, 'Nacion');
-Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (2, 'CABA');
-Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (6, 'Buenos Aires');
-Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (10, 'Catamarca');
-Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (14, 'Cordoba');
-Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (18, 'Corrientes');
-Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (22, 'Chaco');
-Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (26, 'Chubut');
-Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (30, 'Entre Rios');
-Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (34, 'Formosa');
-Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (38, 'Jujuy');
-Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (42, 'La Pampa');
-Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (46, 'La Rioja');
-Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (50, 'Mendoza');
-Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (54, 'Misiones');
-Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (58, 'Neuquen');
-Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (62, 'Rio Negro');
-Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (66, 'Salta');
-Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (70, 'San Juan');
-Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (74, 'San Luis');
-Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (78, 'Santa Cruz');
-Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (82, 'Santa Fe');
-Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (86, 'Santiago Del Estero');
-Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (90, 'Tucuman');
-Insert into dp_provincias(id_provincia_indec, nombre_provincia_indec) Values (94, 'Tierra Del Fuego');
+insert into identificador_provincias(id_provincia_indec, nombre_provincia_indec) values (1, 'Nacion');
+Insert into identificador_provincias(id_provincia_indec, nombre_provincia_indec) Values (2, 'CABA');
+Insert into identificador_provincias(id_provincia_indec, nombre_provincia_indec) Values (6, 'Buenos Aires');
+Insert into identificador_provincias(id_provincia_indec, nombre_provincia_indec) Values (10, 'Catamarca');
+Insert into identificador_provincias(id_provincia_indec, nombre_provincia_indec) Values (14, 'Cordoba');
+Insert into identificador_provincias(id_provincia_indec, nombre_provincia_indec) Values (18, 'Corrientes');
+Insert into identificador_provincias(id_provincia_indec, nombre_provincia_indec) Values (22, 'Chaco');
+Insert into identificador_provincias(id_provincia_indec, nombre_provincia_indec) Values (26, 'Chubut');
+Insert into identificador_provincias(id_provincia_indec, nombre_provincia_indec) Values (30, 'Entre Rios');
+Insert into identificador_provincias(id_provincia_indec, nombre_provincia_indec) Values (34, 'Formosa');
+Insert into identificador_provincias(id_provincia_indec, nombre_provincia_indec) Values (38, 'Jujuy');
+Insert into identificador_provincias(id_provincia_indec, nombre_provincia_indec) Values (42, 'La Pampa');
+Insert into identificador_provincias(id_provincia_indec, nombre_provincia_indec) Values (46, 'La Rioja');
+Insert into identificador_provincias(id_provincia_indec, nombre_provincia_indec) Values (50, 'Mendoza');
+Insert into identificador_provincias(id_provincia_indec, nombre_provincia_indec) Values (54, 'Misiones');
+Insert into identificador_provincias(id_provincia_indec, nombre_provincia_indec) Values (58, 'Neuquen');
+Insert into identificador_provincias(id_provincia_indec, nombre_provincia_indec) Values (62, 'Rio Negro');
+Insert into identificador_provincias(id_provincia_indec, nombre_provincia_indec) Values (66, 'Salta');
+Insert into identificador_provincias(id_provincia_indec, nombre_provincia_indec) Values (70, 'San Juan');
+Insert into identificador_provincias(id_provincia_indec, nombre_provincia_indec) Values (74, 'San Luis');
+Insert into identificador_provincias(id_provincia_indec, nombre_provincia_indec) Values (78, 'Santa Cruz');
+Insert into identificador_provincias(id_provincia_indec, nombre_provincia_indec) Values (82, 'Santa Fe');
+Insert into identificador_provincias(id_provincia_indec, nombre_provincia_indec) Values (86, 'Santiago Del Estero');
+Insert into identificador_provincias(id_provincia_indec, nombre_provincia_indec) Values (90, 'Tucuman');
+Insert into identificador_provincias(id_provincia_indec, nombre_provincia_indec) Values (94, 'Tierra Del Fuego');
 
 
--- Tabla de dp_localidades
-CREATE TABLE Departamentos (
+-- Tabla de identificador_localidades
+CREATE TABLE identificador_localidades (
   codigo_departamento_indec INTEGER,
   nombre_departamento_indec VARCHAR(255),
   id_provincia_indec INTEGER,
@@ -168,7 +168,7 @@ VALUES
 
 
 -- Tabla de IPC
-CREATE TABLE ipc_region(
+CREATE TABLE ipc_valores(
 Fecha date not null,
 ID_Region int,
 ID_Categoria int, 
@@ -176,7 +176,7 @@ ID_Division int,
 ID_Subdivision int,
 Valor float,
 
-Foreign key (ID_Region) references regiones(ID_Region),
+Foreign key (ID_Region) references identificador_regiones(ID_Region),
 Foreign key (ID_Categoria) references ipc_categoria(id_categoria)
 );
 
@@ -302,7 +302,12 @@ INSERT INTO ipc_subdivision (id_categoria, id_division, id_subdivision, nombre) 
     (13, 33, 44, 'Bienes y servicios varios'),
     (13, 34, 45, 'Cuidado personal');
 
-    
+create table ipc_productos(
+ID_Region int,
+Fecha date,
+Producto char(50),
+Valor float
+);
     
 -- TABLAS SIPA
 CREATE TABLE sipa_registro(
@@ -312,7 +317,7 @@ ID_Tipo_Registro int,
 Cantidad_con_Estacionalidad float,
 Cantidad_sin_Estacionalidad float,
 
-Foreign key (ID_Provincia) references dp_provincias(id_provincia_indec),
+Foreign key (ID_Provincia) references identificador_provincias(id_provincia_indec),
 Foreign key (ID_Tipo_Registro) references sipa_tiporegistro(ID_Registro)
 );
 
@@ -337,7 +342,7 @@ ID_Provincia int,
 ID_Departamentos int,
 Poblacion int,
 
-Foreign key (ID_Provincia) references dp_provincias(id_provincia_indec)
+Foreign key (ID_Provincia) references identificador_provincias(id_provincia_indec)
 );
 
 Create Table dnrpa_inscripcion(
@@ -347,7 +352,7 @@ ID_Provincia int,
 Region varchar(125),
 Cantidad int,
 
-Foreign key (ID_Provincia) references dp_provincias(id_provincia_indec),
+Foreign key (ID_Provincia) references identificador_provincias(id_provincia_indec),
 Foreign key (ID_Vehiculo) references dnrpa_vehiculos(ID_Vehiculo)
 );
 
@@ -370,13 +375,6 @@ Valor float
 create table ripte(
 Fecha date,
 ripte float
-);
-
-create table ipc_productos(
-ID_Region int,
-Fecha date,
-Producto char(50),
-Valor float
 );
 
 #Tabla De Salario Minimo Vital y Movil

@@ -17,13 +17,10 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 credenciales_dir = os.path.join(script_dir, '..', 'Credenciales_folder')
 # Agregar la ruta al sys.path
 sys.path.append(credenciales_dir)
-
-
-
+# Ahora puedes importar tus credenciales
 from credenciales_bdd import Credenciales
-
-# Crea una instancia de la clase "Credenciales"
-instancia_credenciales = Credenciales("datalake_economico")
+# Después puedes crear una instancia de Credenciales
+instancia_credenciales = Credenciales('datalake_economico')
 
 #Listas a tratar durante el proceso
 lista_fechas = list()
