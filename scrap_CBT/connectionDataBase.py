@@ -25,7 +25,10 @@ class connection_db:
                     # ==== SECCION CORRESPONDIENTE A SETTERS Y GETTERS ==== #
     # =========================================================================================== #
             
-        
+    #Objetivo: cambiar el nombre de la base de datos para reconectarnos a otra.
+    def set_database(self,new_name):
+
+        self.database = new_name
 
 
     # =========================================================================================== #
@@ -205,10 +208,8 @@ class connection_db:
                     var_acumuladas_cba.append(None)
 
         
-        #Asignaciones de valores nulos        
+        #Asignaciones de variaciones acumuladas de la canasta basica alimentaria      
         df['vacum_cba'] = var_acumuladas_cba
-
-
 
         #==== CALCULOS DE LA CANASTA BASICA TOTAL
         
@@ -237,13 +238,46 @@ class connection_db:
                 for valor_error in valores_anio:
                     var_acumuladas_cbt.append(None)
 
-        #Asignaciones de valores nulos        
-        df['vacum_cbt'] = var_acumuladas_cbt 
+        #Asignaciones de variaciones acumuladas de la canasta basica total
+        df['vacum_cbt'] = var_acumuladas_cbt
+
+        
+
+        #==== INCORPORACION DE IPC
+
+        #Para añadir IPC es necesario cerrar las conexiones con la base de datos de sociodemografico y abrirlas con la de economico
+        self.close_conections()#--> Cerramos
+        self.set_database("datalake_economico") #--> Cambiamos BDD
+        self.connect_db() #--> Reconectarnos al datalake economico
+
+        self.connecting_with_ipc(df)
+        
+        print(df)
 
 
     #En esta funcion realizamos los calculos sobre las variaciones de IPC
-    def connecting_with_ipc(df):
-        pass
+    def connecting_with_ipc(self,df):
+
+        #Explicacion: la consulta ira a ipc_valores, y traera todos los datos de la region 5 (NEA) y de la categoria 1 (Nivel general del IPC)
+        query_consulta = f'SELECT * FROM ipc_valores WHERE ID_Region = 5 and ID_Categoria = 1'
+
+        #Construccion de dataframe a partir de la consulta
+        df_bdd = pd.read_sql(query_consulta,self.conn)
+
+        print(df_bdd)        
+        # ==== CALCULOS DE VARIACIONES MENSUALES Y INTERANUALES
+
+        #=== Creamos columnas para evitar conflictos de manipulacion del datafarame
+        df['vmensual_nea_ipc'] = float('nan')
+        df['vinter_nea_ipc'] = float('nan')
+
+        #=== Tomamos la primera fecha del grupo de IPC -- Esto porque CBT y CBA empieza su historico antes que los datos oficiales de IPC
+        firt_date =pd.to_datetime (df_bdd['fecha'].values[0])
+
+        #=== Creacion de variaciones mensual, interanual PARA IPC del NEA
+        df['vmensual_nea_ipc'].iloc[df['fecha'] >= firt_date] =( df_bdd['valor'] / df_bdd['valor'].shift(1) - 1) * 100  #--> Var. Mensual de IPC
+        df['vinter_nea_ipc'].iloc[df['fecha'] >= firt_date] = ((df_bdd['valor'] / df_bdd['valor'].shift(12)) - 1) * 100 #--> Var. Interanual de IPC
+
 # =========================================================================================== #        
 # =========================================================================================== #
 
@@ -551,6 +585,8 @@ class connection_db:
 
         #Convertimos la serie a datetime para buscar por año y mes
         df_bdd['Fecha'] = pd.to_datetime(df_bdd['Fecha'])    
+
+
         grupo_mes_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == 2023) & (df_bdd['Fecha'].dt.month == mes_anterior)]
 
         #Total del mes anterior y calculo de la variacion mensual
