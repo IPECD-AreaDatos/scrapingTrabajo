@@ -69,12 +69,12 @@ if __name__ == '__main__':
     
     
     instancia.cargaBaseDatos()
-    
+ 
     #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ CARGA DE IPC PRODUCTOS ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
     directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
     ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
     file_path_productos = os.path.join(ruta_carpeta_files, 'IPC_Productos.xls')
-    LoadXLSDataProductos().loadInDataBase(file_path_productos)
+    LoadXLSDataProductos().loadInDataBase(file_path_productos, instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database)
 
 
 
