@@ -28,24 +28,24 @@ join
 join 
 	sipa_tiporegistro on sipa_registro.ID_Tipo_Registro=sipa_tiporegistro.ID_Registro;
 
-create view vista_ipc as
+create view vista_ipc_valores as
 select
-	ipc_region.Fecha as Fecha,
-    regiones.descripcion_region as Region,
+	ipc_valores.Fecha as Fecha,
+    identificador_regiones.descripcion_region as Region,
 	ipc_categoria.nombre as Categoria,
     ipc_division.nombre as Division,
     ipc_subdivision.nombre as Subdivision, 
-    ipc_region.Valor as Valor
+    ipc_valores.Valor as Valor
 FROM
-	ipc_region
+	ipc_valores
 join
-	regiones on ipc_region.ID_Region = regiones.ID_Region
+	identificador_regiones on ipc_valores.ID_Region = identificador_regiones.ID_Region
 join 
-	ipc_categoria on ipc_region.ID_Categoria = ipc_categoria.id_categoria
+	ipc_categoria on ipc_valores.ID_Categoria = ipc_categoria.id_categoria
 join
-	ipc_division on ipc_region.ID_Division = ipc_division.id_division
+	ipc_division on ipc_valores.ID_Division = ipc_division.id_division
 join
-	ipc_subdivision on ipc_region.ID_Subdivision = ipc_subdivision.id_subdivision;
+	ipc_subdivision on ipc_valores.ID_Subdivision = ipc_subdivision.id_subdivision;
     
 CREATE VIEW Vista_Puestos_Trabajo_Sector_Privado as
 SELECT dp_provincias.nombre_provincia_indec AS Provincia, 
