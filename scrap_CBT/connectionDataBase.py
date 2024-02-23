@@ -79,6 +79,19 @@ class connection_db:
 
             self.cargar_tabla_datalake(df)
             print("==== SE CARGARON DATOS NUEVOS CORRESPONDIENTES A CBT Y CBA DEL DATALAKE ====")
+
+
+            #Nos vamos a reconectar al DWH de sociodemografico para enviar el correo
+            self.set_database("dwh_sociodemografico")
+            self.connect_db()
+            
+
+
+            """"
+            
+            ZONA A CARGAR LAS TABLAS CORRESPONDIENTES A DWH
+                        
+            """
             
         else: #Si no hay datos nuevos AVISAR
             
