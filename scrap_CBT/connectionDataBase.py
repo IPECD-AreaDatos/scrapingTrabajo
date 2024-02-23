@@ -312,8 +312,9 @@ class connection_db:
         engine = create_engine(f"mysql+pymysql://{self.mysql_user}:{self.mysql_password}@{self.mysql_host}:{3306}/{self.database}")
         df.to_sql(name="correo_cbt_cba", con=engine, if_exists='replace', index=False)
 
-        print("FUNCIONA!!")
-
+        print("======")
+        print("Los datos correspondiente a los corrreos de CBT y CBA han sido actualizados.")
+        print("======")
 
 # =========================================================================================== #        
 # =========================================================================================== #
