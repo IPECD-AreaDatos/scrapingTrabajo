@@ -7,7 +7,7 @@ from sqlalchemy import create_engine
 import pymysql
 
 class LoadXLSDataProductos:
-    def loadInDataBase(self, file_path_productos):
+    def loadInDataBase(self, file_path_productos, host, user, password, database):
         # Se toma el tiempo de comienzo
         start_time = time.time()
         
@@ -103,10 +103,10 @@ class LoadXLSDataProductos:
             
             # Configuración de la conexión a la base de datos
             db_config = {
-                'user': 'team-datos',
-                'password': 'HCj_BmbCtTuCv5}',
-                'host': '172.17.22.23',
-                'database': 'ipecd_economico',
+                'user': user,
+                'password': password,
+                'host': host,
+                'database': database,
             }
 
             # Crear una conexión a la base de datos MySQL
