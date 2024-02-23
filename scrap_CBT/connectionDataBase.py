@@ -8,6 +8,7 @@ import calendar
 import xlrd
 from datetime import datetime
 import pymysql
+from sqlalchemy import create_engine
 
 class connection_db:
 
@@ -143,11 +144,12 @@ class connection_db:
     """
     def table_a1(self):
 
-        #Conectamos la BDD para empezar a hacer los calculos
+        #Conectamos la BDD para empezar a hacer los calculos,
         self.connect_db()
-        self.create_date_a1()
-    
-        pass
+        df = self.create_date_a1()
+        self.load_date_mail(df)
+
+
 
     #Objetivo: calcular los valores necesarios para tabla A1. Los datos de IPC lo tratamos en otra funcion
     def create_date_a1(self):
@@ -249,10 +251,15 @@ class connection_db:
         self.close_conections()#--> Cerramos
         self.set_database("datalake_economico") #--> Cambiamos BDD
         self.connect_db() #--> Reconectarnos al datalake economico
-
-        self.connecting_with_ipc(df)
         
-        print(df)
+        #Calculamos las variaciones necesarias del IPC
+        self.connecting_with_ipc(df)
+
+        #Cerramos las conexiones nuevamente
+        self.close_conections()
+        
+
+        return df
 
 
     #En esta funcion realizamos los calculos sobre las variaciones de IPC
@@ -277,6 +284,36 @@ class connection_db:
         #=== Creacion de variaciones mensual, interanual PARA IPC del NEA
         df['vmensual_nea_ipc'].iloc[df['fecha'] >= firt_date] =( df_bdd['valor'] / df_bdd['valor'].shift(1) - 1) * 100  #--> Var. Mensual de IPC
         df['vinter_nea_ipc'].iloc[df['fecha'] >= firt_date] = ((df_bdd['valor'] / df_bdd['valor'].shift(12)) - 1) * 100 #--> Var. Interanual de IPC
+
+
+    #Objetivo: cargar los datos correspondientes al correo de CBT y CBA. Es llamado en la funcion table_a1()
+    def load_date_mail(self,df):
+        
+        """
+        Para la carga es necesario:
+        1 - Cambiar por setter el nombre de la bdd
+        2 - Conectarnos a la bdd
+        3 - Truncar la tabla correspondiente (ya que trabajamos con estimaciones)
+        4 - Cargar los datos nuevos
+        """
+
+        #Paso 1 - vamos a usar DWH de socio
+        self.set_database("dwh_sociodemografico")
+
+        #Paso 2- Conectamos a la bdd
+        self.connect_db()
+
+        #Paso 3 - Truncamos la tabla usando la query y el conector. Ejecutamos la consulta
+        query_delete_table = "TRUNCATE correo_cbt_cba"
+        self.cursor.execute(query_delete_table)
+
+
+        #4 - Cargamos los datos usando una query y el conector. Ejecutamos las consultas. PARA ESTE PASO ES OBLIGATORIO TRABAJAR CON SQLAlchemy
+        engine = create_engine(f"mysql+pymysql://{self.mysql_user}:{self.mysql_password}@{self.mysql_host}:{3306}/{self.database}")
+        df.to_sql(name="correo_cbt_cba", con=engine, if_exists='replace', index=False)
+
+        print("FUNCIONA!!")
+
 
 # =========================================================================================== #        
 # =========================================================================================== #
