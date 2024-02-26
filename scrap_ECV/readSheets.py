@@ -61,4 +61,21 @@ class readSheets:
         if longitud_primera_fila == 8:
             df = df.drop(df.columns[-1], axis=1)
             print(df)
+            self.transformar_tipo_datos(df)
+            print(df.dtypes)
             return df
+        
+
+    def transformar_tipo_datos(self, df):
+        # Seleccionar las columnas numéricas
+        columnas_numericas = ['Tasa de empleo', 'Tasa de desocupación', 'Tasa de actividad', 'Tasa de inactividad']
+        # Convertir las columnas numéricas a tipos numéricos
+        df[columnas_numericas] = df[columnas_numericas].replace('%', '', regex=True)
+        df[columnas_numericas] = df[columnas_numericas].replace(',', '.', regex=True)
+        df[columnas_numericas] = df[columnas_numericas].astype(float)
+        # Convertir la primera columna a tipo de datos de fecha
+        df['Fecha'] = pd.to_datetime(df['Fecha'], format='%d/%m/%Y')
+        # Convertir la segunda columna a tipo de datos entero
+        df['Trimestre'] = df['Trimestre'].astype(int)
+        df['Aglomerado'] = df['Aglomerado'].astype(str)
+

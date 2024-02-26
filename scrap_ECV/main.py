@@ -1,6 +1,7 @@
 import os
 import sys
 from readSheets import readSheets
+from connect_db import connect_db
 
 # Obtener la ruta al directorio actual del script
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -16,3 +17,4 @@ credenciales = Credenciales('dwh_sociodemografico')
 if __name__ ==  "__main__":
     print("Las credenciales son", credenciales.host,credenciales.user,credenciales.password,credenciales.database)
     df = readSheets().leer_datos_tasas()
+    connect_db().connect(df, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
