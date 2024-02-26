@@ -77,25 +77,22 @@ class connection_db:
             self.cursor.execute(delete_query)
 
 
-            self.cargar_tabla_datalake(df)
+            self.cargar_tabla_datalake(df) 
             print("==== SE CARGARON DATOS NUEVOS CORRESPONDIENTES A CBT Y CBA DEL DATALAKE ====")
 
-
             #Nos vamos a reconectar al DWH de sociodemografico para enviar el correo
-            self.set_database("dwh_sociodemografico")
-            self.connect_db()
-            
+            print("Base de datos actual",self.database)
+            self.table_a1()
 
-
-            """"
-            
-            ZONA A CARGAR LAS TABLAS CORRESPONDIENTES A DWH
-                        
-            """
+            #Bandera que usaremos en main para enviar correo
+            return True 
             
         else: #Si no hay datos nuevos AVISAR
             
-            print("==== NO HAY DATOS NUEVOS CORRESPONDIENTES A CBT Y CBA DEL DATALAKE ====")     
+            print("==== NO HAY DATOS NUEVOS CORRESPONDIENTES A CBT Y CBA DEL DATALAKE ====")   
+            
+            #Bandera que usaremos en main para enviar correo
+            return False  
 
     #Objetivo: Obtener tamaños de los datos para realizar verificaciones de varga
     def determinar_tamanios(self,df):
@@ -324,10 +321,12 @@ class connection_db:
         #4 - Cargamos los datos usando una query y el conector. Ejecutamos las consultas. PARA ESTE PASO ES OBLIGATORIO TRABAJAR CON SQLAlchemy
         engine = create_engine(f"mysql+pymysql://{self.mysql_user}:{self.mysql_password}@{self.mysql_host}:{3306}/{self.database}")
         df.to_sql(name="correo_cbt_cba", con=engine, if_exists='replace', index=False)
+        
 
         print("======")
         print("Los datos correspondiente a los corrreos de CBT y CBA han sido actualizados.")
         print("======")
+
 
 # =========================================================================================== #        
 # =========================================================================================== #
@@ -418,8 +417,8 @@ class connection_db:
 
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contrasenia = 'cmxddbshnjqfehka'
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com', 'samaniego18@gmail.com', 'guillermobenasulin@gmail.com', 'leclerc.mauricio@gmail.com']
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com', 'samaniego18@gmail.com', 'guillermobenasulin@gmail.com', 'leclerc.mauricio@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
         #-------------------------------- Mensaje nuevo --------------------------------
         asunto_wpp = f'CBA Y CBT - Actualización - Fecha: {fecha_formato_normal}'
         mensaje_wpp = f""" 
@@ -583,31 +582,7 @@ class connection_db:
 
         return f"{nombre_mes_espanol} del {fecha_ultimo_registro.year-1}"
 
-    def obtener_ultimafecha_actual(self,fecha_ultimo_registro):
 
-        # Obtener el nombre del mes actual en inglés
-        nombre_mes_ingles = calendar.month_name[fecha_ultimo_registro.month]
-
-        # Diccionario de traducción
-        traducciones_meses = {
-            'January': 'Enero',
-            'February': 'Febrero',
-            'March': 'Marzo',
-            'April': 'Abril',
-            'May': 'Mayo',
-            'June': 'Junio',
-            'July': 'Julio',
-            'August': 'Agosto',
-            'September': 'Septiembre',
-            'October': 'Octubre',
-            'November': 'Noviembre',
-            'December': 'Diciembre'
-        }
-
-        # Obtener la traducción
-        nombre_mes_espanol = traducciones_meses.get(nombre_mes_ingles, nombre_mes_ingles)
-
-        return f"{nombre_mes_espanol} del {fecha_ultimo_registro.year}"
 
     def variaciones(self,region):
 
