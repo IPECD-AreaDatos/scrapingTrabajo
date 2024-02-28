@@ -70,12 +70,15 @@ class readSheets:
         # Seleccionar las columnas numéricas
         columnas_numericas = ['Tasa de empleo', 'Tasa de desocupación', 'Tasa de actividad', 'Tasa de inactividad']
         # Convertir las columnas numéricas a tipos numéricos
-        df[columnas_numericas] = df[columnas_numericas].replace('%', '', regex=True)
-        df[columnas_numericas] = df[columnas_numericas].replace(',', '.', regex=True)
-        df[columnas_numericas] = df[columnas_numericas].astype(float)
+        # Elimina el símbolo "%" y las comas, y luego convierte las columnas en valores numéricos
+        df[columnas_numericas] = df[columnas_numericas].replace({'%': '', ',': '.'}, regex=True).apply(pd.to_numeric)
+
+        # Divide los valores numéricos por 100
+        df[columnas_numericas] = df[columnas_numericas] / 100
+
         # Convertir la primera columna a tipo de datos de fecha
         df['Fecha'] = pd.to_datetime(df['Fecha'], format='%d/%m/%Y')
         # Convertir la segunda columna a tipo de datos entero
-        df['Trimestre'] = df['Trimestre'].astype(int)
+        df['Trimestre'] = df['Trimestre'].astype(str)
         df['Aglomerado'] = df['Aglomerado'].astype(str)
 
