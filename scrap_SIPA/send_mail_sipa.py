@@ -1,99 +1,46 @@
-import mysql
-import mysql.connector
-import datetime
-from email.message import EmailMessage
-import ssl
-import smtplib
+from pymysql import connect
 import pandas as pd
-import locale
-import calendar
-import pywhatkit as kit
-from sqlalchemy import create_engine
 
+class MailSipa:
 
-class conexionBaseDatos:
-
-    #Inicializacion de variables en la clase
-    def __init__(self, host, user, password, database):
+    def __init__(self,host,user,password,database):
 
         self.host = host
         self.user = user
-        self.password = password 
+        self.password = password
         self.database = database
-        self.cursor = None
         self.conn = None
+        self.cursor = None
+        
+    #Conexion a la BDD
+    def connect_db(self):
 
-
-    # =========================================================================================== #
-            # ==== SECCION CORRESPONDIENTE A LAS CONEXIONES ==== #
-    # =========================================================================================== #        
-
-    #Objetivo: conectar a la base de datos
-    def conectar_bdd(self):
-
-            self.conn = mysql.connector.connect(
-                host=self.host, user=self.user, password=self.password, database=self.database
+            self.conn = connect(
+                host = self.host,
+                user = self.user,
+                password = self.password,
+                database = self.database
             )
+
             self.cursor = self.conn.cursor()
 
+    def close_conections(self):
 
-    #Objetivo: guardar los ultimos cambios hechos y cerrar las conexiones
-    def close_connections(self):
+        # Confirmar los cambios en la base de datos y cerramos conexiones
         self.conn.commit()
-        self.conn.close()
         self.cursor.close()
+        self.conn.close()
 
 
-    # =========================================================================================== #
-            # ==== SECCION CORRESPONDIENTE AL DATALAKE ==== #
-    # =========================================================================================== #      
-        
+    #Objetivo: extraer los datos correspondientes al correo de CBT y CBA de la tabla A1
+    def extract_date(self):
 
-    #Objetivo: cargar los datos de SIPA al datalake_economico
-    def load_datalake(self,df):
-
-        #Se establece la conexion a la BDD
-        self.conectar_bdd()
-
-        len_bdd,len_df = self.check_lens(df)
-
-        if len_df > len_bdd:
-
-            #Obtenemos la diferencia de filas
-            df_datalake = df.tail(len_df - len_bdd)
-
-            #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
-            engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
-            df_datalake.to_sql(name="sipa_valores", con=engine, if_exists='append', index=False)
-
-            return True     
-        else:
-            print("\n - No existen datos nuevos de SIPA para cargar \n")
-            return False
+        query = "SELECT * FROM sipa_valores"
+        df = pd.read_sql(query,self.conn)
+        return df
 
 
-    #Objetivo: obtener los datos del dataframe, y de la tabla almacenada en la bdd
-    def check_lens(self,df):
-
-        # Verificar cuantas filas tiene la tabla de mysql ejecutando la consulta
-        select_query = "SELECT COUNT(*) FROM sipa_valores"
-        self.cursor.execute(select_query)
-
-        #Tamaño de la tabla de la BDD
-        len_bdd = self.cursor.fetchone()[0]
-
-        #Tamaño del dataframe
-        len_df = len(df)
-
-        return len_bdd,len_df
-
-
-    # =========================================================================================== #
-            # ==== SECCION CORRESPONDIENTE AL DATAWAREHOUSE ==== #
-    # =========================================================================================== #           
-
-
-    def enviar_mensajes(self):
+def enviar_mensajes(self):
 
         #Transformador de formato - Transforma una cadena al formato manejado en la region (Argentina)
         locale.setlocale(locale.LC_ALL, 'es_ES.UTF-8')
@@ -900,24 +847,3 @@ class conexionBaseDatos:
 
         return f"{nombre_mes_espanol} del {fecha_ultimo_registro.year}"
 
-"""
-SECCION PARA PRUEBAS INDEPENDIENTES DE LA CLASE
-
-#Datos de la base de datos
-host = '172.17.16.157'
-user = 'team-datos'
-password = 'HCj_BmbCtTuCv5}'
-database = 'ipecd_economico'
-
-lista_provincias = list()
-lista_valores_estacionalidad = list() 
-lista_valores_sin_estacionalidad = list() 
-lista_registro = list()
-lista_fechas= list() 
-
-instancia_bdd = conexionBaseDatos(host, user, password, database, lista_provincias, lista_valores_estacionalidad, lista_valores_sin_estacionalidad, lista_registro,lista_fechas)
-instancia_bdd.conectar_bdd(host, user, password, database)
-
-#INSERTAR COMANDO A PROBAR
-
-"""
