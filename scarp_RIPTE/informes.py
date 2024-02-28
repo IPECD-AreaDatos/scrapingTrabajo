@@ -6,6 +6,7 @@ import pandas as pd
 from datetime import datetime
 from ssl import create_default_context
 import mysql.connector
+from pywhatkit import sendwhatmsg_to_group_instantly
 
 
 class InformesRipte:
