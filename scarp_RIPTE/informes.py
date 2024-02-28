@@ -35,20 +35,22 @@ class InformesRipte:
             variacion_mensual = ((nuevo_valor / valor_anterior) - 1) * 100
             variacion_interanual, variacion_acumulada, fecha_mes_anterior,fecha_mes_AñoAnterior, diciembre_AñoAnterior = self.obtener_datos(nueva_fecha,nuevo_valor)
 
+            print(nueva_fecha)
             #Construccion de la cadena de la fecha actual
             nueva_fecha = nueva_fecha.date()
             fecha_cadena = self.obtener_mes_actual(nueva_fecha)
+            fecha_mes_anterior = self.obtener_mes_actual(fecha_mes_anterior)
+            diciembre_AñoAnterior = self.obtener_mes_actual(diciembre_AñoAnterior)
+            fecha_mes_AñoAnterior = self.obtener_mes_actual(fecha_mes_AñoAnterior)
 
-            cadena_nueva_fecha = str(nueva_fecha.year) +"-"+str(nueva_fecha.month)
 
             #==== ENVIO DE MENSAJES
-            self.enviar_correo(fecha_cadena,cadena_nueva_fecha,nuevo_valor,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada)
-            #self.enviar_wpp(cadena_nueva_fecha,nuevo_valor,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada)
+            self.enviar_correo(fecha_cadena,nuevo_valor,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada)
+            self.enviar_wpp(fecha_cadena,nuevo_valor,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada)
             
 
     #Envio de correos por GMAIL
-    def enviar_correo(self,fecha_cadena,cadena_nueva_fecha,nuevo_valor,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada):
-                
+    def enviar_correo(self,fecha_cadena, nuevo_valor,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada):
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
         #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
@@ -60,13 +62,13 @@ class InformesRipte:
             <body>
             <h2>Se ha producido una modificación en la base de datos de RIPTE.</h2>
             <hr>
-            <p>Nueva fecha: {cadena_nueva_fecha} -- Nuevo valor:  <span style="font-size: 17px;"><b>${nuevo_valor}<b></p>
+            <p>Nueva fecha: {fecha_cadena} -- Nuevo valor:  <span style="font-size: 17px;"><b>${nuevo_valor}<b></p>
             <hr>
             <p>Valor correspondiente a {fecha_mes_anterior}: ${valor_anterior} -- Variación Mensual:  <span style="font-size: 17px;"><b>{variacion_mensual:.2f}%</b>  </p>
             <hr>
-            <p>Variación interanual de {cadena_nueva_fecha} a {fecha_mes_AñoAnterior}:  <span style="font-size: 17px;"><b>{variacion_interanual:.2f}%</b> </p>
+            <p>Variación interanual de {fecha_cadena} a {fecha_mes_AñoAnterior}:  <span style="font-size: 17px;"><b>{variacion_interanual:.2f}%</b> </p>
             <hr>
-            <p>Variación Acumulada desde {diciembre_AñoAnterior} a {cadena_nueva_fecha}:  <span style="font-size: 17px;"><b>{variacion_acumulada:.2f}%</b> </p>
+            <p>Variación Acumulada desde {diciembre_AñoAnterior} a {fecha_cadena}:  <span style="font-size: 17px;"><b>{variacion_acumulada:.2f}%</b> </p>
             </body>
 
             
@@ -141,7 +143,7 @@ class InformesRipte:
 
 
         #Obtencion de la fecha actual - se usara para determinar el valor del año anterior en el mismo mes
-        fecha_actual = df_bdd['Fecha'].iloc[-1]
+        fecha_actual = df_bdd['fecha'].iloc[-1]
 
         año_actual = fecha_actual.year
         año_anterior = año_actual - 1
@@ -153,9 +155,9 @@ class InformesRipte:
         fecha_mes_AñoAnterior = str(año_anterior)+"-"+mes_actual+"-"+dia_actual
         fecha_mes_AñoAnterior = datetime.strptime(fecha_mes_AñoAnterior,'%Y-%m-%d').date()
 
-        valor_mes_AñoAnterior = df_bdd.loc[df_bdd['Fecha'] == fecha_mes_AñoAnterior]
+        valor_mes_AñoAnterior = df_bdd.loc[df_bdd['fecha'] == fecha_mes_AñoAnterior]
         print(valor_mes_AñoAnterior)
-        valor = valor_mes_AñoAnterior['ripte'].values[0]
+        valor = valor_mes_AñoAnterior['valor'].values[0]
 
         print(f'NUEVO VALOR:{nuevo_valor} - VALOR ANTERIOR: {valor}')
 
@@ -168,8 +170,8 @@ class InformesRipte:
         diciembre_AñoAnterior = datetime.strptime(str(año_anterior) + "-" + "12-01",'%Y-%m-%d').date() #--> Fecha de DIC del año anterior
 
         #SMVM del año anterior
-        valor_dic_AñoAnterior = df_bdd.loc[df_bdd['Fecha'] == diciembre_AñoAnterior]
-        smvm_dic_AñoAnterior = valor_dic_AñoAnterior['ripte'].values[0]
+        valor_dic_AñoAnterior = df_bdd.loc[df_bdd['fecha'] == diciembre_AñoAnterior]
+        smvm_dic_AñoAnterior = valor_dic_AñoAnterior['valor'].values[0]
 
         #calculo final
         variacion_acumulada = ((nuevo_valor / smvm_dic_AñoAnterior) - 1) * 100
@@ -180,7 +182,7 @@ class InformesRipte:
 
         
         #Construccion de la fecha del mes anterior al actual --> Para variacion Mensual
-        mes_anterior = df_bdd['Fecha'].iloc[-2]
+        mes_anterior = df_bdd['fecha'].iloc[-2]
         cadena_mes_anterior = str(mes_anterior.year) +"-"+str(mes_anterior.month)
 
 
@@ -195,13 +197,13 @@ class InformesRipte:
 
         return variacion_interanual, variacion_acumulada,cadena_mes_anterior,cadena_mes_añoAnterior,cadena_dic_añoAnterior
 
-    def obtener_mes_actual(self,fecha_ultimo_registro):
-    
-
-        # Obtener el nombre del mes actual en inglés
+    def obtener_mes_actual(self, fecha_ultimo_registro):
+        if isinstance(fecha_ultimo_registro, str):
+            fecha_ultimo_registro = datetime.strptime(fecha_ultimo_registro, '%Y-%m').date()
+        # Obtener el nombre del mes en inglés
         nombre_mes_ingles = calendar.month_name[fecha_ultimo_registro.month]
 
-        # Diccionario de traducción
+        # Diccionario de traducción de meses
         traducciones_meses = {
             'January': 'Enero',
             'February': 'Febrero',
@@ -217,5 +219,9 @@ class InformesRipte:
             'December': 'Diciembre'
         }
 
-        # Obtener la traducción
+        # Obtener la traducción del nombre del mes
         nombre_mes_espanol = traducciones_meses.get(nombre_mes_ingles, nombre_mes_ingles)
+
+        # Formatear el resultado
+        resultado = f"{nombre_mes_espanol.capitalize()} {fecha_ultimo_registro.year}"
+        return resultado

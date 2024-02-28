@@ -439,3 +439,14 @@ Create Table supermercado_encuesta(
     electronica_hogar double,
     otros double
 );
+
+#ECV DWH Sociodemografico
+Create table ecv_tasas(
+	fecha date,
+    trimestre int,
+    aglomerado char(20),
+    tasa_de_empleo float,
+    tasa_de_desocupacion float,
+    tasa_de_actividad float,
+    tasa_de_inactividad float
+);
