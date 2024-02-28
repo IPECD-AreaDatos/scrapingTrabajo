@@ -28,7 +28,7 @@ class ripte_cargaUltimoDato:
 
     #Cargamos los datos
     def loadInDataBase(self):  
-
+        table_name='ripte'
         # Se toma el tiempo de comienzo
         start_time = time.time()
         tolerancia = 1.99         
@@ -54,7 +54,7 @@ class ripte_cargaUltimoDato:
             
         # Obtener la última fecha y el último valor de ripte de la base de datos
         cursor = self.conn.cursor()
-        cursor.execute("SELECT Fecha, ripte FROM ripte ORDER BY Fecha DESC LIMIT 1")
+        cursor.execute(f"SELECT fecha, valor FROM {table_name} ORDER BY fecha DESC LIMIT 1")
         ultima_fecha, ultimo_ripte = cursor.fetchone()
 
         print("Último ripte en la base de datos:", ultimo_ripte)
@@ -71,7 +71,7 @@ class ripte_cargaUltimoDato:
             print("El valor de ripte es el mismo, no se agregaron nuevos datos")
         else:
             # Sentencia SQL para insertar los datos en la tabla ripte
-            insert_query = "INSERT INTO ripte (Fecha, ripte) VALUES (%s, %s)"
+            insert_query = f"INSERT INTO {table_name} (fecha, valor) VALUES (%s, %s)"
 
             # Insertar nuevos datos
             cursor.execute(insert_query, (nueva_fecha, contenido_float))
