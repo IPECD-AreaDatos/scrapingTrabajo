@@ -25,11 +25,21 @@ class conexionBaseDatos:
 
 
     # =========================================================================================== #
+            # ==== SECCION CORRESPONDIENTE A LOS SETTERs ==== #
+    # =========================================================================================== #  
+
+    #Objetivo: cambiar el nombre de la base de datos para reconectarnos a otra.
+    def set_database(self,new_name):
+
+        self.database = new_name
+
+
+    # =========================================================================================== #
             # ==== SECCION CORRESPONDIENTE A LAS CONEXIONES ==== #
     # =========================================================================================== #        
 
     #Objetivo: conectar a la base de datos
-    def conectar_bdd(self):
+    def connect_db(self):
 
             self.conn = mysql.connector.connect(
                 host=self.host, user=self.user, password=self.password, database=self.database
@@ -53,7 +63,7 @@ class conexionBaseDatos:
     def load_datalake(self,df):
 
         #Se establece la conexion a la BDD
-        self.conectar_bdd()
+        self.connect_db()
 
         len_bdd,len_df = self.check_lens(df)
 
@@ -66,7 +76,11 @@ class conexionBaseDatos:
             engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
             df_datalake.to_sql(name="sipa_valores", con=engine, if_exists='append', index=False)
 
-            return True     
+            #=== ZONA DE CARGA DEL DATAWAREHOUSE
+            self.table_analytics_sipa()
+
+            #Se retorna true para enviar el correo
+            return True
         else:
             print("\n - No existen datos nuevos de SIPA para cargar \n")
             return False
@@ -91,6 +105,81 @@ class conexionBaseDatos:
     # =========================================================================================== #
             # ==== SECCION CORRESPONDIENTE AL DATAWAREHOUSE ==== #
     # =========================================================================================== #           
+
+    """
+    Esta tabla contiene los datos correspondiente al correo de SIPA
+    Datos:
+        - Empleo privado registrado
+        - Empleo publico registrado
+        - Monotributista independientes
+        - Monotributistas sociales
+        - Empleo en casas particulares registrado
+        - Trabajadores independientes autonomos
+        - Trabajo registrado a nivel nacional
+        - Variacion mensual del trabajo registrado
+        - Variacion interanual del trabajo registrado
+        - Total empleo en Corrientes - Acompañado de var. mensual, interanual y acumulado. Tambien porcentaje representativo en el nea. Diferencias de cada variacion.
+        - Total empleo en misiones - Acompañado de var. mensual, interanual y acumulado. Tambien porcentaje representativo en el nea. Diferencias de cada variacion.
+        - Total empleo en chaco - Acompañado de var. mensual, interanual y acumulado. Tambien porcentaje representativo en el nea. Diferencias de cada variacion.
+        - total empleo en formosa - Acompañado de var. mensual, interanual y acumulado. Tambien porcentaje representativo en el nea. Diferencias de cada variacion.
+        - Total de empleo en el NEA - Acompañado de var. mensual, interanual y acumulado. Tambien porcentaje representativo en NACION. Diferencias de cada variacion.
+        - Total de empleo en nacion - - Acompañado de var. mensual, interanual y acumulado.  Diferencias de cada variacion.
+
+
+    Los maximos historicos correspondientes a la fecha donde hubo mas empleados privados en el NEA y en NACION lo sacamos por consulta
+    
+    """
+
+    def table_analytics_sipa(self):
+
+        #Df que contendra los datos a cargar
+        df = pd.DataFrame()
+        self.get_percentages(df)
+
+    #Objetivo: obtener los porcentajes representativos de cada tipo de empleo. Esto es solo aplicable a los datos de nacion.
+    #Los datos de cada provincia estan representados con el tipo de registro 1.
+    def get_percentages(self,df):
+
+
+        
+        #Con la consulta extraemos los datos del sipa
+        select_query = "SELECT * FROM sipa_valores WHERE id_provincia = 1"
+        df_bdd = pd.read_sql(select_query,self.conn)        
+
+        #Cambiamos el formato de la fecha para maniobrarla
+        df_bdd['fecha'] = pd.to_datetime(df_bdd['fecha'])
+
+        #Por tener muchas fechas repetidas, es necesario trabajar con las fechas unicas que este presenta.
+        #Obtenemos la fechas unicas en forma de lista, y de paso lo ordenamos de menor a mayor.
+        fechas_unicas = sorted(list(set(df_bdd['fecha'])))
+
+
+        df['empleo_total'] = list(df_bdd['cantidad_con_estacionalidad'][df_bdd['id_tipo_registro'] == 8])
+        df['empleo_privado'] = list(df_bdd['cantidad_con_estacionalidad'][df_bdd['id_tipo_registro'] == 2])
+        df['empleo_publico'] = list(df_bdd['cantidad_con_estacionalidad'][df_bdd['id_tipo_registro'] == 3])
+        df['empleo_casas_particulares'] = list(df_bdd['cantidad_con_estacionalidad'][df_bdd['id_tipo_registro'] == 4])
+        df['empleo_independiente_autonomo'] = list(df_bdd['cantidad_con_estacionalidad'][df_bdd['id_tipo_registro'] == 5])
+        df['empleo_independiente_monotributo'] = list(df_bdd['cantidad_con_estacionalidad'][df_bdd['id_tipo_registro'] == 6])
+        df['empleo_monotributo_social'] = list(df_bdd['cantidad_con_estacionalidad'][df_bdd['id_tipo_registro'] == 7])
+
+        print(df)
+        return
+
+
+        for fecha in fechas_unicas:
+            
+            #Obtenemos toda la fila de la fecha unica
+            fila_buscada = df_bdd[(df_bdd['fecha'] == fecha)]
+
+            #Obtenemos el empleo total
+            empleo_total = fila_buscada['cantidad_con_estacionalidad'][fila_buscada['id_tipo_registro'] == 8].values[0]
+
+            print(empleo_total)
+            
+             
+
+    # =========================================================================================== #           
+
 
 
     def enviar_mensajes(self):

@@ -28,7 +28,7 @@ if __name__ == '__main__':
     file_path = os.path.join(ruta_carpeta_files, 'SIPA.xlsx')
 
     #ZONA DE EXTRACCION DE DATOS
-
+    """
     #Creamos las variables. Las listas las usamos para luego añadirlas a un dataframe
     lista_provincias = list()
     lista_valores_estacionalidad = list() 
@@ -49,13 +49,16 @@ if __name__ == '__main__':
     df['cantidad_con_estacionalidad'] = lista_valores_estacionalidad
     df['cantidad_sin_estacionalidad'] = lista_valores_sin_estacionalidad
 
-    instancia_bdd = conexionBaseDatos(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
-
     bandera_correo = instancia_bdd.load_datalake(df)
+    """
+    instancia_bdd = conexionBaseDatos(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    instancia_bdd.connect_db()
+    instancia_bdd.table_analytics_sipa()
+    
+    
 
-
-    if bandera_correo:
-        pass
+    #if bandera_correo:
+    #    pass
 
     #Conectar/Cargar/Actualizar la BDD 
     #instancia_bdd = conexionBaseDatos(credenciales.host, credenciales.user, credenciales.password, credenciales.database, lista_provincias, lista_valores_estacionalidad, lista_valores_sin_estacionalidad, lista_registro,lista_fechas)
