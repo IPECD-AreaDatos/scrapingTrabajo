@@ -103,7 +103,7 @@ class conexionBaseDatos:
 
 
     # =========================================================================================== #
-            # ==== SECCION CORRESPONDIENTE AL DATAWAREHOUSE ==== #
+            # ==== SECCION CORRESPONDIENTE A LA TABLA DE DATOS NACIONALES (DWH) ==== #
     # =========================================================================================== #           
 
     """
@@ -118,42 +118,39 @@ class conexionBaseDatos:
         - Trabajo registrado a nivel nacional
         - Variacion mensual del trabajo registrado
         - Variacion interanual del trabajo registrado
+        - Variacion acumulada del trabajo registrado
         - Total empleo en Corrientes - Acompañado de var. mensual, interanual y acumulado. Tambien porcentaje representativo en el nea. Diferencias de cada variacion.
         - Total empleo en misiones - Acompañado de var. mensual, interanual y acumulado. Tambien porcentaje representativo en el nea. Diferencias de cada variacion.
         - Total empleo en chaco - Acompañado de var. mensual, interanual y acumulado. Tambien porcentaje representativo en el nea. Diferencias de cada variacion.
         - total empleo en formosa - Acompañado de var. mensual, interanual y acumulado. Tambien porcentaje representativo en el nea. Diferencias de cada variacion.
         - Total de empleo en el NEA - Acompañado de var. mensual, interanual y acumulado. Tambien porcentaje representativo en NACION. Diferencias de cada variacion.
-        - Total de empleo en nacion - - Acompañado de var. mensual, interanual y acumulado.  Diferencias de cada variacion.
-
-
-    Los maximos historicos correspondientes a la fecha donde hubo mas empleados privados en el NEA y en NACION lo sacamos por consulta
-    
+        - Total de empleo en nacion - - Acompañado de var. mensual, interanual y acumulado.  Diferencias de cada variacion.    
     """
-
     def table_analytics_sipa(self):
 
         #Df que contendra los datos a cargar
         df = pd.DataFrame()
         self.get_percentages(df)
+        self.get_variances_nation(df)
+
+        df['fecha'] = pd.to_datetime(df['fecha']).dt.date
+        
+        #Carga de tabla
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/dwh_economico")
+        df.to_sql(name="empleo_nacional_porcentajes_variaciones", con=engine, if_exists='replace', index=False)
+
 
     #Objetivo: obtener los porcentajes representativos de cada tipo de empleo. Esto es solo aplicable a los datos de nacion.
-    #Los datos de cada provincia estan representados con el tipo de registro 1.
+    #Los datos de cada provincia estan representados con el tipo de registro 
     def get_percentages(self,df):
 
-
-        
         #Con la consulta extraemos los datos del sipa
         select_query = "SELECT * FROM sipa_valores WHERE id_provincia = 1"
-        df_bdd = pd.read_sql(select_query,self.conn)        
+        df_bdd = pd.read_sql(select_query,self.conn)       
 
-        #Cambiamos el formato de la fecha para maniobrarla
-        df_bdd['fecha'] = pd.to_datetime(df_bdd['fecha'])
-
-        #Por tener muchas fechas repetidas, es necesario trabajar con las fechas unicas que este presenta.
-        #Obtenemos la fechas unicas en forma de lista, y de paso lo ordenamos de menor a mayor.
-        fechas_unicas = sorted(list(set(df_bdd['fecha'])))
-
-
+        #ASIGNACION DE FECHAS
+        df['fecha'] = list(df_bdd['fecha'][df_bdd['id_tipo_registro'] == 8])
+        #Asignacion de totales por cada tipo de empleo - No se incluye tipo 1 (solo empleo - esto es mas para provincias individuales)
         df['empleo_total'] = list(df_bdd['cantidad_con_estacionalidad'][df_bdd['id_tipo_registro'] == 8])
         df['empleo_privado'] = list(df_bdd['cantidad_con_estacionalidad'][df_bdd['id_tipo_registro'] == 2])
         df['empleo_publico'] = list(df_bdd['cantidad_con_estacionalidad'][df_bdd['id_tipo_registro'] == 3])
@@ -162,24 +159,65 @@ class conexionBaseDatos:
         df['empleo_independiente_monotributo'] = list(df_bdd['cantidad_con_estacionalidad'][df_bdd['id_tipo_registro'] == 6])
         df['empleo_monotributo_social'] = list(df_bdd['cantidad_con_estacionalidad'][df_bdd['id_tipo_registro'] == 7])
 
-        print(df)
-        return
+        #Calculos de niveles porcentuales en base al total
+        df['p_empleo_privado'] = (df['empleo_privado'] * 100) / df['empleo_total']
+        df['p_empleo_publico']= (df['empleo_publico'] * 100) / df['empleo_total']
+        df['p_empleo_casas_particulares'] = (df['empleo_casas_particulares'] * 100) / df['empleo_total']
+        df['p_empleo_independiente_autonomo'] = (df['empleo_independiente_autonomo'] * 100) / df['empleo_total']
+        df['p_empleo_independiente_monotributo'] = (df['empleo_independiente_monotributo'] * 100) / df['empleo_total']
+        df['p_empleo_monotributo_social'] = (df['empleo_monotributo_social'] * 100) / df['empleo_total']
 
+    #Objetivo: calcular las variaciones mensuales, interanuales y acumuladas a nivel nacional del total de los empleos     
+    def get_variances_nation(self,df):
 
-        for fecha in fechas_unicas:
-            
-            #Obtenemos toda la fila de la fecha unica
-            fila_buscada = df_bdd[(df_bdd['fecha'] == fecha)]
+        #=== Creacion de variaciones mensual, interanual del TOTAL DE EMPLEO A NIVEL NACIONAL
+        df['vmensual_empleo_total'] = ((df['empleo_total'] / df['empleo_total'].shift(1)) - 1) * 100  #--> Var. Mensual de empleo nacion
+        df['vinter_empleo_total'] = ((df['empleo_total'] / df['empleo_total'].shift(12)) - 1) * 100 #--> Var. Interanual de empleo nacion
 
-            #Obtenemos el empleo total
-            empleo_total = fila_buscada['cantidad_con_estacionalidad'][fila_buscada['id_tipo_registro'] == 8].values[0]
+        #=== Calculo de variaciones acumuladas
 
-            print(empleo_total)
-            
-             
+        #Transformamos tipo fecha para maniobrarla
+        df['fecha'] = pd.to_datetime(df['fecha'])
 
-    # =========================================================================================== #           
+        #Tomamos los años para recorrerlos
+        anios = sorted(list(set(df['fecha'].dt.year)))
+    
+        #Lista de variaciones acumuladas
+        var_acumuladas = list()
 
+        for anio in anios:
+
+            valores_anio = list(df['empleo_total'][df['fecha'].dt.year == anio].values)
+
+            #Rescatamos valor diciembre del año anterior - Si falla quiere decir que no tenemos ese dato
+            try:
+
+                #--> Obtencion del valor puro del total de empleo
+                val_diciembre_anio_anterior = df['empleo_total'][ (df['fecha'].dt.year == (anio - 1)) & (df['fecha'].dt.month == 12) ].values[0] 
+                #Calculamos variaciones acumuladas por cada año valido
+                for valor in valores_anio:
+
+                    var_acumulada = ((valor / val_diciembre_anio_anterior) - 1) * 100
+                    var_acumuladas.append(var_acumulada)
+
+            except: #No se encontro el valor de diciembre, por ende no se calculara estimaciones para ese periodo. Se asignan valores nulos
+                for valor_error in valores_anio:
+                    var_acumuladas.append(None)
+
+        
+        #Asignaciones de variaciones acumuladas del total de empleo en nacion
+        df['vacum_empleo_total'] = var_acumuladas
+
+    # =========================================================================================== #
+            # ==== SECCION CORRESPONDIENTE A LA TABLA DE DATOS DEL NEA Y SUS PROVINCIAS (DWH) ==== #
+    # =========================================================================================== #    
+        
+
+    def table_analytics_sipa_nea(self):
+
+        df = pd.DataFrame()
+    # =========================================================================================== #    
+    # =========================================================================================== #    
 
 
     def enviar_mensajes(self):

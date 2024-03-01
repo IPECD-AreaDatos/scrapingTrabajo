@@ -20,7 +20,10 @@ credenciales = Credenciales("datalake_economico")
 
 
 if __name__ == '__main__':
-    
+
+
+    instancia_bdd = conexionBaseDatos(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    """    
     #ZONA DE OBTENCION DE LOS ARCHIVOS
     #url = HomePage()
     directorio_actual = os.path.dirname(os.path.abspath(__file__))
@@ -28,7 +31,6 @@ if __name__ == '__main__':
     file_path = os.path.join(ruta_carpeta_files, 'SIPA.xlsx')
 
     #ZONA DE EXTRACCION DE DATOS
-    """
     #Creamos las variables. Las listas las usamos para luego añadirlas a un dataframe
     lista_provincias = list()
     lista_valores_estacionalidad = list() 
@@ -47,11 +49,8 @@ if __name__ == '__main__':
     df['id_provincia'] = lista_provincias
     df['id_tipo_registro'] = lista_registro
     df['cantidad_con_estacionalidad'] = lista_valores_estacionalidad
-    df['cantidad_sin_estacionalidad'] = lista_valores_sin_estacionalidad
+    df['cantidad_sin_estacionalidad'] = lista_valores_sin_estacionalidad"""
 
-    bandera_correo = instancia_bdd.load_datalake(df)
-    """
-    instancia_bdd = conexionBaseDatos(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
     instancia_bdd.connect_db()
     instancia_bdd.table_analytics_sipa()
     
