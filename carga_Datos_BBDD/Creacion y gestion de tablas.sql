@@ -450,3 +450,13 @@ Create table ecv_tasas(
     tasa_de_actividad float,
     tasa_de_inactividad float
 );
+
+Create table eph_tasas(
+	aglomerado char(100),
+    año int,
+    fecha date,
+    trimestre char(100),
+    tasa_de_actividad float,
+    tasa_de_empleo float,
+    tasa_de_desocupacion float
+);
