@@ -52,7 +52,7 @@ if __name__ == '__main__':
     df['cantidad_sin_estacionalidad'] = lista_valores_sin_estacionalidad"""
 
     instancia_bdd.connect_db()
-    instancia_bdd.table_analytics_sipa()
+    instancia_bdd.table_analytics_sipa_nea()
     
     
 
