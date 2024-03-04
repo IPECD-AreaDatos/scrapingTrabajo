@@ -216,6 +216,67 @@ class conexionBaseDatos:
     def table_analytics_sipa_nea(self):
 
         df = pd.DataFrame()
+        self.get_variances_nea(df)
+        print(df)
+
+
+
+    def get_variances_nea(self, df):
+
+        #Buscamos los datos con la query de cada provincia del NEA (Corrientes = 18, Misiones=54, Chaco = 22, Formosa = 34)
+        select_query = "SELECT fecha, id_provincia, cantidad_con_estacionalidad FROM sipa_valores WHERE id_provincia = 18 OR id_provincia = 22 OR id_provincia = 54 OR id_provincia = 34"
+        df_bdd = pd.read_sql(select_query,self.conn)
+
+        #--> Transformamos los datos de fecha para maniobrarlos
+        df['fecha'] = sorted(list(set(pd.to_datetime(df_bdd['fecha']))))
+
+        
+        #Asignacion de totales
+        df['total_corrientes'] = list(df_bdd['cantidad_con_estacionalidad'][df_bdd['id_provincia'] == 18])
+        df['total_misiones'] = list(df_bdd['cantidad_con_estacionalidad'][df_bdd['id_provincia'] == 54])
+        df['total_chaco']= list(df_bdd['cantidad_con_estacionalidad'][df_bdd['id_provincia'] == 22])
+        df['total_formosa']= list(df_bdd['cantidad_con_estacionalidad'][df_bdd['id_provincia'] == 34])
+
+        #Asignacion de variaciones mensuales
+        df['vmensual_corrientes'] =( df['total_corrientes'] / df['total_corrientes'].shift(1) - 1) * 100
+        df['vmensual_misiones'] = ( df['total_misiones'] / df['total_misiones'].shift(1) - 1) * 100
+        df['vmensual_chaco'] = ( df['total_chaco'] / df['total_chaco'].shift(1) - 1) * 100
+        df['vmensual_formosa'] = ( df['total_formosa'] / df['total_formosa'].shift(1) - 1) * 100
+
+        #Asignacion de variaciones interanuales
+        df['vinter_corrientes'] = ( df['total_corrientes'] / df['total_corrientes'].shift(12) - 1) * 100
+        df['vinter_misiones'] = ( df['total_misiones'] / df['total_misiones'].shift(12) - 1) * 100
+        df['vinter_chaco'] = ( df['total_chaco'] / df['total_chaco'].shift(12) - 1) * 100
+        df['vinter_formosa'] = ( df['total_formosa'] / df['total_formosa'].shift(12) - 1) * 100
+
+
+        #=== Asignacion de variaciones acumuladas
+        df['vacum_corrientes'] = float('nan')
+
+        df_totales_diciembres = pd.DataFrame(columns = ['fecha','total_corrientes','total_misiones','total_chaco','total_formosa'])
+
+        #Tomamos los años para recorrerlos
+        anios = sorted(list(set(df['fecha'].dt.year)))
+        
+        for anio in anios:
+        
+            val_diciembre = df[['total_corrientes','total_misiones','total_chaco','total_formosa']][(df['fecha'].dt.year == (anio - 1)) & (df['fecha'].dt.month == 12) ] #--> Obtencion del valor puro de cba NEA
+
+            diciembre_corrientes = val_diciembre['total_corrientes']
+            diciembre_misiones = val_diciembre['total_misiones']
+            diciembre_chaco = val_diciembre['total_chaco']
+            diciembre_formosa = val_diciembre['total_formosa']
+
+            #Calculamos variaciones acumuladas por cada año valido
+            df.loc[df['fecha'].dt.year == anio + 1,'vacum_corrientes'] = 1
+
+            print(df['vacum_corrientes'][df['fecha'].dt.year == 2010])
+            
+
+        
+
+
+
     # =========================================================================================== #    
     # =========================================================================================== #    
 
