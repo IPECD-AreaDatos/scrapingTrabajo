@@ -27,17 +27,12 @@ class readSheets:
 
         # Realiza una llamada a la API para obtener datos desde la hoja 'Hoja 1' en el rango 'A1:A8'
         result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='Trabajo_EPH!A:G').execute()
-        print(result)
         # Extrae los valores del resultado
         values = result.get('values', [])[1:]
-        
-        exit()
-        # Convertir valores NaN a None --> Lo hacemos porque los valores 'nan' no son reconocidos por MYSQL
-        values = [None if pd.isna(v) else v for v in values]
 
         # Crea el DataFrame df1
         df = pd.DataFrame(values, columns=['Aglomerado', 'Año', 'Fecha', 'Trimestre', 'Tasa de Actividad', 'Tasa de Empleo', 'Tasa de desocupación'])
-        print(df)
+        df = df.where(pd.notnull(df), None)
         self.transformar_tipo_datos(df)
         print(df.dtypes)
         print(df)

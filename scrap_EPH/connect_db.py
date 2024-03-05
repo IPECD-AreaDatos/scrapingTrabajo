@@ -5,6 +5,7 @@ import calendar
 from email.message import EmailMessage
 import ssl
 import smtplib
+from pandas import isna
 
 class connect_db:
     def connect(self, df, host, user, password, database):
@@ -17,30 +18,33 @@ class connect_db:
         cursor = conn.cursor()
 
         table_name= 'eph_tasas'
-        select_row_count_query = f"SELECT COUNT(*) FROM {table_name}"
-        cursor.execute(select_row_count_query)
-        filas_BD = cursor.fetchone()[0]
-        print("Base: ", filas_BD)
-        print("DF", len(df))
-        longitud_df = len(df)
+        delete_query = f"TRUNCATE {database}.{table_name}"
+        query_cantidad_datos = f'SELECT COUNT(*) FROM {table_name}'
+        query_insertar_datos = f"INSERT INTO {table_name} VALUES (%s, %s, %s, %s, %s, %s, %s)"
+        
+        #Obtencion de tamaño del DF sacado del EXCEL
+        cant_filas_df = len(df)
+        #Obtencion de cantidad de filas de 
+        cursor.execute(query_cantidad_datos)
+        row_count_before = cursor.fetchone()[0]
 
-        if filas_BD != len(df):
-            df_datos_nuevos = df.tail(longitud_df - filas_BD)
+        if (cant_filas_df > row_count_before):
+            #Eliminamos tabla
+            cursor.execute(delete_query)
 
-            print("aca:", df_datos_nuevos)
-            print("Tabla de EPH TASAS")
-            for index, row in df_datos_nuevos.iterrows():
-                # Luego, puedes usar estos valores en tu consulta SQL
-                sql_insert = f"INSERT INTO {table_name} (aglomerado, año, fecha, trimestre, tasa_de_actividad, tasa_de_empleo, tasa_de_desocupacion) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-                # Ejecutar la sentencia SQL de inserción
-                cursor.execute(sql_insert, (row['Aglomerado'], row['Año'], row['Fecha'], row['Trimestre'], row['Tasa de Actividad'], row['Tasa de Empleo'], row['Tasa de desocupación']))
+            #Iteramos el dataframe, y vamos cargando fila por fila
+            for index,valor in df.iterrows():
+                values = (valor['Aglomerado'], valor['Año'], valor['Fecha'], valor['Trimestre'], valor['Tasa de Actividad'], valor['Tasa de Empleo'], valor['Tasa de desocupación'])
+                # Convertir valores NaN a None --> Lo hacemos porque los valores 'nan' no son reconocidos por MYSQL
+                values = [None if isna(v) else v for v in values]
+                
+                #Insercion de dato fila por fila
+                cursor.execute(query_insertar_datos,values)
             conn.commit()
-            #self.envio_correo(df_datos_nuevos)
-        else: 
-            print("Se verifico la tabla de EPH TASAS")
-            
-        cursor.close()
-        conn.close()
+            cursor.close()
+            conn.close()
+        else:
+            print(f"NO HAY CAMBIOS EN LOS DATOS DE {table_name}")
 
     def envio_correo(self, df_datos_nuevos): 
         email_emisor = 'departamientoactualizaciondato@gmail.com'
@@ -111,3 +115,4 @@ class connect_db:
         nombre_mes_espanol = traducciones_meses.get(nombre_mes_ingles, nombre_mes_ingles)
 
         return f"{nombre_mes_espanol} del {fecha_ultimo_registro.year}"
+    

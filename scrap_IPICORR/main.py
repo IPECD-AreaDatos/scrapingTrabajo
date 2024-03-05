@@ -4,27 +4,16 @@ from homePage_IPI import HomePage_IPI
 from database_ipi import Database_ipi
 import os
 import sys
-#Datos de la base de datos
-host = '172.17.22.23'
-user = 'team-datos'
-password = 'HCj_BmbCtTuCv5}'
-database = 'ipecd_economico'
-
-
 
 # Obtener la ruta al directorio actual del script
 script_dir = os.path.dirname(os.path.abspath(__file__))
 credenciales_dir = os.path.join(script_dir, '..', 'Credenciales_folder')
 # Agregar la ruta al sys.path
 sys.path.append(credenciales_dir)
-
+# Ahora puedes importar tus credenciales
 from credenciales_bdd import Credenciales
-
-credenciales = Credenciales()
-
-# Crea una instancia de la clase "Credenciales"
-instancia_credenciales = Credenciales()
-
+# Después puedes crear una instancia de Credenciales
+credenciales = Credenciales('ipecd_economico')
 
 
 if __name__ == "__main__":
