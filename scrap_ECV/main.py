@@ -18,6 +18,9 @@ credenciales = Credenciales('dwh_sociodemografico')
 
 if __name__ ==  "__main__":
     print("Las credenciales son", credenciales.host,credenciales.user,credenciales.password,credenciales.database)
-    #df = readSheetsTasas().leer_datos_tasas()
-    #connect_db().connectECVTasas(df, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
-    readSheetsTrabajoQuintiles().leer_datos_trabajo_quintiles()
+    #df_tasas = readSheetsTasas().leer_datos_tasas()
+    #connect_db().connect_db_tasas(df_tasas, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    #df_trabajo = readSheetsTrabajo().leer_datos_trabajo()
+    #connect_db().connect_db_trabajo(df_trabajo, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    df_trabajo_quintiles = readSheetsTrabajoQuintiles().leer_datos_trabajo_quintiles()
+    connect_db().connect_db_trabajo_quintiles(df_trabajo_quintiles, credenciales.host, credenciales.user, credenciales.password, credenciales.database)

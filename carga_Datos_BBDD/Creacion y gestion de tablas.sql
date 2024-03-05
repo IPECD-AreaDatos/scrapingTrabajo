@@ -451,6 +451,51 @@ Create table ecv_tasas(
     tasa_de_inactividad float
 );
 
+Create table ecv_trabajo(
+	aglomerado VARCHAR(255),
+    año INT,
+    fecha DATE,
+    trimestre VARCHAR(255),
+    tasa_de_actividad FLOAT,
+    tasa_de_empleo FLOAT,
+    tasa_de_desocupación FLOAT,
+    empleo_privado FLOAT,
+    empleo_público FLOAT,
+    empleo_otro FLOAT,
+    empleo_privado_registrado FLOAT,
+    empleo_privado_no_registrado FLOAT,
+    salario_promedio_público FLOAT,
+    salario_promedio_privado FLOAT,
+    salario_promedio_privado_registrado FLOAT,
+    salario_promedio_privado_no_registrado FLOAT,
+    patron FLOAT,
+    cuenta_propia FLOAT,
+    empleado_obrero FLOAT,
+    trabajador_familiar_sin_remuneración FLOAT
+);
+
+Create table ecv_trabajo_quintiles(
+    aglomerado VARCHAR(255),
+    año INT,
+    fecha DATE,
+    trimestre VARCHAR(255),
+    quintil INT,
+    empleo_público FLOAT,
+    empleo_privado FLOAT,
+    empleo_otro FLOAT,
+    patron FLOAT,
+    cuenta_propia FLOAT,
+    obrero_o_empleado FLOAT,
+    trabajador_familiar_sin_remuneracion FLOAT,
+    primaria_incompleta FLOAT,
+    primaria_completa FLOAT,
+    secundaria_incompleta FLOAT,
+    secundaria_completa FLOAT,
+    superior_o_universitario_incompleto FLOAT,
+    superior_o_universitario_completo FLOAT,
+    sin_instruccion FLOAT
+);
+
 Create table eph_tasas(
 	aglomerado char(100),
     año int,
@@ -460,3 +505,4 @@ Create table eph_tasas(
     tasa_de_empleo float,
     tasa_de_desocupacion float
 );
+
