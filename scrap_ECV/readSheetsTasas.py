@@ -6,7 +6,7 @@ import pandas as pd
 
 
 
-class readSheets:
+class readSheetsTasas:
     def leer_datos_tasas(self):
         df = []
         # Define los alcances y la ruta al archivo JSON de credenciales
