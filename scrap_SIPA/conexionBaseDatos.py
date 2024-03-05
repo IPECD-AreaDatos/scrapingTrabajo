@@ -1,6 +1,6 @@
 import mysql
 import mysql.connector
-import datetime
+from datetime import datetime
 from email.message import EmailMessage
 import ssl
 import smtplib
@@ -78,6 +78,7 @@ class conexionBaseDatos:
 
             #=== ZONA DE CARGA DEL DATAWAREHOUSE
             self.table_analytics_sipa()
+            self.table_analytics_sipa_nea()
 
             #Se retorna true para enviar el correo
             return True
@@ -217,8 +218,12 @@ class conexionBaseDatos:
 
         df = pd.DataFrame()
         self.get_variances_nea(df)
-        print(df)
-
+        df['fecha'] = pd.to_datetime(df['fecha']).dt.date
+        
+    
+        #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/dwh_economico")
+        df.to_sql(name="empleo_nea_variaciones", con=engine, if_exists='replace', index=False)
 
 
     def get_variances_nea(self, df):
@@ -228,14 +233,14 @@ class conexionBaseDatos:
         df_bdd = pd.read_sql(select_query,self.conn)
 
         #--> Transformamos los datos de fecha para maniobrarlos
-        df['fecha'] = sorted(list(set(pd.to_datetime(df_bdd['fecha']))))
+        df['fecha'] = sorted(set(pd.to_datetime(df_bdd['fecha'])))
 
-        
         #Asignacion de totales
-        df['total_corrientes'] = list(df_bdd['cantidad_con_estacionalidad'][df_bdd['id_provincia'] == 18])
-        df['total_misiones'] = list(df_bdd['cantidad_con_estacionalidad'][df_bdd['id_provincia'] == 54])
-        df['total_chaco']= list(df_bdd['cantidad_con_estacionalidad'][df_bdd['id_provincia'] == 22])
-        df['total_formosa']= list(df_bdd['cantidad_con_estacionalidad'][df_bdd['id_provincia'] == 34])
+        df['total_corrientes'] = list(df_bdd['cantidad_con_estacionalidad'][df_bdd['id_provincia'] == 18] * 1000)
+        df['total_misiones'] = list(df_bdd['cantidad_con_estacionalidad'][df_bdd['id_provincia'] == 54]* 1000)
+        df['total_chaco']= list(df_bdd['cantidad_con_estacionalidad'][df_bdd['id_provincia'] == 22]* 1000)
+        df['total_formosa']= list(df_bdd['cantidad_con_estacionalidad'][df_bdd['id_provincia'] == 34]* 1000)
+        df['total_nea'] = df['total_corrientes'] + df['total_misiones'] + df['total_chaco'] + df['total_formosa']
 
         #Asignacion de variaciones mensuales
         df['vmensual_corrientes'] =( df['total_corrientes'] / df['total_corrientes'].shift(1) - 1) * 100
@@ -252,14 +257,17 @@ class conexionBaseDatos:
 
         #=== Asignacion de variaciones acumuladas
         df['vacum_corrientes'] = float('nan')
+        df['vacum_misiones'] = float('nan')
+        df['vacum_chaco'] = float('nan')
+        df['vacum_formosa'] = float('nan')
 
-        df_totales_diciembres = pd.DataFrame(columns = ['fecha','total_corrientes','total_misiones','total_chaco','total_formosa'])
 
         #Tomamos los años para recorrerlos
         anios = sorted(list(set(df['fecha'].dt.year)))
-        
+
         for anio in anios:
         
+            
             val_diciembre = df[['total_corrientes','total_misiones','total_chaco','total_formosa']][(df['fecha'].dt.year == (anio - 1)) & (df['fecha'].dt.month == 12) ] #--> Obtencion del valor puro de cba NEA
 
             diciembre_corrientes = val_diciembre['total_corrientes']
@@ -268,12 +276,14 @@ class conexionBaseDatos:
             diciembre_formosa = val_diciembre['total_formosa']
 
             #Calculamos variaciones acumuladas por cada año valido
-            df.loc[df['fecha'].dt.year == anio + 1,'vacum_corrientes'] = 1
+            try:
+                df.loc[df['fecha'].dt.year == anio,'vacum_corrientes'] = ((df['total_corrientes'][df['fecha'].dt.year == anio] / diciembre_corrientes.values[0]) - 1) * 100
+                df.loc[df['fecha'].dt.year == anio,'vacum_misiones'] = ((df['total_misiones'][df['fecha'].dt.year == anio] / diciembre_misiones.values[0]) - 1) * 100
+                df.loc[df['fecha'].dt.year == anio,'vacum_chaco'] = ((df['total_chaco'][df['fecha'].dt.year == anio] / diciembre_chaco.values[0]) - 1) * 100
+                df.loc[df['fecha'].dt.year == anio,'vacum_formosa'] = ((df['total_formosa'][df['fecha'].dt.year == anio] / diciembre_formosa.values[0]) - 1) * 100
 
-            print(df['vacum_corrientes'][df['fecha'].dt.year == 2010])
-            
-
-        
+            except:
+                pass
 
 
 

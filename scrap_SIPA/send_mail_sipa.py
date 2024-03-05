@@ -33,7 +33,7 @@ class MailSipa:
 
 
     #Objetivo: extraer los datos correspondientes al correo de CBT y CBA de la tabla A1
-    def extract_date(self):
+    def extract_date_nation(self):
 
         query = "SELECT * FROM sipa_valores"
         df = pd.read_sql(query,self.conn)
@@ -42,8 +42,7 @@ class MailSipa:
 
 def enviar_mensajes(self):
 
-        #Transformador de formato - Transforma una cadena al formato manejado en la region (Argentina)
-        locale.setlocale(locale.LC_ALL, 'es_ES.UTF-8')
+
 
         # === OBTENCION DE TODOS LOS DATOS
 

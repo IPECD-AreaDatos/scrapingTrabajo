@@ -5,6 +5,7 @@ from armadoInformePDF import googleSheets
 import os
 import pandas as pd
 import sys
+from send_mail_sipa import MailSipa
 
 # Obtener la ruta al directorio actual del script
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -51,13 +52,13 @@ if __name__ == '__main__':
     df['cantidad_con_estacionalidad'] = lista_valores_estacionalidad
     df['cantidad_sin_estacionalidad'] = lista_valores_sin_estacionalidad"""
 
-    instancia_bdd.connect_db()
-    instancia_bdd.table_analytics_sipa_nea()
-    
     
 
-    #if bandera_correo:
-    #    pass
+    bandera_correo = True
+    
+
+    if bandera_correo:
+        pass
 
     #Conectar/Cargar/Actualizar la BDD 
     #instancia_bdd = conexionBaseDatos(credenciales.host, credenciales.user, credenciales.password, credenciales.database, lista_provincias, lista_valores_estacionalidad, lista_valores_sin_estacionalidad, lista_registro,lista_fechas)
