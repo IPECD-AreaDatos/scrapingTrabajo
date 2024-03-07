@@ -69,7 +69,7 @@ class conexionBaseDatos:
             #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
             engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
             print("motor")
-            df_datalake.to_sql(name="sipa_valores", con=engine, if_exists='replace', index=False)
+            df_datalake.to_sql(name="sipa_val", con=engine, if_exists='replace', index=False)
             print("after carga")
 
             #=== ZONA DE CARGA DEL DATAWAREHOUSE
@@ -86,9 +86,8 @@ class conexionBaseDatos:
     #Objetivo: obtener los datos del dataframe, y de la tabla almacenada en la bdd
     def check_lens(self,df):
 
-        print("Diferencias de filas")
         # Verificar cuantas filas tiene la tabla de mysql ejecutando la consulta
-        select_query = "SELECT COUNT(*) FROM sipa_valores"
+        select_query = "SELECT COUNT(*) FROM sipa_val"
         self.cursor.execute(select_query)
 
         #Tamaño de la tabla de la BDD
