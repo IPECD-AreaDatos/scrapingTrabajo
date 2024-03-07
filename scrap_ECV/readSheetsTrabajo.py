@@ -30,7 +30,7 @@ class readSheetsTrabajo:
         values = result.get('values', [])[1:]
         
         # Crea el DataFrame df1
-        df = pd.DataFrame(values, columns=['Aglomerado', 'Año', 'Fecha', 'Trimestre', 'Tasa de Actividad', 'Tasa de Empleo', 'Tasa de desocupación', 'Empleo Privado', 'Empleo Público', 'Empleo Otro', 'Empleo Privado Registrado', 'Empleo Privado No Registrado', 'Salario Promedio Público', 'Salario Promedio Privado', 'Salario Promedio Privado Registrado', 'Salario Promedio Privado No Registrado', 'Patron', 'Cuenta Propia', 'Empleado/Obrero', 'Trabajador familiar sin remuneración'])
+        df = pd.DataFrame(values, columns=['Aglomerado', 'Año', 'Fecha', 'Trimestre', 'Tasa de Actividad', 'Tasa de Empleo', 'Tasa de desocupación', 'Trabajo Privado', 'Trabajo Público', 'Trabajo Otro', 'Trabajo Privado Registrado', 'Trabajo Privado No Registrado', 'Salario Promedio Público', 'Salario Promedio Privado', 'Salario Promedio Privado Registrado', 'Salario Promedio Privado No Registrado', 'Patron', 'Cuenta Propia', 'Empleado/Obrero', 'Trabajador familiar sin remuneración'])
         print(df)
         print(df.dtypes)
         self.transformar_tipo_datos(df)
@@ -42,7 +42,7 @@ class readSheetsTrabajo:
 
     def transformar_tipo_datos(self, df):
         # Seleccionar las columnas numéricas
-        columnas_numericas_porcentajes = ['Tasa de Actividad', 'Tasa de Empleo', 'Tasa de desocupación', 'Empleo Privado', 'Empleo Público', 'Empleo Otro', 'Empleo Privado Registrado', 'Empleo Privado No Registrado',  'Patron', 'Cuenta Propia', 'Empleado/Obrero', 'Trabajador familiar sin remuneración']
+        columnas_numericas_porcentajes = ['Tasa de Actividad', 'Tasa de Empleo', 'Tasa de desocupación', 'Trabajo Privado', 'Trabajo Público', 'Trabajo Otro', 'Trabajo Privado Registrado', 'Trabajo Privado No Registrado',  'Patron', 'Cuenta Propia', 'Empleado/Obrero', 'Trabajador familiar sin remuneración']
         df[columnas_numericas_porcentajes] = df[columnas_numericas_porcentajes].replace({'%': '', ',': '.'}, regex=True).apply(pd.to_numeric)
         # Divide los valores numéricos por 100
         df[columnas_numericas_porcentajes] = df[columnas_numericas_porcentajes] / 100

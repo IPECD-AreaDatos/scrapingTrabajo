@@ -7,6 +7,9 @@ from readSheetsTrabajoQuintiles import readSheetsTrabajoQuintiles
 from readSheetsSaludCobertura import readSheetsSaludCobertura
 from readSheetsSaludConsultaEstablecimiento import readSheetsSaludConsultaEstablecimiento
 from readSheetsSaludQuintilConsulta import readSheetsSaludQuintilConsulta
+from readSheetsSaludQuintilCoberturaEst import readSheetsSaludQuintilCoberturaEst
+from readSheetsEducacion import readSheetsEducacion
+
 # Obtener la ruta al directorio actual del script
 script_dir = os.path.dirname(os.path.abspath(__file__))
 credenciales_dir = os.path.join(script_dir, '..', 'Credenciales_folder')
@@ -30,5 +33,8 @@ if __name__ ==  "__main__":
     #connect_db().connect_db_salud_cobertura(df_salud_cobertura, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
     #df_salud_consulta_establecimiento = readSheetsSaludConsultaEstablecimiento().leer_datos_salud_consulta_establecimiento()
     #connect_db().connect_db_salud_consulta_establecimiento(df_salud_consulta_establecimiento, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
-    df_salud_quintil_consulta= readSheetsSaludQuintilConsulta().leer_datos_salud_quintil_consulta()
-    connect_db().connect_db_salud_quintil_consulta(df_salud_quintil_consulta, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    #df_salud_quintil_consulta= readSheetsSaludQuintilConsulta().leer_datos_salud_quintil_consulta()
+    #connect_db().connect_db_salud_quintil_consulta(df_salud_quintil_consulta, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    #df_salud_quintil_cob_est= readSheetsSaludQuintilCoberturaEst().leer_datos_salud_quintil_cobertura_est()
+    #connect_db().connect_db_salud_quintil_cobertura_est(df_salud_quintil_cob_est, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    df_educacion = readSheetsEducacion().leer_datos_educacion()

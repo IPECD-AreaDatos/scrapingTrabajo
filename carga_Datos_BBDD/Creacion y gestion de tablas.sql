@@ -459,11 +459,11 @@ Create table ecv_trabajo(
     tasa_de_actividad FLOAT,
     tasa_de_empleo FLOAT,
     tasa_de_desocupación FLOAT,
-    empleo_privado FLOAT,
-    empleo_público FLOAT,
-    empleo_otro FLOAT,
-    empleo_privado_registrado FLOAT,
-    empleo_privado_no_registrado FLOAT,
+    trabajo_privado FLOAT,
+    trabajo_público FLOAT,
+    trabajo_otro FLOAT,
+    trabajo_privado_registrado FLOAT,
+    trabajo_privado_no_registrado FLOAT,
     salario_promedio_público FLOAT,
     salario_promedio_privado FLOAT,
     salario_promedio_privado_registrado FLOAT,
@@ -530,6 +530,20 @@ create table ecv_salud_quintil_consulta(
     si_consulto float,
     no_consulto float
 );
+
+create table ecv_salud_quintil_cobertura_est(
+	aglomerado char(100),
+    año int,
+	fecha DATE,
+    semestre VARCHAR(255),
+    quintil int,
+    obra_social_prepaga float,
+    planes_y_seguros float,
+    sin_cobertura float,
+    establecimiento_privado float,
+    establecimiento_publico float
+);
+
 #EPH Tablas
 Create table eph_tasas(
 	aglomerado char(100),
@@ -540,4 +554,5 @@ Create table eph_tasas(
     tasa_de_empleo float,
     tasa_de_desocupacion float
 );
+
 
