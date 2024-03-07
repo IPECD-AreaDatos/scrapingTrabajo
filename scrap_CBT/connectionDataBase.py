@@ -1,14 +1,6 @@
-import os
 import pandas as pd
 from sqlalchemy import create_engine
-from email.message import EmailMessage
-import ssl
-import smtplib
-import calendar
-import xlrd
-from datetime import datetime
 import pymysql
-from sqlalchemy import create_engine
 
 class connection_db:
 

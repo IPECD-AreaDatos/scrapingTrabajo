@@ -1,13 +1,5 @@
-import mysql
-import mysql.connector
-from datetime import datetime
-from email.message import EmailMessage
-import ssl
-import smtplib
+import pymysql
 import pandas as pd
-import locale
-import calendar
-import pywhatkit as kit
 from sqlalchemy import create_engine
 from numpy import  trunc
 
@@ -42,7 +34,7 @@ class conexionBaseDatos:
     #Objetivo: conectar a la base de datos
     def connect_db(self):
 
-            self.conn = mysql.connector.connect(
+            self.conn = pymysql.connect(
                 host=self.host, user=self.user, password=self.password, database=self.database
             )
             self.cursor = self.conn.cursor()
