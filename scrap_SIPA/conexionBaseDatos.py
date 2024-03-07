@@ -69,11 +69,11 @@ class conexionBaseDatos:
             #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
             engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
             print("motor")
-            df_datalake.to_sql(name="sipa_val", con=engine, if_exists='replace', index=False)
+            df_datalake.to_sql(name="sipa_v", con=engine, if_exists='append', index=False)
             print("after carga")
 
             #=== ZONA DE CARGA DEL DATAWAREHOUSE
-            #self.table_analytics_sipa()
+            self.table_analytics_sipa()
             #self.table_analytics_sipa_nea()
 
             #Se retorna true para enviar el correo
@@ -85,11 +85,11 @@ class conexionBaseDatos:
 
     #Objetivo: obtener los datos del dataframe, y de la tabla almacenada en la bdd
     def check_lens(self,df):
-
+        
+        print("contar")
         # Verificar cuantas filas tiene la tabla de mysql ejecutando la consulta
-        select_query = "SELECT COUNT(*) FROM sipa_val"
+        select_query = "SELECT COUNT(*) FROM sipa_v"
         self.cursor.execute(select_query)
-
         #Tamaño de la tabla de la BDD
         len_bdd = self.cursor.fetchone()[0]
 
@@ -136,7 +136,7 @@ class conexionBaseDatos:
         
         #Carga de tabla
         engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/dwh_economico")
-        df.to_sql(name="empleo_nacional_porcentajes_variaciones", con=engine, if_exists='replace', index=False)
+        df.to_sql(name="empleo_nacional_porcentajes_variaciones", con=engine, if_exists='append', index=False)
 
 
     #Objetivo: obtener los porcentajes representativos de cada tipo de empleo. Esto es solo aplicable a los datos de nacion.
@@ -144,7 +144,7 @@ class conexionBaseDatos:
     def get_percentages(self,df):
 
         #Con la consulta extraemos los datos del sipa
-        select_query = "SELECT * FROM sipa_valores WHERE id_provincia = 1"
+        select_query = "SELECT * FROM sipa_v WHERE id_provincia = 1"
         df_bdd = pd.read_sql(select_query,self.conn)       
 
         print(df_bdd)
@@ -232,7 +232,7 @@ class conexionBaseDatos:
     
         #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
         engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/dwh_economico")
-        df.to_sql(name="empleo_nea_variaciones", con=engine, if_exists='replace', index=False)
+        df.to_sql(name="empleo_nea_variaciones", con=engine, if_exists='append', index=False)
 
 
     def get_variances_nea(self, df):
