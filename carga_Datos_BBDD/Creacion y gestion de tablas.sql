@@ -496,6 +496,41 @@ Create table ecv_trabajo_quintiles(
     sin_instruccion FLOAT
 );
 
+create table ecv_salud_cobertura(
+	aglomerado char(100),
+    año int,
+	fecha DATE,
+    semestre VARCHAR(255),
+    cobertura float,
+    planes_y_seguros float,
+    no_paga_ni_le_descuentan float
+);
+
+create table ecv_salud_consulta_establecimiento(
+	aglomerado char(100),
+    año int,
+	fecha DATE,
+    semestre VARCHAR(255),
+    cobertura VARCHAR(255),
+    si_consulto float,
+    no_consulto float,
+    dolencia_afeccion_enfermedad float,
+    control_prevencion float,
+    establecimiento_privado float,
+    establecimiento_publico float
+);
+
+create table ecv_salud_quintil_consulta(
+	aglomerado char(100),
+    año int,
+	fecha DATE,
+    semestre VARCHAR(255),
+    cobertura VARCHAR(255),
+	quintil int,
+    si_consulto float,
+    no_consulto float
+);
+#EPH Tablas
 Create table eph_tasas(
 	aglomerado char(100),
     año int,
