@@ -543,6 +543,66 @@ create table ecv_salud_quintil_cobertura_est(
     establecimiento_privado float,
     establecimiento_publico float
 );
+create table ecv_educacion(
+	aglomerado VARCHAR(255),
+    año INT,
+    trimestre VARCHAR(255),
+    fecha DATE,
+    nivel_educativo VARCHAR(255),
+    asiste FLOAT,
+    no_asiste_pero_asistio FLOAT,
+    nunca_asistio FLOAT,
+    institucion_publica FLOAT,
+    institucion_privada FLOAT,
+    edad_promedio_abandono FLOAT,
+    sobreedad FLOAT,
+    acceso_a_internet_fijo FLOAT,
+    calidad_de_vivienda_suficiente FLOAT,
+    calidad_de_vivienda_parcialmente_insuficiente FLOAT,
+    calidad_de_vivienda_insuficiente FLOAT,
+    vivienda_cercana_a_un_basural FLOAT,
+    vivienda_en_villa_emergencia FLOAT,
+    vivienda_propia FLOAT,
+    automovil FLOAT,
+    motocicleta FLOAT,
+    bicicleta FLOAT,
+    caminata FLOAT,
+    taxi_remis FLOAT,
+    transporte_urbano FLOAT,
+    otros FLOAT
+);
+create table ecv_educacion_may25(
+	aglomerado VARCHAR(255),
+    año INT,
+    trimestre VARCHAR(255),
+    fecha DATE,
+	primaria_incompleta FLOAT,
+    primaria_completa FLOAT,
+    secundaria_incompleta FLOAT,
+    secundaria_completa FLOAT,
+    superior_incompleto FLOAT,
+    superior_completo FLOAT,
+    sin_instruccion FLOAT,
+    eph_universitario FLOAT
+);
+
+create table ecv_educacion_quintiles(
+	aglomerado VARCHAR(255),
+    año INT,
+    fecha DATE,
+    trimestre VARCHAR(255),
+    quintil INT,
+    primaria_incompleta FLOAT,
+    primaria_completa FLOAT,
+    secundaria_incompleta FLOAT,
+    secundaria_completa FLOAT,
+    superior_incompleto FLOAT,
+    superior_completo FLOAT,
+    sin_instruccion FLOAT,
+    asistencia_escolar FLOAT,
+    institucion_publica FLOAT,
+    institucion_privada FLOAT
+);
 
 #EPH Tablas
 Create table eph_tasas(

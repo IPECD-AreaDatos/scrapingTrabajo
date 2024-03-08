@@ -9,6 +9,8 @@ from readSheetsSaludConsultaEstablecimiento import readSheetsSaludConsultaEstabl
 from readSheetsSaludQuintilConsulta import readSheetsSaludQuintilConsulta
 from readSheetsSaludQuintilCoberturaEst import readSheetsSaludQuintilCoberturaEst
 from readSheetsEducacion import readSheetsEducacion
+from readSheetsEducacionMay25 import readSheetsEducacionMay25
+from readSheetsEducacionQuintiles import readSheetsEducacionQuintiles
 
 # Obtener la ruta al directorio actual del script
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -22,19 +24,24 @@ credenciales = Credenciales('dwh_sociodemografico')
 
 
 if __name__ ==  "__main__":
-    #print("Las credenciales son", credenciales.host,credenciales.user,credenciales.password,credenciales.database)
-    #df_tasas = readSheetsTasas().leer_datos_tasas()
-    #connect_db().connect_db_tasas(df_tasas, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
-    #df_trabajo = readSheetsTrabajo().leer_datos_trabajo()
-    #connect_db().connect_db_trabajo(df_trabajo, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
-    #df_trabajo_quintiles = readSheetsTrabajoQuintiles().leer_datos_trabajo_quintiles()
-    #connect_db().connect_db_trabajo_quintiles(df_trabajo_quintiles, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
-    #df_salud_cobertura = readSheetsSaludCobertura().leer_datos_salud_cobertura()
-    #connect_db().connect_db_salud_cobertura(df_salud_cobertura, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
-    #df_salud_consulta_establecimiento = readSheetsSaludConsultaEstablecimiento().leer_datos_salud_consulta_establecimiento()
-    #connect_db().connect_db_salud_consulta_establecimiento(df_salud_consulta_establecimiento, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
-    #df_salud_quintil_consulta= readSheetsSaludQuintilConsulta().leer_datos_salud_quintil_consulta()
-    #connect_db().connect_db_salud_quintil_consulta(df_salud_quintil_consulta, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
-    #df_salud_quintil_cob_est= readSheetsSaludQuintilCoberturaEst().leer_datos_salud_quintil_cobertura_est()
-    #connect_db().connect_db_salud_quintil_cobertura_est(df_salud_quintil_cob_est, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    print("Las credenciales son", credenciales.host,credenciales.user,credenciales.password,credenciales.database)
+    df_tasas = readSheetsTasas().leer_datos_tasas()
+    connect_db().connect_db_tasas(df_tasas, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    df_trabajo = readSheetsTrabajo().leer_datos_trabajo()
+    connect_db().connect_db_trabajo(df_trabajo, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    df_trabajo_quintiles = readSheetsTrabajoQuintiles().leer_datos_trabajo_quintiles()
+    connect_db().connect_db_trabajo_quintiles(df_trabajo_quintiles, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    df_salud_cobertura = readSheetsSaludCobertura().leer_datos_salud_cobertura()
+    connect_db().connect_db_salud_cobertura(df_salud_cobertura, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    df_salud_consulta_establecimiento = readSheetsSaludConsultaEstablecimiento().leer_datos_salud_consulta_establecimiento()
+    connect_db().connect_db_salud_consulta_establecimiento(df_salud_consulta_establecimiento, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    df_salud_quintil_consulta= readSheetsSaludQuintilConsulta().leer_datos_salud_quintil_consulta()
+    connect_db().connect_db_salud_quintil_consulta(df_salud_quintil_consulta, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    df_salud_quintil_cob_est= readSheetsSaludQuintilCoberturaEst().leer_datos_salud_quintil_cobertura_est()
+    connect_db().connect_db_salud_quintil_cobertura_est(df_salud_quintil_cob_est, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
     df_educacion = readSheetsEducacion().leer_datos_educacion()
+    connect_db().connect_db_educacion(df_educacion, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    df_educacion_may_25 = readSheetsEducacionMay25().leer_datos_educacionMay25()
+    connect_db().connect_db_educacion_may_25(df_educacion_may_25, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    df_educacion_quintiles = readSheetsEducacionQuintiles().leer_datos_educacionQuintiles()
+    connect_db().connect_db_educacion_quintiles(df_educacion_quintiles, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
