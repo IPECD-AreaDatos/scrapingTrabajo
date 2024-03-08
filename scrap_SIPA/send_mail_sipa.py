@@ -149,8 +149,8 @@ class MailSipa:
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contrasenia = 'cmxddbshnjqfehka'
 
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com', 'samaniego18@gmail.com', 'guillermobenasulin@gmail.com', 'leclerc.mauricio@gmail.com']
-        email_receptores =  ['benitezeliogaston@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com', 'samaniego18@gmail.com', 'guillermobenasulin@gmail.com', 'leclerc.mauricio@gmail.com','christianimariahebe@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com']
 
         #==== Zona de envio de correo
         em = EmailMessage()
@@ -231,19 +231,19 @@ class MailSipa:
         dif_a_nea = dif_a_nea.values[0] #--> Se genero una "serie", etonces tenemos que extrsaer el valor de ahi
 
         #Porcentaje representativo de la provincia en el NEA
-        porcentage_nea = ((df_nea['total_nea'].iloc[-1] * 100) / df_nacion['empleo_total'].iloc[-1])
+        porcentage_nea = ((df_nea['total_nea'].iloc[-1] * 100) /( df_nacion['empleo_privado'].iloc[-1] * 1000))
 
 
-        #=== DATOS DE NACION
+        #=== DATOS DE NACION - las diferencias corresponden al empleo privado
 
-        dif_m_nacion = int((df_nacion['empleo_total'].iloc[-1] - df_nacion['empleo_total'].iloc[-2]) * 1000)
-        dif_i_nacion = int((df_nacion['empleo_total'].iloc[-1] - df_nacion['empleo_total'].iloc[-13]) * 1000)
+        dif_m_nacion_ep = int((df_nacion['empleo_privado'].iloc[-1] - df_nacion['empleo_privado'].iloc[-2]) * 1000)
+        dif_i_nacion_ep = int((df_nacion['empleo_privado'].iloc[-1] - df_nacion['empleo_privado'].iloc[-13]) * 1000)
 
         #Para la acumulada necesitamos sacar la fecha actual para conseguir diciembre del año anterior
         df_nacion['fecha'] = pd.to_datetime(df_nacion['fecha'])
         fecha_actual = df_nacion['fecha'].iloc[-1]
-        dif_a_nacion = df_nacion['empleo_total'].iloc[-1] - df_nacion['empleo_total'][ (df_nacion['fecha'].dt.year == fecha_actual.year - 1) & (df_nacion['fecha'].dt.month == 12)] 
-        dif_a_nacion = int(dif_a_nacion.values[0] * 1000 )#--> Se genero una "serie", etonces tenemos que extraer el valor de ahi
+        dif_a_nacion_ep = df_nacion['empleo_privado'].iloc[-1] - df_nacion['empleo_privado'][ (df_nacion['fecha'].dt.year == fecha_actual.year - 1) & (df_nacion['fecha'].dt.month == 12)] 
+        dif_a_nacion_ep = int(dif_a_nacion_ep.values[0] * 1000 )#--> Se genero una "serie", etonces tenemos que extraer el valor de ahi
 
 
 
@@ -266,13 +266,13 @@ class MailSipa:
 
         <tr>
         <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> NACION </td>
-        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {df_nacion['empleo_total'].iloc[-1] * 1000:,.0f}</td>
-        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {df_nacion['vmensual_empleo_total'].iloc[-1]:,.2f}%</td>
-        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {dif_m_nacion:,.0f}</td>
-        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {df_nacion['vinter_empleo_total'].iloc[-1]:,.2f}%</td>
-        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {dif_i_nacion:,.0f}</td>
-        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {df_nacion['vacum_empleo_total'].iloc[-1]:,.2f}%</td>
-        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {dif_a_nacion:,.0f}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {df_nacion['empleo_privado'].iloc[-1] * 1000:,.0f}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {df_nacion['vmensual_empleo_privado'].iloc[-1]:,.2f}%</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {dif_m_nacion_ep:,.0f}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {df_nacion['vinter_empleo_privado'].iloc[-1]:,.2f}%</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {dif_i_nacion_ep:,.0f}</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {df_nacion['vacum_empleo_privado'].iloc[-1]:,.2f}%</td>
+        <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {dif_a_nacion_ep:,.0f}</td>
 
 
         <tr>
@@ -289,9 +289,11 @@ class MailSipa:
         indice_maximo_nea = df_nea['total_corrientes'].idxmax()
         fila_maximo_nea = df_nea[['fecha','total_corrientes']].loc[indice_maximo_nea]
 
-        #Obtencion del maximo de nacion
-        indice_maximo_nacion = df_nacion['empleo_total'].idxmax()
-        fila_maximo_nacion = df_nacion[['fecha','empleo_total']].loc[indice_maximo_nacion]
+        print("MAXIMO EN CORRIENTES")
+
+        #Obtencion del maximo de nacion - SOLO EMPLEO PRIVADO
+        indice_maximo_nacion = df_nacion['empleo_privado'].idxmax()
+        fila_maximo_nacion = df_nacion[['fecha','empleo_privado']].loc[indice_maximo_nacion]
 
         #Construccion de fechas
         fecha_nacion = str(fila_maximo_nacion['fecha'].month)+"-"+str(fila_maximo_nacion['fecha'].year)
@@ -300,8 +302,8 @@ class MailSipa:
         #Construccion del mensaje
         mensaje_maximos = f'''
 
-        <p> MAXIMO HISTORICO DEL EMPLEO PRIVADO A NIVEL NACIONAL - FECHA {fecha_nacion} - Total: {df_nacion['empleo_total'].values[0] * 1000:,.0f}
-        <p> MAXIMO HISTORICO DEL EMPLEO PRIVADO EN CORRIENTES - FECHA {fecha_corrientes} - Total: {df_nea['total_corrientes'].values[0]:,.0f}
+        <p> MAXIMO HISTORICO DEL EMPLEO PRIVADO A NIVEL NACIONAL - FECHA {fecha_nacion} - Total: {fila_maximo_nacion['empleo_privado'] * 1000:,.0f}
+        <p> MAXIMO HISTORICO DEL EMPLEO PRIVADO EN CORRIENTES - FECHA {fecha_corrientes} - Total: {fila_maximo_nea['total_corrientes']:,.0f}
 
 
         '''

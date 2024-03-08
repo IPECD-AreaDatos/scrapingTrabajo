@@ -65,16 +65,16 @@ class conexionBaseDatos:
             #Obtenemos la diferencia de filas
             df_datalake = df.tail(len_df - len_bdd)
             
-            print("Carga")
             #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
             engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
-            print("motor")
-            df_datalake.to_sql(name="sipa_v", con=engine, if_exists='append', index=False)
-            print("after carga")
+            df_datalake.to_sql(name="sipa_valores", con=engine, if_exists='append', index=False)
+
+            #Guardamos cambios 
+            self.conn.commit()
 
             #=== ZONA DE CARGA DEL DATAWAREHOUSE
             self.table_analytics_sipa()
-            #self.table_analytics_sipa_nea()
+            self.table_analytics_sipa_nea()
 
             #Se retorna true para enviar el correo
             return True
@@ -86,9 +86,8 @@ class conexionBaseDatos:
     #Objetivo: obtener los datos del dataframe, y de la tabla almacenada en la bdd
     def check_lens(self,df):
         
-        print("contar")
         # Verificar cuantas filas tiene la tabla de mysql ejecutando la consulta
-        select_query = "SELECT COUNT(*) FROM sipa_v"
+        select_query = "SELECT COUNT(*) FROM sipa_valores"
         self.cursor.execute(select_query)
         #Tamaño de la tabla de la BDD
         len_bdd = self.cursor.fetchone()[0]
@@ -136,7 +135,10 @@ class conexionBaseDatos:
         
         #Carga de tabla
         engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/dwh_economico")
-        df.to_sql(name="empleo_nacional_porcentajes_variaciones", con=engine, if_exists='append', index=False)
+        df.to_sql(name="empleo_nacional_porcentajes_variaciones", con=engine,  if_exists='replace', index=True)
+
+        #Guardamos cambios
+        self.conn.commit()
 
 
     #Objetivo: obtener los porcentajes representativos de cada tipo de empleo. Esto es solo aplicable a los datos de nacion.
@@ -144,10 +146,8 @@ class conexionBaseDatos:
     def get_percentages(self,df):
 
         #Con la consulta extraemos los datos del sipa
-        select_query = "SELECT * FROM sipa_v WHERE id_provincia = 1"
+        select_query = "SELECT * FROM sipa_valores WHERE id_provincia = 1"
         df_bdd = pd.read_sql(select_query,self.conn)       
-
-        print(df_bdd)
 
         #ASIGNACION DE FECHAS
         df['fecha'] = list(df_bdd['fecha'][df_bdd['id_tipo_registro'] == 8])
@@ -180,9 +180,12 @@ class conexionBaseDatos:
     #Objetivo: calcular las variaciones mensuales, interanuales y acumuladas a nivel nacional del total de los empleos     
     def get_variances_nation(self,df):
 
-        #=== Creacion de variaciones mensual, interanual del TOTAL DE EMPLEO A NIVEL NACIONAL
+        #=== Creacion de variaciones mensual, interanual del TOTAL DE EMPLEO A NIVEL NACIONAL, y del EMPLEO PRIVADO
         df['vmensual_empleo_total'] = ((df['empleo_total'] / df['empleo_total'].shift(1)) - 1) * 100  #--> Var. Mensual de empleo nacion
         df['vinter_empleo_total'] = ((df['empleo_total'] / df['empleo_total'].shift(12)) - 1) * 100 #--> Var. Interanual de empleo nacion
+
+        df['vmensual_empleo_privado'] = ((df['empleo_privado'] / df['empleo_privado'].shift(1)) - 1) * 100  #--> Var. Mensual de Empleo Privado
+        df['vinter_empleo_privado'] = ((df['empleo_privado'] / df['empleo_privado'].shift(12)) - 1) * 100 #--> Var. Interanual de Empleo privado
 
         #=== Calculo de variaciones acumuladas
 
@@ -191,32 +194,28 @@ class conexionBaseDatos:
 
         #Tomamos los años para recorrerlos
         anios = sorted(list(set(df['fecha'].dt.year)))
-    
-        #Lista de variaciones acumuladas
-        var_acumuladas = list()
 
+        #Creamos columnas para que no existan problemas de compatibilidad
+        df['vacum_empleo_total'] = float('nan')
+        df['vacum_empleo_privado'] = float('nan')
+ 
         for anio in anios:
 
-            valores_anio = list(df['empleo_total'][df['fecha'].dt.year == anio].values)
+            val_diciembre = df[['empleo_total','empleo_privado']][(df['fecha'].dt.year == (anio - 1)) & (df['fecha'].dt.month == 12) ] #--> Obtencion del valor puro de cba NEA
 
-            #Rescatamos valor diciembre del año anterior - Si falla quiere decir que no tenemos ese dato
+            diciembre_total_empleo= val_diciembre['empleo_total']
+            diciembre_empleo_privado = val_diciembre['empleo_privado']
+
+            #Calculamos variaciones acumuladas por cada año valido
             try:
-
-                #--> Obtencion del valor puro del total de empleo
-                val_diciembre_anio_anterior = df['empleo_total'][ (df['fecha'].dt.year == (anio - 1)) & (df['fecha'].dt.month == 12) ].values[0] 
-                #Calculamos variaciones acumuladas por cada año valido
-                for valor in valores_anio:
-
-                    var_acumulada = ((valor / val_diciembre_anio_anterior) - 1) * 100
-                    var_acumuladas.append(var_acumulada)
-
-            except: #No se encontro el valor de diciembre, por ende no se calculara estimaciones para ese periodo. Se asignan valores nulos
-                for valor_error in valores_anio:
-                    var_acumuladas.append(None)
-
+                df.loc[df['fecha'].dt.year == anio,'vacum_empleo_total'] = ((df['empleo_total'][df['fecha'].dt.year == anio] / diciembre_total_empleo.values[0]) - 1) * 100     
+                df.loc[df['fecha'].dt.year == anio,'vacum_empleo_privado'] = ((df['empleo_privado'][df['fecha'].dt.year == anio] / diciembre_empleo_privado.values[0]) - 1) * 100            
+       
+            except:
+                pass
         
         #Asignaciones de variaciones acumuladas del total de empleo en nacion
-        df['vacum_empleo_total'] = var_acumuladas
+        #df['vacum_empleo_total'] = var_acumuladas
 
     # =========================================================================================== #
             # ==== SECCION CORRESPONDIENTE A LA TABLA DE DATOS DEL NEA Y SUS PROVINCIAS (DWH) ==== #
@@ -232,8 +231,10 @@ class conexionBaseDatos:
     
         #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
         engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/dwh_economico")
-        df.to_sql(name="empleo_nea_variaciones", con=engine, if_exists='append', index=False)
+        df.to_sql(name="empleo_nea_variaciones", con=engine, if_exists='replace', index=True)
 
+        #Guardamos cambios del NEA
+        self.conn.commit()
 
     def get_variances_nea(self, df):
 

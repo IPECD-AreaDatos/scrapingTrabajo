@@ -1,4 +1,4 @@
-#from extract import HomePage
+from extract import HomePage
 from construccion_listas import ExtractData
 from conexionBaseDatos import conexionBaseDatos
 from armadoInformePDF import googleSheets
@@ -21,11 +21,9 @@ credenciales = Credenciales("datalake_economico")
 
 
 if __name__ == '__main__':
-
-
-
-       
-    #url = HomePage()
+ 
+    
+    url = HomePage()
     directorio_actual = os.path.dirname(os.path.abspath(__file__))
     ruta_carpeta_files = os.path.join(directorio_actual, 'files')
     file_path = os.path.join(ruta_carpeta_files, 'SIPA.xlsx')
@@ -54,9 +52,9 @@ if __name__ == '__main__':
     instancia_bdd = conexionBaseDatos(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
 
     bandera_correo = instancia_bdd.load_datalake(df)
-    
 
-    if False:
+
+    if bandera_correo:
 
         #Instancia de correo
         instancia_correo = MailSipa(credenciales.host, credenciales.user, credenciales.password, "dwh_economico")
