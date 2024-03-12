@@ -251,7 +251,7 @@ class connection_db:
 
         #Para añadir IPC es necesario cerrar las conexiones con la base de datos de sociodemografico y abrirlas con la de economico
         self.close_conections()#--> Cerramos
-        self.set_database("datalake_economico") #--> Cambiamos BDD
+        self.set_database("ipecd_economico") #--> Cambiamos BDD
         self.connect_db() #--> Reconectarnos al datalake economico
         
         #Calculamos las variaciones necesarias del IPC
@@ -268,7 +268,7 @@ class connection_db:
     def connecting_with_ipc(self,df):
 
         #Explicacion: la consulta ira a ipc_valores, y traera todos los datos de la region 5 (NEA) y de la categoria 1 (Nivel general del IPC)
-        query_consulta = f'SELECT * FROM ipc_valores WHERE ID_Region = 5 and ID_Categoria = 1'
+        query_consulta = f'SELECT * FROM ipc_region WHERE ID_Region = 5 and ID_Categoria = 1'
 
         #Construccion de dataframe a partir de la consulta
         df_bdd = pd.read_sql(query_consulta,self.conn)
@@ -281,11 +281,11 @@ class connection_db:
         df['vinter_nea_ipc'] = float('nan')
 
         #=== Tomamos la primera fecha del grupo de IPC -- Esto porque CBT y CBA empieza su historico antes que los datos oficiales de IPC
-        firt_date =pd.to_datetime (df_bdd['fecha'].values[0])
+        firt_date =pd.to_datetime (df_bdd['Fecha'].values[0])
 
         #=== Creacion de variaciones mensual, interanual PARA IPC del NEA
-        df['vmensual_nea_ipc'].iloc[df['fecha'] >= firt_date] =( df_bdd['valor'] / df_bdd['valor'].shift(1) - 1) * 100  #--> Var. Mensual de IPC
-        df['vinter_nea_ipc'].iloc[df['fecha'] >= firt_date] = ((df_bdd['valor'] / df_bdd['valor'].shift(12)) - 1) * 100 #--> Var. Interanual de IPC
+        df['vmensual_nea_ipc'].iloc[df['fecha'] >= firt_date] =( df_bdd['Valor'] / df_bdd['Valor'].shift(1) - 1) * 100  #--> Var. Mensual de IPC
+        df['vinter_nea_ipc'].iloc[df['fecha'] >= firt_date] = ((df_bdd['Valor'] / df_bdd['Valor'].shift(12)) - 1) * 100 #--> Var. Interanual de IPC
 
 
     #Objetivo: cargar los datos correspondientes al correo de CBT y CBA. Es llamado en la funcion table_a1()
