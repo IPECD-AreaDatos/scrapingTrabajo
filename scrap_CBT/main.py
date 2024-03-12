@@ -17,6 +17,8 @@ credenciales = Credenciales('datalake_sociodemografico')
 
 
 if __name__ == '__main__':
+
+       
     #ZONA DE EXTRACT -- Donde se buscan los datos
     home_page_CBT = HomePageCBT()
     home_page_CBT.descargar_archivo()

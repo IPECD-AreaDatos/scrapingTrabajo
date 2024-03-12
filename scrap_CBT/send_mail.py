@@ -4,6 +4,8 @@ import ssl
 import smtplib
 from calendar import month_name
 import pymysql
+import os
+import matplotlib.pyplot as plt
 
 class MailCBTCBA:
 
@@ -164,8 +166,8 @@ class MailCBTCBA:
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contrasenia = 'cmxddbshnjqfehka'
 
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com', 'samaniego18@gmail.com', 'guillermobenasulin@gmail.com', 'leclerc.mauricio@gmail.com']
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com', 'samaniego18@gmail.com', 'guillermobenasulin@gmail.com', 'leclerc.mauricio@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
 
         #==== Zona de envio de correo
         em = EmailMessage()
@@ -211,6 +213,48 @@ class MailCBTCBA:
     
 
 
-    
+    def graficos_vars_mensuales_interanuales(self,df):
 
-   
+
+        df['fecha'] = pd.to_datetime(df['fecha'])
+
+        #=== GENERACION DE GRAFICO
+        plt.figure(figsize=(10,10))
+
+        #Grafico CBT
+        plt.plot(df['fecha'],df['vmensual_cbt'], color = 'orange',alpha = 0.5, markersize=5)
+        plt.plot(df['fecha'],df['vmensual_cbt'],'.',color = "red")
+
+    #Agregar valores de Y a cada punto del gráfico
+        for x, y in zip(df['fecha'], df['vmensual_cbt']):
+            plt.text(x, y, f'{y:.2f}', ha='right', va='bottom')  # Truncar a dos decimales
+
+
+        plt.grid()
+
+        plt.title("Variaciones mensuales de CBA")
+
+
+        #=== DIRECCIONES DE GUARDADO
+
+        # Obtener la ruta del directorio actual (donde se encuentra el script)
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+
+        # Construir la ruta de la carpeta "files" dentro del directorio actual
+        carpeta_guardado = os.path.join(directorio_actual, 'files')
+
+        # Asegurarse de que la carpeta "files" exista
+        if not os.path.exists(carpeta_guardado):
+            os.makedirs(carpeta_guardado)
+
+
+        nombre_grafico = "vars_mensuales"
+
+        # Construir la ruta completa del archivo a guardar
+        nombre_archivo_completo = os.path.join(carpeta_guardado, nombre_grafico)
+
+        # Guardar el gráfico
+        plt.savefig(nombre_archivo_completo)
+        plt.close()
+
+
