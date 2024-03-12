@@ -34,6 +34,31 @@ class Credenciales:
             self.user = 'estadistica'
             self.password = 'Estadistica2024!!'
             self.database = 'dwh_economico'
+        elif database_name == 'local_ipecd_economico':
+            self.host = '172.17.22.23'
+            self.user = 'team-datos'
+            self.password = 'HCj_BmbCtTuCv5}'
+            self.database = 'ipecd_economico'
+        elif database_name == 'local_dwh_sociodemografico':
+            self.host = '172.17.22.23'
+            self.user = 'team-datos'
+            self.password = 'HCj_BmbCtTuCv5}'
+            self.database = 'dwh_sociodemografico'
+        elif database_name == 'local_dwh_economico':
+            self.host = '172.17.22.23'
+            self.user = 'team-datos'
+            self.password = 'HCj_BmbCtTuCv5}'
+            self.database = 'dwh_economico'
+        elif database_name == 'local_datalake_sociodemografico':
+            self.host = '172.17.22.23'
+            self.user = 'team-datos'
+            self.password = 'HCj_BmbCtTuCv5}'
+            self.database = 'datalake_sociodemografico'
+        elif database_name == 'local_datalake_economico':
+            self.host = '172.17.22.23'
+            self.user = 'team-datos'
+            self.password = 'HCj_BmbCtTuCv5}'
+            self.database = 'datalake_economico'
         else:
             raise ValueError("Nombre de base de datos no válido")
 
