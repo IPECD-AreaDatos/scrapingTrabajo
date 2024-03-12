@@ -20,7 +20,7 @@ sys.path.append(credenciales_dir)
 # Ahora puedes importar tus credenciales
 from credenciales_bdd import Credenciales
 # Después puedes crear una instancia de Credenciales
-instancia_credenciales = Credenciales('datalake_economico')
+instancia_credenciales = Credenciales('local_ipecd_economico')
 
 #Listas a tratar durante el proceso
 lista_fechas = list()

@@ -11,16 +11,17 @@ class LoadXLSDataNacion:
         start_time = time.time()
 
         try:
+            print("CONEXION")
             conn = mysql.connector.connect(
                 host=host, user=user, password=password, database=database
             )
             cursor = conn.cursor()
-            
+            print("POST - CONEXION")
 
             # Consultar y leer todos los datos de ipc_valores
             select_query = """
                 SELECT Fecha, ID_Region, ID_Categoria, ID_Division, ID_Subdivision, Valor
-                FROM ipc_valores
+                FROM ipc_region
                 WHERE 
                     (ID_Categoria=1 AND ID_Division=1 AND ID_Subdivision=1) OR
                     (ID_Categoria=2 AND ID_Division=2 AND ID_Subdivision=2) OR
@@ -38,6 +39,7 @@ class LoadXLSDataNacion:
             """
             cursor.execute(select_query)
             data_to_process = cursor.fetchall()
+            print("POST CONSULTA")
 
             # Crear un DataFrame a partir de los datos obtenidos
             column_names = ['Fecha', 'ID_Region', 'ID_Categoria', 'ID_Division', 'ID_Subdivision', 'Valor']
@@ -60,6 +62,10 @@ class LoadXLSDataNacion:
 
             # Agrupar por fecha, categoría, división y subdivisión, y sumar los valores
             df_grouped = df.groupby(['Fecha', 'ID_Categoria', 'ID_Division', 'ID_Subdivision'])['Valor'].sum().reset_index()
+
+
+            print("DF AGRUPADO")
+            print(df_grouped)
             
             # Insertar los valores agrupados en la tabla ipc_valores con ID_Region igual a 1
             for index, row in df_grouped.iterrows():
@@ -70,7 +76,7 @@ class LoadXLSDataNacion:
                 valor_total = row['Valor']
                 
                 insert_query = """
-                    INSERT INTO ipc_valores (Fecha, ID_Region, ID_Categoria, ID_Division, ID_Subdivision, Valor)
+                    INSERT INTO ipc_region (Fecha, ID_Region, ID_Categoria, ID_Division, ID_Subdivision, Valor)
                     VALUES (%s, 1, %s, %s, %s, %s)
                 """
                 values = (fecha, id_categoria, id_division, id_subdivision, valor_total)

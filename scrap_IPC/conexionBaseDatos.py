@@ -57,13 +57,13 @@ class conexionBaseDatos:
         
         
         # Sentencia SQL para comprobar si la fecha ya existe en la tabla
-        select_query = "SELECT COUNT(*) FROM ipc_valores WHERE Fecha = %s AND ID_Region = %s AND ID_Categoria = %s AND ID_Division = %s AND ID_Categoria = %s"
+        select_query = "SELECT COUNT(*) FROM ipc_region WHERE Fecha = %s AND ID_Region = %s AND ID_Categoria = %s AND ID_Division = %s AND ID_Categoria = %s"
 
         # Sentencia SQL para insertar los datos en la tabla
-        insert_query = "INSERT INTO ipc_valores (Fecha, ID_Region, ID_Categoria, ID_Division, ID_Subdivision, Valor) VALUES (%s, %s, %s, %s, %s, %s)"
+        insert_query = "INSERT INTO ipc_region (Fecha, ID_Region, ID_Categoria, ID_Division, ID_Subdivision, Valor) VALUES (%s, %s, %s, %s, %s, %s)"
 
         #Verificar cantidad de filas anteriores 
-        select_row_count_query = "SELECT COUNT(*) FROM ipc_valores"
+        select_row_count_query = "SELECT COUNT(*) FROM ipc_region"
         self.cursor.execute(select_row_count_query)
 
 
@@ -73,17 +73,8 @@ class conexionBaseDatos:
         #Version nueva
         cant_valores = len(df.values)
 
-        delete_query ="TRUNCATE TABLE ipc_valores"
+        delete_query ="TRUNCATE TABLE ipc_region"
         self.cursor.execute(delete_query)
-
-        print("DATAFRAME  \n\n")
-        for valor in df.iterrows():
-
-            print(valor)
-        print("============")
-
-        #exit()
-
 
         for fecha, region, categoria, division, subdivision, valor in zip(self.lista_fechas, self.lista_region, self.lista_categoria, self.lista_division, self.lista_subdivision, self.lista_valores):
 
@@ -93,7 +84,7 @@ class conexionBaseDatos:
                 fecha = datetime.strptime(fecha, '%Y-%m-%d').date()
 
             self.cursor.execute(insert_query, (fecha, region, categoria, division, subdivision, valor))
-            #print("Leyendo el valor de IPC: ", valor)
+            print("Leyendo el valor de IPC: ", valor)
 
         
         # Confirmar los cambios en la base de datos
@@ -106,8 +97,8 @@ class conexionBaseDatos:
         LoadXLSDataNacion().loadInDataBase(self.host, self.user, self.password, self.database)
 
 
-
         self.conectar_bdd()
+
         self.verificar_cantidad(row_count_before)
 
 
@@ -121,8 +112,8 @@ class conexionBaseDatos:
     def enviar_correo(self):
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
 
         
         #Variaciones nacionales
@@ -197,8 +188,9 @@ class conexionBaseDatos:
 
     def verificar_cantidad(self,row_count_before):
        
+
         #Verificar cantidad de filas anteriores 
-        select_row_count_query = "SELECT COUNT(*) FROM ipc_valores"
+        select_row_count_query = "SELECT COUNT(*) FROM ipc_region"
         #Obtener cantidad de filas
         self.cursor.execute(select_row_count_query)
         row_count_after = self.cursor.fetchone()[0]
@@ -218,13 +210,15 @@ class conexionBaseDatos:
     #Objetivo: calcular la variacion mensual, intearanual y acumulado del IPC a nivel nacional
     def variaciones(self,region):
 
-        nombre_tabla = 'ipc_valores'
+        nombre_tabla = 'ipc_region'
 
         query_consulta = f'SELECT * FROM {nombre_tabla} WHERE ID_Region = {region} and ID_Categoria = 1'
 
-        #query_prueba = 'SELECT * FROM ipc_valores WHERE ID_Region = 1 and ID_Categoria = 1'
+        #query_prueba = 'SELECT * FROM ipc_region WHERE ID_Region = 1 and ID_Categoria = 1'
         df_bdd = pd.read_sql(query_consulta,self.conn)
 
+        print("DF EXTRAIDO DE LA BDD")
+        print(df_bdd)
 
         #==== IPC registrado en el AÑO Y MES actual ==== #
 
@@ -237,13 +231,21 @@ class conexionBaseDatos:
         total_ipc = grupo_ultima_fecha['Valor'].values[0]
 
          #=== CALCULO DE LA VARIACION MENSUAL
+        
+        #Año actual
+        anio_actual = fecha_max.year
 
         #Buscamos el mes anterior
         mes_anterior = int(fecha_max.month) - 1
 
+        if mes_anterior == 0:
+            mes_anterior = 12
+            anio_actual = fecha_max.year - 1
+
+
         #Convertimos la serie a datetime para buscar por año y mes
         df_bdd['Fecha'] = pd.to_datetime(df_bdd['Fecha'])    
-        grupo_mes_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == fecha_max.year) & (df_bdd['Fecha'].dt.month == mes_anterior)]
+        grupo_mes_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == anio_actual) & (df_bdd['Fecha'].dt.month == mes_anterior)]
 
         #Total del mes anterior y calculo de la variacion mensual
         total_mes_anterior = grupo_mes_anterior['Valor'].values[0]
@@ -312,7 +314,7 @@ class conexionBaseDatos:
         cadena_de_datos =''
 
         #Buscamos tabla con los datos del IPC
-        nombre_tabla = 'ipc_valores'
+        nombre_tabla = 'ipc_region'
         query_consulta = f'SELECT * FROM {nombre_tabla} WHERE ID_Region = 5'
         df_bdd = pd.read_sql(query_consulta,self.conn)  
 
@@ -324,6 +326,10 @@ class conexionBaseDatos:
         #Obtener ultima fecha
         fecha_max = df_bdd['Fecha'].max()
 
+        #mes y año actuales
+        mes_actual = fecha_max.month
+        anio_actual = fecha_max.year
+
 
         #=== OPERACIONES NECESARIAS PARA EL CALCULO DE LA VARIACION MENSUAL
 
@@ -333,9 +339,15 @@ class conexionBaseDatos:
         #Buscamos el mes anterior
         mes_anterior = int(fecha_max.month) - 1
 
+        if mes_anterior == 0:
+            mes_anterior = 12
+            anio_actual = fecha_max.year - 1
+
+
+
         #Convertimos la serie a datetime para buscar por año y mes
         df_bdd['Fecha'] = pd.to_datetime(df_bdd['Fecha'])    
-        grupo_mes_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == fecha_max.year) & (df_bdd['Fecha'].dt.month == mes_anterior)]
+        grupo_mes_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == anio_actual) & (df_bdd['Fecha'].dt.month == mes_anterior)]
 
 
         #=== OPERACIONES NECESARIAS PARA EL CALCULO DE LA VARIACION INTERANUAL
