@@ -12,11 +12,12 @@ class readSheets:
         # Define los alcances y la ruta al archivo JSON de credenciales
         SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
+        #Direccion del archivo json
         directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
         ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
         KEY = os.path.join(ruta_carpeta_files, 'key.json')
 
-        # Escribe aquí el ID de tu documento:
+        #ID del documento:
         SPREADSHEET_ID = '1NGcF5fXO7RCXIRGJ2UQO98x_T_tZtwHTnvD-RmTdV0E'
 
         # Carga las credenciales desde el archivo JSON
@@ -26,20 +27,26 @@ class readSheets:
         service = build('sheets', 'v4', credentials=creds)
         sheet = service.spreadsheets()
 
-        # Realiza una llamada a la API para obtener datos desde la hoja 'Hoja 1' en el rango 'A1:A8'
+        # Realiza una llamada a la API para obtener datos desde de la hoja
         result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='Datos para tablero').execute()
 
         # Extrae los valores del resultado
         values = result.get('values', [])
+        #Elimina la segunda fila que tiene [fecha] sola
         values.pop(1)
+        #Elimina los titulos para despues agregar al df 
         values.pop(0)
 
         # Imprime los valores
         for row in values:
-            if len(row)== 8:
+            if len(row)== 8: #Si tiene el Finalizado se agrega al df
+                print(row)
                 df.append(row)
+        
+        #Se crea el Data Frame
         df = pd.DataFrame(df, columns=['Fecha', 'Var_Interanual_IPICORR', 'Var_Interanual_Alimentos', 'Var_Interanual_Textil', 'Var_Interanual_Maderas', 'Var_Interanual_MinNoMetalicos', 'Var_Interanual_Metales', 'Estado'])
-        df['Fecha'] = df['Fecha'].apply(convertir_fecha)
+        df['Fecha'] = df['Fecha'].apply(convertir_fecha) #Se transforma el formato fecha de sept-2022 a 01/09/2022
+       
         # Imprime el DataFrame antes de eliminar la última columna
         print("Antes de eliminar la última columna:")
         print(df)
