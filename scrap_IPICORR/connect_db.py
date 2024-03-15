@@ -7,6 +7,10 @@ from email.message import EmailMessage
 import ssl
 import smtplib
 import os
+from email.message import EmailMessage
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
 
 class DatabaseManager:
     def __init__(self, host, user, password, database):
@@ -41,7 +45,7 @@ class DatabaseManager:
         filas_BD = self.cursor.fetchone()[0]
 
         print(f"Base de datos: {filas_BD}, DataFrame: {len(df)}")
-        ruta_archivo_grafico = self.generar_y_guardar_grafico(df)
+        
 
         if filas_BD != len(df):
             df_datos_nuevos = df.tail(len(df) - filas_BD)
@@ -66,10 +70,9 @@ class DatabaseManager:
 
             self.cursor.executemany(insert_query, data_to_insert)
             self.connection.commit()
-
+            ruta_archivo_grafico = self.generar_y_guardar_grafico(df)
             print(f"{len(data_to_insert)} nuevos registros insertados.")
             df_datos_nuevos['Fecha'] = pd.to_datetime(df_datos_nuevos['Fecha'], format='%Y-%m-%d')
-            exit()
             self.envio_correo(df_datos_nuevos, ruta_archivo_grafico)
         else:
             print("No se encontraron nuevos datos para insertar.")
@@ -91,7 +94,9 @@ class DatabaseManager:
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
         #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
+        email_receptores =  ['matizalazar2001@gmail.com, benitezeliogaston@gmail.com']
+        # Definir 'em' antes de su uso
+        em = MIMEMultipart()
         fecha = df_datos_nuevos["Fecha"].iloc[-1]  # Accede a la última fecha desde el DataFrame
         fecha_arreglada =self.obtener_ultimafecha_actual(fecha)
         asunto = f'ACTUALIZACION - IPICORR - {fecha_arreglada}'
@@ -117,26 +122,27 @@ class DatabaseManager:
             </body>
             </html>
                     '''
-        em.set_content(mensaje, subtype='html')
+        # Establecer el contenido HTML del mensaje
+        em.attach(MIMEText(mensaje, 'html'))
 
         # Adjuntar el gráfico como imagen incrustada
         with open(ruta_archivo_grafico, 'rb') as archivo:
-            contenido_archivo = archivo.read()
-            em.add_related(contenido_archivo, 'image', 'png', cid='grafico_ipicorr')
-                
-        em = EmailMessage()
+            imagen_adjunta = MIMEImage(archivo.read(), 'png')
+            imagen_adjunta.add_header('Content-Disposition', 'attachment', filename='Grafico variacion interanual IPICORR.png')
+            em.attach(imagen_adjunta)
+
+        # Establecer los campos del correo electrónico
         em['From'] = email_emisor
         em['To'] = ", ".join(email_receptores)
         em['Subject'] = asunto
-        em.set_content(mensaje, subtype = 'html')
-                
+
+        # Crear el contexto SSL
         contexto = ssl.create_default_context()
-        
+
+        # Enviar el correo electrónico
         with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
             smtp.login(email_emisor, email_contraseña)
             smtp.sendmail(email_emisor, email_receptores, em.as_string())
-
-
     def obtener_ultimafecha_actual(self,fecha_ultimo_registro):
         
         # Obtener el nombre del mes actual en inglés
