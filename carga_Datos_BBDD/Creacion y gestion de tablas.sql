@@ -371,10 +371,15 @@ Sector_Productivo char(125),
 Valor float
 );
 
--- TABLAS RIPTE
+-- TABLAS RIPTE ipecd_economico
 create table ripte(
 Fecha date,
 ripte float
+);
+-- TABLAS RIPTE datalake_economico
+create table ripte(
+fecha date,
+valor float
 );
 
 #Tabla De Salario Minimo Vital y Movil

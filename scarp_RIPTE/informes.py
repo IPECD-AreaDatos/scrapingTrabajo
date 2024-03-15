@@ -5,9 +5,15 @@ from smtplib import SMTP_SSL
 import pandas as pd
 from datetime import datetime
 from ssl import create_default_context
+import ssl
 import mysql.connector
-from pywhatkit import sendwhatmsg_to_group_instantly
-
+import os
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
+import matplotlib.pyplot as plt
+import locale
+import smtplib
 
 class InformesRipte:
 
@@ -43,20 +49,19 @@ class InformesRipte:
             fecha_mes_anterior = self.obtener_mes_actual(fecha_mes_anterior)
             diciembre_AñoAnterior = self.obtener_mes_actual(diciembre_AñoAnterior)
             fecha_mes_AñoAnterior = self.obtener_mes_actual(fecha_mes_AñoAnterior)
-
+            ruta_archivo_grafico= self.generar_y_guardar_grafico()
 
             #==== ENVIO DE MENSAJES
-            self.enviar_correo(fecha_cadena,nuevo_valor,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada)
-            self.enviar_wpp(fecha_cadena,nuevo_valor,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada)
+            self.enviar_correo(fecha_cadena,nuevo_valor,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada, ruta_archivo_grafico)
             
 
     #Envio de correos por GMAIL
-    def enviar_correo(self,fecha_cadena, nuevo_valor,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada):
+    def enviar_correo(self,fecha_cadena, nuevo_valor,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada, ruta_archivo_grafico):
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
-
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
+        em = MIMEMultipart()
         asunto = f'Modificación en la base de datos - Remuneración Imponible Promedio de los Trabajadores Estables (RIPTE) - Fecha {fecha_cadena}'
         mensaje = f'''\
             <html>
@@ -67,7 +72,7 @@ class InformesRipte:
             <hr>
             <p>Valor correspondiente a {fecha_mes_anterior}: ${valor_anterior} -- Variación Mensual:  <span style="font-size: 17px;"><b>{variacion_mensual:.2f}%</b>  </p>
             <hr>
-            <p>Variación interanual de {fecha_cadena} a {fecha_mes_AñoAnterior}:  <span style="font-size: 17px;"><b>{variacion_interanual:.2f}%</b> </p>
+            <p>Variación interanual de {fecha_mes_AñoAnterior} a {fecha_cadena}:  <span style="font-size: 17px;"><b>{variacion_interanual:.2f}%</b> </p>
             <hr>
             <p>Variación Acumulada desde {diciembre_AñoAnterior} a {fecha_cadena}:  <span style="font-size: 17px;"><b>{variacion_acumulada:.2f}%</b> </p>
             </body>
@@ -79,57 +84,27 @@ class InformesRipte:
         
             </html>
             '''
-        
-        em = EmailMessage()
+        # Establecer el contenido HTML del mensaje
+        em.attach(MIMEText(mensaje, 'html'))
+
+        # Adjuntar el gráfico como imagen incrustada
+        with open(ruta_archivo_grafico, 'rb') as archivo:
+            imagen_adjunta = MIMEImage(archivo.read(), 'png')
+            imagen_adjunta.add_header('Content-Disposition', 'attachment', filename='Grafico valores RIPTE en los ultimos 12 meses.png')
+            em.attach(imagen_adjunta)
+
+        # Establecer los campos del correo electrónico
         em['From'] = email_emisor
         em['To'] = ", ".join(email_receptores)
         em['Subject'] = asunto
-        em.set_content(mensaje, subtype = 'html')
-        
-        contexto = create_default_context()
-        
-        with SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
+
+        # Crear el contexto SSL
+        contexto = ssl.create_default_context()
+
+        # Enviar el correo electrónico
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
             smtp.login(email_emisor, email_contraseña)
             smtp.sendmail(email_emisor, email_receptores, em.as_string())
-
-    def enviar_wpp(self,cadena_nueva_fecha,nuevo_valor,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada):
-
-        #Id del grupo de WPP
-        id_group = "HLDflq1b7Zn3iT4zNSAIhF"
-
-        # Obtén la hora y los minutos actuales
-        now = datetime.now()
-        hours = now.hour
-        minutes = now.minute + 1  # Suma 1 minuto al tiempo actual
-
-
-        #Definimos el mensaje
-        mensaje = f"""
-        *RIPTE*
-
-        - Datos actualizados:
-        Ultimo valor: {nuevo_valor}
-        Fecha: {cadena_nueva_fecha}
-
-        - Mensual:
-
-        Datos Correspondientes al mes anterior.
-        Valor: {valor_anterior}
-        Fecha: {fecha_mes_anterior}
-        Var. Mensual: {variacion_mensual:.2f}%
-
-        - Interanual:
-
-        Var. interanual de {cadena_nueva_fecha} al {fecha_mes_AñoAnterior}: {variacion_interanual:.2f}%
-
-        - Acumulado:
-
-        Var. Acumulada de {diciembre_AñoAnterior} al {cadena_nueva_fecha}: {variacion_acumulada:.2f}%
-        """
-    
-
-        # Envía el mensaje programado
-        sendwhatmsg_to_group_instantly(id_group, mensaje)
 
     #Objetivo 
     def obtener_datos(self,nueva_fecha,nuevo_valor):
@@ -226,3 +201,64 @@ class InformesRipte:
         # Formatear el resultado
         resultado = f"{nombre_mes_espanol.capitalize()} {fecha_ultimo_registro.year}"
         return resultado
+    
+
+    def generar_y_guardar_grafico(self, columna_fecha='fecha', columna_valor='valor', nombre_archivo='variacion_ripte.png'):
+        """
+        Genera un gráfico de línea a partir de un DataFrame y guarda el resultado en un archivo PNG dentro de la carpeta 'files'.
+
+        Args:
+        df (pd.DataFrame): DataFrame que contiene los datos a graficar.
+        columna_fecha (str): Nombre de la columna en df que contiene las fechas.
+        columna_valor (str): Nombre de la columna en df que contiene los valores a graficar.
+        nombre_archivo (str): Nombre del archivo donde se guardará el gráfico.
+        """
+
+        #Obtencion de datos de la BDD - Transformacion a DF
+        nombre_tabla = 'ripte'
+        consulta = f'SELECT * FROM {nombre_tabla} ORDER BY fecha DESC LIMIT 13'
+        df = pd.read_sql(consulta,self.conn)
+
+        # Preparación de los datos
+        df[columna_fecha] = pd.to_datetime(df[columna_fecha])
+        df[columna_valor] = df[columna_valor].astype(int)
+    
+        # Generación del gráfico
+        plt.figure(figsize=(12, 7))
+        # Asegúrate de multiplicar df[columna_valor] por 100 aquí para que los valores se muestren como porcentajes
+        plt.plot(df[columna_fecha], df[columna_valor], '-o', color='green')  # Multiplicación por 100
+
+        # Establecer configuración regional para el formato de números
+        locale.setlocale(locale.LC_ALL, '')
+
+        # Iterar sobre el DataFrame para poner los valores en los puntos
+        for i, punto in df.iterrows():
+            # Convertir el valor a formato con separadores de miles
+            valor_formateado = locale.format('%d', punto[columna_valor], grouping=True)
+            # Mostrar el texto formateado
+            plt.text(punto[columna_fecha], punto[columna_valor], f'${valor_formateado}', color='black', ha='left', va='bottom')
+
+        plt.title('Valor RIPTE de los ultimos 12 meses')
+        plt.xlabel('Fecha')
+        plt.ylabel('Valor($)')
+        plt.grid(True)
+
+        # Obtener la ruta del directorio actual (donde se encuentra el script)
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+
+        # Construir la ruta de la carpeta "files" dentro del directorio actual
+        carpeta_guardado = os.path.join(directorio_actual, 'files')
+
+        # Asegurarse de que la carpeta "files" exista
+        if not os.path.exists(carpeta_guardado):
+            os.makedirs(carpeta_guardado)
+
+        # Construir la ruta completa del archivo a guardar
+        nombre_archivo_completo = os.path.join(carpeta_guardado, nombre_archivo)
+
+        # Guardar el gráfico
+        plt.savefig(nombre_archivo_completo)
+        plt.close()
+        
+        # Devuelve la ruta completa del archivo para su uso posterior
+        return nombre_archivo_completo
