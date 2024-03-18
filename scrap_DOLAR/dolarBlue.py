@@ -109,8 +109,3 @@ class dolarBlue:
             if 'conn' in locals() and conn.is_connected():
                 cursor.close()
                 conn.close()
-
-        # Uso
-        
-        self.url_mep = 'https://www.ambito.com/contenidos/dolar-mep-historico.html'
-        self.url_ccl = 'https://www.ambito.com/contenidos/dolar-cl-historico.html'

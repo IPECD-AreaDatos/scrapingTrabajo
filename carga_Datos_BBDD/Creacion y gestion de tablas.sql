@@ -410,22 +410,22 @@ Create Table IPICORR(
 
 #Dolar
 Create Table dolar_oficial(
-	Fecha date,
-    Compra float,
-    Venta float
+	fecha date,
+    compra float,
+    venta float
 );
 Create Table dolar_blue(
-	Fecha date,
-    Compra float,
-    Venta float
+	fecha date,
+    compra float,
+    venta float
 );
 Create Table dolar_ccl(
-	Fecha date,
-    Referencia float
+	fecha date,
+    valor float
 );
 Create Table dolar_mep(
-	Fecha date,
-    Referencia float
+	fecha date,
+    valor float
     );
 
 #Supermercado

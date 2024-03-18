@@ -110,6 +110,5 @@ class dolarMEP:
                 cursor.close()
                 conn.close()
 
-        # Uso
         
         
