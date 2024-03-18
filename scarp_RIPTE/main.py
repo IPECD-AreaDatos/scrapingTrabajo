@@ -14,8 +14,8 @@ sys.path.append(credenciales_dir)
 # Ahora puedes importar tus credenciales
 from credenciales_bdd import Credenciales
 # Después puedes crear una instancia de Credenciales
-credenciales_local_datalake_economico = Credenciales('local_datalake_economico')
-credenciales_local_ipecd = Credenciales('local_ipecd_economico')
+credenciales_datalake_economico = Credenciales('datalake_economico')
+credenciales_ipecd_economico = Credenciales('ipecd_economico')
 
 
 #Instancia encargada 
@@ -24,15 +24,15 @@ if __name__ == '__main__':
     #Obtencion del archivo
     #home_page = HomePage()
     #home_page.descargar_archivo()
-    #ripte_cargaHistorico().loadInDataBase(credenciales_local_datalake_economico.host, credenciales_local_datalake_economico.user, credenciales_local_datalake_economico.password, credenciales_local_datalake_economico.database)
+    #ripte_cargaHistorico().loadInDataBase(credenciales_datalake_economico.host, credenciales_datalake_economico.user, credenciales_datalake_economico.password, credenciales_datalake_economico.database)
     #↓↓↓↓↓↓↓↓↓↓↓↓CARGA DEL TABLERO ↓↓↓↓↓↓↓↓↓↓↓↓
-    #ripte_cargaHistorico().loadInDataBase(credenciales_local_ipecd.host, credenciales_local_ipecd.user, credenciales_local_ipecd.password, credenciales_local_ipecd.database)
+    #ripte_cargaHistorico().loadInDataBase(credenciales_ipecd_economico.host, credenciales_ipecd_economico.user, credenciales_ipecd_economico.password, credenciales_ipecd_economico.database)
 
     ultimo_valor_ripte = HomePage().extract_last_date()
     print(ultimo_valor_ripte)
-    instancia = ripte_cargaUltimoDato(credenciales_local_datalake_economico.host, credenciales_local_datalake_economico.user, credenciales_local_datalake_economico.password, credenciales_local_datalake_economico.database)
+    instancia = ripte_cargaUltimoDato(credenciales_datalake_economico.host, credenciales_datalake_economico.user, credenciales_datalake_economico.password, credenciales_datalake_economico.database)
     instancia.loadInDataBaseDatalakeEconomico()
 
     #↓↓↓↓↓↓↓↓↓↓↓↓CARGA DEL TABLERO ↓↓↓↓↓↓↓↓↓↓↓↓
-    instancia = ripte_cargaUltimoDato(credenciales_local_ipecd.host, credenciales_local_ipecd.user, credenciales_local_ipecd.password, credenciales_local_ipecd.database)
+    instancia = ripte_cargaUltimoDato(credenciales_ipecd_economico.host, credenciales_ipecd_economico.user, credenciales_ipecd_economico.password, credenciales_ipecd_economico.database)
     instancia.loadInDataBaseIPECD_Economico()
