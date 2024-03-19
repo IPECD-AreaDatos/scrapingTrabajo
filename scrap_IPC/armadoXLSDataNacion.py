@@ -21,7 +21,7 @@ class LoadXLSDataNacion:
             # Consultar y leer todos los datos de ipc_valores
             select_query = """
                 SELECT Fecha, ID_Region, ID_Categoria, ID_Division, ID_Subdivision, Valor
-                FROM ipc_region
+                FROM ipc_valores
                 WHERE 
                     (ID_Categoria=1 AND ID_Division=1 AND ID_Subdivision=1) OR
                     (ID_Categoria=2 AND ID_Division=2 AND ID_Subdivision=2) OR
@@ -76,7 +76,7 @@ class LoadXLSDataNacion:
                 valor_total = row['Valor']
                 
                 insert_query = """
-                    INSERT INTO ipc_region (Fecha, ID_Region, ID_Categoria, ID_Division, ID_Subdivision, Valor)
+                    INSERT INTO ipc_valores (Fecha, ID_Region, ID_Categoria, ID_Division, ID_Subdivision, Valor)
                     VALUES (%s, 1, %s, %s, %s, %s)
                 """
                 values = (fecha, id_categoria, id_division, id_subdivision, valor_total)
