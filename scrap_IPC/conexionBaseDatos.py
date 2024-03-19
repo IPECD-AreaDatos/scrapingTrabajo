@@ -57,13 +57,13 @@ class conexionBaseDatos:
         
         
         # Sentencia SQL para comprobar si la fecha ya existe en la tabla
-        select_query = "SELECT COUNT(*) FROM ipc_region WHERE Fecha = %s AND ID_Region = %s AND ID_Categoria = %s AND ID_Division = %s AND ID_Categoria = %s"
+        select_query = "SELECT COUNT(*) FROM ipc_valores WHERE Fecha = %s AND ID_Region = %s AND ID_Categoria = %s AND ID_Division = %s AND ID_Categoria = %s"
 
         # Sentencia SQL para insertar los datos en la tabla
-        insert_query = "INSERT INTO ipc_region (Fecha, ID_Region, ID_Categoria, ID_Division, ID_Subdivision, Valor) VALUES (%s, %s, %s, %s, %s, %s)"
+        insert_query = "INSERT INTO ipc_valores (Fecha, ID_Region, ID_Categoria, ID_Division, ID_Subdivision, Valor) VALUES (%s, %s, %s, %s, %s, %s)"
 
         #Verificar cantidad de filas anteriores 
-        select_row_count_query = "SELECT COUNT(*) FROM ipc_region"
+        select_row_count_query = "SELECT COUNT(*) FROM ipc_valores"
         self.cursor.execute(select_row_count_query)
 
 
@@ -73,7 +73,7 @@ class conexionBaseDatos:
         #Version nueva
         cant_valores = len(df.values)
 
-        delete_query ="TRUNCATE TABLE ipc_region"
+        delete_query ="TRUNCATE TABLE ipc_valores"
         self.cursor.execute(delete_query)
 
         for fecha, region, categoria, division, subdivision, valor in zip(self.lista_fechas, self.lista_region, self.lista_categoria, self.lista_division, self.lista_subdivision, self.lista_valores):
@@ -112,8 +112,8 @@ class conexionBaseDatos:
     def enviar_correo(self):
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores =  ['samaniego18@gmail.com','benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
+        #email_receptores =  ['samaniego18@gmail.com','benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
 
         
         #Variaciones nacionales
@@ -190,7 +190,7 @@ class conexionBaseDatos:
        
 
         #Verificar cantidad de filas anteriores 
-        select_row_count_query = "SELECT COUNT(*) FROM ipc_region"
+        select_row_count_query = "SELECT COUNT(*) FROM ipc_valores"
         #Obtener cantidad de filas
         self.cursor.execute(select_row_count_query)
         row_count_after = self.cursor.fetchone()[0]
@@ -210,11 +210,11 @@ class conexionBaseDatos:
     #Objetivo: calcular la variacion mensual, intearanual y acumulado del IPC a nivel nacional
     def variaciones(self,region):
 
-        nombre_tabla = 'ipc_region'
+        nombre_tabla = 'ipc_valores'
 
         query_consulta = f'SELECT * FROM {nombre_tabla} WHERE ID_Region = {region} and ID_Categoria = 1'
 
-        #query_prueba = 'SELECT * FROM ipc_region WHERE ID_Region = 1 and ID_Categoria = 1'
+        #query_prueba = 'SELECT * FROM ipc_valores WHERE ID_Region = 1 and ID_Categoria = 1'
         df_bdd = pd.read_sql(query_consulta,self.conn)
 
         print("DF EXTRAIDO DE LA BDD")
@@ -314,7 +314,7 @@ class conexionBaseDatos:
         cadena_de_datos =''
 
         #Buscamos tabla con los datos del IPC
-        nombre_tabla = 'ipc_region'
+        nombre_tabla = 'ipc_valores'
         query_consulta = f'SELECT * FROM {nombre_tabla} WHERE ID_Region = 5'
         df_bdd = pd.read_sql(query_consulta,self.conn)  
 
@@ -502,28 +502,3 @@ class conexionBaseDatos:
 
 
 
-
-"""#SECCION DE PRUEBAS
-
-#Listas a tratar durante el proceso
-lista_fechas = list()
-lista_region = list()
-lista_categoria = list()
-lista_division = list()
-lista_subdivision = list()
-lista_valores = list()
-
-#Datos de la base de datos
-host = '172.17.16.157'
-user = 'team-datos'
-password = 'HCj_BmbCtTuCv5}'
-database = 'ipecd_economico'
-
-instancia = conexionBaseDatos(lista_fechas, lista_region, lista_categoria, lista_division, lista_subdivision, lista_valores, host, user, password, database)
-instancia.conectar_bdd()
-
-
-cadena=instancia.var_mensual_prueba() #--> Nacion
-
-print("\n ---------  \n")
-"""

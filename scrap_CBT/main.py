@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
 
     #Creamos la instancia con la que logramos las operabilidad de la BDD
-    instancia_conexion_bdd = connection_db('172.17.22.23', 'team-datos', 'HCj_BmbCtTuCv5}', 'datalake_sociodemografico')
+    instancia_conexion_bdd = connection_db(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
 
     #=== CARGA DEL DATALAKE Y DATOS DEL DATAWAREHOUSE
     df = loadXLSDataCBT().transform_datalake() #--> Transformar y concatenar datos del EXCEL
@@ -37,6 +37,6 @@ if __name__ == '__main__':
 
     #Si se cargaron los datos de CBT y CBA, y los DWH del correo(representados por un True). Entonces enviar correo.
     if bandera_correo:
-        instancia_correo = MailCBTCBA('172.17.22.23', 'team-datos', 'HCj_BmbCtTuCv5}', "dwh_sociodemografico")
+        instancia_correo = MailCBTCBA(credenciales.host, credenciales.user, credenciales.password, "dwh_sociodemografico")
         
         instancia_correo.send_mail_cbt_cba()
