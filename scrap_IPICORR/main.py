@@ -23,7 +23,6 @@ if __name__ == "__main__":
     #-----IPICORR--------
     df = readSheets().tratar_datos()
     DatabaseManager(credenciales.host, credenciales.user, credenciales.password, credenciales.database).update_database_with_new_data(df)
-    exit()
     #-----IPI NACION------
     home_page = HomePage_IPI()
     home_page.descargar_archivo()

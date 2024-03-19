@@ -17,7 +17,7 @@ sys.path.append(credenciales_dir)
 # Ahora puedes importar tus credenciales
 from credenciales_bdd import Credenciales
 # Después puedes crear una instancia de Credenciales
-credenciales = Credenciales('ipecd_economico')
+credenciales = Credenciales('datalake_economico')
 from dolarBlue import dolarBlue
 from dolarMEP import dolarMEP
 from dolarCCL import dolarCCL

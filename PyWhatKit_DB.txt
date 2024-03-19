@@ -113,3 +113,8 @@ Time: 12:28
 Group ID: HLDflq1b7Zn3iT4zNSAIhF
 Message: *RIPTE* - Datos actualizados: Ultimo valor: 484298.4 Fecha: Diciembre 2023 - Mensual: Datos Correspondientes al mes anterior. Valor: 447080.0 Fecha: Noviembre 2023 Var. Mensual: 8.32% - Interanual: Var. interanual de Diciembre 2023 al Diciembre 2022: 149.41% - Acumulado: Var. Acumulada de Diciembre 2022 al Diciembre 2023: 149.41%
 --------------------
+Date: 15/3/2024
+Time: 10:46
+Group ID: HLDflq1b7Zn3iT4zNSAIhF
+Message: *RIPTE* - Datos actualizados: Ultimo valor: 555269.16 Fecha: Diciembre 2023 - Mensual: Datos Correspondientes al mes anterior. Valor: 447080.0 Fecha: Noviembre 2023 Var. Mensual: 24.20% - Interanual: Var. interanual de Diciembre 2023 al Diciembre 2022: 185.96% - Acumulado: Var. Acumulada de Diciembre 2022 al Diciembre 2023: 185.96%
+--------------------
