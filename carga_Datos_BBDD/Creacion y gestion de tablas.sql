@@ -619,5 +619,14 @@ Create table eph_tasas(
     tasa_de_empleo float,
     tasa_de_desocupacion float
 );
-
+#PBG tablas
+create table pbg_presupuesto_ejecutado(
+	mes int,
+	año int,
+    jurisdiccion int,
+    gastos_en_personal float,
+    bienes_de_consumo float,
+    servicios_no_personales float,
+    bienes_de_uso float
+);
 

@@ -37,6 +37,7 @@ class readSheets:
         print(df.dtypes)
         print(df)
         print(df.columns)
+        exit()
         return df
         
 
