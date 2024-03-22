@@ -65,8 +65,8 @@ class connection_db:
         if tamanio_df > tamanio_bdd: #Si el DF es mayor que lo almacenado, cargar los datos nuevos
             
             #Es necesario el borrado ya que posteriormente las estimaciones tendremos que recalcularlas
-            delete_query = 'TRUNCATE cbt_cba'
-            self.cursor.execute(delete_query)
+            delete_query_datalake = 'TRUNCATE cbt_cba'
+            self.cursor.execute(delete_query_datalake)
 
 
             self.cargar_tabla_datalake(df) 
