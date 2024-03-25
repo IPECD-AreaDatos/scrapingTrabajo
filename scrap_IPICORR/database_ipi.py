@@ -23,7 +23,7 @@ class Database_ipi:
         self.cursor = self.conn.cursor()
 
 
-    def cargar_datos(self, host, user, password, database,df):
+    def cargar_datos(self, host, user, password, database, df):
 
         self.conectar_bdd(host, user, password, database)
 
