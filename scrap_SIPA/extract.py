@@ -7,43 +7,45 @@ from selenium.webdriver.chrome.service import Service
 import os
 
 class HomePage:
+
+    def __init__(self):
     
-    # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
-    driver = webdriver.Chrome()  # Reemplaza con la ubicación de tu ChromeDriver
+        # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
+        driver = webdriver.Chrome()  # Reemplaza con la ubicación de tu ChromeDriver
 
-    # URL de la página que deseas obtener
-    url_pagina = 'https://www.argentina.gob.ar/trabajo/estadisticas'
+        # URL de la página que deseas obtener
+        url_pagina = 'https://www.argentina.gob.ar/trabajo/estadisticas'
 
-    # Cargar la página web
-    driver.get(url_pagina)
+        # Cargar la página web
+        driver.get(url_pagina)
 
-    wait = WebDriverWait(driver, 10)
+        wait = WebDriverWait(driver, 10)
 
-    # Encontrar el enlace al archivo
-    archivo = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/main/div[2]/div/section[2]/div/div[9]/div/div/table/tbody/tr[1]/td[4]/a")))
+        # Encontrar el enlace al archivo
+        archivo = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/main/div[2]/div/section[2]/div/div[9]/div/div/table/tbody/tr[1]/td[4]/a")))
 
-    # Obtener la URL del archivo
-    url_archivo = archivo.get_attribute('href')
-    # Imprimir la URL del archivo
-    print(url_archivo)
-    
-    # Ruta de la carpeta donde guardar el archivo
-    # Obtener la ruta del directorio actual (donde se encuentra el script)
-    directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        # Obtener la URL del archivo
+        url_archivo = archivo.get_attribute('href')
+        # Imprimir la URL del archivo
+        print(url_archivo)
+        
+        # Ruta de la carpeta donde guardar el archivo
+        # Obtener la ruta del directorio actual (donde se encuentra el script)
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
 
-    # Construir la ruta de la carpeta "files" dentro del directorio actual
-    carpeta_guardado = os.path.join(directorio_actual, 'files')
+        # Construir la ruta de la carpeta "files" dentro del directorio actual
+        carpeta_guardado = os.path.join(directorio_actual, 'files')
 
-    # Nombre del archivo
-    nombre_archivo = 'SIPA.xlsx'
+        # Nombre del archivo
+        nombre_archivo = 'SIPA.xlsx'
 
-    # Descargar el archivo
-    response = requests.get(url_archivo)
+        # Descargar el archivo
+        response = requests.get(url_archivo)
 
-    # Guardar el archivo en la carpeta especificada
-    ruta_guardado = f'{carpeta_guardado}\\{nombre_archivo}'
-    with open(ruta_guardado, 'wb') as file:
-        file.write(response.content)
+        # Guardar el archivo en la carpeta especificada
+        ruta_guardado = f'{carpeta_guardado}\\{nombre_archivo}'
+        with open(ruta_guardado, 'wb') as file:
+            file.write(response.content)
 
-    # Cerrar el navegador
-    driver.quit()
+        # Cerrar el navegador
+        driver.quit()

@@ -1,24 +1,24 @@
-import time
 import numpy as np
 import pandas as pd
-
+import sys
+import datetime
 class ExtractData:
-    
   
     #Objetivo: obtener los datos de puestos de trabajo por provincias
     def listado_provincias(self, file_path, lista_provincias, lista_valores_estacionalidad, lista_valores_sin_estacionalidad, lista_registro,lista_fechas):
-        # Se toma el tiempo de comienzo
-        start_time = time.time()
-
+        
         try:
 
+            # ==== DATAFRAME DE DATOS ESTACIONALES
             # Leer el archivo Excel en un DataFrame de pandas
             df = pd.read_excel(file_path, sheet_name=13, skiprows=1)  # Leer el archivo XLSX y crear el DataFrame
             df = df.replace({np.nan: None})  # Reemplazar los valores NaN(Not a Number) por None
 
             # Reemplazar comas por puntos en los valores numéricos
             df = df.replace(',', '.', regex=True)   
-            df = df.iloc[:-6]#Elimina las ultimas 6 filas siempre
+
+            df = df.iloc[:-5]#Elimina las ultimas 5 filas siempre
+
             df.drop(df.columns[-1], axis=1, inplace=True)#Elimina la ultima columna
             df = df.rename(columns=lambda x: x.strip())#Eliminar los espacion al final del nombre
             start_date = pd.to_datetime('2009-01-01')
@@ -26,18 +26,21 @@ class ExtractData:
 
 
 
-            
+            # ==== DATAFRAME DE DATOS NO ESTACIONALES
+
+
             #Leer el archivo Excel en un DataFrame de pandas
             df_NoEstacional = pd.read_excel(file_path, sheet_name=14, skiprows=1)  # Leer el archivo XLSX y crear el DataFrame
             df_NoEstacional = df_NoEstacional.replace({np.nan: None})  # Reemplazar los valores NaN(Not a Number) por None
 
             # Reemplazar comas por puntos en los valores numéricos
             df_NoEstacional = df_NoEstacional.replace(',', '.', regex=True)   
-            df_NoEstacional = df_NoEstacional.iloc[:-7]#Elimina las ultimas 6 filas siempre
+            df_NoEstacional = df_NoEstacional.iloc[:-6]#Elimina las ultimas 6 filas siempre
             df_NoEstacional.drop(df_NoEstacional.columns[-1], axis=1, inplace=True)#Elimina la ultima columna
             df_NoEstacional = df_NoEstacional.rename(columns=lambda x: x.strip())#Eliminar los espacion al final del nombre
             start_date = pd.to_datetime('2009-01-01')
             df_NoEstacional['Período'] = pd.date_range(start=start_date, periods=len(df_NoEstacional), freq='M').date
+
 
             # Aquí 'row' corresponde a la fila actual del dataframe 'df'
             # Y 'row_no_estacional' corresponde a la fila actual del dataframe 'df_NoEstacional'
@@ -580,6 +583,8 @@ class ExtractData:
             df = df.rename(columns=lambda x: x.strip())#Eliminar los espacion al final del nombre
             start_date = pd.to_datetime('2012-01-01')
             df['Período'] = pd.date_range(start=start_date, periods=len(df), freq='M').date
+
+ 
             
             #Leer el archivo Excel en un DataFrame de pandas
             df_NoEstacional = pd.read_excel(file_path, sheet_name=4, skiprows=1)  # Leer el archivo XLSX y crear el DataFrame
@@ -587,13 +592,12 @@ class ExtractData:
 
             # Reemplazar comas por puntos en los valores numéricos
             df_NoEstacional = df_NoEstacional.replace(',', '.', regex=True)   
-            df_NoEstacional = df_NoEstacional.iloc[:-9]#Elimina las ultimas 6 filas siempre
+            df_NoEstacional = df_NoEstacional.iloc[:-8]#Elimina las ultimas 6 filas siempre
             df_NoEstacional.drop(df_NoEstacional.columns[-1], axis=1, inplace=True)#Elimina la ultima columna
             df_NoEstacional = df_NoEstacional.rename(columns=lambda x: x.strip())#Eliminar los espacion al final del nombre
             start_date = pd.to_datetime('2012-01-01')
             df_NoEstacional['Período'] = pd.date_range(start=start_date, periods=len(df_NoEstacional), freq='M').date
             
-
             for (_, row), (_, row_no_estacional) in zip(df.iterrows(), df_NoEstacional.iterrows()):
 
 
