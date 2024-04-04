@@ -14,7 +14,7 @@ sys.path.append(credenciales_dir)
 from credenciales_bdd import Credenciales
 
 
-credenciales = Credenciales()
+credenciales = Credenciales('datalake_economico')
 
 
 df = pd.DataFrame()
@@ -22,7 +22,6 @@ df = pd.DataFrame()
 instancia = HomePage()
 instancia.descargar_archivo()
 df = instancia.tratamiento_df()
-
 
 #Conexion con BASE DE DATOS
 conexion = conexionBaseDatos(credenciales.host,credenciales.user,credenciales.password,credenciales.database)
