@@ -1,9 +1,9 @@
-from credenciales_bdd import Credenciales
 from extract import HomePage
 from ripte_cargaHistorico import ripte_cargaHistorico
 from ripte_cargaUltimoDato import ripte_cargaUltimoDato
 import sys
 import os
+
 
 # Obtener la ruta al directorio actual del script
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -16,7 +16,7 @@ sys.path.append(credenciales_dir)
 # - Importaciones necesarias para el script.
 # - Obtención de las credenciales necesarias para la conexión a bases de datos.
 # - Bases con el mismo nombre / local_... para las del servidor local
-
+from credenciales_bdd import Credenciales
 # Después puedes crear una instancia de Credenciales
 credenciales_datalake_economico = Credenciales("datalake_economico")
 credenciales_ipecd_economico = Credenciales("ipecd_economico")

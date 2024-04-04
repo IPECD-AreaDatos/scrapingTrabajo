@@ -82,7 +82,7 @@ class connection_db:
         else: #Si no hay datos nuevos AVISAR
             
             print("==== NO HAY DATOS NUEVOS CORRESPONDIENTES A CBT Y CBA DEL DATALAKE ====")   
-            
+            self.table_a1()
             #Bandera que usaremos en main para enviar correo
             return False  
 
@@ -281,11 +281,11 @@ class connection_db:
         df['vinter_nea_ipc'] = float('nan')
 
         #=== Tomamos la primera fecha del grupo de IPC -- Esto porque CBT y CBA empieza su historico antes que los datos oficiales de IPC
-        firt_date =pd.to_datetime (df_bdd['Fecha'].values[0])
+        firt_date =pd.to_datetime (df_bdd['fecha'].values[0])
 
         #=== Creacion de variaciones mensual, interanual PARA IPC del NEA
-        df['vmensual_nea_ipc'].iloc[df['fecha'] >= firt_date] =( df_bdd['Valor'] / df_bdd['Valor'].shift(1) - 1) * 100  #--> Var. Mensual de IPC
-        df['vinter_nea_ipc'].iloc[df['fecha'] >= firt_date] = ((df_bdd['Valor'] / df_bdd['Valor'].shift(12)) - 1) * 100 #--> Var. Interanual de IPC
+        df['vmensual_nea_ipc'].iloc[df['fecha'] >= firt_date] =( df_bdd['valor'] / df_bdd['valor'].shift(1) - 1) * 100  #--> Var. Mensual de IPC
+        df['vinter_nea_ipc'].iloc[df['fecha'] >= firt_date] = ((df_bdd['valor'] / df_bdd['valor'].shift(12)) - 1) * 100 #--> Var. Interanual de IPC
 
 
     #Objetivo: cargar los datos correspondientes al correo de CBT y CBA. Es llamado en la funcion table_a1()
