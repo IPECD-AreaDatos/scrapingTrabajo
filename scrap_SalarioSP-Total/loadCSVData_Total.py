@@ -20,7 +20,7 @@ class loadCSVData_Total:
         )
         cursor = conn.cursor()
         
-        table_name = 'DP_salarios_total'
+        table_name = 'dp_salarios_total'
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
         ruta_carpeta_files = os.path.join(directorio_actual, 'files')
         file_name = "salarioPromedioTotal.csv"
@@ -33,7 +33,7 @@ class loadCSVData_Total:
         longitud_datos_excel = len(df)
         print("Salarios Total: ", longitud_datos_excel)
         
-        select_row_count_query = "SELECT COUNT(*) FROM DP_salarios_total"
+        select_row_count_query = "SELECT COUNT(*) FROM dp_salarios_total"
         cursor.execute(select_row_count_query)
         filas_BD = cursor.fetchone()[0]
         print("Base de salarios total: ", filas_BD)

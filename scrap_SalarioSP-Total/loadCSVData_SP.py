@@ -1,18 +1,41 @@
 import mysql.connector
 import numpy as np
 import pandas as pd
-import time
 import os
 from email.message import EmailMessage
 import ssl
 import smtplib
+import pymysql
 
 nuevos_datos = []
     
 class loadCSVData_SP:
+
+    def __init__(self,host, user, password, database):
+
+        self.host = host,
+        self.user = user,
+        self.password =password,
+        self.database = database
+
+    # =========================================================================================== #
+            # ==== SECCION CORRESPONDIENTE A LAS CONEXIONES ==== #
+    # =========================================================================================== #        
+
+
+    #Objetivo: conectar a la base de datos
+    def connect_db(self):
+
+            self.conn = pymysql.connect(
+                host=self.host, user=self.user, password=self.password, database=self.database
+            )
+            self.cursor = self.conn.cursor()   
+
+    # =========================================================================================== #
+            # ==== SECCION CORRESPONDIENTE AL DATALAKE ==== #
+    # =========================================================================================== #
+
     def loadInDataBase(self, host, user, password, database):
-        #Se toma el tiempo de comienzo
-        start_time = time.time()
         
         # Establecer la conexión a la base de datos
         conn = mysql.connector.connect(
@@ -21,7 +44,7 @@ class loadCSVData_SP:
         cursor = conn.cursor()
         
         # Nombre de la tabla en MySQL
-        table_name = 'DP_salarios_sector_privado'
+        table_name = 'dp_salarios_sector_privado'
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
         ruta_carpeta_files = os.path.join(directorio_actual, 'files')
         file_name = "salarioPromedioSP.csv"
@@ -34,7 +57,7 @@ class loadCSVData_SP:
         longitud_datos_excel = len(df)
         print("Salarios Privado: ", longitud_datos_excel)
         
-        select_row_count_query = "SELECT COUNT(*) FROM DP_salarios_sector_privado"
+        select_row_count_query = "SELECT COUNT(*) FROM dp_salarios_sector_privado"
         cursor.execute(select_row_count_query)
         filas_BD = cursor.fetchone()[0]
         print("Base salarios privado: ", filas_BD)
