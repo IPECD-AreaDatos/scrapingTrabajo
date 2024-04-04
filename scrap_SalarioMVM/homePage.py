@@ -15,8 +15,8 @@ class HomePage:
             
     def __init__(self):
 
-        # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
-        self.driver = webdriver.Chrome()  # Reemplaza con la ubicación de tu ChromeDriver
+        #Creamos instancia de Selenium
+        self.driver = webdriver.Chrome()  
 
         # URL de la página que deseas obtener
         self.url_pagina = 'https://datos.gob.ar/dataset/sspm-salario-minimo-vital-movil-pesos-corrientes/archivo/sspm_57.1'
@@ -78,24 +78,3 @@ class HomePage:
 
 
         return df
-
-    #Objetivo: traer de la pagina ofical de SMVM el dato del ultimo mes
-    def pagina_principal(self):
-
-        #Cargamos pagina y buscamos elemento con XPATH
-        url = 'https://www.argentina.gob.ar/trabajo/consejodelsalario'
-        self.driver.get(url) 
-        elemento_td = self.driver.find_elements(By.XPATH,'/html/body/main/div[2]/div/section/article/div/div[5]/div/div/table/tbody/tr[2]/td[2]')
-        valor = elemento_td[0].text #--> Obtencion del texto
-
-        solo_numeros =re.sub(r'\D', '', valor) #--> Eliminacion de todos los caracteres no numericos
-
-        smvm_mes = int(solo_numeros)
-    
-        smvm_dia = smvm_mes/25
-
-        smvm_hora = smvm_dia/24
-
-        self.driver.close()
-
-        print(smvm_mes, smvm_dia, smvm_hora)
