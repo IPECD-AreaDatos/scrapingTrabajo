@@ -26,20 +26,21 @@ class readSheets:
         sheet = service.spreadsheets()
 
         # Realiza una llamada a la API para obtener datos desde la hoja 'Hoja 1' en el rango 'A1:A8'
-        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='Trabajo_EPH!A:G').execute()
+        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='Trabajo_EPH!A:H').execute()
         # Extrae los valores del resultado
         values = result.get('values', [])[1:]
 
         # Crea el DataFrame df1
         df = pd.DataFrame(values, columns=['Aglomerado', 'Año', 'Fecha', 'Trimestre', 'Estado del dato', 'Tasa de Actividad', 'Tasa de Empleo', 'Tasa de desocupación'])
+        df.replace({"": pd.NA, " ": pd.NA}, inplace=True)
         df.dropna(subset=['Estado del dato'], inplace=True)
         df = df.where(pd.notnull(df), None)
-
+        print(df)
+        df.drop(['Estado del dato'], axis=1, inplace=True)
         self.transformar_tipo_datos(df)
         print(df.dtypes)
         print(df)
         print(df.columns)
-        exit()
         return df
         
 
