@@ -31,7 +31,18 @@ class readSheetsEducacion:
         values = result.get('values', [])[1:]
         
         # Crea el DataFrame df1
-        df = pd.DataFrame(values, columns=['Aglomerado', 'Año', 'Trimestre', 'Fecha', 'Nivel Educativo', 'Asiste', 'No asiste pero asistió', 'Nunca asistió', 'Institución Pública', 'Institución Privada', 'Edad promedio abandono', 'Sobreedad', 'Acceso a internet fijo', 'Calidad de vivienda suficiente', 'Calidad de vivienda parcialmente insuficiente', 'Calidad de vivienda insuficiente', 'Vivienda cercana a un basural', 'Vivienda en villa emergencia', 'Vivienda propia', 'Automóvil', 'Motocicleta', 'Bicicleta', 'Caminata', 'Taxi/Remis', 'Transporte Urbano', 'Otros'])
+        df = pd.DataFrame(values, columns=['Aglomerado', 'Año', 'Trimestre', 'Fecha', 'Nivel Educativo', 'Estado del dato', 'Asiste', 'No asiste pero asistió', 'Nunca asistió', 'Institución Pública', 'Institución Privada', 'Edad promedio abandono', 'Sobreedad', 'Acceso a internet fijo', 'Calidad de vivienda suficiente', 'Calidad de vivienda parcialmente insuficiente', 'Calidad de vivienda insuficiente', 'Vivienda cercana a un basural', 'Vivienda en villa emergencia',  'Automóvil', 'Motocicleta', 'Bicicleta', 'Caminata', 'Taxi/Remis', 'Transporte Urbano', 'Otros'])
+        for e in df['Estado del dato']:
+            if e != 'FINALIZADO':
+                e=' '
+               #df.replace({e:pd.NA}, inplace=True)
+        df.replace({" ": pd.NA, "": pd.NA}, inplace=True)
+        df.dropna(subset=['Estado del dato'], inplace=True)    
+        df = df.where(pd.notnull(df), None)
+        print(df)
+        #print(df.iloc[:,:6])
+        df.drop(['Estado del dato'], axis=1, inplace=True)
+
         print(df)
         print(df.dtypes)
         self.transformar_tipo_datos(df)
@@ -43,7 +54,7 @@ class readSheetsEducacion:
 
     def transformar_tipo_datos(self, df):
         # Seleccionar las columnas numéricas
-        columnas_numericas = ['Asiste', 'No asiste pero asistió', 'Nunca asistió', 'Institución Pública', 'Institución Privada', 'Sobreedad', 'Acceso a internet fijo', 'Calidad de vivienda suficiente', 'Calidad de vivienda parcialmente insuficiente', 'Calidad de vivienda insuficiente', 'Vivienda cercana a un basural', 'Vivienda en villa emergencia', 'Vivienda propia', 'Automóvil', 'Motocicleta', 'Bicicleta', 'Caminata', 'Taxi/Remis', 'Transporte Urbano', 'Otros']
+        columnas_numericas = ['Asiste', 'No asiste pero asistió', 'Nunca asistió', 'Institución Pública', 'Institución Privada', 'Sobreedad', 'Acceso a internet fijo', 'Calidad de vivienda suficiente', 'Calidad de vivienda parcialmente insuficiente', 'Calidad de vivienda insuficiente', 'Vivienda cercana a un basural', 'Vivienda en villa emergencia','Automóvil', 'Motocicleta', 'Bicicleta', 'Caminata', 'Taxi/Remis', 'Transporte Urbano', 'Otros']
         # Convertir las columnas numéricas a tipos numéricos
         # Elimina el símbolo "%" y las comas, y luego convierte las columnas en valores numéricos
         for columna in columnas_numericas:
