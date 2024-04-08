@@ -24,8 +24,8 @@ from dolarCCL import dolarCCL
 
 
 if __name__ == '__main__': 
-    dolarOficial().descargaArchivo()
-    dolarOficial().lecturaDolarOficial(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
-    dolarBlue().tomaDolarBlue(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    #dolarOficial().descargaArchivo()
+    #dolarOficial().lecturaDolarOficial(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    #dolarBlue().tomaDolarBlue(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
     dolarMEP().tomaDolarMEP(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
     dolarCCL().tomaDolarCCL(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
