@@ -69,4 +69,3 @@ class readSheetsEducacionMay25:
         df['Aglomerado'] = df['Aglomerado'].astype(str)
         df['Año']= df['Año'].astype(int)
 
-df = readSheetsEducacionMay25().leer_datos_educacionMay25()
