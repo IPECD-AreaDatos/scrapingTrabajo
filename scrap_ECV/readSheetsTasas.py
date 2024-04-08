@@ -51,7 +51,7 @@ class readSheetsTasas:
         # Extrae los valores del resultado
         values3 = result3.get('values', [])[1:]
         # Crea el DataFrame df2
-        df3 = pd.DataFrame(values3, columns=['Estado'])
+        df3 = pd.DataFrame(values3, columns=['Estado del dato'])
 
         df = pd.concat([df1, df2, df3], axis=1)
         # Imprimir el DataFrame resultante
@@ -59,7 +59,15 @@ class readSheetsTasas:
         longitud_primera_fila = len(df.iloc[0])
         # Retornar el DataFrame
         if longitud_primera_fila == 8:
-            df = df.drop(df.columns[-1], axis=1)
+            for e in df['Estado del dato']:
+                if e != 'FINALIZADO':
+                    e=' '
+            df.replace({" ": pd.NA, "": pd.NA}, inplace=True)
+            df.dropna(subset=['Estado del dato'], inplace=True)    
+            df = df.where(pd.notnull(df), None)
+            print(df)
+            #print(df.iloc[:,:6])
+            df.drop(['Estado del dato'], axis=1, inplace=True)
             print(df)
             self.transformar_tipo_datos(df)
             print(df.dtypes)
