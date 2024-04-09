@@ -308,7 +308,7 @@ class connect_db:
                 row = row.where(pd.notnull(row), None)
                 
                 # Ejecutar la sentencia SQL de inserción
-                cursor.execute(sql_insert, (row['Aglomerado'], row['Año'], row['Trimestre'], row['Fecha'], row['Nivel Educativo'], row['Asiste'], row['No asiste pero asistió'], row['Nunca asistió'], row['Institución Pública'], row['Institución Privada'], row['Edad promedio abandono'], row['Sobreedad'], row['Acceso a internet fijo'], row['Calidad de vivienda suficiente'], row['Calidad de vivienda parcialmente insuficiente'], row['Calidad de vivienda insuficiente'], row['Vivienda cercana a un basural'], row['Vivienda en villa emergencia'], row['Vivienda propia'], row['Automóvil'], row['Motocicleta'], row['Bicicleta'], row['Caminata'], row['Taxi/Remis'], row['Transporte Urbano'], row['Otros']))
+                cursor.execute(sql_insert, (row['Aglomerado'], row['Año'], row['Trimestre'], row['Fecha'], row['Nivel Educativo'], row['Asiste'], row['No asiste pero asistió'], row['Nunca asistió'], row['Institución Pública'], row['Institución Privada'], row['Edad promedio abandono'], row['Sobreedad'], row['Acceso a internet fijo'], row['Calidad de vivienda suficiente'], row['Calidad de vivienda parcialmente insuficiente'], row['Calidad de vivienda insuficiente'], row['Vivienda cercana a un basural'], row['Vivienda en villa emergencia'], row['Automóvil'], row['Motocicleta'], row['Bicicleta'], row['Caminata'], row['Taxi/Remis'], row['Transporte Urbano'], row['Otros']))
 
             conn.commit()
             df_datos_nuevos['Fecha'] = pd.to_datetime(df_datos_nuevos['Fecha'], format='%Y-%m-%d')
