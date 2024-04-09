@@ -1,6 +1,5 @@
 from homePage import HomePage
 from loadCSVData_SP import Gestion_bdd
-from loadCSVData_Total import loadCSVData_Total
 import sys
 import os
 import transform
@@ -19,8 +18,8 @@ credenciales = Credenciales('datalake_economico')
 credenciales_local = Credenciales('ipecd_economico')
 
 if __name__ == '__main__':
-    #home_page = HomePage()
-    #home_page.descargar_archivo()
+    home_page = HomePage()
+    home_page.descargar_archivo()
 
     #Obtencion de los datos con el formato correcto 
     df_salario_sp = transform.datos_sp() #--> Datos del PRIVADO
