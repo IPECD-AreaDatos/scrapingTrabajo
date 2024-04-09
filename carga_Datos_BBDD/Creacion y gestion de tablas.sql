@@ -567,7 +567,6 @@ create table ecv_educacion(
     calidad_de_vivienda_insuficiente FLOAT,
     vivienda_cercana_a_un_basural FLOAT,
     vivienda_en_villa_emergencia FLOAT,
-    vivienda_propia FLOAT,
     automovil FLOAT,
     motocicleta FLOAT,
     bicicleta FLOAT,

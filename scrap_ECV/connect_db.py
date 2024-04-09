@@ -302,7 +302,7 @@ class connect_db:
             print("Tabla de ECV")
             for index, row in df_datos_nuevos.iterrows():
                 # Luego, puedes usar estos valores en tu consulta SQL
-                sql_insert = f"INSERT INTO {table_name} (aglomerado, año, trimestre, fecha, nivel_educativo, asiste, no_asiste_pero_asistio, nunca_asistio, institucion_publica, institucion_privada, edad_promedio_abandono, sobreedad, acceso_a_internet_fijo, calidad_de_vivienda_suficiente, calidad_de_vivienda_parcialmente_insuficiente, calidad_de_vivienda_insuficiente, vivienda_cercana_a_un_basural, vivienda_en_villa_emergencia, vivienda_propia, automovil, motocicleta, bicicleta, caminata, taxi_remis, transporte_urbano, otros) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                sql_insert = f"INSERT INTO {table_name} (aglomerado, año, trimestre, fecha, nivel_educativo, asiste, no_asiste_pero_asistio, nunca_asistio, institucion_publica, institucion_privada, edad_promedio_abandono, sobreedad, acceso_a_internet_fijo, calidad_de_vivienda_suficiente, calidad_de_vivienda_parcialmente_insuficiente, calidad_de_vivienda_insuficiente, vivienda_cercana_a_un_basural, vivienda_en_villa_emergencia, automovil, motocicleta, bicicleta, caminata, taxi_remis, transporte_urbano, otros) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
 
                 # Rellenar los valores faltantes (NaN) con None
                 row = row.where(pd.notnull(row), None)
