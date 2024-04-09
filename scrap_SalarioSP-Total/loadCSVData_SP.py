@@ -1,22 +1,21 @@
-import mysql.connector
-import numpy as np
-import pandas as pd
-import os
 from email.message import EmailMessage
 import ssl
 import smtplib
 import pymysql
+from sqlalchemy import create_engine
 
 nuevos_datos = []
     
-class loadCSVData_SP:
+class Gestion_bdd:
 
     def __init__(self,host, user, password, database):
 
-        self.host = host,
-        self.user = user,
-        self.password =password,
+        self.host = host
+        self.user = user
+        self.password =password
         self.database = database
+        self.conn = None
+        self.cursor = None
 
     # =========================================================================================== #
             # ==== SECCION CORRESPONDIENTE A LAS CONEXIONES ==== #
@@ -25,42 +24,59 @@ class loadCSVData_SP:
 
     #Objetivo: conectar a la base de datos
     def connect_db(self):
-
-            self.conn = pymysql.connect(
-                host=self.host, user=self.user, password=self.password, database=self.database
-            )
+            
+            #Creamos conexion, y cursor de la conexion
+            self.conn = pymysql.connect(host=self.host, user=self.user, password=self.password, database=self.database)
             self.cursor = self.conn.cursor()   
 
     # =========================================================================================== #
             # ==== SECCION CORRESPONDIENTE AL DATALAKE ==== #
     # =========================================================================================== #
 
-    def loadInDataBase(self, host, user, password, database):
+
+    #Objetivo: Obtenemos las cantidades de fila del DF extraido, y el de la BDD. Si hay diferencia entonces se cargara
+    def contador_filas(self,df,table):
+
+        #Tamano del DF original
+        tamano_df = len(df)
+
+        #Tamaño del DF de la BASE
+        select_row_count_query = f"SELECT COUNT(*) FROM {table}"
+        self.cursor.execute(select_row_count_query)
+        filas_bdd = self.cursor.fetchone()[0]
+
+        return tamano_df, filas_bdd
+
+
+    def loadInDataBase(self,df,table):
         
-        # Establecer la conexión a la base de datos
-        conn = mysql.connector.connect(
-            host=host, user=user, password=password, database=database
-        )
-        cursor = conn.cursor()
-        
-        # Nombre de la tabla en MySQL
-        table_name = 'dp_salarios_sector_privado'
-        directorio_actual = os.path.dirname(os.path.abspath(__file__))
-        ruta_carpeta_files = os.path.join(directorio_actual, 'files')
-        file_name = "salarioPromedioSP.csv"
-        # Construir la ruta completa del archivo CSV dentro de la carpeta "files"
-        file_path = os.path.join(ruta_carpeta_files, file_name)
-                
-        # Leer el archivo de csv y hacer transformaciones
-        df = pd.read_csv(file_path)  # Leer el archivo CSV y crear el DataFrame
-        df = df.replace({np.nan: None})  # Reemplazar los valores NaN(Not a Number) por None
-        longitud_datos_excel = len(df)
-        print("Salarios Privado: ", longitud_datos_excel)
-        
-        select_row_count_query = "SELECT COUNT(*) FROM dp_salarios_sector_privado"
-        cursor.execute(select_row_count_query)
-        filas_BD = cursor.fetchone()[0]
-        print("Base salarios privado: ", filas_BD)
+
+        #Nos conectamos a la BDD
+        self.connect_db()    
+
+        #Obtencion de tamaños
+        len_df, len_bdd = self.contador_filas(df,table)
+
+        #Si el tamaño del DF del excel, es mayor al que esta en la BDD,entonces realizar carga.
+        if len_df > len_bdd:
+
+            #Obtenemos SOLO LOS DATOS A CARGAR, por diferencia de filas
+            df_datalake = df.tail(len_df-len_bdd)
+
+            #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+            engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}") #--> Conector
+            df_datalake.to_sql(name=f"{table}", con=engine, if_exists='append', index=False) #--> Carga de tabla de salarios del sector privado
+
+
+            #Guardamos cambios 
+            self.conn.commit()
+
+        else:
+            print("No existen nuevos datos para cargar.")
+            
+        return
+    
+
         
         if longitud_datos_excel > filas_BD:
             df_datos_nuevos = df.tail(longitud_datos_excel - filas_BD)
