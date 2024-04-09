@@ -21,6 +21,6 @@ service = build('sheets', 'v4', credentials=creds)
 sheet = service.spreadsheets()
 
 #Realiza una llamada a la API para obtener datos desde la hoja 'Hoja 1' en el rango 'B2:Z12'
-result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='Educacion_ECV!B2:Z12').execute()
+result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='Hoja 1!A:B').execute()
 # Extrae los valores del resultado
 values = result.get('values', [])[1:]
