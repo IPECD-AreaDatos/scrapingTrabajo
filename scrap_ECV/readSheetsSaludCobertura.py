@@ -27,13 +27,24 @@ class readSheetsSaludCobertura:
         sheet = service.spreadsheets()
 
         #Realiza una llamada a la API para obtener datos desde la hoja 'Hoja 1' en el rango 'A1:A8'
-        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='Salud_Cobertura!A:G').execute()
+        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='Salud_Cobertura!A:H').execute()
         # Extrae los valores del resultado
         values = result.get('values', [])[1:]
         
         # Crea el DataFrame df1
-        df = pd.DataFrame(values, columns=['Aglomerado', 'Año', 'Fecha', 'Semestre', 'Cobertura', 'Planes y seguros', 'No paga ni le descuentan'])
+        df = pd.DataFrame(values, columns=['Aglomerado', 'Año', 'Fecha', 'Semestre', 'Estado del dato','Cobertura', 'Planes y seguros', 'No paga ni le descuentan'])
         print(df)
+        for e in df['Estado del dato']:
+            if e != 'FINALIZADO':
+                e=' '
+               #df.replace({e:pd.NA}, inplace=True)
+        df.replace({" ": pd.NA, "": pd.NA}, inplace=True)
+        df.dropna(subset=['Estado del dato'], inplace=True)    
+        df = df.where(pd.notnull(df), None)
+        print(df)
+        #print(df.iloc[:,:6])
+        df.drop(['Estado del dato'], axis=1, inplace=True)
+
         print(df.dtypes)
         self.transformar_tipo_datos(df)
 

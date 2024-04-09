@@ -26,14 +26,24 @@ class readSheetsEducacionQuintiles:
         sheet = service.spreadsheets()
 
         #Realiza una llamada a la API para obtener datos desde la hoja 'Hoja 1' en el rango 'A1:A8'
-        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='Educacion_Q!A:O').execute()
+        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='Educacion_Q!A:P').execute()
         # Extrae los valores del resultado
         values = result.get('values', [])[1:]
         
         # Crea el DataFrame df1
-        df = pd.DataFrame(values, columns=['Aglomerado', 'Año', 'Fecha', 'Trimestre', 'Quintil', 'Primaria incompleta', 'Primaria completa', 'Secundaria incompleta', 'Secundaria completa', 'Superior incompleto', 'Superior completo', 'Sin instrucción', 'Asisencia escolar', 'Institución Pública', 'Institución Privada'])
+        df = pd.DataFrame(values, columns=['Aglomerado', 'Año', 'Fecha', 'Trimestre', 'Estado del dato' , 'Quintil', 'Primaria incompleta', 'Primaria completa', 'Secundaria incompleta', 'Secundaria completa', 'Superior incompleto', 'Superior completo', 'Sin instrucción', 'Asisencia escolar', 'Institución Pública', 'Institución Privada'])
         df = df.dropna(subset=['Quintil']) #<--------ELIMINA LAS FILAS QUE NO TIENEN QUINTIL
         print(df)
+        for e in df['Estado del dato']:
+            if e != 'FINALIZADO':
+                e=' '
+               #df.replace({e:pd.NA}, inplace=True)
+        df.replace({" ": pd.NA, "": pd.NA}, inplace=True)
+        df.dropna(subset=['Estado del dato'], inplace=True)    
+        df = df.where(pd.notnull(df), None)
+        print(df)
+        #print(df.iloc[:,:6])
+        df.drop(['Estado del dato'], axis=1, inplace=True)
         print(df.dtypes)
         self.transformar_tipo_datos(df)
 
@@ -60,3 +70,4 @@ class readSheetsEducacionQuintiles:
         df['Trimestre'] = df['Trimestre'].astype(str)
         df['Aglomerado'] = df['Aglomerado'].astype(str)
         df['Quintil'] = df['Quintil'].astype(int)
+

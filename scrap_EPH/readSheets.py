@@ -31,12 +31,15 @@ class readSheets:
         values = result.get('values', [])[1:]
 
         # Crea el DataFrame df1
-        df = pd.DataFrame(values, columns=['Aglomerado', 'Año', 'Fecha', 'Trimestre', 'Estado del dato', 'Tasa de Actividad', 'Tasa de Empleo', 'Tasa de desocupación'])
-        df.replace({"": pd.NA, " ": pd.NA}, inplace=True)
-        df.dropna(subset=['Estado del dato'], inplace=True)
+        df = pd.DataFrame(values, columns=['Aglomerado', 'Año', 'Fecha', 'Trimestre', 'Estado del dato', 'Tasa de Actividad', 'Tasa de Empleo', 'Tasa de desocupación']) 
+        for e in df['Estado del dato']:
+            if e != 'FINALIZADO':
+               df.replace({e:pd.NA}, inplace=True)
+        df.replace({" ": pd.NA, "": pd.NA}, inplace=True)
+        df.dropna(subset=['Estado del dato'], inplace=True)    
         df = df.where(pd.notnull(df), None)
         print(df)
-        df.drop(['Estado del dato'], axis=1, inplace=True)
+        df.drop(['Estado del dato'], axis=1, inplace=True)   
         self.transformar_tipo_datos(df)
         print(df.dtypes)
         print(df)
