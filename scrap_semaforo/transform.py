@@ -14,8 +14,13 @@ class Transform:
         #Eliminacion del simbolo "%" del df
         for column in df.columns: 
             try:
+                #Primero sacamos los %. Y lo pasamos a float para pasar a valores absolutos nuevamente.
                 df[column] = df[column].str.replace('%', '').astype(float)
                 df[column] = df[column] / 100
+
+                #Con la func. lamda tomamos cad valor de la columna, y lo truncamos a 3 decimales
+                decimals = 3
+                df[column] = df[column].apply(lambda x: float(self.truncate_float_to_string(x, decimals)))
             except:
                 pass
         
@@ -23,6 +28,7 @@ class Transform:
 
     # Función para convertir mes-año a datetime
     def convertir_fecha(self,df_fecha):
+
 
         lista_fechas_convertidas = []
 
@@ -47,3 +53,16 @@ class Transform:
             lista_fechas_convertidas.append(fecha_datetime)
 
         return lista_fechas_convertidas
+    
+    # Función para truncar un valor flotante a un número específico de decimales
+    def truncate_float_to_string(self,value, decimals):
+
+        # Convertir el valor a cadena y encontrar la posición del punto decimal
+        str_value = str(value)
+        decimal_index = str_value.find('.')
+    
+        # Truncar la cadena al número de decimales especificado
+        truncated_str = str_value[:decimal_index + decimals+1]
+
+
+        return truncated_str
