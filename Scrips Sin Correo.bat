@@ -24,6 +24,10 @@ python C:\Users\Usuario\Desktop\scrapingTrabajo\scrap_IPICORR\main.py
 echo ------------------------------------
 echo Termino IPICOR 
 echo ------------------------------------
+python C:\Users\Usuario\Desktop\scrapingTrabajo\scrap_semaforo\main.py
+echo ------------------------------------
+echo Termino INDICADORES SEMAFOROS
+echo ------------------------------------
 
 
 echo Termino la ejecucion

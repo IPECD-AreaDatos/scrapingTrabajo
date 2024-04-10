@@ -1,26 +1,32 @@
+from extract import ExtractSheet
+from transform import Transform
+from load import Database
 import os
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
+import sys
+
+# Obtener la ruta al directorio actual del script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+credenciales_dir = os.path.join(script_dir, '..', 'Credenciales_folder')
+# Agregar la ruta al sys.path
+sys.path.append(credenciales_dir)
 
 
-# Define los alcances y la ruta al archivo JSON de credenciales
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+from credenciales_bdd import Credenciales
 
-directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
-ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
-KEY = os.path.join(ruta_carpeta_files, 'key.json')
 
-# Escribe aquí el ID de tu documento:
-SPREADSHEET_ID = '1HnK6eMrd_P6V8P141WPZ0jz2ivoO6opyX0YWy342fRM'
+credenciales = Credenciales("dwh_economico")
 
-# Carga las credenciales desde el archivo JSON
-creds = service_account.Credentials.from_service_account_file(KEY, scopes=SCOPES)
 
-# Crea una instancia de la API de Google Sheets
-service = build('sheets', 'v4', credentials=creds)
-sheet = service.spreadsheets()
+if __name__ == '__main__':
 
-#Realiza una llamada a la API para obtener datos desde la hoja 'Hoja 1' en el rango 'B2:Z12'
-result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='Hoja 1!A:B').execute()
-# Extrae los valores del resultado
-values = result.get('values', [])[1:]
+    #Extraccion y Transformacion de datos
+    df_semaforo = ExtractSheet().extract_sheet()
+    df_transformado = Transform().transform_data(df_semaforo)
+
+    #Almacenado en BDD
+    instancia_bdd = Database(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    instancia_bdd.load_data(df_transformado)
+
+    print("* Los indicadores de SEMAFORO han sido cargados")
+
+    
