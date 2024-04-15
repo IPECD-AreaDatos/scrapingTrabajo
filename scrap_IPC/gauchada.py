@@ -19,16 +19,20 @@ df = pd.read_sql(query,conn)
 # Definir el diccionario de mapeo de nombres de columnas
 nuevos_nombres = {
             'fecha': 'Fecha',
-            'region': 'ID_Region',
-            'categoria': 'ID_Categoria',
-            'division': 'ID_Division',
-            'subdivision': 'ID_Subdivision',
+            'id_region': 'ID_Region',
+            'id_categoria': 'ID_Categoria',
+            'id_division': 'ID_Division',
+            'id_subdivision': 'ID_Subdivision',
             'valor': 'Valor'
         }
 
 # Renombrar las columnas utilizando el diccionario de mapeo
 df = df.rename(columns=nuevos_nombres)
-from sqlalchemy import create_engine
+
+
+query_truncate = "TRUNCATE ipecd_economico.ipc_region"
+cursor.execute(query_truncate)
+
 #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
 engine = create_engine(f"mysql+pymysql://{user}:{password}@{host}:{3306}/ipecd_economico")
 df.to_sql(name="ipc_region", con=engine, if_exists='append', index=False)

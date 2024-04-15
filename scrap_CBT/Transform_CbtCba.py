@@ -235,7 +235,7 @@ class loadXLSDataCBT:
 
     
         #Establecemos la fecha del ultimo periodo valido (recodar que para estimaciones se usa los ultimos 6 valores oficiales del NEA)
-        fecha_ultima_publicacion_oficial = pd.to_datetime("2023-06-01")
+        fecha_ultima_publicacion_oficial = pd.to_datetime("2023-12-01")
 
 
         """
@@ -285,4 +285,5 @@ class loadXLSDataCBT:
 
 
             return concatenacion_df
-    
+        
+

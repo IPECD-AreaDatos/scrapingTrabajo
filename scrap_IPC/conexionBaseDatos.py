@@ -157,9 +157,16 @@ class conexionBaseDatos:
 
         </table> 
 
+
+            <p> Instituto Provincial de Estadistica y Ciencia de Datos de Corrientes<br>
+            Dirección: Tucumán 1164 - Corrientes Capital<br>
+            Contacto Coordinación General: 3794 284993</p>
+
+
         </body>
         </html>
         '''
+
 
 
         cadena_final = mensaje + variaciones_nacionales + variaciones_nea + tabla
