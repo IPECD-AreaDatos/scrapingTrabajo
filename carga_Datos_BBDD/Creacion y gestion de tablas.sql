@@ -629,3 +629,15 @@ create table pbg_presupuesto_ejecutado(
     bienes_de_uso float
 );
 
+#Tabla de Cantidad de Puestos Empleados cada Mil Habitantes
+create table provincias_cant_empleados_cada_mil_habitantes(
+	fecha date,
+    provincia int,
+    puestos_cada_mil_empleados int
+);
+create table corrientes_cant_empleados_cada_mil_habitantes(
+	fecha date,
+    provincia int,
+    departamento int,
+    puestos_cada_mil_empleados int
+);
