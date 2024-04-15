@@ -31,7 +31,7 @@ df = df.rename(columns=nuevos_nombres)
 from sqlalchemy import create_engine
 #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
 engine = create_engine(f"mysql+pymysql://{user}:{password}@{host}:{3306}/ipecd_economico")
-df.to_sql(name="ipc_region", con=engine, if_exists='replace', index=False)
+df.to_sql(name="ipc_region", con=engine, if_exists='append', index=False)
 
 
 print("DATOS CARGADOS")

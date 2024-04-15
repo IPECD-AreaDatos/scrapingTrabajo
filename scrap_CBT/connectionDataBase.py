@@ -159,8 +159,6 @@ class connection_db:
         #Extraemos datalake
         select_query = "SELECT * FROM cbt_cba"
         df_bdd = pd.read_sql(select_query,self.conn)
-
-        
         df = pd.DataFrame()
 
 
@@ -245,7 +243,6 @@ class connection_db:
         #Asignaciones de variaciones acumuladas de la canasta basica total
         df['vacum_cbt'] = var_acumuladas_cbt
 
-        
 
         #==== INCORPORACION DE IPC
 
@@ -273,7 +270,6 @@ class connection_db:
         #Construccion de dataframe a partir de la consulta
         df_bdd = pd.read_sql(query_consulta,self.conn)
 
-        print(df_bdd)        
         # ==== CALCULOS DE VARIACIONES MENSUALES Y INTERANUALES
 
         #=== Creamos columnas para evitar conflictos de manipulacion del datafarame
@@ -281,7 +277,7 @@ class connection_db:
         df['vinter_nea_ipc'] = float('nan')
 
         #=== Tomamos la primera fecha del grupo de IPC -- Esto porque CBT y CBA empieza su historico antes que los datos oficiales de IPC
-        firt_date =pd.to_datetime (df_bdd['fecha'].values[0])
+        firt_date = pd.to_datetime(df_bdd['fecha'].values[0])
 
         #=== Creacion de variaciones mensual, interanual PARA IPC del NEA
         df['vmensual_nea_ipc'].iloc[df['fecha'] >= firt_date] =( df_bdd['valor'] / df_bdd['valor'].shift(1) - 1) * 100  #--> Var. Mensual de IPC

@@ -37,7 +37,6 @@ class conexionBaseDatos:
             )
             self.cursor = self.conn.cursor()
 
-
     def cargaBaseDatos(self):
         
 
@@ -47,29 +46,28 @@ class conexionBaseDatos:
         print("\n****************************************************")
         
         self.conectar_bdd()
+
+        # === Construccion del DF
         df = pd.DataFrame()        
-        df['Fecha'] = self.lista_fechas
-        df['ID_Region'] = self.lista_region
-        df['ID_Categoria'] = self.lista_categoria
-        df['ID_Division']= self.lista_division
-        df['ID_Subdivision']= self.lista_subdivision
-        df['Valor'] = self.lista_valores
+        df['fecha'] = self.lista_fechas
+        df['id_region'] = self.lista_region
+        df['id_categoria'] = self.lista_categoria
+        df['id_division']= self.lista_division
+        df['id_subdivision']= self.lista_subdivision
+        df['valor'] = self.lista_valores
 
         
-        print(df)
-        # Sentencia SQL para comprobar si la fecha ya existe en la tabla
-        select_query = "SELECT COUNT(*) FROM ipc_valores WHERE Fecha = %s AND ID_Region = %s AND ID_Categoria = %s AND ID_Division = %s AND ID_Categoria = %s"
 
-        # Sentencia SQL para insertar los datos en la tabla
-        insert_query = "INSERT INTO ipc_valores (Fecha, ID_Region, ID_Categoria, ID_Division, ID_Subdivision, Valor) VALUES (%s, %s, %s, %s, %s, %s)"
-
-        #Verificar cantidad de filas anteriores 
-        select_row_count_query = "SELECT COUNT(*) FROM ipc_valores"
-        self.cursor.execute(select_row_count_query)
-
-
-        #Version anterior
+        query_contador = "SELECT COUNT(*) FROM datalake_economico.ipc_valores"
+        self.cursor.execute(query_contador)
         row_count_before = self.cursor.fetchone()[0]
+
+        print("CANTIDA  DE DATOS RPEVIA: ",row_count_before)
+
+
+        query_truncate = "TRUNCATE datalake_economico.ipc_valores"
+        self.cursor.execute(query_truncate)
+
 
         #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
         engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
@@ -88,6 +86,8 @@ class conexionBaseDatos:
 
         self.conectar_bdd()
 
+
+
         self.verificar_cantidad(row_count_before)
 
 
@@ -95,14 +95,15 @@ class conexionBaseDatos:
         self.cursor.close()
         self.conn.close()
 
+
         
 
 
     def enviar_correo(self):
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores =  ['samaniego18@gmail.com','benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com','alejandrobrunel@gmail.com']
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
+        #email_receptores =  ['samaniego18@gmail.com','benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com','alejandrobrunel@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
 
         
         #Variaciones nacionales
@@ -201,9 +202,9 @@ class conexionBaseDatos:
 
         nombre_tabla = 'ipc_valores'
 
-        query_consulta = f'SELECT * FROM {nombre_tabla} WHERE ID_Region = {region} and ID_Categoria = 1'
+        query_consulta = f'SELECT * FROM {nombre_tabla} WHERE id_region = {region} and id_categoria = 1'
 
-        #query_prueba = 'SELECT * FROM ipc_valores WHERE ID_Region = 1 and ID_Categoria = 1'
+        #query_prueba = 'SELECT * FROM ipc_valores WHERE id_region = 1 and id_categoria = 1'
         df_bdd = pd.read_sql(query_consulta,self.conn)
 
         print("DF EXTRAIDO DE LA BDD")
@@ -212,12 +213,12 @@ class conexionBaseDatos:
         #==== IPC registrado en el AÑO Y MES actual ==== #
 
         #Obtener ultima fecha
-        fecha_max = df_bdd['Fecha'].max()
+        fecha_max = df_bdd['fecha'].max()
         
         #Buscamos los registros de la ultima fecha - Sumamos todos los campos
-        grupo_ultima_fecha = df_bdd[(df_bdd['Fecha'] == fecha_max)]
+        grupo_ultima_fecha = df_bdd[(df_bdd['fecha'] == fecha_max)]
 
-        total_ipc = grupo_ultima_fecha['Valor'].values[0]
+        total_ipc = grupo_ultima_fecha['valor'].values[0]
 
          #=== CALCULO DE LA VARIACION MENSUAL
         
@@ -233,20 +234,20 @@ class conexionBaseDatos:
 
 
         #Convertimos la serie a datetime para buscar por año y mes
-        df_bdd['Fecha'] = pd.to_datetime(df_bdd['Fecha'])    
-        grupo_mes_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == anio_actual) & (df_bdd['Fecha'].dt.month == mes_anterior)]
+        df_bdd['fecha'] = pd.to_datetime(df_bdd['fecha'])    
+        grupo_mes_anterior = df_bdd[ (df_bdd['fecha'].dt.year == anio_actual) & (df_bdd['fecha'].dt.month == mes_anterior)]
 
         #Total del mes anterior y calculo de la variacion mensual
-        total_mes_anterior = grupo_mes_anterior['Valor'].values[0]
+        total_mes_anterior = grupo_mes_anterior['valor'].values[0]
 
         variacion_mensual = ((total_ipc/ total_mes_anterior) - 1) * 100
 
 
         #=== CALCULO VARIACION INTERANUAL
 
-        grupo_mes_actual_año_anterior= df_bdd[(df_bdd['Fecha'].dt.year == fecha_max.year-1 ) & (df_bdd['Fecha'].dt.month == fecha_max.month)]
+        grupo_mes_actual_año_anterior= df_bdd[(df_bdd['fecha'].dt.year == fecha_max.year-1 ) & (df_bdd['fecha'].dt.month == fecha_max.month)]
 
-        total_ipc_año_anterior =  grupo_mes_actual_año_anterior['Valor'].values[0]
+        total_ipc_año_anterior =  grupo_mes_actual_año_anterior['valor'].values[0]
 
         variacion_interanual = ((total_ipc / total_ipc_año_anterior) - 1) * 100
 
@@ -254,9 +255,9 @@ class conexionBaseDatos:
 
         #=== CALCULO VARIACION ACUMULADA - Variacion desde DIC del año anterior
 
-        grupo_diciembre_año_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == fecha_max.year-1 ) & ((df_bdd['Fecha'].dt.month == 12)) ]
+        grupo_diciembre_año_anterior = df_bdd[ (df_bdd['fecha'].dt.year == fecha_max.year-1 ) & ((df_bdd['fecha'].dt.month == 12)) ]
 
-        total_diciembre = grupo_diciembre_año_anterior['Valor'].values[0]
+        total_diciembre = grupo_diciembre_año_anterior['valor'].values[0]
 
         variacion_acumulada = ((total_ipc / total_diciembre) - 1) * 100
 
@@ -304,7 +305,7 @@ class conexionBaseDatos:
 
         #Buscamos tabla con los datos del IPC
         nombre_tabla = 'ipc_valores'
-        query_consulta = f'SELECT * FROM {nombre_tabla} WHERE ID_Region = 5'
+        query_consulta = f'SELECT * FROM {nombre_tabla} WHERE id_region = 5'
         df_bdd = pd.read_sql(query_consulta,self.conn)  
 
         #Buscamos la tabla de las subdivisiones para imprimir los mensajes
@@ -313,7 +314,7 @@ class conexionBaseDatos:
         df_subdivisiones = pd.read_sql(query_consulta,self.conn)
         
         #Obtener ultima fecha
-        fecha_max = df_bdd['Fecha'].max()
+        fecha_max = df_bdd['fecha'].max()
 
         #mes y año actuales
         mes_actual = fecha_max.month
@@ -323,7 +324,7 @@ class conexionBaseDatos:
         #=== OPERACIONES NECESARIAS PARA EL CALCULO DE LA VARIACION MENSUAL
 
         #Buscamos los registros de la ultima fecha 
-        grupo_ultima_fecha = df_bdd[(df_bdd['Fecha'] == fecha_max)]
+        grupo_ultima_fecha = df_bdd[(df_bdd['fecha'] == fecha_max)]
 
         #Buscamos el mes anterior
         mes_anterior = int(fecha_max.month) - 1
@@ -335,30 +336,30 @@ class conexionBaseDatos:
 
 
         #Convertimos la serie a datetime para buscar por año y mes
-        df_bdd['Fecha'] = pd.to_datetime(df_bdd['Fecha'])    
-        grupo_mes_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == anio_actual) & (df_bdd['Fecha'].dt.month == mes_anterior)]
+        df_bdd['fecha'] = pd.to_datetime(df_bdd['fecha'])    
+        grupo_mes_anterior = df_bdd[ (df_bdd['fecha'].dt.year == anio_actual) & (df_bdd['fecha'].dt.month == mes_anterior)]
 
 
         #=== OPERACIONES NECESARIAS PARA EL CALCULO DE LA VARIACION INTERANUAL
-        grupo_año_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == fecha_max.year - 1) & (df_bdd['Fecha'].dt.month == fecha_max.month)]
+        grupo_año_anterior = df_bdd[ (df_bdd['fecha'].dt.year == fecha_max.year - 1) & (df_bdd['fecha'].dt.month == fecha_max.month)]
 
 
         #=== OPERACIONES NECESARIAS PARA EL CALCULO DE LA VARIACION ACUMULADA
-        grupo_dic_año_anterior = df_bdd[ (df_bdd['Fecha'].dt.year == fecha_max.year - 1) & (df_bdd['Fecha'].dt.month == 12)]
+        grupo_dic_año_anterior = df_bdd[ (df_bdd['fecha'].dt.year == fecha_max.year - 1) & (df_bdd['fecha'].dt.month == 12)]
 
         #Vamos a detectar los valores de cada subdivision y calcular su variacion mensual
         #Luego lo agregaremos a una tabla de STR o HTML para trabajar el conjunto en su totalidad
-        for indice in grupo_ultima_fecha['ID_Categoria'].unique():
+        for indice in grupo_ultima_fecha['id_categoria'].unique():
             
             #=== CALCULO DE LA VARIACION MENSUAL
 
             #Busqueda del valor del mes anterior
-            fila_mes_anterior = grupo_mes_anterior[grupo_mes_anterior['ID_Categoria'] == indice]
-            valor_mes_anterior = fila_mes_anterior['Valor'].values[0]
+            fila_mes_anterior = grupo_mes_anterior[grupo_mes_anterior['id_categoria'] == indice]
+            valor_mes_anterior = fila_mes_anterior['valor'].values[0]
 
-            #Valor del valor del mes actual
-            fila_mes_actual = grupo_ultima_fecha[grupo_ultima_fecha['ID_Categoria'] == indice]
-            valor_mes_actual = fila_mes_actual['Valor'].values[0]
+            #valor del valor del mes actual
+            fila_mes_actual = grupo_ultima_fecha[grupo_ultima_fecha['id_categoria'] == indice]
+            valor_mes_actual = fila_mes_actual['valor'].values[0]
 
             #Busqueda del nombre de la subdivision 
             subdivision = df_subdivisiones[df_subdivisiones['id_categoria'] == indice]
@@ -370,8 +371,8 @@ class conexionBaseDatos:
             #=== CALCULO DE LA VARIACION INTERANUAL
 
             #Busqueda del valor del año anterior 
-            fila_año_anterior = grupo_año_anterior[grupo_año_anterior['ID_Categoria'] == indice]
-            valor_año_anterior = fila_año_anterior['Valor'].values[0]
+            fila_año_anterior = grupo_año_anterior[grupo_año_anterior['id_categoria'] == indice]
+            valor_año_anterior = fila_año_anterior['valor'].values[0]
 
             
             var_interanual = ((valor_mes_actual / valor_año_anterior) - 1) * 100
@@ -380,8 +381,8 @@ class conexionBaseDatos:
             #=== CALCULO DE LA VARIACION ACUMULADA
 
             #Busqueda del valor del DICIEMBRRE del anterior 
-            fila_dic_año_anterior = grupo_dic_año_anterior[grupo_dic_año_anterior['ID_Categoria'] == indice]
-            valor_dic_año_anterior = fila_dic_año_anterior['Valor'].values[0]
+            fila_dic_año_anterior = grupo_dic_año_anterior[grupo_dic_año_anterior['id_categoria'] == indice]
+            valor_dic_año_anterior = fila_dic_año_anterior['valor'].values[0]
 
             
             var_acumulada = ((valor_mes_actual / valor_dic_año_anterior) - 1) * 100

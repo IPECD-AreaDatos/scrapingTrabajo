@@ -61,6 +61,7 @@ class LoadXLSDataNacion:
         # Agrupar por fecha, categoría, división y subdivisión, y sumar los valores
         df_grouped = df.groupby(['Fecha', 'ID_Categoria', 'ID_Division', 'ID_Subdivision'])['Valor'].sum().reset_index()
 
+        df_grouped['ID_Region'] = 1
 
         print("DF AGRUPADO")
         print(df_grouped)
