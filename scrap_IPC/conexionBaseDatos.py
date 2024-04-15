@@ -10,6 +10,7 @@ from datetime import datetime
 import calendar
 import os
 import xlrd
+from sqlalchemy import create_engine
 
 
 class conexionBaseDatos:
@@ -47,15 +48,15 @@ class conexionBaseDatos:
         
         self.conectar_bdd()
         df = pd.DataFrame()        
-        df['fecha'] = self.lista_fechas
-        df['region'] = self.lista_region
-        df['categoria'] = self.lista_categoria
-        df['division']= self.lista_division
-        df['subdivision']= self.lista_subdivision
-        df['valor'] = self.lista_valores
+        df['Fecha'] = self.lista_fechas
+        df['ID_Region'] = self.lista_region
+        df['ID_Categoria'] = self.lista_categoria
+        df['ID_Division']= self.lista_division
+        df['ID_Subdivision']= self.lista_subdivision
+        df['Valor'] = self.lista_valores
 
         
-        
+        print(df)
         # Sentencia SQL para comprobar si la fecha ya existe en la tabla
         select_query = "SELECT COUNT(*) FROM ipc_valores WHERE Fecha = %s AND ID_Region = %s AND ID_Categoria = %s AND ID_Division = %s AND ID_Categoria = %s"
 
@@ -70,21 +71,9 @@ class conexionBaseDatos:
         #Version anterior
         row_count_before = self.cursor.fetchone()[0]
 
-        #Version nueva
-        cant_valores = len(df.values)
-
-        delete_query ="TRUNCATE TABLE ipc_valores"
-        self.cursor.execute(delete_query)
-
-        for fecha, region, categoria, division, subdivision, valor in zip(self.lista_fechas, self.lista_region, self.lista_categoria, self.lista_division, self.lista_subdivision, self.lista_valores):
-
-
-            # Convertir la fecha en formato datetime si es necesario
-            if isinstance(fecha, str):
-                fecha = datetime.strptime(fecha, '%Y-%m-%d').date()
-
-            self.cursor.execute(insert_query, (fecha, region, categoria, division, subdivision, valor))
-            print("Leyendo el valor de IPC: ", valor)
+        #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+        df.to_sql(name="ipc_valores", con=engine, if_exists='append', index=False)
 
         
         # Confirmar los cambios en la base de datos
@@ -112,8 +101,8 @@ class conexionBaseDatos:
     def enviar_correo(self):
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        #email_receptores =  ['samaniego18@gmail.com','benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
+        email_receptores =  ['samaniego18@gmail.com','benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com','alejandrobrunel@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
 
         
         #Variaciones nacionales
