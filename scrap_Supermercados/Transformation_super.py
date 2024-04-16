@@ -21,11 +21,12 @@ class Transformation_Data:
 
         nombre_columna = ['fecha']
 
-        df_aux = pd.read_excel(path_archivo,sheet_name=5,skiprows=5, usecols='C',names=nombre_columna)
+        df_aux = pd.read_excel(path_archivo,sheet_name=5,skiprows=3, usecols='c',names=nombre_columna)
 
         tamaño_secciones = self.construccion_lista_meses(df_aux['fecha']) #--> Obtenemos el tamaño que es la misma para cada pronvicia
 
-        nombre_columnas = ['provincia','fecha','bebidas','almacen','panaderia','lacteos','carnes','verduleria_fruteria','alimentos_preparados_rostiseria',
+
+        nombre_columnas = ['id_provincia_indec','fecha','bebidas','almacen','panaderia','lacteos','carnes','verduleria_fruteria','alimentos_preparados_rostiseria',
                 'articulo_limpieza_perfumeria','indumentaria_calzado_textiles_hogar','electronica_hogar','otros']
         
         return self.construccion_datframes(tamaño_secciones,path_archivo,nombre_columnas)
@@ -72,41 +73,42 @@ class Transformation_Data:
         """
         
         # ==== PASO 1 - Construccion del dataframe GENERAl
-        df = pd.read_excel(path_archivo,sheet_name=5,skiprows= 4,usecols='a,c,e,f,g,h,i,j,k,l,m,n,o',names=nombres_columnas)
+        df = pd.read_excel(path_archivo,sheet_name=5,skiprows= 2,usecols='a,c,e,f,g,h,i,j,k,l,m,n,o',names=nombres_columnas)
 
         # ===# PASO 2 - Recorrido del dataframe
 
         #Dataframe que contendra todos los datos
         df_provincias = pd.DataFrame(columns = nombres_columnas)
         
-        #La lista esta compuesta por (Nombre de pronvicia, numero de ID de la BDD)
+
+        #La lista esta compuesta por (Nombre de pronvicia, numero de ID de la BDD, ID region)
         lista_provincias = [
-            ['Total',1],
-            ['Ciudad Autónoma de Buenos Aires',2],
-            ['24 partidos del Gran Buenos Aires ',6], #--> EL ESPACIO ES NECESARIO EN ESTA CADENA, VA A FINAL DESPUES DE 'Aires'
-            ['Resto de Buenos Aires',6],
-            ['Catamarca',10],
-            ['Chaco',22],
-            ['Chubut',26],
-            ['Córdoba',14],
-            ['Corrientes',18],
-            ['Entre Ríos',30],
-            ['Formosa',34],
-            ['Jujuy',38],
-            ['La Pampa',42],
-            ['La Rioja',46],
-            ['Mendoza',50],
-            ['Misiones',54],
-            ['Neuquén',58],
-            ['Río Negro',62],
-            ['Salta',66],
-            ['San Juan',70],
-            ['San Luis',74],
-            ['Santa Cruz',78],
-            ['Santa Fe',82],
-            ['Santiago del Estero',86],
-            ['Tierra del Fuego',94],
-            ['Tucumán',90],
+            ['Total',1,1],
+            ['Ciudad Autónoma de Buenos Aires',2,2],
+            ['24 partidos del Gran Buenos Aires ',6,2], #--> EL ESPACIO ES NECESARIO EN ESTA CADENA, VA A FINAL DESPUES DE 'Aires'
+            ['Resto de Buenos Aires',6,3],
+            ['Catamarca',10,4],
+            ['Chaco',22,5],
+            ['Chubut',26,7],
+            ['Córdoba',14,3],
+            ['Corrientes',18,5],
+            ['Entre Ríos',30,3],
+            ['Formosa',34,5],
+            ['Jujuy',38,4],
+            ['La Pampa',42,3],
+            ['La Rioja',46,4],
+            ['Mendoza',50,6],
+            ['Misiones',54,5],
+            ['Neuquén',58,7],
+            ['Río Negro',62,7],
+            ['Salta',66,4],
+            ['San Juan',70,6],
+            ['San Luis',74,6],
+            ['Santa Cruz',78,7],
+            ['Santa Fe',82,3],
+            ['Santiago del Estero',86,4],
+            ['Tierra del Fuego',94,7],
+            ['Tucumán',90,4],
         ]
 
 
@@ -118,14 +120,15 @@ class Transformation_Data:
 
         for provincia in lista_provincias:
         
-            # Buscar la fila y columna del valor específico
+            #Buscar la fila y columna del valor específico
             fila, columna = df[df == provincia[0]].stack().index[0]
-
+            
             fila = fila + 1 #--> Se suma uno por desfase
 
             #Con la fila detectada, extraemos la seccion que nos interesa y con el Cod. de pronvincia modificamos la columna 'provincia'
             df_por_provincia = df.iloc[fila : fila + tamaño_secciones]
-            df_por_provincia['provincia'] = provincia[1]
+            df_por_provincia['id_provincia_indec'] = provincia[1]
+            df_por_provincia['id_region_indec'] = int(provincia[2])
 
             #Asignamos columna fecha
             df_por_provincia['fecha'] = lista_fechas

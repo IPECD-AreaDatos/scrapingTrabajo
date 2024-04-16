@@ -1,5 +1,6 @@
 import mysql.connector
 from pandas import isna
+from sqlalchemy import create_engine
 
 class conexionBaseDatos:
 
@@ -39,6 +40,11 @@ class conexionBaseDatos:
 
             #Eliminamos tabla
             self.cursor.execute(delete_query)
+
+            #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+            engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+            df.to_sql(name="supermercado_encuesta", con=engine, if_exists='append', index=False)
+            return
 
             #Iteramos el dataframe, y vamos cargando fila por fila
             for index,valor in df.iterrows():

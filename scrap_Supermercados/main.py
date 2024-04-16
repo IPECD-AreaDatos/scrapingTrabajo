@@ -13,16 +13,19 @@ sys.path.append(credenciales_dir)
 
 # Crea una instancia de la clase "Credenciales"
 from credenciales_bdd import Credenciales
-instancia_credenciales = Credenciales()
+instancia_credenciales = Credenciales('datalake_economico')
 
 
 if __name__ == '__main__':
 
     #Descarga del archivo
-    HomePage().descargar_archivo()
+    #HomePage().descargar_archivo()
 
     #Obtencion del dataframe con formato solicitado
     df = Transformation_Data().contruccion_df()
+
+    print(df)
+
 
     #Almacenamos los datos
     conexionBaseDatos(instancia_credenciales.host,instancia_credenciales.user,instancia_credenciales.password,instancia_credenciales.database).cargar_datos(df)
