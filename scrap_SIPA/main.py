@@ -23,7 +23,7 @@ credenciales = Credenciales("datalake_economico")
 if __name__ == '__main__':
  
     
-    #url = HomePage()
+    url = HomePage()
     directorio_actual = os.path.dirname(os.path.abspath(__file__))
     ruta_carpeta_files = os.path.join(directorio_actual, 'files')
     file_path = os.path.join(ruta_carpeta_files, 'SIPA.xlsx')

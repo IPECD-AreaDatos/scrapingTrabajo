@@ -27,7 +27,7 @@ class Transformation_Data:
 
 
         nombre_columnas = ['id_provincia_indec','fecha','bebidas','almacen','panaderia','lacteos','carnes','verduleria_fruteria','alimentos_preparados_rostiseria',
-                'articulo_limpieza_perfumeria','indumentaria_calzado_textiles_hogar','electronica_hogar','otros']
+                'articulos_limpieza_perfumeria','indumentaria_calzado_textiles_hogar','electronica_hogar','otros']
         
         return self.construccion_datframes(tamaño_secciones,path_archivo,nombre_columnas)
         

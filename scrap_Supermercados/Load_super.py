@@ -1,5 +1,4 @@
 import mysql.connector
-from pandas import isna
 from sqlalchemy import create_engine
 
 class conexionBaseDatos:
@@ -32,7 +31,6 @@ class conexionBaseDatos:
         nombre_tabla = 'supermercado_encuesta'
         delete_query ="TRUNCATE `ipecd_economico`.`supermercado_encuesta`"
         query_cantidad_datos = f'SELECT COUNT(*) FROM {nombre_tabla}'
-        query_insertar_datos = "INSERT INTO supermercado_encuesta VALUES (%s, %s, %s, %s, %s,%s, %s, %s, %s, %s,%s, %s, %s)"
 
                 
         #Si las cantidad de filas del DF descargado, es mayor que el ya almacenado --> Realizar carga
@@ -44,31 +42,6 @@ class conexionBaseDatos:
             #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
             engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
             df.to_sql(name="supermercado_encuesta", con=engine, if_exists='append', index=False)
-            return
-
-            #Iteramos el dataframe, y vamos cargando fila por fila
-            for index,valor in df.iterrows():
-                
-                #Obtencion de valores del dataframe e insercion de datos
-                values = (valor['provincia'],valor['fecha'],valor['bebidas'],valor['almacen'],valor['panaderia'],
-                          valor['lacteos'],valor['carnes'],valor['verduleria_fruteria'],valor['alimentos_preparados_rostiseria'],
-                          valor['articulo_limpieza_perfumeria'],valor['indumentaria_calzado_textiles_hogar'],valor['electronica_hogar'],
-                          valor['otros']
-                          )
-
-                # Convertir valores NaN a None --> Lo hacemos porque los valores 'nan' no son reconocidos por MYSQL
-                values = [None if isna(v) else v for v in values]
-                
-                #Insercion de dato fila por fila
-                self.cursor.execute(query_insertar_datos,values)
-
-            
-            # Confirmar los cambios en la base de datos
-            self.conn.commit()
-            # Cerrar el cursor y la conexión
-            self.cursor.close()
-            self.conn.close()
-
 
             print("""
 
