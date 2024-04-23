@@ -26,7 +26,7 @@ class Transformation_Data:
         tamaño_secciones = self.construccion_lista_meses(df_aux['fecha']) #--> Obtenemos el tamaño que es la misma para cada pronvicia
 
 
-        nombre_columnas = ['id_provincia_indec','fecha','bebidas','almacen','panaderia','lacteos','carnes','verduleria_fruteria','alimentos_preparados_rostiseria',
+        nombre_columnas = ['id_provincia_indec','fecha','total_facturacion','bebidas','almacen','panaderia','lacteos','carnes','verduleria_fruteria','alimentos_preparados_rostiseria',
                 'articulos_limpieza_perfumeria','indumentaria_calzado_textiles_hogar','electronica_hogar','otros']
         
         return self.construccion_datframes(tamaño_secciones,path_archivo,nombre_columnas)
@@ -73,7 +73,7 @@ class Transformation_Data:
         """
         
         # ==== PASO 1 - Construccion del dataframe GENERAl
-        df = pd.read_excel(path_archivo,sheet_name=5,skiprows= 2,usecols='a,c,e,f,g,h,i,j,k,l,m,n,o',names=nombres_columnas)
+        df = pd.read_excel(path_archivo,sheet_name=5,skiprows= 2,usecols='a,c,d,e,f,g,h,i,j,k,l,m,n,o',names=nombres_columnas)
 
         # ===# PASO 2 - Recorrido del dataframe
 

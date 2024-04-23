@@ -4,6 +4,7 @@ import sys
 from Extraction_homePage import HomePage
 from Transformation_super import Transformation_Data
 from Load_super import conexionBaseDatos
+from datos_deflactados import Deflactador
 
 # Obtener la ruta al directorio actual del script
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -27,3 +28,6 @@ if __name__ == '__main__':
 
     #Almacenamos los datos
     conexionBaseDatos(instancia_credenciales.host,instancia_credenciales.user,instancia_credenciales.password,instancia_credenciales.database).cargar_datos(df)
+
+    #Deflactacion de datos
+    Deflactador(instancia_credenciales.host,instancia_credenciales.user,instancia_credenciales.password,instancia_credenciales.database).main()
