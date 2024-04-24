@@ -31,7 +31,11 @@ em = EmailMessage()
 em['From'] = email_emisor
 em['To'] = email_receptores
 em['Subject'] = "CORREO DE PRUEBA"
-em.set_content("Esto es una prueba de la automatizacion de AWS")
+em.set_content(f"""
+               Esto es una prueba de la automatizacion de AWS
+               El titulo que se extrajo es: {titulo_pagina}
+               
+               """)
 
 contexto= create_default_context()
 
