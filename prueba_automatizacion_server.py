@@ -3,10 +3,23 @@ from ssl import create_default_context
 from smtplib import SMTP_SSL
 from selenium import webdriver
 
-driver = webdriver.Chrome()  # Reemplaza con la ubicación de tu ChromeDriver
+# Configuración del navegador
+options = webdriver.ChromeOptions()
+options.add_argument('--headless')
+
+driver = webdriver.Chrome(options=options)  # Reemplaza con la ubicación de tu ChromeDriver
 
 # URL de la página que deseas obtener
 url_pagina = 'https://www.argentina.gob.ar/trabajo/estadisticas'
+
+# Acceder a la página
+driver.get(url_pagina)
+
+# Obtener el título de la página
+titulo_pagina = driver.title
+
+# Imprimir el título en la consola
+print("El título de la página es:", titulo_pagina)
 
 #Declaramos email desde el que se envia, la contraseña de la api, y los correos receptores.
 email_emisor='departamientoactualizaciondato@gmail.com'
