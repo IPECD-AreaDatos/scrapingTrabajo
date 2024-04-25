@@ -16,7 +16,6 @@ sys.path.append(credenciales_dir)
 
 from credenciales_bdd import Credenciales
 
-
 credenciales = Credenciales("datalake_economico")
 
 
