@@ -42,3 +42,7 @@ contexto= create_default_context()
 with SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
     smtp.login(email_emisor, email_contrasenia)
     smtp.sendmail(email_emisor, email_receptores, em.as_string())
+
+
+
+print("hola")
