@@ -19,9 +19,7 @@ from credenciales_bdd import Credenciales
 credenciales = Credenciales("datalake_economico")
 
 
-if __name__ == '__main__':
- 
-    
+if __name__ == '__main__':    
     url = HomePage()
     directorio_actual = os.path.dirname(os.path.abspath(__file__))
     ruta_carpeta_files = os.path.join(directorio_actual, 'files')

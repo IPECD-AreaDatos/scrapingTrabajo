@@ -22,7 +22,7 @@ class ExtractData:
             df.drop(df.columns[-1], axis=1, inplace=True)#Elimina la ultima columna
             df = df.rename(columns=lambda x: x.strip())#Eliminar los espacion al final del nombre
             start_date = pd.to_datetime('2009-01-01')
-            df['Período'] = pd.date_range(start=start_date, periods=len(df), freq='M').date
+            df['Período'] = pd.date_range(start=start_date, periods=len(df), freq='MS').date
 
 
 
@@ -39,7 +39,7 @@ class ExtractData:
             df_NoEstacional.drop(df_NoEstacional.columns[-1], axis=1, inplace=True)#Elimina la ultima columna
             df_NoEstacional = df_NoEstacional.rename(columns=lambda x: x.strip())#Eliminar los espacion al final del nombre
             start_date = pd.to_datetime('2009-01-01')
-            df_NoEstacional['Período'] = pd.date_range(start=start_date, periods=len(df_NoEstacional), freq='M').date
+            df_NoEstacional['Período'] = pd.date_range(start=start_date, periods=len(df_NoEstacional), freq='MS').date
 
 
             # Aquí 'row' corresponde a la fila actual del dataframe 'df'
@@ -582,7 +582,7 @@ class ExtractData:
             df.drop(df.columns[-1], axis=1, inplace=True)#Elimina la ultima columna
             df = df.rename(columns=lambda x: x.strip())#Eliminar los espacion al final del nombre
             start_date = pd.to_datetime('2012-01-01')
-            df['Período'] = pd.date_range(start=start_date, periods=len(df), freq='M').date
+            df['Período'] = pd.date_range(start=start_date, periods=len(df), freq='MS').date
 
  
             
@@ -596,7 +596,7 @@ class ExtractData:
             df_NoEstacional.drop(df_NoEstacional.columns[-1], axis=1, inplace=True)#Elimina la ultima columna
             df_NoEstacional = df_NoEstacional.rename(columns=lambda x: x.strip())#Eliminar los espacion al final del nombre
             start_date = pd.to_datetime('2012-01-01')
-            df_NoEstacional['Período'] = pd.date_range(start=start_date, periods=len(df_NoEstacional), freq='M').date
+            df_NoEstacional['Período'] = pd.date_range(start=start_date, periods=len(df_NoEstacional), freq='MS').date
             
             for (_, row), (_, row_no_estacional) in zip(df.iterrows(), df_NoEstacional.iterrows()):
 
