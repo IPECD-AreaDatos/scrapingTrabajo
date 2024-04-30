@@ -24,11 +24,11 @@ credenciales_ipecd_economico = Credenciales('ipecd_economico')
 if __name__ == '__main__':
     # ZONA DE EXTRACT -- Donde se buscan los datos
     # Descargar archivos de HomePageCBT y HomePagePobreza
-    #home_page_CBT = HomePageCBT()
-    #home_page_CBT.descargar_archivo()
+    home_page_CBT = HomePageCBT()
+    home_page_CBT.descargar_archivo()
 
-    #home_page_Pobreza = HomePagePobreza()
-    #home_page_Pobreza.descargar_archivo()
+    home_page_Pobreza = HomePagePobreza()
+    home_page_Pobreza.descargar_archivo()
 
     # Transformar datos del archivo Excel de HomePageCBT
     df = loadXLSDataCBT().transform_datalake()
@@ -47,3 +47,29 @@ if __name__ == '__main__':
     if bandera_correo:
         instancia_correo = MailCBTCBA(credenciales_datalake_sociodemografico.host, credenciales_datalake_sociodemografico.user, credenciales_datalake_sociodemografico.password, "dwh_sociodemografico")
         instancia_correo.send_mail_cbt_cba()
+
+
+    #=== ZONA DE PRUEBA
+    from email.message import EmailMessage
+    from ssl import create_default_context
+    from smtplib import SMTP_SSL
+    from selenium import webdriver
+
+
+    #Declaramos email desde el que se envia, la contraseña de la api, y los correos receptores.
+    email_emisor='departamientoactualizaciondato@gmail.com'
+    email_contrasenia = 'cmxddbshnjqfehka'
+    email_receptores =  ['benitezeliogaston@gmail.com']
+
+    #==== Zona de envio de correo
+    em = EmailMessage()
+    em['From'] = email_emisor
+    em['To'] = email_receptores
+    em['Subject'] = "CORREO DE PRUEBA - CBT y CBA"
+    em.set_content("Prueba de funcionamiento de CBT y CBA.")
+
+    contexto= create_default_context()
+
+    with SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
+        smtp.login(email_emisor, email_contrasenia)
+        smtp.sendmail(email_emisor, email_receptores, em.as_string())

@@ -11,7 +11,11 @@ import time
 class HomePagePobreza:
     def __init__(self):
         # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
-        self.driver = webdriver.Chrome()  # Reemplaza con la ubicación de tu ChromeDriver
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+
+        # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
+        self.driver =webdriver.Chrome(options=options)  # Reemplaza con la ubicación de tu ChromeDriver
 
         # URL de la página que deseas obtener
         self.url_pagina = 'https://www.indec.gob.ar/indec/web/Nivel4-Tema-4-46-152'
@@ -25,7 +29,7 @@ class HomePagePobreza:
 
         wait = WebDriverWait(self.driver, 10)
         
-        time.sleep(30)
+        time.sleep(10)
         
         # Obtener la ruta del directorio actual (donde se encuentra el script)
         directorio_actual = os.path.dirname(os.path.abspath(__file__))

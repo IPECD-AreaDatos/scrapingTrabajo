@@ -10,8 +10,12 @@ class HomePage:
 
     def __init__(self):
     
-        # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
-        driver = webdriver.Chrome()  # Reemplaza con la ubicación de tu ChromeDriver
+
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+    
+        # Configuración del navegador
+        driver = webdriver.Chrome(options=options)
 
         # URL de la página que deseas obtener
         url_pagina = 'https://www.argentina.gob.ar/trabajo/estadisticas'

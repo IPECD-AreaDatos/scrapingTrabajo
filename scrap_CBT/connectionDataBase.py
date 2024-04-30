@@ -82,7 +82,6 @@ class connection_db:
         else: #Si no hay datos nuevos AVISAR
             
             print("==== NO HAY DATOS NUEVOS CORRESPONDIENTES A CBT Y CBA DEL DATALAKE ====")   
-            self.table_a1()
             #Bandera que usaremos en main para enviar correo
             return False  
 
