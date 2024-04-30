@@ -9,8 +9,13 @@ import os
 class HomePage:
     
     def __init__(self):
+
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+
+
         # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
-        self.driver = webdriver.Chrome()  # Reemplaza con la ubicación de tu ChromeDriver
+        self.driver = webdriver.Chrome(options=options)  # Reemplaza con la ubicación de tu ChromeDriver
 
         # URL de la página que deseas obtener
         self.url_pagina = 'https://datos.gob.ar/vi/dataset/sspm-remuneracion-imponible-promedio-trabajadores-estables-ripte'
@@ -52,8 +57,11 @@ class HomePage:
     #Objetivo: extraer el ultimo dato de ripte de la pagina de seguridad social. Luego el valor se reporta
     def extract_last_date(self):
 
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+
         #Carga de pagina
-        driver = webdriver.Chrome()
+        driver = webdriver.Chrome(options=options)
         driver.get('https://www.argentina.gob.ar/trabajo/seguridadsocial/ripte')
        
        #Buscamos la tabla que contiene los datos
