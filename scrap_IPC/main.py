@@ -22,19 +22,21 @@ from credenciales_bdd import Credenciales
 # Después puedes crear una instancia de Credenciales
 instancia_credenciales = Credenciales('datalake_economico')
 
-#Listas a tratar durante el proceso
-lista_fechas = list()
-lista_region = list()
-lista_categoria = list()
-lista_division = list()
-lista_subdivision = list()
-lista_valores = list()
 
 print("Las credenciales son", instancia_credenciales.host,instancia_credenciales.user,instancia_credenciales.password,instancia_credenciales.database)
 
 valor_region = 2
 
 if __name__ == '__main__':
+    
+    #Listas a tratar durante el proceso
+    lista_fechas = list()
+    lista_region = list()
+    lista_categoria = list()
+    lista_division = list()
+    lista_subdivision = list()
+    lista_valores = list()
+
     #Descargar EXCEL - Tambien almacenamos las rutas que usaremos
     #home_page = HomePage()
     #home_page.descargar_archivo()
@@ -69,7 +71,7 @@ if __name__ == '__main__':
     
     
     instancia.cargaBaseDatos()
- 
+
     #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ CARGA DE IPC PRODUCTOS ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
     directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
     ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
@@ -82,7 +84,6 @@ if __name__ == '__main__':
     from email.message import EmailMessage
     from ssl import create_default_context
     from smtplib import SMTP_SSL
-    from selenium import webdriver
 
 
     #Declaramos email desde el que se envia, la contraseña de la api, y los correos receptores.
