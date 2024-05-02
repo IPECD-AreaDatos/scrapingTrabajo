@@ -100,6 +100,7 @@ class Deflactador:
         df_datos_por_provincia_pampeana= pd.DataFrame(columns=lista_columnas)
         df_buenos_aires= pd.DataFrame(columns=lista_columnas)
 
+            
         df_datos_por_provincia_gba[df_supermercado.columns] = df_supermercado[df_supermercado.columns][(df_supermercado['id_provincia_indec'] == 6) & (df_supermercado['id_region_indec'] == 2)]
         df_datos_por_provincia_pampeana[df_supermercado.columns] = df_supermercado[df_supermercado.columns][(df_supermercado['id_provincia_indec'] == 6) & (df_supermercado['id_region_indec'] == 3)]
 
@@ -107,11 +108,14 @@ class Deflactador:
         lista_sin_region = list(df_ipc_region.columns)
         lista_sin_region.remove('id_region_indec')
 
-        for columna in lista_sin_region:
-            df_datos_por_provincia_gba[columna] = list(df_ipc_region[columna][df_ipc_region['id_region_indec'] == 2])
-            df_datos_por_provincia_pampeana[columna] = list(df_ipc_region[columna][df_ipc_region['id_region_indec'] == 3])
 
 
+        df_datos_por_provincia_gba[lista_sin_region] = df_ipc_region[lista_sin_region][df_ipc_region['id_region_indec'] == 2]
+        df_datos_por_provincia_pampeana[lista_sin_region] = df_ipc_region[lista_sin_region][df_ipc_region['id_region_indec'] == 3]
+
+        print(df_ipc_region[lista_sin_region][df_ipc_region['id_region_indec'] == 2])
+        print(df_ipc_region[lista_sin_region][df_ipc_region['id_region_indec'] == 3])
+    
         df_buenos_aires = pd.concat([df_buenos_aires,df_datos_por_provincia_gba,df_datos_por_provincia_pampeana])
 
         return df_buenos_aires
@@ -137,12 +141,14 @@ class Deflactador:
             else:
                 lista_columnas.append(columnas)
 
+        # === CREACION DE DATAFRAMES QUE TRATAREMOS
+
         df_datos_todas_las_provincias = pd.DataFrame(columns=lista_columnas) #--> DF con el que concatenamos datos
         df_datos_por_provincia  = pd.DataFrame(columns=lista_columnas)#--> DF que contiene los datos por provincia
-        df_buenos_aires = self.data_buenos_aires(lista_columnas,df_supermercado,df_ipc_region)#--> #DF que contiene los datos de BUENOS AIRES
+        #df_buenos_aires = self.data_buenos_aires(lista_columnas,df_supermercado,df_ipc_region)#--> #DF que contiene los datos de BUENOS AIRES
 
         #Concatenamos los datos de BSAR con el de todas las provincias
-        df_datos_todas_las_provincias = pd.concat([df_datos_todas_las_provincias,df_buenos_aires])
+        #df_datos_todas_las_provincias = pd.concat([df_datos_todas_las_provincias,df_buenos_aires])
 
         # === AGRUPACION DE TODAS LAS RESTANTES PROVINCIAS
 
@@ -155,6 +161,7 @@ class Deflactador:
                 df_datos_por_provincia[columna_supermercado] = list(df_supermercado[columna_supermercado]
                                                                     [df_supermercado['id_provincia_indec'] == id_provincia])
 
+            print(df_datos_por_provincia)
 
             #=== Obtencion de la totalidad de datos del IPC por region
 
@@ -167,11 +174,13 @@ class Deflactador:
             #Asignamos los datos por subdivision
             for columna_ipc_subdivision in df_region_buscada.columns:
 
-                df_datos_por_provincia[columna_ipc_subdivision] = list(df_region_buscada[columna_ipc_subdivision])
+                df_datos_por_provincia[columna_ipc_subdivision] = df_region_buscada[columna_ipc_subdivision]
+
 
             #Concatenamos los datos de la provincia actual al DF total
             df_datos_todas_las_provincias = pd.concat([df_datos_todas_las_provincias,df_datos_por_provincia])
             
+
         return df_datos_todas_las_provincias
 
     def calculo_deflactacion(self,df_datos_todas_las_provincias):
@@ -182,8 +191,6 @@ class Deflactador:
         df_deflactado['fecha'] = df_datos_todas_las_provincias['fecha']
         df_deflactado['id_region_indec'] = df_datos_todas_las_provincias['id_region_indec']
         df_deflactado['id_provincia_indec'] = df_datos_todas_las_provincias['id_provincia_indec']
-
-        #=D69/(((R69*(1/2))+(S69*(1/2)))/100)
 
         #=== Calculo con ponderaciones asignadas
 
@@ -227,10 +234,6 @@ class Deflactador:
 
 
     def cargar_datos(self,df_deflactado):
-        #Definimos querys que vamos a utilizar
-        nombre_tabla = 'supermercado_encuesta'
-        delete_query ="TRUNCATE `ipecd_economico`.`supermercado_encuesta`"
-        query_cantidad_datos = f'SELECT COUNT(*) FROM {nombre_tabla}'
 
         #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
         engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/dwh_economico")
@@ -243,6 +246,15 @@ class Deflactador:
         df_supermercado,fecha_min,fecha_max = self.get_data_supermercado()
         df_ipc_region = self.get_data_ipc(fecha_min,fecha_max)
         df_datos_todas_las_provincias = self.agrupar_datos(df_supermercado,df_ipc_region)
+
+        return
         df_deflactado = self.calculo_deflactacion(df_datos_todas_las_provincias)
         self.cargar_datos(df_deflactado)
 
+
+host = '54.94.131.196'
+user = 'estadistica'
+password = 'Estadistica2024!!'
+database = 'datalake_economico'
+
+Deflactador(host,user,password,database).main()

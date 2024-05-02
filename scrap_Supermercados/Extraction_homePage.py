@@ -13,8 +13,12 @@ class HomePage:
     
     def __init__(self):
 
+        
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+
         #Instancia de navegador - Usamos Google Chrome
-        self.driver = webdriver.Chrome()
+        self.driver = webdriver.Chrome(options=options)
 
         # URL de la página que deseas obtener
         self.url_pagina = 'https://www.indec.gob.ar/indec/web/Nivel4-Tema-3-1-34'
