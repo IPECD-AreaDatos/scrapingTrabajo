@@ -26,7 +26,47 @@ class readSheetsCensoIPECD:
 
         values = result.get('values', [])[2:]
 
-        df = pd.DataFrame(values, columns=['Id_Departamento','Departamento','Poblacion 2010', 'Poblacion 2022', 'Variacion relativa %', 'Densidad de habitantes por KM2', 'Poblacion 2022 mujer excluye situacion de calle', 'Poblacion 2022 varon excluye situacion de calle', 'Indice de feminidad', '2022 Índice de envejecimiento (total de personas de 65 años o más/total de personas de 0 a 14 años de edad)*100','2010 Índice de envejecimiento (total de personas de 65 años o más / total de personas de 0 a 14 años de edad)*100', '2022 índice de dependencia potencial ( total de personas de 0 a 14 + total de personas de 65 o más)/personas de 15 a 64)', '2010 índice de dependencia potencial ( total de personas de 0 a 14 + total de personas de 65 o más)/personas de 15 a 64)', 'Tasa de empleo', 'Tasa de desocup', 'Tasa de actividad', 'Cateogría ocupacional: Servicio doméstico', 'Categoría Ocupacional: Empleada(o) u obrera(o)', 'Categoría Ocupacional: Cuenta propia', 'Categoría Ocupacional: Patrón(a) o empleador(a)', 'Categoría Ocupacional: Trabajador(a) familiar', 'Categoría Ocupacional: Ignorado', 'Población que asiste a institución educativa', 'Población que no asiste pero asistió a inst educativa', 'Población que nunca asistió a inst educativa', 'Población en viviendas particulares que asiste a escuelas: nivel educativo Jardin maternal, guardería, centro de cuidado, salas de 0 a 3', 'Población en viviendas particulares que asiste a escuelas: nivel educativo sala de 4 o 5 años', 'Población en viviendas particulares que asiste a escuelas: nivel educativo primario', 'Población en viviendas particulares que asiste a escuelas: nivel educativo secundario', 'Población en viviendas particulares que asiste a escuelas: nivel educativo terciario no universitario', 'Población en viviendas particulares que asiste a escuelas: nivel educativo universitario de grado', 'Población en viviendas particulares que asiste a escuelas: nivel educativo posgrado', 'Mujeres de 14 a 49 años con al menos 1 hijo nacido vivo', 'Promedio de hijos por mujer', 'Población en vivienda: Obra Social o prepaga (incluye PAMI)', 'Población en vivienda: Programas o planes estatales de salud', 'Población en vivienda: No tiene obra social, prepaga ni plan estatal'])
+        df = pd.DataFrame(
+            values,
+            columns=[
+                'Id_Departamento',
+                'Departamento',
+                'Poblacion_2010',
+                'Poblacion_2022',
+                'Variacion_relativa',
+                'Densidad_de_habitantes_por_KM2',
+                'Poblacion_2022_mujer_excluye_situacion_de_calle',
+                'Poblacion_2022_varon_excluye_situacion_de_calle',
+                'Indice_de_feminidad',
+                'Envejecimiento_2022',
+                'Envejecimiento_2010',
+                'Dependencia_potencial_2022',
+                'Dependencia_potencial_2010',
+                'Tasa_de_empleo',
+                'Tasa_de_desocup',
+                'Tasa_de_actividad',
+                'Cuenta_propia',
+                'Empleada_o_obrera',
+                'Patrón_o_empleador',
+                'Trabajador_familiar',
+                'Ignorado',
+                'Asiste_a_institucion_educativa',
+                'No_asiste_pero_asistió_inst_educativa',
+                'Nunca_asistió_inst_educativa',
+                'Asiste_a_escuelas_jardin_maternal',
+                'Asiste_a_escuelas_sala_de_4_o_5_años',
+                'Asiste_a_escuelas_primario',
+                'Asiste_a_escuelas_secundario',
+                'Asiste_a_escuelas_terciario_no_universitario',
+                'Asiste_a_escuelas_universitario_de_grado',
+                'Asiste_a_escuelas_posgrado',
+                'Mujeres_con_al_menos_1_hijo',
+                'Promedio_de_hijos_por_mujer',
+                'Obra_social_o_prepaga',
+                'Programas_o_planes_estatales_de_salud',
+                'No_tiene_obra_social_prepaga_ni_plan_estatal'
+            ]
+        )
         print(df)
         print(df.dtypes)
         print(df.columns)
