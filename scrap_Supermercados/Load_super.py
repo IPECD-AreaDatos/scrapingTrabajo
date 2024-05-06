@@ -29,7 +29,7 @@ class conexionBaseDatos:
 
         #Definimos querys que vamos a utilizar
         nombre_tabla = 'supermercado_encuesta'
-        delete_query ="TRUNCATE `ipecd_economico`.`supermercado_encuesta`"
+        delete_query ="TRUNCATE `datalake_economico`.`supermercado_encuesta`"
         query_cantidad_datos = f'SELECT COUNT(*) FROM {nombre_tabla}'
 
                 
