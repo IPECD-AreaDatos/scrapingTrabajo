@@ -22,9 +22,9 @@ class readSheetsCensoIPECD:
 
         sheet = service.spreadsheets()
 
-        result = sheet.values().get(spreadsheetId=spreadsheets_ID, range='Datos para mapa subir').execute()
+        result = sheet.values().get(spreadsheetId=spreadsheets_ID, range='Datos para mapa subir!A:AL').execute()
 
-        values = result.get('values', [])[2:]
+        values = result.get('values', [])[1:]
 
         df = pd.DataFrame(
             values,
@@ -45,8 +45,9 @@ class readSheetsCensoIPECD:
                 'Tasa_de_empleo',
                 'Tasa_de_desocup',
                 'Tasa_de_actividad',
-                'Cuenta_propia',
+                'Cateogría ocupacional: Servicio doméstico',
                 'Empleada_o_obrera',
+                'Cuenta_propia',
                 'Patrón_o_empleador',
                 'Trabajador_familiar',
                 'Ignorado',
@@ -63,6 +64,7 @@ class readSheetsCensoIPECD:
                 'Mujeres_con_al_menos_1_hijo',
                 'Promedio_de_hijos_por_mujer',
                 'Obra_social_o_prepaga',
+                'Prueba Escala',
                 'Programas_o_planes_estatales_de_salud',
                 'No_tiene_obra_social_prepaga_ni_plan_estatal'
             ]
