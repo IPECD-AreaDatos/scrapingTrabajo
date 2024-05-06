@@ -22,53 +22,69 @@ class readSheetsCensoIPECD:
 
         sheet = service.spreadsheets()
 
-        result = sheet.values().get(spreadsheetId=spreadsheets_ID, range='Datos para mapa subir!A:AL').execute()
+        result = sheet.values().get(spreadsheetId=spreadsheets_ID, range='Equipo Datos!A:AK').execute()
 
         values = result.get('values', [])[1:]
 
         df = pd.DataFrame(
             values,
             columns=[
-                'Id_Departamento',
-                'Departamento',
-                'Poblacion_2010',
-                'Poblacion_2022',
-                'Variacion_relativa',
-                'Densidad_de_habitantes_por_KM2',
-                'Poblacion_2022_mujer_excluye_situacion_de_calle',
-                'Poblacion_2022_varon_excluye_situacion_de_calle',
-                'Indice_de_feminidad',
-                'Envejecimiento_2022',
-                'Envejecimiento_2010',
-                'Dependencia_potencial_2022',
-                'Dependencia_potencial_2010',
-                'Tasa_de_empleo',
-                'Tasa_de_desocup',
-                'Tasa_de_actividad',
-                'Cateogría ocupacional: Servicio doméstico',
-                'Empleada_o_obrera',
-                'Cuenta_propia',
-                'Patrón_o_empleador',
-                'Trabajador_familiar',
-                'Ignorado',
-                'Asiste_a_institucion_educativa',
-                'No_asiste_pero_asistió_inst_educativa',
-                'Nunca_asistió_inst_educativa',
-                'Asiste_a_escuelas_jardin_maternal',
-                'Asiste_a_escuelas_sala_de_4_o_5_años',
-                'Asiste_a_escuelas_primario',
-                'Asiste_a_escuelas_secundario',
-                'Asiste_a_escuelas_terciario_no_universitario',
-                'Asiste_a_escuelas_universitario_de_grado',
-                'Asiste_a_escuelas_posgrado',
-                'Mujeres_con_al_menos_1_hijo',
-                'Promedio_de_hijos_por_mujer',
-                'Obra_social_o_prepaga',
-                'Prueba Escala',
-                'Programas_o_planes_estatales_de_salud',
-                'No_tiene_obra_social_prepaga_ni_plan_estatal'
+                'id_departamento',
+                'departamento',
+                'poblacion_2010',
+                'poblacion_2022',
+                'variacion_relativa',
+                'densidad_de_habitantes_por_KM2',
+                'poblacion_2022_mujer_excluye_situacion_de_calle',
+                'poblacion_2022_varon_excluye_situacion_de_calle',
+                'indice_de_feminidad',
+                '_2022_Índ_de_envej_mas_65_años_sob_per_0_a_14_años_por_100',
+                '_2010_Índ_de_envej_mas_65_años_sob_per_0_a_14_años_por_100',
+                '_2022_índ_de_dep_potenc_0_a_14_mas_65_o_más_sob_per_de_15_a_64',
+                '_2010_índ_de_dep_potenc_0_a_14_mas_65_o_más_sob_per_de_15_a_64',
+                'tasa_de_empleo',
+                'tasa_de_desocup',
+                'tasa_de_actividad',
+                'categoria_ocupacional_servicio_domestico',
+                'categoria_ocupacional_empleado_u_obrero',
+                'categoria_ocupacional_cuenta_propia',
+                'categoria_ocupacional_patron_o_empleador',
+                'categoria_ocupacional_trabajador_familiar',
+                'categoria_ocupacional_ignorado',
+                'población_que_asiste_a_institución_educativa',
+                'población_que_no_asiste_pero_asistio_a_institución_educativa',
+                'población_que_nunca_asistio_a_institución_educativa',
+                'pob_en_viv_part_q_asis_a_esc_niv_educ_mat_guard_cen_cuid_sal_03',
+                'pob_en_viv_part_que_asis_a_esc_niv_educ_sala_de_4_o_5',
+                'pob_en_viv_part_que_asiste_a_escuelas_nivel_educ_primario',
+                'pob_en_viv_part_que_asiste_a_escuelas_nivel_educ_secundario',
+                'pob_en_viv_part_que_asis_a_esc_niv_educ_terciario_no_univers',
+                'pob_en_viv_part_que_asiste_a_esc_niv_educ_univ_de_grado',
+                'pob_en_viv_part_que_asiste_a_escuelas_nivel_educ_posgrado',
+                'mujeres_de_14_a_49_años_con_al_menos_1_hijo_nacido_vivo',
+                'promedio_de_hijos_por_mujer',
+                'población_en_vivienda_obra_social_o_prepaga_incluye_PAMI',
+                'población_en_vivienda_programas_o_planes_estatales_de_salud',
+                'población_en_viv_no_tiene_obra_social_prepaga_ni_plan_estatal'
             ]
-        )
+            )
+        df = df.dropna()
+        # Convertir las columnas específicas a los tipos de datos deseados
+        # Convertir todas las columnas a tipo float
+        for col in df.columns:
+            # Eliminar caracteres no numéricos y convertir a tipo flotante
+            df[col] = df[col].str.replace(r'[^\d.]', '', regex=True)
+            df[col] = df[col].str.replace(',', '.')
+            df[col] = df[col].str.replace('%', '')
+            df[col] = df[col].astype(float)
+        df['id_departamento'] = df['id_departamento'].astype(int)
+        df['departamento'] = df['departamento'].astype(str)
+        df['poblacion_2010'] = df['poblacion_2010'].astype(int)
+        df['poblacion_2022'] = df['poblacion_2022'].astype(int)
+        # Convertir todas las demás columnas a tipo float
+
+        df = df.astype(float)
+
         print(df)
         print(df.dtypes)
         print(df.columns)
