@@ -36,8 +36,6 @@ if __name__ == '__main__':
     from email.message import EmailMessage
     from ssl import create_default_context
     from smtplib import SMTP_SSL
-    from selenium import webdriver
-
 
     #Declaramos email desde el que se envia, la contraseña de la api, y los correos receptores.
     email_emisor='departamientoactualizaciondato@gmail.com'
