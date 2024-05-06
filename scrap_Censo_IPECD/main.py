@@ -17,4 +17,5 @@ credenciales = Credenciales('dwh_sociodemografico')
 if __name__ == "__main__":
     print("Las credenciales son: ", credenciales.host, credenciales.user, credenciales.password, credenciales.database)
     df_censo = readSheetsCensoIPECD().leer_datos_censo()
-    conexcionBaseDatos().conectar_bdd()
+    conexion = conexcionBaseDatos(credenciales.host, credenciales.user, credenciales.password, credenciales.database).conectar_bdd()
+    conexion.cargaBaseDatos(df_censo)
