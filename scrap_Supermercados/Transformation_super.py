@@ -55,7 +55,7 @@ class Transformation_Data:
 
         # Direccion actual + nombre archivo = direccion del archivo
         directorio_actual  = os.path.dirname(os.path.abspath(__file__))
-        nombre_archivo = '\\files\\encuesta_supermercado.xls'
+        nombre_archivo = '/files/encuesta_supermercado.xls'
         path_archivo = directorio_actual + nombre_archivo
         return path_archivo
 
