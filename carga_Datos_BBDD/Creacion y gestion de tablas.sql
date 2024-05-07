@@ -371,11 +371,6 @@ Sector_Productivo char(125),
 Valor float
 );
 
--- TABLAS RIPTE ipecd_economico
-create table ripte(
-Fecha date,
-ripte float
-);
 -- TABLAS RIPTE datalake_economico
 create table ripte(
 fecha date,
