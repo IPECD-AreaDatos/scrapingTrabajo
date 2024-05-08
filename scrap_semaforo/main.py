@@ -21,7 +21,10 @@ if __name__ == '__main__':
 
     #Extraccion y Transformacion de datos
     df_semaforo = ExtractSheet().extract_sheet()
+
+
     df_transformado = Transform().transform_data(df_semaforo)
+
 
     #Almacenado en BDD
     instancia_bdd = Database(credenciales.host, credenciales.user, credenciales.password, credenciales.database)

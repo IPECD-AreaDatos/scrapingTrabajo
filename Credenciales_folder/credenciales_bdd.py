@@ -31,7 +31,7 @@ class Credenciales:
             self.database = 'datalake_economico'
         elif database_name == 'dwh_economico':
             self.host = '54.94.131.196'
-            self.user = ''
+            self.user = 'estadistica'
             self.password = 'Estadistica2024!!'
             self.database = 'dwh_economico'
         elif database_name == 'local_ipecd_economico':
