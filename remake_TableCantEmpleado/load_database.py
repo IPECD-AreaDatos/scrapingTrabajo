@@ -24,6 +24,6 @@ class load_database:
         
         #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
         engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
-        df.to_sql(name="empleados_cada_mil_habitantes_provincia", con=engine, if_exists='append', index=False)
+        df.to_sql(name="empleados_cada_mil_habitantes_provincia", con=engine, if_exists='replace', index=False)
         
     

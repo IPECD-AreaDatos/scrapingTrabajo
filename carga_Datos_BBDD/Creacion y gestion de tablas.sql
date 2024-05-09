@@ -737,3 +737,9 @@ create table anac(
     villa_reynolds INT,
     otros INT
 );
+create table combustible(
+	fecha date,
+    producto char(90),
+    provincia int,
+    cantidad float
+);
