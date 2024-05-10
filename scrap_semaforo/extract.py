@@ -67,8 +67,8 @@ class ExtractSheet:
         df_semaforo = DataFrame()
         df_semaforo['fecha'] = fechas_truncadas
         df_semaforo['combustible_vendido'] = lista_sin_nulos[0]
-        df_semaforo['pantentamiento_0km_auto'] = lista_sin_nulos[1]
-        df_semaforo['pantentamiento_0km_motocicleta'] = lista_sin_nulos[2]
+        df_semaforo['patentamiento_0km_auto'] = lista_sin_nulos[1]
+        df_semaforo['patentamiento_0km_motocicleta'] = lista_sin_nulos[2]
         df_semaforo['pasajeros_salidos_terminal_corrientes'] = lista_sin_nulos[3]
         df_semaforo['pasajeros_aeropuesto_corrientes'] = lista_sin_nulos[4]
         df_semaforo['venta_supermercados_autoservicios_mayoristas'] = lista_sin_nulos[5]
