@@ -142,6 +142,8 @@ class ExtractDnrpa:
 
         df_melted['id_vehiculo'] = tipo_vehiculo
 
+        print(df_melted)
+
         self.df_total = pd.concat([self.df_total,df_melted])
 
     #Objetivo: tomar la ultima pestaña

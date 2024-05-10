@@ -47,10 +47,12 @@ class conexionBaseDatos:
         self.connect_db()
         
         #DF de la base de datos
-        query = 'select * from dnrpa'
+        query = 'select * from datalake_economico.dnrpa'
         df_bdd =read_sql(query,self.conn)
 
-    
+        
+        print("Datos extraidos")
+        print(df)
         print("BASE DE DATOS ")
         print(df_bdd)
 
