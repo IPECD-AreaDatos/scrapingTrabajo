@@ -21,9 +21,9 @@ class load_database:
         return self
     
     def load_data(self, df):
-        
         #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
         engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
-        df.to_sql(name="empleados_cada_mil_habitantes_provincia", con=engine, if_exists='replace', index=False)
+        df.to_sql(name="anac", con=engine, if_exists='replace', index=False)
+        print("Se realizo la carga a la base de datos anac en datalake_economico")
         
     
