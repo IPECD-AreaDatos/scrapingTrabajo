@@ -30,3 +30,4 @@ class conexcionBaseDatos:
         engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
         df.to_sql(name="combustible", con=engine, if_exists='replace', index=False)
 
+c
