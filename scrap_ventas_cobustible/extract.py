@@ -45,7 +45,7 @@ class Extraccion:
 
         # Descargar el primer archivo
         response = requests.get(url_archivo, verify=False)
-        wait = WebDriverWait(self.driver, 1000)
+        wait = WebDriverWait(self.driver, 500)
         # Guardar el primer archivo en la carpeta especificada
         ruta_guardado = os.path.join(carpeta_guardado, nombre_archivo)
         with open(ruta_guardado, 'wb') as file:

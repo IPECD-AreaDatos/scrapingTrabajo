@@ -28,5 +28,13 @@ class conexcionBaseDatos:
 
         #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
         engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
-        df.to_sql(name="combustible", con=engine, if_exists='replace', index=False)
+       
+        # Divide el DataFrame en partes de un millón de filas cada una
+        division = 1000000
+        df_fraccionado = [df[i:i+division] for i in range(0, len(df), division)]
 
+        # Sube cada parte del DataFrame a la base de datos
+        for i, df_fraccionado in enumerate(df_fraccionado):
+            df_fraccionado.to_sql(name="combustible", con=engine, if_exists='append', index=False)
+            print(f"Parte {i+1} subida a la base de datos.")
+        
