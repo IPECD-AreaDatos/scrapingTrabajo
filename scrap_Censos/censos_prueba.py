@@ -49,16 +49,8 @@ class homePage:
 
         # Crear el DataFrame
         df = pd.DataFrame(data)
+        return df
     
-        # Crear el motor SQLAlchemy
-        engine = create_engine(f'mysql+mysqlconnector://{user}:{password}@{host}/{database}')
-
-        # Cargar el DataFrame en la tabla censo_provincia
-        table_name = 'censo_provincia'
-        df.to_sql(table_name, con=engine, index=False, if_exists='replace')
-
-        # Cerrar la conexión a MySQL
-        db_connection.close()
 
 
             

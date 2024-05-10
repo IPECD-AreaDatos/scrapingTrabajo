@@ -1,6 +1,7 @@
 from censos_prueba import  homePage
 import os
 import sys 
+from load_database import load_database
 
 # Obtener la ruta al directorio actual del script
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -13,4 +14,7 @@ from credenciales_bdd import Credenciales
 credenciales = Credenciales('ipecd_economico')
 
 if __name__ == '__main__':
-    homePage().construir_df_estimaciones(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    df = homePage().construir_df_estimaciones(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    print(df)
+    instancia_bdd = load_database(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    instancia_bdd.load_data(df)
