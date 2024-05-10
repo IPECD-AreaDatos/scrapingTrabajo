@@ -72,8 +72,8 @@ class ExtractSheet:
         df_semaforo['pasajeros_salidos_terminal_corrientes'] = lista_sin_nulos[3]
         df_semaforo['pasajeros_aeropuesto_corrientes'] = lista_sin_nulos[4]
         df_semaforo['venta_supermercados_autoservicios_mayoristas'] = lista_sin_nulos[5]
-        df_semaforo['importaciones_aduana_corrientes_dolares'] = lista_sin_nulos[6]
-        df_semaforo['importaciones_aduana_corrientes_toneladas'] = lista_sin_nulos[7]
+        df_semaforo['exportaciones_aduana_corrientes_dolares'] = lista_sin_nulos[6]
+        df_semaforo['exportaciones_aduana_corrientes_toneladas'] = lista_sin_nulos[7]
         df_semaforo['empleo_privado_registrado_sipa'] = lista_sin_nulos[8]
         df_semaforo['ipicorr'] = lista_sin_nulos[9]
 
