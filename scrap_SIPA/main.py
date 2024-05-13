@@ -1,4 +1,4 @@
-from extract import HomePage
+#from extract import HomePage
 from construccion_listas import ExtractData
 from conexionBaseDatos import conexionBaseDatos
 from armadoInformePDF import googleSheets
@@ -20,7 +20,7 @@ credenciales = Credenciales("datalake_economico")
 
 
 if __name__ == '__main__':    
-    url = HomePage()
+    #url = HomePage()
     directorio_actual = os.path.dirname(os.path.abspath(__file__))
     ruta_carpeta_files = os.path.join(directorio_actual, 'files')
     file_path = os.path.join(ruta_carpeta_files, 'SIPA.xlsx')
@@ -45,6 +45,7 @@ if __name__ == '__main__':
     df['id_tipo_registro'] = lista_registro
     df['cantidad_con_estacionalidad'] = lista_valores_estacionalidad
     df['cantidad_sin_estacionalidad'] = lista_valores_sin_estacionalidad
+    df = df.sort_values(by = ['fecha','id_provincia','id_tipo_registro'])
 
     print(df)
     instancia_bdd = conexionBaseDatos(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
