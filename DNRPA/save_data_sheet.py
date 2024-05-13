@@ -11,18 +11,20 @@ class readSheets:
     def cargar_datos(self,df):
 
         #Creacion de listas
-        autos = df['cantidad'][(
+        autos = list(df['cantidad'][(
                 df['id_provincia_indec'] == 18) 
                 & (df['id_vehiculo'] == 1) 
-                & (df['fecha'] >= '2018-12-01')]
+                & (df['fecha'] >= '2018-12-01')])
+        
+
         
         motos = df['cantidad'][(
                 df['id_provincia_indec'] == 18) 
                 & (df['id_vehiculo'] == 2) 
                 & (df['fecha'] >= '2018-12-01')]
         
+
         print(autos)
-        print(motos)
 
 
         # Define los alcances y la ruta al archivo JSON de credenciales
@@ -43,16 +45,33 @@ class readSheets:
         service = build('sheets', 'v4', credentials=creds)
         sheet = service.spreadsheets()
 
-        # Obtén los datos de la hoja de cálculo
-        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='Datos!7:7').execute()
-        values = result.get('values', [])
+        # Borra los datos de la fila desde la columna C7 hasta el final de la fila
+        #request = sheet.values().clear(spreadsheetId=SPREADSHEET_ID,
+        #                                range='Datos!C7:7',  # Desde la columna C7 hasta el final de la fila
+        #                                body={})
+        
+        # Borra los datos de la fila desde la columna C7 hasta el final de la fila
+        request = sheet.values().append(spreadsheetId=SPREADSHEET_ID,
+                                        range='Datos!C7:7',  # Desde la columna C7 hasta el final de la fila
+                                        body={'values':autos})      
 
-        # Imprime los datos
-        if not values:
-            print('No se encontraron datos.')
-        else:
-            print('Contenido de la hoja de cálculo:')
-            for row in values:
-                print('\t'.join(row))
+        response = request.execute()
+            
 
+import pymysql
+import pandas as pd
 
+host = '54.94.131.196'
+user = 'estadistica'
+password = 'Estadistica2024!!'
+database = 'datalake_economico'
+
+# Conexión a la base de datos
+conn = pymysql.connect(host=host, user=user, password=password, database=database)
+
+# Consulta SQL para obtener fechas con id_tipo_registro = 8
+query_8 = "SELECT * FROM dnrpa"
+df_8 = pd.read_sql(query_8, conn)
+df_8['fecha'] = pd.to_datetime(df_8['fecha'])
+
+readSheets().cargar_datos(df_8)
