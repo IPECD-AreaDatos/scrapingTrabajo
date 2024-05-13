@@ -62,12 +62,13 @@ class conexionBaseDatos:
 
         if len_df > len_bdd:
 
-            #Obtenemos la diferencia de filas
-            df_datalake = df.tail(len_df - len_bdd)
-            
+            #Primero truncamos por ser datos estimativos
+            query_delete = 'TRUNCATE sipa_valores'
+            self.cursor.execute(query_delete)
+
             #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
             engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
-            df_datalake.to_sql(name="sipa_valores", con=engine, if_exists='append', index=False)
+            df.to_sql(name="sipa_valores", con=engine, if_exists='append', index=False)
 
             #Guardamos cambios 
             self.conn.commit()

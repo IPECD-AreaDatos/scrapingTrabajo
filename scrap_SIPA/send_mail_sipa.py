@@ -58,7 +58,7 @@ class MailSipa:
         fecha_asunto = self.obtener_mes_actual(fecha_asunto) + " del " + str(fecha_asunto.year)
 
         #Diferencias nacionales
-        diferencia_mensual = int((df['empleo_total'].iloc[-1] - df['empleo_total'].iloc[-2]) * 1000)
+        diferencia_mensual = int( ( (df['empleo_total'].iloc[-1] * 1000) -( df['empleo_total'].iloc[-2]* 1000)) )
         diferencia_interanual = int((df['empleo_total'].iloc[-1] - df['empleo_total'].iloc[-13]) * 1000)
 
 
