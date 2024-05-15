@@ -1,4 +1,3 @@
-from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 import os
@@ -16,15 +15,17 @@ class readSheets:
                 & (df['id_vehiculo'] == 1) 
                 & (df['fecha'] >= '2018-12-01')])
         
+        # Eliminar todos los ceros
+        autos = [dato for dato in autos if dato != 0]
+        lista_de_lista_autos = [autos]
 
-        
         motos = df['cantidad'][(
                 df['id_provincia_indec'] == 18) 
                 & (df['id_vehiculo'] == 2) 
                 & (df['fecha'] >= '2018-12-01')]
-        
 
-        print(autos)
+        motos = [dato for dato in motos if dato != 0]
+        lista_de_lista_motos = [motos]
 
 
         # Define los alcances y la ruta al archivo JSON de credenciales
@@ -45,33 +46,17 @@ class readSheets:
         service = build('sheets', 'v4', credentials=creds)
         sheet = service.spreadsheets()
 
-        # Borra los datos de la fila desde la columna C7 hasta el final de la fila
-        #request = sheet.values().clear(spreadsheetId=SPREADSHEET_ID,
-        #                                range='Datos!C7:7',  # Desde la columna C7 hasta el final de la fila
-        #                                body={})
+
+        #Remplzamos los datos en la fila correspondiente
+        request = sheet.values().update(spreadsheetId=SPREADSHEET_ID,
+                                        range='Datos!C7:7',
+                                        valueInputOption='RAW',
+                                        body={'values':lista_de_lista_autos}).execute()
         
-        # Borra los datos de la fila desde la columna C7 hasta el final de la fila
-        request = sheet.values().append(spreadsheetId=SPREADSHEET_ID,
-                                        range='Datos!C7:7',  # Desde la columna C7 hasta el final de la fila
-                                        body={'values':autos})      
+        #Remplzamos los datos en la fila correspondiente
+        request = sheet.values().update(spreadsheetId=SPREADSHEET_ID,
+                                        range='Datos!C8:8',
+                                        valueInputOption='RAW',
+                                        body={'values':lista_de_lista_motos}).execute()
+        
 
-        response = request.execute()
-            
-
-import pymysql
-import pandas as pd
-
-host = '54.94.131.196'
-user = 'estadistica'
-password = 'Estadistica2024!!'
-database = 'datalake_economico'
-
-# Conexión a la base de datos
-conn = pymysql.connect(host=host, user=user, password=password, database=database)
-
-# Consulta SQL para obtener fechas con id_tipo_registro = 8
-query_8 = "SELECT * FROM dnrpa"
-df_8 = pd.read_sql(query_8, conn)
-df_8['fecha'] = pd.to_datetime(df_8['fecha'])
-
-readSheets().cargar_datos(df_8)

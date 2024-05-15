@@ -50,12 +50,6 @@ class conexionBaseDatos:
         query = 'select * from datalake_economico.dnrpa'
         df_bdd =read_sql(query,self.conn)
 
-        
-        print("Datos extraidos")
-        print(df)
-        print("BASE DE DATOS ")
-        print(df_bdd)
-
         if not(df_bdd.equals(df)): 
 
             query_truncate = 'TRUNCATE dnrpa'
