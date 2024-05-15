@@ -47,8 +47,9 @@ class armadoDF:
        'Santa Rosa de Conlara', 'Santiago del Estero', 'Tandil',
        'Termas Río Hondo', 'Trelew', 'Tucumán', 'Ushuaia', 'Viedma',
        'Villa Gesell', 'Villa Reynolds', 'Otros']
+        print(df.dtypes)
         for colum in colums: 
-            df[colum] = df[colum].astype(int)
+            df[colum] = df[colum].astype(str).str.replace(',', '.').astype(float)
         print(df.dtypes)
         column_names = {
             'fecha': 'fecha',
