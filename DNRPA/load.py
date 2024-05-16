@@ -59,8 +59,21 @@ class conexionBaseDatos:
             engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
             df.to_sql(name="dnrpa", con=engine, if_exists='append', index=False)
 
+            print("*****************************************")
+            print(" SE HA PRODUCIDO UNA CARGA DE DATOS DE DNRPA ")
+            print("*****************************************")
+
+
             #Cargamos los datos en el SHEET (https://docs.google.com/spreadsheets/d/1L_EzJNED7MdmXw_rarjhhX8DpL7HtaKpJoRwyxhxHGI/edit#gid=0)
             readSheets().cargar_datos(df)
+
+
+
+
+        else:
+            print("*****************************************")
+            print(" No existes datos nuevos de DNRPA ")
+            print("*****************************************")
 
 
 

@@ -10,10 +10,10 @@ class readSheets:
     def cargar_datos(self,df):
 
         #Creacion de listas
-        autos = list(df['cantidad'][(
+        autos = df['cantidad'][(
                 df['id_provincia_indec'] == 18) 
                 & (df['id_vehiculo'] == 1) 
-                & (df['fecha'] >= '2018-12-01')])
+                & (df['fecha'] >= '2018-12-01')]
         
         # Eliminar todos los ceros
         autos = [dato for dato in autos if dato != 0]
