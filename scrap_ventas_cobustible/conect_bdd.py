@@ -1,6 +1,8 @@
 import mysql
 import mysql.connector
 from sqlalchemy import create_engine
+import pandas as pd
+
 
 class conexcionBaseDatos:
 
@@ -25,7 +27,8 @@ class conexcionBaseDatos:
         print("\n*****************************************************************************")
         # Suponiendo que 'df' es tu DataFram
         print(df)
-
+        query_delete = 'TRUNCATE combustible'
+        self.cursor.execute(query_delete)
         #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
         engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
        
@@ -37,4 +40,5 @@ class conexcionBaseDatos:
         for i, df_fraccionado in enumerate(df_fraccionado):
             df_fraccionado.to_sql(name="combustible", con=engine, if_exists='append', index=False)
             print(f"Parte {i+1} subida a la base de datos.")
+    
         

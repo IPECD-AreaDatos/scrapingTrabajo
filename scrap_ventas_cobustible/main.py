@@ -1,9 +1,10 @@
 import os
 import sys
 from conect_bdd import conexcionBaseDatos
-from extract import Extraccion
+#from extract import Extraccion
 from transform import Transformacion
-
+from save_data_sheet import readSheets
+from save_data_sheet import readSheets
 
 # Obtener la ruta al directorio actual del script
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -17,9 +18,11 @@ credenciales = Credenciales('datalake_economico')
 
 if __name__ == "__main__":
     print("Las credenciales son: ", credenciales.host, credenciales.user, credenciales.password, credenciales.database)
-    extraer = Extraccion()
-    extraer.descargar_archivo()
+    #extraer = Extraccion()
+    #extraer.descargar_archivo()
     df_combustible = Transformacion().crear_df()
     print("salida df")
     conexion = conexcionBaseDatos(credenciales.host, credenciales.user, credenciales.password, credenciales.database).conectar_bdd()
     conexion.cargaBaseDatos(df_combustible)
+    conexion_excel = readSheets(credenciales.host, credenciales.user, credenciales.password, credenciales.database).conectar_bdd()
+    conexion_excel.cargar_datos()
