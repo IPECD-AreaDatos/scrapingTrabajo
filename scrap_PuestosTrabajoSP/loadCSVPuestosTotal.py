@@ -1,24 +1,44 @@
-import mysql.connector
-import numpy as np
-import pandas as pd
-import time
-import os
 from email.message import EmailMessage
 import ssl
 import smtplib
+import numpy as np
+import pymysql
+from sqlalchemy import create_engine
+import os
+import pandas as pd
 
 nuevos_datos = []
 
 class LoadCSVDataPuestosTotal:
-    def loadInDataBase(self, host, user, password, database):
-        start_time = time.time()
+    def __init__(self,host, user, password, database):
+
+        self.host = host
+        self.user = user
+        self.password =password
+        self.database = database
+        self.conn = None
+        self.cursor = None
+
+    def connect_db(self):
+            
+            #Creamos conexion, y cursor de la conexion
+            self.conn = pymysql.connect(host=self.host, user=self.user, password=self.password, database=self.database)
+            self.cursor = self.conn.cursor()   
+
+
+    def contador_filas(self,df,table):
+
+        #Tamano del DF original
+        tamano_df = len(df)
+
+        #Tamaño del DF de la BASE
+        select_row_count_query = f"SELECT COUNT(*) FROM {table}"
+        self.cursor.execute(select_row_count_query)
+        filas_bdd = self.cursor.fetchone()[0]
+
+        return tamano_df, filas_bdd
     
-        conn = mysql.connector.connect(
-            host=host, user=user, password=password, database=database
-        )
-        cursor = conn.cursor()
-        
-        # Nombre de la tabla en MySQL
+    def loadInDataBase(self):
         table_name = 'dp_puestostrabajo_total'
         # Obtener la ruta del directorio actual (donde se encuentra el script)
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
@@ -30,46 +50,34 @@ class LoadCSVDataPuestosTotal:
         # Leer el archivo de csv y hacer transformaciones
         df = pd.read_csv(file_path)  # Leer el archivo CSV y crear el DataFrame
         df = df.replace({np.nan: None})  # Reemplazar los valores NaN(Not a Number) por None
+        
+#Nos conectamos a la BDD
+        self.connect_db()    
+
+        #Obtencion de tamaños
+        len_df, len_bdd = self.contador_filas(df,table_name)
+
         longitud_datos_excel = len(df)
-        print("total: ", longitud_datos_excel)
+        print("privado: ", longitud_datos_excel)
+        
+        if len_df > len_bdd:
 
-        select_row_count_query = "SELECT COUNT(*) FROM dp_puestostrabajo_total"
-        cursor.execute(select_row_count_query)
-        filas_BD = cursor.fetchone()[0]
-        print("Base: ", filas_BD)
+            #Obtenemos SOLO LOS DATOS A CARGAR, por diferencia de filas
+            df_datalake = df.tail(len_df-len_bdd)
 
-        if longitud_datos_excel != filas_BD:
-            df_datos_nuevos = df.tail(longitud_datos_excel - filas_BD)
-            
-            # Aplicar strip() al nombre de la columna antes de acceder a ella
-            column_name = ' puestos '  # Nombre de la columna con espacios en blanco
-            column_name_stripped = column_name.strip()  # Eliminar espacios en blanco
+            #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+            engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}") #--> Conector
+            df_datalake.to_sql(name=f"{table_name}", con=engine, if_exists='append', index=False) #--> Carga de tabla de salarios del sector privado
 
-            # Verificar si la columna existe en el DataFrame
-            if column_name_stripped in df_datos_nuevos.columns:
-                df_datos_nuevos.loc[df_datos_nuevos[column_name_stripped] < 0, column_name_stripped] = 0 #Los datos <0 se reempalazan a 0
-            else:
-                print(f"La columna '{column_name_stripped}' no existe en el DataFrame.")
-            
-            
-            print("Tabla de Puestos Trabajos Total")
-            insert_query = f"INSERT INTO {table_name} VALUES ({', '.join(['%s' for _ in range(len(df_datos_nuevos.columns))])})"
-            for index, row in df_datos_nuevos.iterrows():
-                data_tuple = tuple(row)
-                conn.cursor().execute(insert_query, data_tuple)
-                print(data_tuple)
-                nuevos_datos.append(data_tuple)
-            conn.commit()
-            conn.close()
-            print("Se agregaron nuevos datos")
-            enviar_correo()   
+
+            #Guardamos cambios 
+            self.conn.commit()
+
         else:
-            print("Se realizo una verificacion de la base de datos")
-        
-        print("====================================================================")
-        print("Se realizo la actualizacion de la Tabla de Puestos Trabajos Total")
-        print("====================================================================")
-        
+            print("No existen nuevos datos para cargar.")
+            
+        return
+    
 def enviar_correo():
     email_emisor='departamientoactualizaciondato@gmail.com'
     email_contraseña = 'cmxddbshnjqfehka'
