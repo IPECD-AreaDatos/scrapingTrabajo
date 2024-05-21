@@ -87,14 +87,14 @@ class DatabaseManager:
         Returns:
         float: Valor formateado.
         """
-        return (float(value.replace(',', '').replace('%', '')) / 10) / 100
+        return (float(str(value).replace(',', '').replace('%', '')) / 10) / 100
     
 
     def envio_correo(self, df_datos_nuevos, ruta_archivo_grafico): 
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
         email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
-        #email_receptores =  ['matizalazar2001@gmail.com, benitezeliogaston@gmail.com']
+        #email_receptores =  ['matizalazar2001@gmail.com, benitezeliogaston@gmail.com', 'manumarder@gmail.com']
         # Definir 'em' antes de su uso
         em = MIMEMultipart()
         fecha = df_datos_nuevos["Fecha"].iloc[-1]  # Accede a la última fecha desde el DataFrame
@@ -103,18 +103,18 @@ class DatabaseManager:
         mensaje = f'''\
             <html>
             <body>
-            <h2>Se ha producido una modificación en la base de datos. La tabla de IPICORR contiene nuevos datos.</h2>
-            <p>*Variacion Interanual IPICORR: <span style="font-size: 17px;"><b>{df_datos_nuevos["Var_Interanual_IPICORR"].iloc[-1]}</b></span></p>
+            <h2 style="font-size: 24px;"><strong> DATOS NUEVOS EN LA TABLA DE INDICE DE PRODUCCION INDUSTRIAL DE CORRIENTES (IPICORR) A {fecha_arreglada.upper()}. </strong></h2>
+            <p>* Variacion Interanual IPICORR: <span style="font-size: 17px;"><b>{df_datos_nuevos["Var_Interanual_IPICORR"].iloc[-1]}</b></span></p>
             <hr>
-            <p>*Variacion Interanual Alimentos: <span style="font-size: 17px;"><b>{df_datos_nuevos["Var_Interanual_Alimentos"].iloc[-1]}</b></span></p>
+            <p>* Variacion Interanual Alimentos: <span style="font-size: 17px;"><b>{df_datos_nuevos["Var_Interanual_Alimentos"].iloc[-1]}</b></span></p>
             <hr>
-            <p>*Variacion Interanual Textil: <span style="font-size: 17px;"><b>{df_datos_nuevos["Var_Interanual_Textil"].iloc[-1]}</b></span></p>
+            <p>* Variacion Interanual Textil: <span style="font-size: 17px;"><b>{df_datos_nuevos["Var_Interanual_Textil"].iloc[-1]}</b></span></p>
             <hr>
-            <p>*Variacion Interanual Maderas: <span style="font-size: 17px;"><b>{df_datos_nuevos["Var_Interanual_Maderas"].iloc[-1]}</b></span></p>
+            <p>* Variacion Interanual Maderas: <span style="font-size: 17px;"><b>{df_datos_nuevos["Var_Interanual_Maderas"].iloc[-1]}</b></span></p>
             <hr>
-            <p>*Variacion Interanual min. No Metalicos: <span style="font-size: 17px;"><b>{df_datos_nuevos["Var_Interanual_MinNoMetalicos"].iloc[-1]}</b></span></p>
+            <p>* Variacion Interanual min. No Metalicos: <span style="font-size: 17px;"><b>{df_datos_nuevos["Var_Interanual_MinNoMetalicos"].iloc[-1]}</b></span></p>
             <hr>
-            <p>*Variacion Interanual Metales: <span style="font-size: 17px;"><b>{df_datos_nuevos["Var_Interanual_Metales"].iloc[-1]}</b></span></p>
+            <p>* Variacion Interanual Metales: <span style="font-size: 17px;"><b>{df_datos_nuevos["Var_Interanual_Metales"].iloc[-1]}</b></span></p>
             <hr>
             <p> Instituto Provincial de Estadistica y Ciencia de Datos de Corrientes<br>
             Dirección: Tucumán 1164 - Corrientes Capital<br>
