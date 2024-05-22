@@ -393,7 +393,7 @@ CREATE TABLE Canasta_Basica(
 	CBT_Hogar float
 );
 
-Create Table IPICORR(
+Create Table ipicorr(
 	Fecha date,
     Var_Interanual_IPICORR float,
     Var_Interanual_Alimentos float,
@@ -402,6 +402,7 @@ Create Table IPICORR(
     Var_Interanual_MinNoMetalicos float,
     Var_Interanual_Metales float
 );
+
 CREATE TABLE ipi(
   fecha date DEFAULT NULL,
   var_IPI float DEFAULT NULL,

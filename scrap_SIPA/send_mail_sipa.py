@@ -66,7 +66,7 @@ class MailSipa:
         mensaje_uno = f'''
         <html>
         <body>
-        <h2>Se ha producido una actualizacion en la base de datos. La tabla de SIPA contiene nuevos datos.</h2>
+        <h2 style="font-size: 24px;"><strong> DATOS NUEVOS EN LA TABLA DE SISTEMA INTEGRADO PREVISIONAL ARGENTINO (SIPA) A {fecha_asunto.upper()}. </strong></h2>
 
         <hr>
         <h3> Distribucion de los Trabajos Registrados - Argentina </h3>
@@ -99,7 +99,8 @@ class MailSipa:
                 <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> DIFERENCIA ACUMULADA </th>
                 <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> PORCENTAJE REPRESENTATIVO EN EL NEA </th>
                 
-                
+                <hr>
+
                     {self.difference_by_province(df_nea)}
 
             </table>
@@ -125,6 +126,8 @@ class MailSipa:
                     {self.difference_nea_nation(df_nea,df)}
 
             </table>
+            <hr>
+
         '''
 
 
@@ -132,7 +135,9 @@ class MailSipa:
         mensaje_cuatro = self.max_hitory_corr_nation(df_nea,df)
 
         #Mensaje de presentacion 
-        mensaje_cinco = '''
+        mensaje_cinco = ''' 
+                        <hr>
+
                         <p> Instituto Provincial de Estadistica y Ciencia de Datos de Corrientes<br>
                                  Dirección: Tucumán 1164 - Corrientes Capital<br>
                              Contacto Coordinación General: 3794 284993</p>
@@ -149,14 +154,14 @@ class MailSipa:
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contrasenia = 'cmxddbshnjqfehka'
 
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com', 'samaniego18@gmail.com', 'guillermobenasulin@gmail.com', 'leclerc.mauricio@gmail.com','christianimariahebe@gmail.com']
-        email_receptores =  ['benitezeliogaston@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com', 'samaniego18@gmail.com', 'guillermobenasulin@gmail.com', 'leclerc.mauricio@gmail.com','christianimariahebe@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'manumarder@gmail.com']
 
         #==== Zona de envio de correo
         em = EmailMessage()
         em['From'] = email_emisor
         em['To'] = ", ".join(email_receptores)
-        em['Subject'] = f'SISTEMA INTEGRADO PREVISIONAL ARGENTINO(SIPA) - Fecha: ({fecha_asunto})'
+        em['Subject'] = f'SISTEMA INTEGRADO PREVISIONAL ARGENTINO(SIPA) - {fecha_asunto}'
         em.set_content(cadena, subtype = 'html')
 
         
@@ -250,6 +255,7 @@ class MailSipa:
         # ==== CONSTRUCCION DEL MENSAJE
 
         filas_tabla_nea_nacion = f'''<tr>
+
         <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> NEA </td>
         <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {df_nea['total_nea'].iloc[-1]:,.0f}</td>
         <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {df_nea['vmensual_nea'].iloc[-1]:,.2f}%</td>
