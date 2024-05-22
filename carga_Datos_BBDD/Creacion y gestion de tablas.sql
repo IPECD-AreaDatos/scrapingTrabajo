@@ -402,6 +402,16 @@ Create Table IPICORR(
     Var_Interanual_MinNoMetalicos float,
     Var_Interanual_Metales float
 );
+CREATE TABLE ipi(
+  fecha date DEFAULT NULL,
+  var_IPI float DEFAULT NULL,
+  var_interanual_alimentos float DEFAULT NULL,
+  var_interanual_textil float DEFAULT NULL,
+  var_interanual_sustancias float DEFAULT NULL,
+  var_interanual_maderas float DEFAULT NULL,
+  var_interanual_MinNoMetalicos float DEFAULT NULL,
+  var_interanual_metales float DEFAULT NULL
+);
 
 #Dolar
 Create Table dolar_oficial(
