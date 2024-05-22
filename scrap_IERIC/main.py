@@ -1,6 +1,8 @@
 from downloadArchive import downloadArchive
 from readFile import readFile
 from uploadDataInDataBase import uploadDataInDataBase
+from downloadArchive import downloadArchive
+from readFile2 import readFile2
 import os
 import sys
 
@@ -21,7 +23,10 @@ credenciales_datalake_economico = Credenciales("datalake_economico")
 
 
 if __name__=='__main__':
+    print("Las credenciales son: ", credenciales_datalake_economico.host, credenciales_datalake_economico.user, credenciales_datalake_economico.password, credenciales_datalake_economico.database)
     #downloadArchive().descargar_archivo()
     df = readFile().read_file()
+    df2 = readFile2().create_df()
     credenciales = uploadDataInDataBase(credenciales_datalake_economico.host, credenciales_datalake_economico.user, credenciales_datalake_economico.password, credenciales_datalake_economico.database).conectar_bdd()
+    credenciales.cargaBaseDatos(df2)
     credenciales.load_data(df)
