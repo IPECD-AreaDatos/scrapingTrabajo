@@ -7,6 +7,8 @@ import smtplib
 import pandas as pd
 import sqlalchemy
 from datetime import datetime
+import calendar
+
 
 class conexionBaseDatos:
 
@@ -102,24 +104,25 @@ class conexionBaseDatos:
 
 
         #Obtencion de valores para informe por CORREO
-        salario_nominal, variacion_mensual, variacion_interanual, variacion_acumulada, fecha_ultimo_mes, fecha_mes_anterior, fecha_ultimo_mesAñoAnterior, diciembre_AñoAnterior = self.obtencion_valores()
+        cadena_actual, salario_nominal, variacion_mensual, variacion_interanual, variacion_acumulada, fecha_ultimo_mes, fecha_mes_anterior, fecha_ultimo_mesAñoAnterior, diciembre_AñoAnterior = self.obtencion_valores()
         
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
-        asunto = f'Modificación en la base de datos - SALARIO MINIMO VITAL Y MOVIL - Fecha {fecha_ultimo_mes}'
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com', 'manumarder@gmail.com']
+        asunto = f'Modificación en la base de datos - Salario MVM - {cadena_actual}'
         mensaje = f'''\
             <html>
             <body>
-            <h2>Se ha producido una modificación en la base de datos. La tabla de SALARIO MINIMO VITAL Y MOVIL contiene nuevos datos.</h2>
-            <p>*Salario Nominal de {fecha_ultimo_mes}: <span style="font-size: 17px;"><b>${salario_nominal}</b></span></p>
+            <h2 style="font-size: 24px;"><strong> DATOS NUEVOS EN LA TABLA DE SALARIO MINIMO VITAL Y MOVIL A {cadena_actual.upper()}. </strong></h2>
+
+            <p>* Salario Nominal de {fecha_ultimo_mes}: <span style="font-size: 17px;"><b>${salario_nominal}</b></span></p>
             <hr>
-            <p>*Variacion mensual desde {fecha_mes_anterior} a {fecha_ultimo_mes}: <span style="font-size: 17px;"><b>{variacion_mensual:.2f}%%</b></span></p>
+            <p>* Variacion mensual desde {fecha_mes_anterior} a {fecha_ultimo_mes}: <span style="font-size: 17px;"><b>{variacion_mensual:.2f}%%</b></span></p>
             <hr>
-            <p>*Variacion Interanual de {fecha_ultimo_mes} a {fecha_ultimo_mesAñoAnterior}: <span style="font-size: 17px;"><b>{variacion_interanual:.2f}%</b></span></p>
+            <p>* Variacion Interanual de {fecha_ultimo_mes} a {fecha_ultimo_mesAñoAnterior}: <span style="font-size: 17px;"><b>{variacion_interanual:.2f}%</b></span></p>
             <hr>
-            <p>*Variacion Acumulada de {diciembre_AñoAnterior} a {fecha_ultimo_mes}: <span style="font-size: 17px;"><b>{variacion_acumulada:.2f}%</b></span></p>
+            <p>* Variacion Acumulada de {diciembre_AñoAnterior} a {fecha_ultimo_mes}: <span style="font-size: 17px;"><b>{variacion_acumulada:.2f}%</b></span></p>
             <hr>
             <p> Instituto Provincial de Estadistica y Ciencia de Datos de Corrientes<br>
                 Dirección: Tucumán 1164 - Corrientes Capital<br>
@@ -174,6 +177,25 @@ class conexionBaseDatos:
         año_anterior = int(año_actual) - 1
         año_anterior = str(año_anterior)
 
+        #cadena fecha actual 
+        nombre_mes_ingles = calendar.month_name[fecha_ultimo_mes.month]
+        traducciones_meses = {
+            'January': 'Enero',
+            'February': 'Febrero',
+            'March': 'Marzo',
+            'April': 'Abril',
+            'May': 'Mayo',
+            'June': 'Junio',
+            'July': 'Julio',
+            'August': 'Agosto',
+            'September': 'Septiembre',
+            'October': 'Octubre',
+            'November': 'Noviembre',
+            'December': 'Diciembre'
+        }
+        nombre_mes_espanol = traducciones_meses.get(nombre_mes_ingles, nombre_mes_ingles)
+        cadena_actual = f"{nombre_mes_espanol} del {fecha_ultimo_mes.year}"
+
         #Construccion de la cadena para pasarla a formato de fecha
         cadene_fecha = año_anterior + "-" + mes_actual + "-" + dia_actual
         fecha_ultimo_mesAñoAnterior = datetime.strptime(cadene_fecha,'%Y-%m-%d').date()
@@ -200,7 +222,7 @@ class conexionBaseDatos:
         #Mes anterior al actual - Usamos cadena ya creada antes - Hacemos operacio para reducir un mes a la fecha actual - No hay necesidad de pasarlo a formato de fecha
         mes_anterior = año_actual + "-" + str(int(mes_actual)-1) + "-" + dia_actual
 
-        return salario_nominal,variacion_mensual, variacion_interanual, variacion_acumulada, fecha_ultimo_mes, mes_anterior ,fecha_ultimo_mesAñoAnterior, diciembre_AñoAnterior
+        return cadena_actual, salario_nominal,variacion_mensual, variacion_interanual, variacion_acumulada, fecha_ultimo_mes, mes_anterior ,fecha_ultimo_mesAñoAnterior, diciembre_AñoAnterior
 
 
 
