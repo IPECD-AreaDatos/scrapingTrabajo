@@ -39,6 +39,8 @@ class downloadArchive:
         if not os.path.exists(carpeta_guardado):
             os.makedirs(carpeta_guardado)
 
+
+        #archivo actividad
         # Esperar hasta que aparezca el enlace al primer archivo
         archivo = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div/div[2]/div/div[1]/div[3]/div[2]/div[1]/div[1]/a")))
 
@@ -50,3 +52,15 @@ class downloadArchive:
         ruta_guardado = os.path.join(carpeta_guardado, 'Empresas en actividad.xls')
         with open(ruta_guardado, 'wb') as file:
             file.write(response.content)
+
+        #archivo ocupacion
+        # Esperar hasta que aparezca el enlace al primer archivo
+        archivo2 = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div/div[2]/div/div[1]/div[3]/div[2]/div[2]/div[1]/a")))
+        # Obtener la URL del primer archivo
+        url_archivo2 = archivo2.get_attribute('href')
+
+        # Descargar el primer archivo desactivando la verificación del certificado SSL
+        response2 = requests.get(url_archivo2, verify=False)
+        ruta_guardado2 = os.path.join(carpeta_guardado, 'Puestos de trabajo registrados.xls')
+        with open(ruta_guardado2, 'wb') as file:
+            file.write(response2.content)
