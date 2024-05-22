@@ -17,7 +17,7 @@ class readFile:
         df = pd.read_excel(file_path_desagregado, skiprows=4)
         df = df.dropna()
         df = df.rename(columns={'Unnamed: 0':'fecha', 'Corrientes ':'cantidad_empresas_corrientes', 'Total País':'cantidad_empresas_total_pais', 'Corrientes':'var_interanual_corrientes', 'Total País.1':'var_interanual_total_pais' })
-        df['fecha'] = pd.to_datetime(df['fecha'])
+        df['fecha'] = pd.to_datetime(df['fecha']).dt.date
         colums =['cantidad_empresas_corrientes', 'cantidad_empresas_total_pais', 'var_interanual_corrientes', 'var_interanual_total_pais']
         df['var_interanual_corrientes'] = df['var_interanual_corrientes'].replace({'...': 0}, regex=False)
         df['var_interanual_total_pais'] = df['var_interanual_total_pais'].replace({'...': 0}, regex=False)
@@ -25,3 +25,6 @@ class readFile:
         for colum in colums:
             df[colum] = pd.to_numeric(df[colum])
         print(df)
+        print(df.dtypes)
+
+        return df
