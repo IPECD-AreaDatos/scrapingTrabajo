@@ -18,6 +18,7 @@ credenciales_ipecd_economico = Credenciales("ipecd_economico")
 if __name__ == "__main__":
     # Descarga del archivo
     HomePage().descargar_archivo()
+    exit()
     # ripte_cargaHistorico().loadInDataBase(credenciales_datalake_economico.host, credenciales_datalake_economico.user, credenciales_datalake_economico.password, credenciales_datalake_economico.database)
     
     # ↓↓↓↓↓↓↓↓↓↓↓↓CARGA DEL TABLERO ↓↓↓↓↓↓↓↓↓↓↓↓
