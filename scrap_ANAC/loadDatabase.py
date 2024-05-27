@@ -43,12 +43,19 @@ class load_database:
         # Limpiar y procesar los valores
         clean_values = []
         for value in values:
-            value = str(value[0]).replace('.', '')
-            if value.isnumeric():
-                clean_values.append(int(value))
+            # Convertir el valor a una cadena y eliminar espacios en blanco
+            value_str = str(value[0]).strip()
+            # Reemplazar las comas por puntos para manejar los decimales correctamente
+            value_str = value_str.replace(',', '.')
+            # Intentar convertir el valor a float
+            try:
+                clean_value = float(value_str)
+                clean_values.append(clean_value)
+            except ValueError:
+                # Si hay un error al convertir, simplemente pasa al siguiente valor
+                pass
         
         print("Valores limpios:")
         print(clean_values)
         
         return clean_values
-    
