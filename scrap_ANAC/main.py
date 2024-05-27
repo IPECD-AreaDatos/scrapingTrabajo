@@ -1,10 +1,10 @@
 from home_page import HomePage
-from anac_armadoDF import armadoDF
+#3from anac_armadoDF import armadoDF
 import sys
 import os
 import pandas as pd
-from loadDatabase import load_database
-from save_data_sheet import readSheets
+#from loadDatabase import load_database
+#from save_data_sheet import readSheets
 
 # Obtener la ruta al directorio actual del script
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -23,9 +23,9 @@ credenciales_datalake_economico = Credenciales("datalake_economico")
 
 
 if __name__ == "__main__":
-    #home_page = HomePage()
-    #home_page.descargar_archivo()
-
+    home_page = HomePage()
+    home_page.descargar_archivo()
+    exit()
     directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
     ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
     file_path_desagregado = os.path.join(ruta_carpeta_files, 'anac.xlsx')
