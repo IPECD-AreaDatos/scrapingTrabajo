@@ -1,2 +1,6 @@
 *.pyc
-ventas_combustible.csv
+*.csv
+*.xlsx
+*.xls
+*.pdf
+entorno_trabajo/
