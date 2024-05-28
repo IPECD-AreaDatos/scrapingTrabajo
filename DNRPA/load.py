@@ -2,6 +2,7 @@ from sqlalchemy import create_engine
 from pymysql import connect
 from pandas import read_sql
 from save_data_sheet import readSheets
+import pandas as pd
 
 class conexionBaseDatos:
 
@@ -43,40 +44,58 @@ class conexionBaseDatos:
     #En este caso vamos a cargar el DATALAKE ECONOMICO
 
     def cargar_datalake(self,df):
-
         self.connect_db()
-        
-        #DF de la base de datos
-        query = 'select * from datalake_economico.dnrpa'
-        df_bdd =read_sql(query,self.conn)
 
-        if not(df_bdd.equals(df)): 
+        # Asegúrate de que self.conn sea un motor de SQLAlchemy
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
 
+        # DataFrame de la base de datos
+        query = 'SELECT * FROM datalake_economico.dnrpa'
+        df_bdd = pd.read_sql(query, engine)
+
+        # Ordena las columnas antes de comparar
+        df_bdd = df_bdd[sorted(df_bdd.columns)]
+        df = df[sorted(df.columns)]
+
+        # Convertir tipos de datos en df para que coincidan con df_bdd
+        df = df.astype({
+            'cantidad': 'int64',
+            'fecha': 'object',
+            'id_provincia_indec': 'int64',
+            'id_vehiculo': 'int64'
+        })
+
+        # Convertir las columnas 'fecha' a datetime
+        df_bdd['fecha'] = pd.to_datetime(df_bdd['fecha'])
+        df['fecha'] = pd.to_datetime(df['fecha'])
+
+        # Reiniciar índices antes de comparar
+        df_bdd.reset_index(drop=True, inplace=True)
+        df.reset_index(drop=True, inplace=True)
+
+        # Eliminar valores faltantes
+        df_bdd = df_bdd.fillna(0)
+        df = df.fillna(0)
+
+        # Comparar los DataFrames en detalle
+        comparison = df_bdd.compare(df)
+        if not comparison.empty:
+            print("Diferencias encontradas entre los DataFrames:")
+            print(comparison)
             query_truncate = 'TRUNCATE dnrpa'
             self.cursor.execute(query_truncate)
 
-            #Conectamos a la BDD
-            engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+            # Cargamos los datos
             df.to_sql(name="dnrpa", con=engine, if_exists='append', index=False)
 
             print("*****************************************")
             print(" SE HA PRODUCIDO UNA CARGA DE DATOS DE DNRPA ")
             print("*****************************************")
 
-
-            #Cargamos los datos en el SHEET (https://docs.google.com/spreadsheets/d/1L_EzJNED7MdmXw_rarjhhX8DpL7HtaKpJoRwyxhxHGI/edit#gid=0)
+            # Cargamos los datos en el SHEET
             readSheets().cargar_datos(df)
-
-
-
-
         else:
             print("*****************************************")
-            print(" No existes datos nuevos de DNRPA ")
+            print(" Se realizó una verificación de la base de datos ")
+            print(" No existen datos nuevos de DNRPA ")
             print("*****************************************")
-
-
-
-
-
-
