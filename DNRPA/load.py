@@ -53,6 +53,9 @@ class conexionBaseDatos:
         query = 'SELECT * FROM datalake_economico.dnrpa'
         df_bdd = pd.read_sql(query, engine)
 
+        print("DATAFRAMES IGUALES")
+        print(df_bdd.equals(df))
+
         # Ordena las columnas antes de comparar
         df_bdd = df_bdd[sorted(df_bdd.columns)]
         df = df[sorted(df.columns)]
@@ -99,3 +102,30 @@ class conexionBaseDatos:
             print(" Se realizó una verificación de la base de datos ")
             print(" No existen datos nuevos de DNRPA ")
             print("*****************************************")
+
+
+    def cargar_datalake_v2(self,df):
+         
+
+        self.connect_db()
+
+        # Asegúrate de que self.conn sea un motor de SQLAlchemy
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+
+        # DataFrame de la base de datos
+        query = 'SELECT * FROM datalake_economico.dnrpa'
+        df_bdd = pd.read_sql(query, engine)
+
+
+        if (df_bdd.equals(df)): #Si son iguales
+            pass
+
+        else: #Si no son iguales
+
+            query_truncate = 'TRUNCATE dnrpa'
+            self.cursor.execute(query_truncate) 
+            df.to_sql(name="dnrpa", con=engine, if_exists='append', index=False)
+
+                
+
+
