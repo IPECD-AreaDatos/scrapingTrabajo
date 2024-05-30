@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     #-----IPI NACION------
     home_page = HomePage_IPI()
-    #home_page.descargar_archivo()
+    home_page.descargar_archivo()
     df_ipi = home_page.construir_df()
     print(df_ipi)
     Database_ipi().cargar_datos(credenciales.host, credenciales.user, credenciales.password, credenciales.database,df_ipi)
