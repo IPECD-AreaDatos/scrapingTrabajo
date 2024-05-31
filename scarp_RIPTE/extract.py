@@ -42,7 +42,7 @@ class HomePage:
         
         # Esperar hasta que el contenido específico esté disponible
         try:
-            archivo_SP = wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'descargar')]")))
+            archivo_SP = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div[2]/div/div/div/div[1]/div[3]/div/div/a[2]")))
             print("DESPUES")
 
             # Obtener la URL del primer archivo
