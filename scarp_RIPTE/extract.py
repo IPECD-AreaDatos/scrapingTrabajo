@@ -34,9 +34,11 @@ class HomePage:
         # Crear la carpeta "files" si no existe
         if not os.path.exists(carpeta_guardado):
             os.makedirs(carpeta_guardado)
-            
+        
+        print("antes de fallar")
         # Esperar hasta que aparezca el enlace al primer archivo
         archivo_SP = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div[2]/div/div/div/div[1]/div[3]/div/div/a[2]")))
+        print("DESPUES")
 
         # Obtener la URL del primer archivo
         url_archivo_SP = archivo_SP.get_attribute('href')

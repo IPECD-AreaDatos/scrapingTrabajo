@@ -28,7 +28,6 @@ if __name__ == "__main__":
     ultimo_valor_ripte = HomePage().extract_last_date()
     print(ultimo_valor_ripte)
 
-    print("PRIMERA CARGA")
     # Carga del último dato en la base de datos Datalake Economico
     instancia = ripte_cargaUltimoDato(
         credenciales_datalake_economico.host,
@@ -38,7 +37,6 @@ if __name__ == "__main__":
     )
     instancia.loadInDataBaseDatalakeEconomico()
 
-    print("SEGUNDA CARGA")
     # ↓↓↓↓↓↓↓↓↓↓↓↓CARGA DEL TABLERO ↓↓↓↓↓↓↓↓↓↓↓↓
     # Carga del último dato en la base de datos IPECD Economico
     instancia = ripte_cargaUltimoDato(
