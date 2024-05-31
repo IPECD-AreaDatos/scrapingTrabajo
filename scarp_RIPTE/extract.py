@@ -10,9 +10,11 @@ class HomePage:
     
     def __init__(self):
 
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
 
         # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
-        self.driver = webdriver.Chrome()  # Reemplaza con la ubicación de tu ChromeDriver
+        self.driver = webdriver.Chrome(options=options)  # Reemplaza con la ubicación de tu ChromeDriver
 
         # URL de la página que deseas obtener
         self.url_pagina = 'https://datos.gob.ar/vi/dataset/sspm-remuneracion-imponible-promedio-trabajadores-estables-ripte'
