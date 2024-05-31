@@ -40,7 +40,8 @@ class LoadCSVData:
         return tamano_df, filas_bdd
     
     def loadInDataBase(self):
-
+        print("-----------------------------------")
+        print("Desarrollo Productivo Trabajos Sector Privado")
         table_name = 'dp_puestostrabajo_sector_privado'
         # Obtener la ruta del directorio actual (donde se encuentra el script)
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
@@ -51,6 +52,7 @@ class LoadCSVData:
         # Leer el archivo de csv y hacer transformaciones
         df = pd.read_csv(file_path)  # Leer el archivo CSV y crear el DataFrame
         df = df.replace({np.nan: None})  # Reemplazar los valores NaN(Not a Number) por None
+        df = df.replace(-99, 0)
         
         #Nos conectamos a la BDD
         self.connect_db()    
@@ -59,7 +61,9 @@ class LoadCSVData:
         len_df, len_bdd = self.contador_filas(df,table_name)
 
         longitud_datos_excel = len(df)
-        print("privado: ", longitud_datos_excel)
+        diferencia = len_df - len_bdd
+        print("Longitud de los datos del excel de Puestos Trabajos sector Privado: ", longitud_datos_excel)
+        print("Longitud de la base de datos en la tabla dp_puestostrabajo_sector_privado: ", len_bdd)
         
         if len_df > len_bdd:
 
@@ -69,10 +73,12 @@ class LoadCSVData:
             #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
             engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}") #--> Conector
             df_datalake.to_sql(name=f"{table_name}", con=engine, if_exists='append', index=False) #--> Carga de tabla de salarios del sector privado
-
+            
+            enviar_correo(diferencia)
 
             #Guardamos cambios 
             self.conn.commit()
+            print("Se han cargado " + str(diferencia) + " datos.")
 
         else:
             print("No existen nuevos datos para cargar.")
@@ -80,15 +86,13 @@ class LoadCSVData:
         return
     
         
-def enviar_correo():
+def enviar_correo(diferencia):
     email_emisor='departamientoactualizaciondato@gmail.com'
     email_contraseña = 'cmxddbshnjqfehka'
     email_receptor = ['matizalazar2001@gmail.com','benitezeliogaston@gmail.com']
-    asunto = 'Modificación en la base de datos'
-    mensaje = 'Se ha producido una modificación en la base de datos.Tabla de Puestos de Trabajo Sector Privado'
-    body = "Se han agregado nuevos datos:\n\n"
-    for data in nuevos_datos:
-        body += ', '.join(map(str, data)) + '\n'
+    asunto = 'Nuevos datos en la base de Desarrollo Productivo Trabajos Sector Privado'
+    mensaje = f'Se ha producido una modificación en la base de datos.Tabla dp_puestostrabajo_sector_privado <br> Se han cargado <strong>{diferencia}</strong> datos.'
+
     
     em = EmailMessage()
     em['From'] = email_emisor

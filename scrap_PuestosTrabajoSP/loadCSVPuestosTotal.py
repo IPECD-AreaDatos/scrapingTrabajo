@@ -39,6 +39,8 @@ class LoadCSVDataPuestosTotal:
         return tamano_df, filas_bdd
     
     def loadInDataBase(self):
+        print("-----------------------------------")
+        print("Desarrollo Productivo Trabajos Sector Privado")
         table_name = 'dp_puestostrabajo_total'
         # Obtener la ruta del directorio actual (donde se encuentra el script)
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
@@ -58,7 +60,9 @@ class LoadCSVDataPuestosTotal:
         len_df, len_bdd = self.contador_filas(df,table_name)
 
         longitud_datos_excel = len(df)
-        print("privado: ", longitud_datos_excel)
+        diferencia = len_df - len_bdd
+        print("Longitud de los datos del excel de Puestos Trabajos Total: ", longitud_datos_excel)
+        print("Longitud de la base de datos en la tabla dp_puestostrabajo_total: ", len_bdd)
         
         if len_df > len_bdd:
 
@@ -69,25 +73,24 @@ class LoadCSVDataPuestosTotal:
             engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}") #--> Conector
             df_datalake.to_sql(name=f"{table_name}", con=engine, if_exists='append', index=False) #--> Carga de tabla de salarios del sector privado
 
+            enviar_correo(diferencia)
 
             #Guardamos cambios 
             self.conn.commit()
+            print("Se han cargado " + str(diferencia) + " datos.")
 
         else:
             print("No existen nuevos datos para cargar.")
             
         return
     
-def enviar_correo():
+def enviar_correo(diferencia):
     email_emisor='departamientoactualizaciondato@gmail.com'
     email_contraseña = 'cmxddbshnjqfehka'
     email_receptor = ['matizalazar2001@gmail.com','gastongrillo2001@gmail.com']
-    asunto = 'Modificación en la base de datos'
-    mensaje = 'Se ha producido una modificación en la base de datos.Tabla de Puestos Trabajos Total'
-    body = "Se han agregado nuevos datos:\n\n"
-    for data in nuevos_datos:
-        body += ', '.join(map(str, data)) + '\n'
-    
+    asunto = 'Nuevos datos en la base de Desarrollo Productivo Trabajos Total'
+    mensaje = 'Se ha producido una modificación en la base de datos.Tabla dp_puestostrabajo_total. Se han cargado ' + str(diferencia) + ' datos.'
+
     em = EmailMessage()
     em['From'] = email_emisor
     em['To'] = email_receptor

@@ -10,13 +10,16 @@ import urllib3
 class HomePage:
     
     def __init__(self):
-        # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
-        self.driver = webdriver.Chrome()  # Reemplaza con la ubicación de tu ChromeDriver
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+    
+        self.driver = webdriver.Chrome(options=options)
 
         # URL de la página que deseas obtener
         self.url_pagina = 'https://datos.produccion.gob.ar/dataset/puestos-de-trabajo-por-departamento-partido-y-sector-de-actividad'
 
     def descargar_archivo(self):
+        print("Descarga de archivo de pagina web")
         # Desactivar advertencias de solicitud no segura
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -46,18 +49,19 @@ class HomePage:
         # Nombre de los archivos
         nombre_archivo = 'trabajoSectorPrivado.csv'
         nombre_archivo2 = 'trabajoTotal.csv'
-
+        
         # Descargar el primer archivo desactivando la verificación del certificado SSL
         response1 = requests.get(url_archivo, verify=False)
         ruta_guardado1 = os.path.join(carpeta_guardado, nombre_archivo)
         with open(ruta_guardado1, 'wb') as file1:
             file1.write(response1.content)
-
+        print("Se descargo el archivo " + nombre_archivo)
+        
         # Descargar el segundo archivo desactivando la verificación del certificado SSL
         response2 = requests.get(url_archivo2, verify=False)
         ruta_guardado2 = os.path.join(carpeta_guardado, nombre_archivo2)
         with open(ruta_guardado2, 'wb') as file2:
             file2.write(response2.content)
-
+        print("Se descargo el archivo " + nombre_archivo2)
         # Cerrar el navegador
         self.driver.quit()
