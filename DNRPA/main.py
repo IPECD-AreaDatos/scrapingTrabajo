@@ -29,5 +29,5 @@ if __name__=='__main__':
 
     #Cargamos al datalake economico
     instancia_bdd = conexionBaseDatos(credenciales.host,credenciales.user,credenciales.password,credenciales.database)
-    instancia_bdd.cargar_datalake_v2(df)
+    instancia_bdd.cargar_datalake(df)
 

@@ -43,7 +43,8 @@ class conexionBaseDatos:
 
     #En este caso vamos a cargar el DATALAKE ECONOMICO
 
-    def cargar_datalake(self,df):
+    def cargar_datalake(self,df):    
+        
         self.connect_db()
 
         # Asegúrate de que self.conn sea un motor de SQLAlchemy
@@ -72,19 +73,17 @@ class conexionBaseDatos:
         df_bdd['fecha'] = pd.to_datetime(df_bdd['fecha'])
         df['fecha'] = pd.to_datetime(df['fecha'])
 
-        # Reiniciar índices antes de comparar
+        # Restablecer los índices
         df_bdd.reset_index(drop=True, inplace=True)
         df.reset_index(drop=True, inplace=True)
 
         # Eliminar valores faltantes
-        df_bdd = df_bdd.fillna(0)
-        df = df.fillna(0)
+        df_bdd.fillna(0, inplace=True)
+        df.fillna(0, inplace=True)
 
-        # Comparar los DataFrames en detalle
-        comparison = df_bdd.compare(df)
-        if not comparison.empty:
+        # Comparar los DataFrames
+        if not df_bdd.equals(df):
             print("Diferencias encontradas entre los DataFrames:")
-            print(comparison)
             query_truncate = 'TRUNCATE dnrpa'
             self.cursor.execute(query_truncate)
 
@@ -103,29 +102,7 @@ class conexionBaseDatos:
             print(" No existen datos nuevos de DNRPA ")
             print("*****************************************")
 
-
-    def cargar_datalake_v2(self,df):
-         
-
-        self.connect_db()
-
-        # Asegúrate de que self.conn sea un motor de SQLAlchemy
-        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
-
-        # DataFrame de la base de datos
-        query = 'SELECT * FROM datalake_economico.dnrpa'
-        df_bdd = pd.read_sql(query, engine)
-
-
-        if (df_bdd.equals(df)): #Si son iguales
-            pass
-
-        else: #Si no son iguales
-
-            query_truncate = 'TRUNCATE dnrpa'
-            self.cursor.execute(query_truncate) 
-            df.to_sql(name="dnrpa", con=engine, if_exists='append', index=False)
-
+        self.close_connections()
                 
 
 
