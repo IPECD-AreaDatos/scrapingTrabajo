@@ -56,8 +56,12 @@ class HomePage:
     #Objetivo: extraer el ultimo dato de ripte de la pagina de seguridad social. Luego el valor se reporta
     def extract_last_date(self):
 
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+
+
         #Carga de pagina
-        driver = webdriver.Chrome()
+        driver = webdriver.Chrome(options=options)
         driver.get('https://www.argentina.gob.ar/trabajo/seguridadsocial/ripte')
        
        #Buscamos la tabla que contiene los datos
