@@ -27,7 +27,7 @@ class HomePage:
          # Cargar la página web
         self.driver.get(self.url_pagina)
 
-        wait = WebDriverWait(self.driver, 10)
+        wait = WebDriverWait(self.driver, 20)
         
         # Obtener la ruta del directorio actual (donde se encuentra el script)
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
