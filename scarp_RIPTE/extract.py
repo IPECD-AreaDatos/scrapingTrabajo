@@ -4,14 +4,18 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import os
+from selenium.webdriver.chrome.options import Options
 
 
 class HomePage:
     
     def __init__(self):
 
-        options = webdriver.ChromeOptions()
-        options.add_argument('--headless')
+        options = Options()
+        options.add_argument('--headless')  # Ejecuta Chrome en modo sin cabeza
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+
 
         # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
         self.driver = webdriver.Chrome(options=options)  # Reemplaza con la ubicación de tu ChromeDriver
@@ -36,6 +40,7 @@ class HomePage:
             os.makedirs(carpeta_guardado)
         
         print("antes de fallar")
+        print("TITULO DE LA PAGINA: ",self.driver.title)
         # Esperar hasta que aparezca el enlace al primer archivo
         archivo_SP = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div[2]/div/div/div/div[1]/div[3]/div/div/a[2]")))
         print("DESPUES")
