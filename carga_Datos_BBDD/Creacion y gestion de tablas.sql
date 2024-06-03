@@ -614,6 +614,29 @@ create table ecv_educacion_quintiles(
     institucion_privada FLOAT
 );
 
+create table ecv_transporte_medios(
+	aglomerado varchar(50),
+    año int,
+    trimestre varchar(50),
+    fecha date,
+    automovil float,
+    bicicleta float,
+    caminata float,
+    taxi_o_remis float,
+    transporte_publico float,
+    otros float
+);
+create table ecv_transporte_desplazamiento(
+	aglomerado varchar(50),
+    año int,
+    trimestre varchar(50),
+    fecha date,
+    no_desplaza float,
+    desplaza_en_municipio float,
+    desplaza_fuera_municipio float,
+    sin_desplazamiento_fijo float
+);
+
 #EPH Tablas
 Create table eph_tasas(
 	aglomerado char(100),

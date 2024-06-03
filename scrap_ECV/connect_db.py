@@ -401,3 +401,95 @@ class connect_db:
             
         cursor.close()
         conn.close()
+
+    def connect_db_transporte_medios(self, df, host, user, password, database): 
+        conn = mysql.connector.connect(
+            host=host,
+            user=user,
+            password=password,
+            database=database
+        )
+        cursor = conn.cursor()
+
+        table_name= 'ecv_transporte_medios'
+        select_row_count_query = f"SELECT COUNT(*) FROM {table_name}"
+        cursor.execute(select_row_count_query)
+        filas_BD = cursor.fetchone()[0]
+        print("Base: ", filas_BD)
+        print("DF", len(df))
+        longitud_df = len(df)
+
+        if filas_BD != len(df):
+            df_datos_nuevos = df.tail(longitud_df - filas_BD)
+
+            print("aca:", df_datos_nuevos)
+            print("Tabla de ECV")
+            for index, row in df_datos_nuevos.iterrows():
+                # Convertir la fecha al formato adecuado para MySQL
+                row['fecha'] = row['fecha'].strftime('%Y-%m-%d')
+
+                # Luego, puedes usar estos valores en tu consulta SQL
+                sql_insert = f"INSERT INTO {table_name} (aglomerado, año, trimestre,fecha, automovil, bicicleta, caminata, taxi_o_remis, transporte_publico, otros) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+
+                # Rellenar los valores faltantes (NaN) con None
+                row = row.where(pd.notnull(row), None)
+                
+                # Ejecutar la sentencia SQL de inserción
+                cursor.execute(sql_insert, (row['aglomerado'], row['año'], row['trimestre'], row['fecha'], row['automovil'], row['bicicleta'], row['caminata'], row['taxi_o_remis'], row['transporte_publico'], row['otros']))
+
+
+            conn.commit()
+            df_datos_nuevos['fecha'] = pd.to_datetime(df_datos_nuevos['fecha'], format='%Y-%m-%d')
+
+
+        else: 
+            print("Se verifico la tabla de ecv")
+            
+        cursor.close()
+        conn.close()
+
+    def connect_db_transporte_desplazamiento(self, df, host, user, password, database): 
+        conn = mysql.connector.connect(
+            host=host,
+            user=user,
+            password=password,
+            database=database
+        )
+        cursor = conn.cursor()
+
+        table_name= 'ecv_transporte_desplazamiento'
+        select_row_count_query = f"SELECT COUNT(*) FROM {table_name}"
+        cursor.execute(select_row_count_query)
+        filas_BD = cursor.fetchone()[0]
+        print("Base: ", filas_BD)
+        print("DF", len(df))
+        longitud_df = len(df)
+
+        if filas_BD != len(df):
+            df_datos_nuevos = df.tail(longitud_df - filas_BD)
+
+            print("aca:", df_datos_nuevos)
+            print("Tabla de ECV")
+            for index, row in df_datos_nuevos.iterrows():
+                # Convertir la fecha al formato adecuado para MySQL
+                row['fecha'] = row['fecha'].strftime('%Y-%m-%d')
+
+                # Luego, puedes usar estos valores en tu consulta SQL
+                sql_insert = f"INSERT INTO {table_name} (aglomerado, año, trimestre,fecha, no_desplaza, desplaza_en_municipio, desplaza_fuera_municipio, sin_desplazamiento_fijo) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+
+                # Rellenar los valores faltantes (NaN) con None
+                row = row.where(pd.notnull(row), None)
+                
+                # Ejecutar la sentencia SQL de inserción
+                cursor.execute(sql_insert, (row['aglomerado'], row['año'], row['trimestre'], row['fecha'], row['no_desplaza'], row['desplaza_en_municipio'], row['desplaza_fuera_municipio'], row['sin_desplazamiento_fijo']))
+
+
+            conn.commit()
+            df_datos_nuevos['fecha'] = pd.to_datetime(df_datos_nuevos['fecha'], format='%Y-%m-%d')
+
+
+        else: 
+            print("Se verifico la tabla de ecv")
+            
+        cursor.close()
+        conn.close()

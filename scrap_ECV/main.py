@@ -11,6 +11,8 @@ from readSheetsSaludQuintilCoberturaEst import readSheetsSaludQuintilCoberturaEs
 from readSheetsEducacion import readSheetsEducacion
 from readSheetsEducacionMay25 import readSheetsEducacionMay25
 from readSheetsEducacionQuintiles import readSheetsEducacionQuintiles
+from readSheetsTransporteMedios import readSheetsTransporteMedios
+from readSheetsTransporteDesplazamiento import readSheetsTransporteDesplazamiento
 
 # Obtener la ruta al directorio actual del script
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -45,3 +47,7 @@ if __name__ ==  "__main__":
     connect_db().connect_db_educacion_may_25(df_educacion_may_25, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
     df_educacion_quintiles = readSheetsEducacionQuintiles().leer_datos_educacionQuintiles()
     connect_db().connect_db_educacion_quintiles(df_educacion_quintiles, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    df_transporte_medios = readSheetsTransporteMedios().leer_datos_trabajo()
+    connect_db().connect_db_transporte_medios(df_transporte_medios, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    df_transporte_desplazamiento = readSheetsTransporteDesplazamiento().leer_datos_trabajo()
+    connect_db().connect_db_transporte_desplazamiento(df_transporte_desplazamiento, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
