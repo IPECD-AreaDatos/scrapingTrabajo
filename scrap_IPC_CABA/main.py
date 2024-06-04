@@ -12,7 +12,7 @@ sys.path.append(credenciales_dir)
 from credenciales_bdd import Credenciales
 credenciales = Credenciales("datalake_economico")
 
-if __name__ == "__amain__":
+if __name__ == "__main__":
 
     #Descarga del archivo
     HomePage().descargar_archivo()
