@@ -5,11 +5,14 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 import os
+import urllib3
 
 class HomePage:
 
     def __init__(self):
     
+        #Desactivamos protecciones 
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
         options = webdriver.ChromeOptions()
         options.add_argument('--headless')
