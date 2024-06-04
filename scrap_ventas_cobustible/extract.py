@@ -14,7 +14,7 @@ class Extraccion:
         options.add_argument('--headless')
     
         # Configuración del navegador
-        driver = webdriver.Chrome(options=options)
+        self.driver = webdriver.Chrome(options=options)
 
         # URL de la página que deseas obtener
         self.url_pagina = 'https://datos.gob.ar/dataset/energia-refinacion-comercializacion-petroleo-gas-derivados-tablas-dinamicas/archivo/energia_f0e4e10a-e4b8-44e6-bd16-763a43742107'
