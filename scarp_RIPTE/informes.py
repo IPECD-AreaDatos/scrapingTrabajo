@@ -60,13 +60,14 @@ class InformesRipte:
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
         email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com', 'manumarder@gmail.com']
         em = MIMEMultipart()
         asunto = f'Modificación en la base de datos - Remuneración Imponible Promedio de los Trabajadores Estables (RIPTE) - Fecha {fecha_cadena}'
         mensaje = f'''\
             <html>
             <body>
-            <h2>Se ha producido una modificación en la base de datos de RIPTE.</h2>
+                    <h2 style="font-size: 24px;"><strong> DATOS NUEVOS DE REMUNERACION IMPONIBLE PROMEDIO DE LOS TRABAJADORES ESTABLES (RIPTE) A {fecha_cadena.upper()}. </strong></h2>
+
             <hr>
             <p>Nueva fecha: {fecha_cadena} -- Nuevo valor:  <span style="font-size: 17px;"><b>${nuevo_valor}<b></p>
             <hr>
@@ -75,6 +76,7 @@ class InformesRipte:
             <p>Variación interanual de {fecha_mes_AñoAnterior} a {fecha_cadena}:  <span style="font-size: 17px;"><b>{variacion_interanual:.2f}%</b> </p>
             <hr>
             <p>Variación Acumulada desde {diciembre_AñoAnterior} a {fecha_cadena}:  <span style="font-size: 17px;"><b>{variacion_acumulada:.2f}%</b> </p>
+            <hr>
             </body>
 
             
@@ -234,7 +236,7 @@ class InformesRipte:
         # Iterar sobre el DataFrame para poner los valores en los puntos
         for i, punto in df.iterrows():
             # Convertir el valor a formato con separadores de miles
-            valor_formateado = locale.format('%d', punto[columna_valor], grouping=True)
+            valor_formateado = "{:,}".format(punto[columna_valor])
             # Mostrar el texto formateado
             plt.text(punto[columna_fecha], punto[columna_valor], f'${valor_formateado}', color='black', ha='left', va='bottom')
 

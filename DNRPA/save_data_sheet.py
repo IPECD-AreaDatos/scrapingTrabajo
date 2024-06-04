@@ -3,17 +3,15 @@ from google.oauth2 import service_account
 import os
 import pandas as pd
 
-
-
 class readSheets:
 
     def cargar_datos(self,df):
 
         #Creacion de listas
-        autos = list(df['cantidad'][(
+        autos = df['cantidad'][(
                 df['id_provincia_indec'] == 18) 
                 & (df['id_vehiculo'] == 1) 
-                & (df['fecha'] >= '2018-12-01')])
+                & (df['fecha'] >= '2018-12-01')]
         
         # Eliminar todos los ceros
         autos = [dato for dato in autos if dato != 0]
@@ -34,7 +32,8 @@ class readSheets:
         
         #Direccion del archivo json 
         directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
-        KEY = os.path.join(directorio_desagregado, 'key.json')
+        ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
+        KEY = os.path.join(ruta_carpeta_files, 'key.json')
 
         #ID del documento:
         SPREADSHEET_ID = '1L_EzJNED7MdmXw_rarjhhX8DpL7HtaKpJoRwyxhxHGI'

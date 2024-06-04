@@ -13,7 +13,7 @@ class ExtractDnrpa:
 
         self.driver = None
         self.original_window = None
-        self.df_total = pd.DataFrame(columns=['id_provincia_indec','fecha','cantidad','id_vehiculo'])
+        self.df_total = pd.DataFrame(columns=['fecha','id_provincia_indec','id_vehiculo','cantidad'])
 
 
     #Objetivo: extraer todas las tablas. La idea es usar esta funcion para una carga historica total.
@@ -142,10 +142,17 @@ class ExtractDnrpa:
 
         df_melted['id_vehiculo'] = tipo_vehiculo
 
+        if tipo_vehiculo == 1:
+            nombre_vehiculo = 'autos'
+        else:
+            nombre_vehiculo = 'motos'
+
+        print(f"TABLA {nombre_vehiculo} DEL AÑO {valor_opcion}")
         print(df_melted)
 
         self.df_total = pd.concat([self.df_total,df_melted])
 
+        
     #Objetivo: tomar la ultima pestaña
     def switch_to_latest_window(self):
         # Cambia a la última ventana

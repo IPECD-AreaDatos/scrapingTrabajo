@@ -59,6 +59,11 @@ class Credenciales:
             self.user = 'team-datos'
             self.password = 'HCj_BmbCtTuCv5}'
             self.database = 'datalake_economico'
+        elif database_name == 'reconocimientos_medicos':
+            self.host = 'salocup.ddns.net'
+            self.user = 'ex30216194'
+            self.password = '5f1i6nFpMv5O'
+            self.database = ''
         else:
             raise ValueError("Nombre de base de datos no válido")
 

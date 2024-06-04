@@ -31,9 +31,6 @@ class armadoDF:
         df.insert(0, 'fecha', fechas)
         df = df.drop(df.columns[-1], axis=1)
         df.reset_index(drop=True, inplace=True)
-        print(df)
-        print(df.columns)
-        
         
         colums = ['Aeroparque', 'Bahía Blanca', 'Bariloche', 'Base Marambio',    
        'Catamarca', 'Chapelco', 'Comod. Rivadavia', 'Concordia', 'Córdoba',    
@@ -47,10 +44,10 @@ class armadoDF:
        'Santa Rosa de Conlara', 'Santiago del Estero', 'Tandil',
        'Termas Río Hondo', 'Trelew', 'Tucumán', 'Ushuaia', 'Viedma',
        'Villa Gesell', 'Villa Reynolds', 'Otros']
-        print(df.dtypes)
         for colum in colums: 
-            df[colum] = df[colum].astype(str).str.replace(',', '.').astype(float)
-        print(df.dtypes)
+            df[colum] = df[colum].astype(float)
+            df[colum] = df[colum]*1000
+        print(df['Corrientes'])
         column_names = {
             'fecha': 'fecha',
             'Aeroparque': 'aeroparque',

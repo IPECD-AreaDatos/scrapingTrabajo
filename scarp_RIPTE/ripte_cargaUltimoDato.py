@@ -36,9 +36,11 @@ class ripte_cargaUltimoDato:
         #Conexion a la BDD
         self.conectar_bdd()
         
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
 
         #Carga de pagina
-        driver = webdriver.Chrome()
+        driver = webdriver.Chrome(options=options)
         driver.get('https://www.argentina.gob.ar/trabajo/seguridadsocial/ripte')
        
        #Buscamos la tabla que contiene los datos
@@ -92,9 +94,11 @@ class ripte_cargaUltimoDato:
         #Conexion a la BDD
         self.conectar_bdd()
         
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
 
         #Carga de pagina
-        driver = webdriver.Chrome()
+        driver = webdriver.Chrome(options=options)
         driver.get('https://www.argentina.gob.ar/trabajo/seguridadsocial/ripte')
        
        #Buscamos la tabla que contiene los datos

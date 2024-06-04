@@ -1,84 +1,98 @@
-import mysql.connector
-import numpy as np
-import pandas as pd
-import time
-import os
 from email.message import EmailMessage
 import ssl
 import smtplib
-
+import numpy as np
+import pymysql
+from sqlalchemy import create_engine
+import os
+import pandas as pd
 
 nuevos_datos = []
 
 class LoadCSVData:
-    def loadInDataBase(self, host, user, password, database):
-        
-        conn = mysql.connector.connect(
-            host=host, user=user, password=password, database=database
-        )
-        cursor = conn.cursor()
 
+    def __init__(self,host, user, password, database):
+
+        self.host = host
+        self.user = user
+        self.password =password
+        self.database = database
+        self.conn = None
+        self.cursor = None
+
+    def connect_db(self):
+            
+            #Creamos conexion, y cursor de la conexion
+            self.conn = pymysql.connect(host=self.host, user=self.user, password=self.password, database=self.database)
+            self.cursor = self.conn.cursor()   
+
+
+    def contador_filas(self,df,table):
+
+        #Tamano del DF original
+        tamano_df = len(df)
+
+        #Tamaño del DF de la BASE
+        select_row_count_query = f"SELECT COUNT(*) FROM {table}"
+        self.cursor.execute(select_row_count_query)
+        filas_bdd = self.cursor.fetchone()[0]
+
+        return tamano_df, filas_bdd
+    
+    def loadInDataBase(self):
+        print("-----------------------------------")
+        print("Desarrollo Productivo Trabajos Sector Privado")
         table_name = 'dp_puestostrabajo_sector_privado'
         # Obtener la ruta del directorio actual (donde se encuentra el script)
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
         ruta_carpeta_files = os.path.join(directorio_actual, 'files')
         file_name = "trabajoSectorPrivado.csv"
         file_path = os.path.join(ruta_carpeta_files, file_name)
-                
+        
         # Leer el archivo de csv y hacer transformaciones
         df = pd.read_csv(file_path)  # Leer el archivo CSV y crear el DataFrame
         df = df.replace({np.nan: None})  # Reemplazar los valores NaN(Not a Number) por None
-        longitud_datos_excel = len(df)
-        print("privado: ", longitud_datos_excel)
+        df = df.replace(-99, 0)
         
-        select_row_count_query = "SELECT COUNT(*) FROM dp_puestostrabajo_sector_privado"
-        cursor.execute(select_row_count_query)
-        filas_BD = cursor.fetchone()[0]
-        print("Base: ", filas_BD)
-        
-        if longitud_datos_excel != filas_BD:
-            df_datos_nuevos = df.tail(longitud_datos_excel - filas_BD)
-            
-            # Aplicar strip() al nombre de la columna antes de acceder a ella
-            column_name = ' puestos '  # Nombre de la columna con espacios en blanco
-            column_name_stripped = column_name.strip()  # Eliminar espacios en blanco
+        #Nos conectamos a la BDD
+        self.connect_db()    
 
-            # Verificar si la columna existe en el DataFrame
-            if column_name_stripped in df_datos_nuevos.columns:
-                df_datos_nuevos.loc[df_datos_nuevos[column_name_stripped] < 0, column_name_stripped] = 0 #Los datos <0 se reempalazan a 0
-            else:
-                print(f"La columna '{column_name_stripped}' no existe en el DataFrame.")
+        #Obtencion de tamaños
+        len_df, len_bdd = self.contador_filas(df,table_name)
+
+        longitud_datos_excel = len(df)
+        diferencia = len_df - len_bdd
+        print("Longitud de los datos del excel de Puestos Trabajos sector Privado: ", longitud_datos_excel)
+        print("Longitud de la base de datos en la tabla dp_puestostrabajo_sector_privado: ", len_bdd)
+        
+        if len_df > len_bdd:
+
+            #Obtenemos SOLO LOS DATOS A CARGAR, por diferencia de filas
+            df_datalake = df.tail(len_df-len_bdd)
+
+            #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+            engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}") #--> Conector
+            df_datalake.to_sql(name=f"{table_name}", con=engine, if_exists='append', index=False) #--> Carga de tabla de salarios del sector privado
             
-            
-            print("Tabla de Puestos de Trabajo Sector Privado")
-            insert_query = f"INSERT INTO {table_name} VALUES ({', '.join(['%s' for _ in range(len(df_datos_nuevos.columns))])})"
-            for index, row in df_datos_nuevos.iterrows():
-                data_tuple = tuple(row)
-                conn.cursor().execute(insert_query, data_tuple)
-                print(data_tuple)
-                nuevos_datos.append(data_tuple)
-            conn.commit()
-            conn.close()
-            print("Se agregaron nuevos datos")
-            enviar_correo()   
+            enviar_correo(diferencia)
+
+            #Guardamos cambios 
+            self.conn.commit()
+            print("Se han cargado " + str(diferencia) + " datos.")
+
         else:
-            print("Se realizo una verificacion de la base de datos")
+            print("No existen nuevos datos para cargar.")
+            
+        return
+    
         
-        
-        print("====================================================================")
-        print("Se realizo la actualizacion de la Tabla de Puestos de Trabajo Sector Privado")
-        print("====================================================================")
-        
-        
-def enviar_correo():
+def enviar_correo(diferencia):
     email_emisor='departamientoactualizaciondato@gmail.com'
     email_contraseña = 'cmxddbshnjqfehka'
     email_receptor = ['matizalazar2001@gmail.com','benitezeliogaston@gmail.com']
-    asunto = 'Modificación en la base de datos'
-    mensaje = 'Se ha producido una modificación en la base de datos.Tabla de Puestos de Trabajo Sector Privado'
-    body = "Se han agregado nuevos datos:\n\n"
-    for data in nuevos_datos:
-        body += ', '.join(map(str, data)) + '\n'
+    asunto = 'Nuevos datos en la base de Desarrollo Productivo Trabajos Sector Privado'
+    mensaje = f'Se ha producido una modificación en la base de datos.Tabla dp_puestostrabajo_sector_privado <br> Se han cargado <strong>{diferencia}</strong> datos.'
+
     
     em = EmailMessage()
     em['From'] = email_emisor

@@ -33,7 +33,7 @@ class Correo_ipi_nacion():
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
         email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com', 'manumarder@gmail.com']
         table_name = 'ipi'
         query_consulta = f'SELECT * FROM {table_name} ORDER BY fecha DESC LIMIT 1'
         df_bdd = pd.read_sql(query_consulta,self.conn)
@@ -44,27 +44,29 @@ class Correo_ipi_nacion():
 
 
 
-        asunto = f'ACTUALIZACION - Índice de producción industrial manufacturero(IPI) - {fecha_cadena}'
+        asunto = f'ACTUALIZACION - IPI - {fecha_cadena}'
 
         mensaje = f'''\
             <html>
             <body>
-            <h2>Se ha producido una modificación en la base de datos. La tabla de IPI contiene nuevos datos.</h2>
-            <p>*Variacion Interanual IPI: <span style="font-size: 17px;"><b>{df_bdd["var_IPI"].iloc[-1]:,.2f}%</b></span></p>
+            <h2 style="font-size: 24px;"><strong> DATOS NUEVOS EN LA TABLA DE INDICE DE PRODUCCION INDUSTRIAL MANUFACTURERO (IPI) A {fecha_cadena.upper()}. </strong></h2>
+            <p>* Variacion Interanual IPI: <span style="font-size: 17px;"><b>{df_bdd["var_IPI"].iloc[-1]:,.2f}%</b></span></p>
             <hr>
-            <p>*Variacion Interanual Alimentos: <span style="font-size: 17px;"><b>{df_bdd["var_interanual_alimentos"].iloc[-1]:,.2f}%</b></span></p>
+            <p>* Variacion Interanual Alimentos: <span style="font-size: 17px;"><b>{df_bdd["var_interanual_alimentos"].iloc[-1]:,.2f}%</b></span></p>
             <hr>
-            <p>*Variacion Interanual Textil: <span style="font-size: 17px;"><b>{df_bdd["var_interanual_textil"].iloc[-1]:,.2f}%</b></span></p>
+            <p>* Variacion Interanual Textil: <span style="font-size: 17px;"><b>{df_bdd["var_interanual_textil"].iloc[-1]:,.2f}%</b></span></p>
             <hr>
-            <p>*Variacion Interanual Sustancias: <span style="font-size: 17px;"><b>{df_bdd["var_interanual_sustancias"].iloc[-1]:,.2f}%</b></span></p>
+            <p>* Variacion Interanual Sustancias: <span style="font-size: 17px;"><b>{df_bdd["var_interanual_sustancias"].iloc[-1]:,.2f}%</b></span></p>
             <hr>
-            <p>*Variacion Interanual Maderas: <span style="font-size: 17px;"><b>{df_bdd["var_interanual_maderas"].iloc[-1]:,.2f}%</b></span></p>
+            <p>* Variacion Interanual Maderas: <span style="font-size: 17px;"><b>{df_bdd["var_interanual_maderas"].iloc[-1]:,.2f}%</b></span></p>
             <hr>
-            <p>*Variacion Interanual min. No Metalicos: <span style="font-size: 17px;"><b>{df_bdd["var_interanual_MinNoMetalicos"].iloc[-1]:,.2f}%</b></span></p>
+            <p>* Variacion Interanual min. No Metalicos: <span style="font-size: 17px;"><b>{df_bdd["var_interanual_MinNoMetalicos"].iloc[-1]:,.2f}%</b></span></p>
             <hr>
-            <p>*Variacion Interanual Metales: <span style="font-size: 17px;"><b>{df_bdd["var_interanual_metales"].iloc[-1]:,.2f}%</b></span></p>
+            <p>* Variacion Interanual Metales: <span style="font-size: 17px;"><b>{df_bdd["var_interanual_metales"].iloc[-1]:,.2f}%</b></span></p>
             <hr>
             <p> Instituto Provincial de Estadistica y Ciencia de Datos de Corrientes<br>
+            <hr>
+
             Dirección: Tucumán 1164 - Corrientes Capital<br>
             Contacto Coordinación General: 3794 284993</p>
             </body>

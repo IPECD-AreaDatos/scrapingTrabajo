@@ -10,8 +10,11 @@ class Extraccion:
     
     def __init__(self):
 
-        #Instancia de navegador - Usamos Google Chrome
-        self.driver = webdriver.Chrome()
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+    
+        # Configuración del navegador
+        self.driver = webdriver.Chrome(options=options)
 
         # URL de la página que deseas obtener
         self.url_pagina = 'https://datos.gob.ar/dataset/energia-refinacion-comercializacion-petroleo-gas-derivados-tablas-dinamicas/archivo/energia_f0e4e10a-e4b8-44e6-bd16-763a43742107'
@@ -52,4 +55,3 @@ class Extraccion:
             file.write(response.content)
 
 
-ext = Extraccion().descargar_archivo()

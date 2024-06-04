@@ -60,11 +60,12 @@ class MailCBTCBA:
         #Asunto del correo - Tomamos la ultima fecha y la transformamos en un formato normal
         fecha_actual = df['fecha'].iloc[-1]
         mes_actual = self.fecha_formato_legible(fecha_actual) #--> Usada para el asunto
-        cadena_fecha_actual = mes_actual + "del" + str(fecha_actual.year)
+        cadena_fecha_actual = mes_actual + " del " + str(fecha_actual.year)
 
         #Mes anterior
         mes_anterior = df['fecha'].iloc[-2]
         mes_anterior = self.fecha_formato_legible(mes_anterior)
+     
 
         #Construccion del mensaje
         mensaje_uno = f"""        
@@ -72,28 +73,29 @@ class MailCBTCBA:
         <body>
 
 
-        <h2> Datos correspondientes al Nordeste Argentino(NEA) </h2>
+        <h2 style="font-size: 24px;"><strong> DATOS CORRESPONDIENTES AL NORDESTE ARGENTINO (NEA) {cadena_fecha_actual.upper()}. </strong></h2>
    
         <br>
 
-        <p> Este correo contiene información respecto a <b>CBA</b> (Canasta Básica Alimentaria) y <b>CBT</b>(Canasta Básica Total).  </p>
+        <p> Este correo contiene información respecto a <b>CBA</b> (Canasta Básica Alimentaria) y <b>CBT</b> (Canasta Básica Total).  </p>
         <hr>
 
         <p>
-        🗓️En <span style="font-weight: bold;">{cadena_fecha_actual}</span>, en el NEA una persona necesitó
+        🗓️ En <span style="font-weight: bold;">{cadena_fecha_actual}</span>, en el NEA una persona necesitó
         <span style="font-size: 17px; font-weight: bold;">${df['cba_nea'].iloc[-1]:,.2f}</span> para no ser
         <b>indigente</b> y
         <span style="font-size: 17px; font-weight: bold;">${df['cbt_nea'].iloc[-1]:,.2f}</span> para no ser
-        <b>pobre</b>
+        <b>pobre.</b>
         </p>
 
-        <hr>
+        
 
 
-        <p> 👥👥Una familia tipo (compuesta por 4 integrantes) necesitó de 
+        <p> 👥👥 Una familia tipo (compuesta por 4 integrantes) necesitó de 
         <span style="font-size: 17px;"><b>${df['cba_nea_familia'].iloc[-1]:,.2f}</b></span> para no ser indigente y
-        <span style="font-size: 17px;"><b>${df['cbt_nea_familia'].iloc[-1]:,.2f}</b></span> para no ser pobre. En {mes_anterior}, una
-        misma familia había necesitado 
+        <span style="font-size: 17px;"><b>${df['cbt_nea_familia'].iloc[-1]:,.2f}</b></span> para no ser pobre.
+        </p> 
+        <p> En {mes_anterior}, una misma familia había necesitado 
         <span style="font-size: 17px;"><b>${df['cba_nea_familia'].iloc[-2]:,.2f}</b></span> para no ser indigente y 
         <span style="font-size: 17px;"><b>${df['cbt_nea_familia'].iloc[-2]:,.2f}</b></span> para no ser pobre.
         </p> 
@@ -105,46 +107,51 @@ class MailCBTCBA:
 
         # Verificar si var_interanual_cba es negativa o positiva
         if df['vinter_cba'].iloc[-1] < 0:
-            aumento_disminucion = "disminuyó⬇️"
+            aumento_disminucion = "disminuyó ⬇️"
         else:
-            aumento_disminucion = "aumentó⬆️"
+            aumento_disminucion = "aumentó ⬆️"
         
         if df['vinter_cbt'].iloc[-1] < 0:
-            aumento_canastaBasica = "disminuyó⬇️"
+            aumento_canastaBasica = "disminuyó ⬇️"
         else:
-            aumento_canastaBasica = "aumentó⬆️"
+            aumento_canastaBasica = "aumentó ⬆️"
 
         if df['vmensual_cba'].iloc[-1] < 0:
-            aumento_mensual_canastaBasica= "disminuyó⬇️"
+            aumento_mensual_canastaBasica= "disminuyó ⬇️"
         else:
-            aumento_mensual_canastaBasica = "aumentó⬆️"
+            aumento_mensual_canastaBasica = "aumentó ⬆️"
 
         if df['vmensual_cbt'].iloc[-1] < 0:
-            aumento_mensual_canastaTotal=  "disminuyó⬇️"
+            aumento_mensual_canastaTotal=  "disminuyó ⬇️"
         else:
-            aumento_mensual_canastaTotal = "aumentó⬆️"
+            aumento_mensual_canastaTotal = "aumentó ⬆️"
 
 
         #Fechas a manejar
         fecha_var_inter = df['fecha'].iloc[-13]
 
         mes_var_inter = self.fecha_formato_legible(fecha_var_inter)
-        cadena_var_inter = mes_var_inter + "del" + str(fecha_var_inter.year)
-        
+        cadena_var_inter = mes_var_inter + " del " + str(fecha_var_inter.year)
+
+        cadena_mes_anterior = mes_anterior + " del " + str(fecha_actual.year)
+
+    
         mensaje_dos = f"""
         <p>
-        La canasta básica alimentaria {aumento_disminucion} interanualmente ({cadena_fecha_actual} vs {cadena_var_inter}) un 
-        <span style="font-size: 17px; font-weight: bold;">{abs( df['vinter_cba'].iloc[-1]):.2f}%</span>,
-        mientras que la canasta básica total {aumento_canastaBasica} para el mismo periodo un 
-        <span style="font-size: 17px; font-weight: bold;">{ df['vinter_cbt'].iloc[-1]:.2f}%</span>.
+        La canasta básica alimentaria <span style="font-weight: bold; text-decoration: underline;">{aumento_disminucion}</span> interanualmente ({cadena_fecha_actual.upper()} VS {cadena_var_inter.upper()}) un 
+        <span style="font-size: 17px; font-weight: bold;">{abs( df['vinter_cba'].iloc[-1]*100):.2f}%</span>
+        mientras que la canasta básica total <span style="font-weight: bold; text-decoration: underline;">{aumento_canastaBasica}</span> para el mismo periodo un 
+        <span style="font-size: 17px; font-weight: bold;">{ df['vinter_cbt'].iloc[-1]*100:.2f}%</span>.
         </p>
         <p>
-        La canasta básica alimentaria {aumento_mensual_canastaBasica} mensualmente ({cadena_fecha_actual} vs {cadena_var_inter}) un 
-        <span style="font-size: 17px; font-weight: bold;">{df['vmensual_cba'].iloc[-1]:.2f}%</span>
-        mientras que la canasta básica total {aumento_mensual_canastaTotal} para el mismo periodo un 
-        <span style="font-size: 17px; font-weight: bold;">{df['vmensual_cbt'].iloc[-1]:.2f}%</span>.
+        La canasta básica alimentaria <span style="font-weight: bold; text-decoration: underline;">{aumento_mensual_canastaBasica}</span> mensualmente ({cadena_fecha_actual.upper()} VS {cadena_mes_anterior.upper()}) un 
+        <span style="font-size: 17px; font-weight: bold;">{df['vmensual_cba'].iloc[-1]*100:.2f}%</span>
+        mientras que la canasta básica total <span style="font-weight: bold; text-decoration: underline;">{aumento_mensual_canastaTotal}</span> para el mismo periodo un 
+        <span style="font-size: 17px; font-weight: bold;">{df['vmensual_cbt'].iloc[-1]*100:.2f}%</span>.
         </p>
 
+        
+        <hr>
 
             <p> Instituto Provincial de Estadistica y Ciencia de Datos de Corrientes<br>
             Dirección: Tucumán 1164 - Corrientes Capital<br>
@@ -166,8 +173,8 @@ class MailCBTCBA:
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contrasenia = 'cmxddbshnjqfehka'
 
-        email_receptores =  ['samaniego18@gmail.com','benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com', 'samaniego18@gmail.com', 'guillermobenasulin@gmail.com', 'leclerc.mauricio@gmail.com','alejandrobrunel@gmail.com']
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
+        #email_receptores =  ['samaniego18@gmail.com','benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com', 'samaniego18@gmail.com', 'guillermobenasulin@gmail.com', 'leclerc.mauricio@gmail.com','alejandrobrunel@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com', 'manumarder@gmail.com']
 
         #==== Zona de envio de correo
         em = EmailMessage()

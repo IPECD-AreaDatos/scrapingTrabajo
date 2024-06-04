@@ -1,2 +1,10 @@
 *.pyc
-ventas_combustible.csv
+*.csv
+*.xlsx
+*.xls
+*.pdf
+*.png
+*.jpg
+*.venv
+entorno_trabajo/
+__pycache__/

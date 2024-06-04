@@ -176,8 +176,8 @@ class connection_db:
         #==== CALCULOS DE LA CANASTA BASICA ALIMENTARIA
 
         #=== Creacion de variaciones mensual, interanual PARA CBA
-        df['vmensual_cba'] = ((df['cba_nea'] / df['cba_nea'].shift(1)) - 1) * 100  #--> Var. Mensual de cba NEA
-        df['vinter_cba'] = ((df['cba_nea'] / df['cba_nea'].shift(12)) - 1) * 100 #--> Var. Interanual de cba NEA
+        df['vmensual_cba'] = ((df['cba_nea'] / df['cba_nea'].shift(1)) - 1)   #--> Var. Mensual de cba NEA
+        df['vinter_cba'] = ((df['cba_nea'] / df['cba_nea'].shift(12)) - 1)  #--> Var. Interanual de cba NEA
 
 
         # === Creacion de las variaciones acumuladas
@@ -201,7 +201,7 @@ class connection_db:
                 #Calculamos variaciones acumuladas por cada año valido
                 for valor in valores_anio:
 
-                    var_acumulada = ((valor / val_diciembre_año_anterior) - 1) * 100
+                    var_acumulada = ((valor / val_diciembre_año_anterior) - 1) 
                     var_acumuladas_cba.append(var_acumulada)
 
             except: #No se encontro el valor de diciembre, por ende no se calculara estimaciones para ese periodo. Se asignan valores nulos
@@ -215,8 +215,8 @@ class connection_db:
         #==== CALCULOS DE LA CANASTA BASICA TOTAL
         
         #=== Creacion de variaciones mensual, interanual PARA CBT
-        df['vmensual_cbt'] = ((df['cbt_nea'] / df['cbt_nea'].shift(1)) - 1) * 100  #--> Var. Mensual de cbt NEA
-        df['vinter_cbt'] = ((df['cbt_nea'] / df['cbt_nea'].shift(12)) - 1) * 100 #--> Var. Interanual de cbt NEA
+        df['vmensual_cbt'] = ((df['cbt_nea'] / df['cbt_nea'].shift(1)) - 1)   #--> Var. Mensual de cbt NEA
+        df['vinter_cbt'] = ((df['cbt_nea'] / df['cbt_nea'].shift(12)) - 1)  #--> Var. Interanual de cbt NEA
 
         #Lista de variaciones acumuladas de canasta basica alimentaria
         var_acumuladas_cbt = list()
@@ -232,7 +232,7 @@ class connection_db:
                 #Calculamos variaciones acumuladas por cada año valido
                 for valor in valores_anio:
 
-                    var_acumulada = ((valor / val_diciembre_año_anterior) - 1) * 100
+                    var_acumulada = ((valor / val_diciembre_año_anterior) - 1) 
                     var_acumuladas_cbt.append(var_acumulada)
 
             except: #No se encontro el valor de diciembre, por ende no se calculara estimaciones para ese periodo. Se asignan valores nulos
@@ -279,8 +279,8 @@ class connection_db:
         firt_date = pd.to_datetime(df_bdd['fecha'].values[0])
 
         #=== Creacion de variaciones mensual, interanual PARA IPC del NEA
-        df['vmensual_nea_ipc'].iloc[df['fecha'] >= firt_date] =( df_bdd['valor'] / df_bdd['valor'].shift(1) - 1) * 100  #--> Var. Mensual de IPC
-        df['vinter_nea_ipc'].iloc[df['fecha'] >= firt_date] = ((df_bdd['valor'] / df_bdd['valor'].shift(12)) - 1) * 100 #--> Var. Interanual de IPC
+        df['vmensual_nea_ipc'].iloc[df['fecha'] >= firt_date] =( df_bdd['valor'] / df_bdd['valor'].shift(1) - 1)   #--> Var. Mensual de IPC
+        df['vinter_nea_ipc'].iloc[df['fecha'] >= firt_date] = ((df_bdd['valor'] / df_bdd['valor'].shift(12)) - 1) #--> Var. Interanual de IPC
 
 
     #Objetivo: cargar los datos correspondientes al correo de CBT y CBA. Es llamado en la funcion table_a1()

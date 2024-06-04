@@ -393,7 +393,7 @@ CREATE TABLE Canasta_Basica(
 	CBT_Hogar float
 );
 
-Create Table IPICORR(
+Create Table ipicorr(
 	Fecha date,
     Var_Interanual_IPICORR float,
     Var_Interanual_Alimentos float,
@@ -401,6 +401,17 @@ Create Table IPICORR(
     Var_Interanual_Maderas float,
     Var_Interanual_MinNoMetalicos float,
     Var_Interanual_Metales float
+);
+
+CREATE TABLE ipi(
+  fecha date DEFAULT NULL,
+  var_IPI float DEFAULT NULL,
+  var_interanual_alimentos float DEFAULT NULL,
+  var_interanual_textil float DEFAULT NULL,
+  var_interanual_sustancias float DEFAULT NULL,
+  var_interanual_maderas float DEFAULT NULL,
+  var_interanual_MinNoMetalicos float DEFAULT NULL,
+  var_interanual_metales float DEFAULT NULL
 );
 
 #Dolar
@@ -601,6 +612,29 @@ create table ecv_educacion_quintiles(
     asistencia_escolar FLOAT,
     institucion_publica FLOAT,
     institucion_privada FLOAT
+);
+
+create table ecv_transporte_medios(
+	aglomerado varchar(50),
+    año int,
+    trimestre varchar(50),
+    fecha date,
+    automovil float,
+    bicicleta float,
+    caminata float,
+    taxi_o_remis float,
+    transporte_publico float,
+    otros float
+);
+create table ecv_transporte_desplazamiento(
+	aglomerado varchar(50),
+    año int,
+    trimestre varchar(50),
+    fecha date,
+    no_desplaza float,
+    desplaza_en_municipio float,
+    desplaza_fuera_municipio float,
+    sin_desplazamiento_fijo float
 );
 
 #EPH Tablas

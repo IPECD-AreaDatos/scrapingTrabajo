@@ -21,34 +21,30 @@ class load_database:
         return self
     
     def load_data(self, df):
-        #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
         engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
         df.to_sql(name="anac", con=engine, if_exists='replace', index=False)
-        print("Se realizo la carga a la base de datos anac en datalake_economico")
+        print("Se realizó la carga a la base de datos anac en datalake_economico")
         
     def read_data_excel(self):
         table_name = 'anac'
         select_row_count_query = f"SELECT corrientes FROM {table_name}"
         
-        # Ejecutar la consulta
         self.cursor.execute(select_row_count_query)
-        
-        # Obtener todos los resultados
         values = self.cursor.fetchall()
         
-        # Puedes procesar los resultados según sea necesario
         print("Datos obtenidos de la base de datos:")
         print(values)
         
-        # Limpiar y procesar los valores
         clean_values = []
         for value in values:
-            value = str(value[0]).replace('.', '')
-            if value.isnumeric():
-                clean_values.append(int(value))
+            value_str = str(value[0]).strip()
+            value_str = value_str.replace(',', '.')
+            try:
+                clean_value = float(value_str)
+                clean_values.append(clean_value)
+            except ValueError:
+                pass
         
         print("Valores limpios:")
         print(clean_values)
         
-        return clean_values
-    

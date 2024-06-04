@@ -3,7 +3,8 @@ import sys
 from conect_bdd import conexcionBaseDatos
 from extract import Extraccion
 from transform import Transformacion
-
+from save_data_sheet import readSheets
+from save_data_sheet import readSheets
 
 # Obtener la ruta al directorio actual del script
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -23,3 +24,5 @@ if __name__ == "__main__":
     print("salida df")
     conexion = conexcionBaseDatos(credenciales.host, credenciales.user, credenciales.password, credenciales.database).conectar_bdd()
     conexion.cargaBaseDatos(df_combustible)
+    conexion_excel = readSheets(credenciales.host, credenciales.user, credenciales.password, credenciales.database).conectar_bdd()
+    conexion_excel.cargar_datos()

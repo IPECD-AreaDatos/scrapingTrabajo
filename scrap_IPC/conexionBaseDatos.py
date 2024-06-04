@@ -103,7 +103,7 @@ class conexionBaseDatos:
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
         email_receptores =  ['samaniego18@gmail.com','benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com','alejandrobrunel@gmail.com']
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com', 'manumarder@gmail.com']
 
         
         #Variaciones nacionales
@@ -118,7 +118,9 @@ class conexionBaseDatos:
         mensaje = f'''
         
         <html>
-        Se ha producido una modificación en la base de datos. La tabla de IPC contiene nuevos datos
+        <h2 style="font-size: 24px;"><strong>NUEVOS DATOS DEL INDICE DE PRECIOS AL CONSUMIDOR (IPC) DE {fecha_ultimo_registro.upper()}.</strong></h2>
+
+
         <body>
 
         <hr>
@@ -145,7 +147,7 @@ class conexionBaseDatos:
 
         tabla = f''' 
         
-        <table style="border-collapse: collapse; width: 100%;">
+        <table style="border-collapse: collapse; width: 100%; margin-bottom: 10px;">
 
         <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> INDICE </th>
         <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;">  VAR. MENSUAL </th>
@@ -156,7 +158,8 @@ class conexionBaseDatos:
         {datos_tabla}
 
         </table> 
-
+        
+        <hr>
 
             <p> Instituto Provincial de Estadistica y Ciencia de Datos de Corrientes<br>
             Dirección: Tucumán 1164 - Corrientes Capital<br>

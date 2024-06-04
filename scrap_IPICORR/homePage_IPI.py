@@ -55,7 +55,7 @@ class HomePage_IPI:
         response = requests.get(url_archivo)
 
         # Guardar el archivo en la carpeta especificada
-        ruta_guardado = f'{carpeta_guardado}\\{nombre_archivo}'
+        ruta_guardado = f'{carpeta_guardado}/{nombre_archivo}'
         with open(ruta_guardado, 'wb') as file:
             file.write(response.content)
 
