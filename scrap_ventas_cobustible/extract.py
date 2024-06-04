@@ -55,4 +55,3 @@ class Extraccion:
             file.write(response.content)
 
 
-ext = Extraccion().descargar_archivo()
