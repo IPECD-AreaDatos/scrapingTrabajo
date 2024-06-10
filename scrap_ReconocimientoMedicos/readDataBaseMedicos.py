@@ -1,7 +1,7 @@
 import mysql.connector
 import pandas as pd
 
-class LoadDataBaseMedicos:
+class readDataBaseMedicos:
     def __init__(self, host, user, password, database):
         self.host = host
         self.user = user
@@ -17,7 +17,7 @@ class LoadDataBaseMedicos:
         self.cursor = self.conn.cursor()
         return self
 
-    def loadDataBaseMedicos(self):
+    def readDataBaseMedicos(self):
         query = "SELECT * FROM siso_ctes.v_estadisticas"
         df = pd.read_sql(query, con=self.conn)
         return df

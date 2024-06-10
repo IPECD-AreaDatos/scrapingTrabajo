@@ -1,6 +1,7 @@
 import os
 import sys
-from loadDataBaseMedicos import LoadDataBaseMedicos
+from readDataBaseMedicos import readDataBaseMedicos
+from loadDataBaseNuestra import loadDataBaseNuestra
 
 
 #Configuracion de la ruta de credenciales
@@ -19,9 +20,11 @@ credenciales_nuestras = Credenciales('dwh_sociodemografico')
 
 if __name__ == "__main__":
     print("Las credenciales son", credenciales.host,credenciales.user,credenciales.password,credenciales.database)
-    conexion = LoadDataBaseMedicos(credenciales.host, credenciales.user, credenciales.password, credenciales.database).conectar_bdd()
-    df = conexion.loadDataBaseMedicos()
+    conexion = readDataBaseMedicos(credenciales.host, credenciales.user, credenciales.password, credenciales.database).conectar_bdd()
+    df = conexion.readDataBaseMedicos()
+    conexion.cerrar_conexion()
     print(df)
-    
-
+    instancia_bdd = loadDataBaseNuestra(credenciales_nuestras.host, credenciales_nuestras.user, credenciales_nuestras.password, credenciales_nuestras.database)
+    instancia_bdd.loadDataBaseNuestra(df)
+    instancia_bdd.cerrar_conexion()
     
