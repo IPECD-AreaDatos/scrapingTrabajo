@@ -1,4 +1,4 @@
-import mysql.connector
+from pymysql import connect
 import pandas as pd
 from datetime import datetime
 import calendar
@@ -9,7 +9,7 @@ from pandas import isna
 
 class connect_db:
     def connect(self, df, host, user, password, database):
-        conn = mysql.connector.connect(
+        conn = connect(
             host=host,
             user=user,
             password=password,
