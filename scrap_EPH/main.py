@@ -15,6 +15,6 @@ credenciales = Credenciales('dwh_sociodemografico')
 
 
 if __name__ ==  "__main__":
-    print("Las credenciales son", credenciales.host,credenciales.user,credenciales.password,credenciales.database)
+
     df = readSheets().leer_datos_tasas()
     connect_db().connect(df, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
