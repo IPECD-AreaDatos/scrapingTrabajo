@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 import mysql
 import mysql.connector
 import pandas as pd
@@ -21,15 +21,17 @@ class load_database:
         return self
     
     def load_data(self, df):
+        # Crear la conexión al motor de la base de datos
         engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
-        df.to_sql(name="anac", con=engine, if_exists='replace', index=False)
-        print("Se realizó la carga a la base de datos anac en datalake_economico")
         
+        # Cargar el DataFrame a la base de datos
+        df.to_sql(name="anac", con=engine, if_exists='replace', index=False)
+
     def read_data_excel(self):
         table_name = 'anac'
         select_row_count_query = f"SELECT corrientes FROM {table_name}"
-        
         self.cursor.execute(select_row_count_query)
+        
         values = self.cursor.fetchall()
         
         print("Datos obtenidos de la base de datos:")
@@ -47,4 +49,5 @@ class load_database:
         
         print("Valores limpios:")
         print(clean_values)
+        return clean_values
         

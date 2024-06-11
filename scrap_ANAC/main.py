@@ -29,15 +29,16 @@ if __name__ == "__main__":
     directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
     ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
     file_path_desagregado = os.path.join(ruta_carpeta_files, 'anac.xlsx')
-
-    # Suponiendo que `armadoDF` es una función dentro de la clase `armadoDF`
+    
     df = armadoDF.armadoDF(file_path_desagregado)
     
     credenciales_datalake_economico = load_database(credenciales_datalake_economico.host, credenciales_datalake_economico.user, credenciales_datalake_economico.password, credenciales_datalake_economico.database)
     credenciales_datalake_economico.conectar_bdd()
+    df.loc[df["corrientes"] == 32200.000000000004, "corrientes"] = 19646
+    df.loc[df["corrientes"] == 39478, "corrientes"] = 18555
+    df.loc[df["corrientes"] == 40395, "corrientes"] = 19648
     credenciales_datalake_economico.load_data(df)
     values = credenciales_datalake_economico.read_data_excel()
     print(values)
     
-    # Suponiendo que `readSheets` es una clase con un método `escribir_fila`
     readSheets().escribir_fila(values)

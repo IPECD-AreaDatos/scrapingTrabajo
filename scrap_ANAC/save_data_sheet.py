@@ -34,3 +34,5 @@ class readSheets:
             valueInputOption='RAW',
             body=body
         ).execute()
+        
+        print(f"{request.get('updatedCells')} celdas actualizadas.")
