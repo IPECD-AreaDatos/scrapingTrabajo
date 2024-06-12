@@ -21,10 +21,10 @@ class Transformation_Data:
 
         nombre_columna = ['fecha']
 
-        df_aux = pd.read_excel(path_archivo,sheet_name=5,skiprows=3, usecols='c',names=nombre_columna)
+        #Recordatorio - Si yo quiero acceder a la fila 6 de un excel por ejemplo, hay que poner 2 filas menos siempre.
+        df_aux = pd.read_excel(path_archivo,sheet_name=5,skiprows=4, usecols='c',names=nombre_columna)
 
         tamaño_secciones = self.construccion_lista_meses(df_aux['fecha']) #--> Obtenemos el tamaño que es la misma para cada pronvicia
-
 
         nombre_columnas = ['id_provincia_indec','fecha','total_facturacion','bebidas','almacen','panaderia','lacteos','carnes','verduleria_fruteria','alimentos_preparados_rostiseria',
                 'articulos_limpieza_perfumeria','indumentaria_calzado_textiles_hogar','electronica_hogar','otros']
@@ -37,16 +37,16 @@ class Transformation_Data:
 
 
         lista_de_cadenas = [str(elemento) for elemento in lista_fechas]
-
         lista_retorno = []
 
         for valor in lista_de_cadenas:
-
+        
             if valor == 'nan':
                 break
             else:
                 
                 lista_retorno.append(valor)
+                
 
         return len(lista_retorno)
 
@@ -132,7 +132,6 @@ class Transformation_Data:
 
             #Asignamos columna fecha
             df_por_provincia['fecha'] = lista_fechas
-
             df_provincias = pd.concat([df_provincias,df_por_provincia])
 
 

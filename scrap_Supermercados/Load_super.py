@@ -1,6 +1,6 @@
 import mysql.connector
 from sqlalchemy import create_engine
-
+from datos_deflactados import Deflactador
 class conexionBaseDatos:
 
     def __init__(self, host, user, password, database):
@@ -32,16 +32,19 @@ class conexionBaseDatos:
         delete_query ="TRUNCATE `datalake_economico`.`supermercado_encuesta`"
         query_cantidad_datos = f'SELECT COUNT(*) FROM {nombre_tabla}'
 
-                
+        print(self.validacion_de_carga(df,query_cantidad_datos)) 
         #Si las cantidad de filas del DF descargado, es mayor que el ya almacenado --> Realizar carga
         if (self.validacion_de_carga(df,query_cantidad_datos)):
 
-            #Eliminamos tabla
+            #Eliminamos tabla - son datos estimativos
             self.cursor.execute(delete_query)
 
             #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
             engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
             df.to_sql(name="supermercado_encuesta", con=engine, if_exists='append', index=False)
+
+            #Deflactacion de datos
+            Deflactador(self.host,self.user,self.password,self.database).main()
 
             print("""
 
@@ -65,6 +68,9 @@ class conexionBaseDatos:
         #Obtencion de cantidad de filas de 
         self.cursor.execute(query_cantidad_datos)
         row_count_before = self.cursor.fetchone()[0]
+
+        print("Cantidad de filas del Df:",cant_filas_df)
+        print("cantidad de filas de la bdd:",row_count_before)
 
         return (cant_filas_df > row_count_before)
 
