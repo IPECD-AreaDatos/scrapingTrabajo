@@ -343,13 +343,13 @@ class connect_db:
             print("Tabla de ECV")
             for index, row in df_datos_nuevos.iterrows():
                 # Luego, puedes usar estos valores en tu consulta SQL
-                sql_insert = f"INSERT INTO {table_name} (aglomerado, año, trimestre, fecha, primaria_incompleta, primaria_completa, secundaria_incompleta, secundaria_completa, superior_incompleto, superior_completo, sin_instruccion, eph_universitario) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                sql_insert = f"INSERT INTO {table_name} (aglomerado, año, trimestre, fecha, primaria_incompleta, primaria_completa, secundaria_incompleta, secundaria_completa, superior_incompleto, superior_completo, sin_instruccion, eph_universitario, eph_secundaria) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
 
                 # Rellenar los valores faltantes (NaN) con None
                 row = row.where(pd.notnull(row), None)
                 
                 # Ejecutar la sentencia SQL de inserción
-                cursor.execute(sql_insert, (row['Aglomerado'], row['Año'], row['Trimestre'], row['Fecha'], row['Primaria incompleta'], row['Primaria completa'], row['Secundaria incompleta'], row['Secundaria completa'], row['Superior incompleto'], row['Superior completo'], row['Sin instrucción'], row['EPH Universitario']))
+                cursor.execute(sql_insert, (row['Aglomerado'], row['Año'], row['Trimestre'], row['Fecha'], row['Primaria incompleta'], row['Primaria completa'], row['Secundaria incompleta'], row['Secundaria completa'], row['Superior incompleto'], row['Superior completo'], row['Sin instrucción'], row['EPH Universitario'], row['EPH Secundaria']))
 
             conn.commit()
             df_datos_nuevos['Fecha'] = pd.to_datetime(df_datos_nuevos['Fecha'], format='%Y-%m-%d')

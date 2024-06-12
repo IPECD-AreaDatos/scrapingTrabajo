@@ -26,12 +26,12 @@ class readSheetsEducacionMay25:
         sheet = service.spreadsheets()
 
         #Realiza una llamada a la API para obtener datos desde la hoja 'Hoja 1' en el rango 'A1:A8'
-        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='Educacion_May25!A:M').execute()
+        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='Educacion_May25!A:N').execute()
         # Extrae los valores del resultado
         values = result.get('values', [])[1:]
         
         # Crea el DataFrame df1
-        df = pd.DataFrame(values, columns=['Aglomerado', 'Año', 'Trimestre', 'Fecha', 'Estado del dato', 'Primaria incompleta', 'Primaria completa', 'Secundaria incompleta', 'Secundaria completa', 'Superior incompleto', 'Superior completo', 'Sin instrucción', 'EPH Universitario'])
+        df = pd.DataFrame(values, columns=['Aglomerado', 'Año', 'Trimestre', 'Fecha', 'Estado del dato', 'Primaria incompleta', 'Primaria completa', 'Secundaria incompleta', 'Secundaria completa', 'Superior incompleto', 'Superior completo', 'Sin instrucción', 'EPH Universitario', 'EPH Secundaria'])
         for e in df['Estado del dato']:
             if e != 'FINALIZADO':
                 e=' '
@@ -53,7 +53,7 @@ class readSheetsEducacionMay25:
 
     def transformar_tipo_datos(self, df):
         # Seleccionar las columnas numéricas
-        columnas_numericas = ['Primaria incompleta', 'Primaria completa', 'Secundaria incompleta', 'Secundaria completa', 'Superior incompleto', 'Superior completo', 'Sin instrucción', 'EPH Universitario']
+        columnas_numericas = ['Primaria incompleta', 'Primaria completa', 'Secundaria incompleta', 'Secundaria completa', 'Superior incompleto', 'Superior completo', 'Sin instrucción', 'EPH Universitario', 'EPH Secundaria']
         # Convertir las columnas numéricas a tipos numéricos
         # Elimina el símbolo "%" y las comas, y luego convierte las columnas en valores numéricos
         for columna in columnas_numericas:
