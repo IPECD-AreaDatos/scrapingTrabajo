@@ -3,6 +3,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 import re
 from datetime import datetime
+import pandas as pd
 
 class readDataWebPage:
     def __init__(self):
@@ -90,11 +91,16 @@ class readDataWebPage:
             print(f"Variación acumulada interanual: {numeros_procesados[1]}")
             print(f"Variación acumulada en 2024: {numeros_procesados[2]}")
 
-
+            df = pd.DataFrame({
+                'fecha': [fecha_obj],
+                'variacion_mensual': [data_variacion_mensual],
+                'variacion_interanual_acumulada': [numeros_procesados[1]],
+                'variacion_acumulada_del_año': [numeros_procesados[2]]
+            })
             # Cerrar el navegador después de encontrar los dos datos
             self.driver.quit()
 
-            return data_variacion_mensual  # Devolver el dato extraído
+            return df  # Devolver el dato extraído
 
         except Exception as e:
             print(f"Error al extraer el dato: {e}")
