@@ -30,8 +30,8 @@ class HomePage:
 
         # Encontrar el enlace al archivo
         archivo = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/main/div[2]/div/section[2]/div/div[9]/div/div/table/tbody/tr[1]/td[4]/a")))
-
-        # Obtener la URL del archivo
+                                                                        
+                # Obtener la URL del archivo
         url_archivo = archivo.get_attribute('href')
         # Imprimir la URL del archivo
         print(url_archivo)
