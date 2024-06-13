@@ -24,8 +24,8 @@ from credenciales_bdd import Credenciales
 credenciales_datalake_economico = Credenciales("datalake_economico")
 
 if __name__ == "__main__":
-    #extract = Extract()
-    #extract.descargar_archivo()
+    extract = Extract()
+    extract.descargar_archivo()
 
     df_rem_precios_minoristas = Transform1().crear_df_precios_minoristas()
     df_rem_cambio_nominal = Transform2().crear_df_cambio_nominal()

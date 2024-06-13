@@ -10,8 +10,12 @@ class Extract:
     
     def __init__(self):
 
+
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+
         #Instancia de navegador - Usamos Google Chrome
-        self.driver = webdriver.Chrome()
+        self.driver = webdriver.Chrome(options=options)
 
         # URL de la página que deseas obtener
         self.url_pagina = 'https://www.bcra.gob.ar/PublicacionesEstadisticas/Relevamiento_Expectativas_de_Mercado.asp'
