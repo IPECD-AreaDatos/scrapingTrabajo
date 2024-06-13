@@ -46,4 +46,7 @@ class Load:
         engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
         df.to_sql(name="ipc_caba", con=engine, if_exists='append', index=False)
 
+        print("**************************************")
+        print("Se ha producido la carga de datos de IPC CABA")
+        print("**************************************")
 
