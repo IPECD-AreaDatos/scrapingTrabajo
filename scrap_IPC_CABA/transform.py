@@ -20,10 +20,12 @@ class Transform:
 
 
         #Creacion del DF y ajustamos
-        df = pd.read_excel(path_xlsx,skiprows=4,usecols='F')
+        df = pd.read_excel(path_xlsx,skiprows=4,usecols='A,F')
         df = df.dropna()
-        df.columns = ["var_mensual_ipc_caba"]
+        df.columns = ['fecha', "var_mensual_ipc_caba"]
         df = df.reset_index(drop=True)
+        print(df)
 
 
         return df
+    
