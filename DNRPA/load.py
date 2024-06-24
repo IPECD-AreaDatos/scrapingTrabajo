@@ -1,12 +1,10 @@
 from sqlalchemy import create_engine
 from pymysql import connect
-from pandas import read_sql
 from save_data_sheet import readSheets
 import pandas as pd
 
 class conexionBaseDatos:
 
-    #Inicializacion de variables en la clase
     def __init__(self, host, user, password, database):
 
         self.host = host
@@ -16,12 +14,6 @@ class conexionBaseDatos:
         self.cursor = None
         self.conn = None
 
-
-    # =========================================================================================== #
-            # ==== SECCION CORRESPONDIENTE A LAS CONEXIONES ==== #
-    # =========================================================================================== #        
-
-    #Objetivo: conectar a la base de datos
     def connect_db(self):
 
             self.conn = connect(
@@ -29,8 +21,6 @@ class conexionBaseDatos:
             )
             self.cursor = self.conn.cursor()
 
-
-    #Objetivo: guardar los ultimos cambios hechos y cerrar las conexiones
     def close_connections(self):
         self.conn.commit()
         self.conn.close()
@@ -61,9 +51,15 @@ class conexionBaseDatos:
         df_bdd = df_bdd[sorted(df_bdd.columns)]
         df = df[sorted(df.columns)]
 
+        # Asegúrate de que todos los valores en la columna 'cantidad' sean válidos para la conversión a entero
+        df['cantidad'] = pd.to_numeric(df['cantidad'], errors='coerce')
+
+        # Manejar NaNs resultantes de la conversión (puedes ajustar este paso según tus necesidades)
+        df['cantidad'].fillna(0, inplace=True)
+        df['cantidad'] = df['cantidad'].astype('int64')
+
         # Convertir tipos de datos en df para que coincidan con df_bdd
         df = df.astype({
-            'cantidad': 'int64',
             'fecha': 'object',
             'id_provincia_indec': 'int64',
             'id_vehiculo': 'int64'
@@ -103,6 +99,5 @@ class conexionBaseDatos:
             print("*****************************************")
 
         self.close_connections()
-                
 
 

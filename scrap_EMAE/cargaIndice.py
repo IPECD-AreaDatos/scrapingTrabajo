@@ -21,8 +21,6 @@ class cargaIndice:
         )
         self.cursor = self.conn.cursor()
 
-
-        
     def loadXLSIndiceEMAE(self, file_path, lista_fechas, lista_SectorProductivo, lista_valores, host, user, password, database):
         # Leer el archivo Excel en un DataFrame de pandas
         df = pd.read_excel(file_path, sheet_name=0, skiprows=1)  # Leer el archivo XLSX y crear el DataFrame

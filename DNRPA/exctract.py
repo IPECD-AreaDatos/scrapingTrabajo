@@ -10,7 +10,6 @@ from datetime import datetime
 class ExtractDnrpa:
 
     def __init__(self):
-
         self.driver = None
         self.original_window = None
         self.df_total = pd.DataFrame(columns=['fecha','id_provincia_indec','id_vehiculo','cantidad'])
@@ -18,7 +17,6 @@ class ExtractDnrpa:
 
     #Objetivo: extraer todas las tablas. La idea es usar esta funcion para una carga historica total.
     def extraer_tablas(self):
-
         # Creación de Driver y abrir página
         options = webdriver.ChromeOptions()
         options.add_argument('--headless')
@@ -27,8 +25,8 @@ class ExtractDnrpa:
         self.original_window = self.driver.current_window_handle         
         self.driver.get('https://www.dnrpa.gov.ar/portal_dnrpa/estadisticas/rrss_tramites/tram_prov.php?origen=portal_dnrpa&tipo_consulta=inscripciones')
         self.buscar_datos_de_tabla(1) #--> Datos de AUTOS
-        self.buscar_datos_de_tabla(2) #--> Datos de AUTOS
-
+        self.buscar_datos_de_tabla(2) #--> Datos de MOTOS
+        #self.transformar_cantidad_vehiculos(self.df_total)
         return self.df_total
 
 
@@ -44,9 +42,9 @@ class ExtractDnrpa:
 
         #Verificamos si se busca datos de moto o auto
         if tipo_vehiculo == 1:
-            radio = self.driver.find_element(By.XPATH, '/html/body/div[2]/section/article/div/div[2]/div/div/div/div/form/div/center/table/tbody/tr[4]/td/input[1]')
+            radio = self.driver.find_element(By.XPATH, '/html/body/div[2]/section/article/div/div[2]/div/div/div/div/form/div/center/table/tbody/tr[4]/td/input[1]')#--> Autos
         elif tipo_vehiculo == 2:
-            radio = self.driver.find_element(By.XPATH,'/html/body/div[2]/section/article/div/div[2]/div/div/div/div/form/div/center/table/tbody/tr[4]/td/input[2]')
+            radio = self.driver.find_element(By.XPATH,'/html/body/div[2]/section/article/div/div[2]/div/div/div/div/form/div/center/table/tbody/tr[4]/td/input[2]')#--> Motocicletas
 
         #Boton para abrir pag que contiene la tabla a buscar
         button_datos = self.driver.find_element(By.XPATH,'/html/body/div[2]/section/article/div/div[2]/div/div/div/div/form/div/center/center/input')
@@ -57,15 +55,12 @@ class ExtractDnrpa:
             valor_opcion = opcion.get_attribute('value')
 
             if valor_opcion != '' and int(valor_opcion) >= 2014:
-
                 # Elegimos el año
                 opcion.click()
 
                 # Elegimos la opcion 'autos' o 'motos' - Luego hacemos click en 'Aceptar'
-                #time.sleep(0.25)
                 radio.click()
                 button_datos.click()
-
 
                 # Cambiar al último identificador de ventana (nueva pestaña)
                 self.switch_to_latest_window()
@@ -79,8 +74,6 @@ class ExtractDnrpa:
                 # Cierra la pestaña actual y cambia nuevamente a la ventana original
                 self.close_current_window()
                 self.driver.switch_to.window(self.original_window)
-
-            # Es para el valor vacio
             else: 
                 pass
 
@@ -106,19 +99,12 @@ class ExtractDnrpa:
         # 3 - Transponemos las columnas para que el DF quede como FECHA | ID_PROV | ID_TIPO_VEHICULO | CANTIDAD
 
         # PASO 1 - Asignacion de ID's
-
-        # Suponiendo que df es tu DataFrame actual
         df_formato_original = df_formato_original.iloc[2:26, 0:13]
-
         #Transformacion de ciudades a su ID asignados por el INDEC
         df_formato_original[df_formato_original.columns[0]] = [6,2,10,14,18,22,26,30,34,38,42,46,50,54,58,62,66,70,74,78,82,86,90,94]
 
-
         # PASO 2 - CREACION Y ASIGNACION DE FECHAS
-
-        # Lista para almacenar las fechas
         fechas = []
-
         # Iterar sobre los meses del año
         for mes in range(1, 13):
             # Crear la fecha
@@ -136,16 +122,15 @@ class ExtractDnrpa:
         #Asignacion de columnas
         df_formato_original.columns = nuevos_nombres_columnas
 
-
         # PASO 3: trasponemos el dataframe - Las cantidad las "acostamos"
         df_melted = df_formato_original.melt(id_vars=['id_provincia_indec'], var_name='fecha', value_name='cantidad')
 
         df_melted['id_vehiculo'] = tipo_vehiculo
 
         if tipo_vehiculo == 1:
-            nombre_vehiculo = 'autos'
+            nombre_vehiculo = 'AUTOS'
         else:
-            nombre_vehiculo = 'motos'
+            nombre_vehiculo = 'MOTOS'
 
         print(f"TABLA {nombre_vehiculo} DEL AÑO {valor_opcion}")
         print(df_melted)
@@ -153,14 +138,16 @@ class ExtractDnrpa:
         self.df_total = pd.concat([self.df_total,df_melted])
 
         
-    #Objetivo: tomar la ultima pestaña
     def switch_to_latest_window(self):
-        # Cambia a la última ventana
         windows = self.driver.window_handles
         self.driver.switch_to.window(windows[-1])
 
-    #Cerrar la pestaña actual
     def close_current_window(self):
         self.driver.close()   
 
+    def transformar_cantidad_vehiculos(self,df):
 
+        df['cantidad'] = df['cantidad'].str.replace(".","")
+        df['cantidad'] = df['cantidad'].astype(int)  # Convertir a tipo entero
+
+        return df

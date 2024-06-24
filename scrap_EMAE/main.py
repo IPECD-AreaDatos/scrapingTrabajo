@@ -14,26 +14,28 @@ sys.path.append(credenciales_dir)
 # Ahora puedes importar tus credenciales
 from credenciales_bdd import Credenciales
 # Después puedes crear una instancia de Credenciales
-credenciales = Credenciales('ipecd_economico')
+credenciales_datalakeEconomico = Credenciales('datalake_economico')
 
 
 if __name__ == '__main__':
     
     #Obtencion del archivo
-    url = HomePage()
-    directorio_actual = os.path.dirname(os.path.abspath(__file__))
-    ruta_carpeta_files = os.path.join(directorio_actual, 'files')
-    
-    file_path = os.path.join(ruta_carpeta_files, 'EMAE.xls')
-    directorio_actual = os.path.dirname(os.path.abspath(__file__))
-    ruta_carpeta_files = os.path.join(directorio_actual, 'files')
-    file_path_variacion = os.path.join(ruta_carpeta_files, 'EMAEVAR.xls')
+    #url = HomePage().descargar_archivos()
 
+    # Obtener la ruta del directorio actual (donde se encuentra el script)
+    directorio_actual = os.path.dirname(os.path.abspath(__file__))
+    ruta_carpeta_files = os.path.join(directorio_actual, 'files')
+
+    # Construir las rutas de los archivos
+    file_path = os.path.join(ruta_carpeta_files, 'EMAE.xls')
+    file_path_variacion = os.path.join(ruta_carpeta_files, 'EMAEVAR.xls')
+ 
     #Inicializamos el data frame y la listas de datos
     df = pd.DataFrame() 
     lista_fechas= list()
     lista_SectorProductivo = list()
     lista_valores= list() 
 
-    cargaIndice().loadXLSVariacionEMAE(file_path_variacion, lista_fechas, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
-    cargaIndice().loadXLSIndiceEMAE(file_path, lista_fechas, lista_SectorProductivo, lista_valores, credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    cargaIndice().loadXLSIndiceEMAE(file_path, lista_fechas, lista_SectorProductivo, lista_valores, credenciales_datalakeEconomico.host, credenciales_datalakeEconomico.user, credenciales_datalakeEconomico.password, credenciales_datalakeEconomico.database)
+    #cargaIndice().loadXLSVariacionEMAE(file_path_variacion, lista_fechas, credenciales_datalakeEconomico.host, credenciales_datalakeEconomico.user, credenciales_datalakeEconomico.password, credenciales_datalakeEconomico.database)
+    
