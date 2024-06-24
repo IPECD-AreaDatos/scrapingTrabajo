@@ -8,69 +8,71 @@ import os
 import urllib3
 
 class HomePage:
+    def descargar_archivos(self):
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
 
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
+        driver = webdriver.Chrome(options=options)  # Asegúrate de que ChromeDriver esté en tu PATH o proporciona la ruta completa
 
+        # URL de la página que deseas obtener
+        url_pagina = 'https://www.indec.gob.ar/indec/web/Nivel4-Tema-3-9-48'
 
-    options = webdriver.ChromeOptions()
-    options.add_argument('--headless')
+        # Cargar la página web
+        driver.get(url_pagina)
 
-    # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
-    driver = webdriver.Chrome(options=options)  # Reemplaza con la ubicación de tu ChromeDriver
+        wait = WebDriverWait(driver, 10)
 
-    # URL de la página que deseas obtener
-    url_pagina = 'https://www.indec.gob.ar/indec/web/Nivel4-Tema-3-9-48'
+        # Encontrar el enlace al archivo
+        archivo = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[2]/div[1]/div[2]/div[4]/div[1]/div[2]/div/div/div/div/a[2]")))
 
-    # Cargar la página web
-    driver.get(url_pagina)
+        # Obtener la URL del archivo
+        url_archivo = archivo.get_attribute('href')
+        # Imprimir la URL del archivo
+        print(url_archivo)
 
-    wait = WebDriverWait(driver, 10)
+        # Ruta de la carpeta donde guardar el archivo
+        # Obtener la ruta del directorio actual (donde se encuentra el script)
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
 
-    # Encontrar el enlace al archivo
-    archivo = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[2]/div[1]/div[2]/div[4]/div[1]/div[2]/div/div/div/div/a[2]")))
+        # Construir la ruta de la carpeta "files" dentro del directorio actual
+        carpeta_guardado = os.path.join(directorio_actual, 'files')
 
-    # Obtener la URL del archivo
-    url_archivo = archivo.get_attribute('href')
-    # Imprimir la URL del archivo
-    print(url_archivo)
-    
-    # Ruta de la carpeta donde guardar el archivo
-    # Obtener la ruta del directorio actual (donde se encuentra el script)
-    directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        # Crear la carpeta "files" si no existe
+        if not os.path.exists(carpeta_guardado):
+            os.makedirs(carpeta_guardado)
 
-    # Construir la ruta de la carpeta "files" dentro del directorio actual
-    carpeta_guardado = os.path.join(directorio_actual, 'files')
+        # Nombre del archivo
+        nombre_archivo = 'EMAE.xls'
 
-    # Nombre del archivo
-    nombre_archivo = 'EMAE.xls'
+        # Descargar el archivo
+        response = requests.get(url_archivo)
 
-    # Descargar el archivo
-    response = requests.get(url_archivo)
+        # Guardar el archivo en la carpeta especificada
+        ruta_guardado = os.path.join(carpeta_guardado, nombre_archivo)
+        with open(ruta_guardado, 'wb') as file:
+            file.write(response.content)
 
-    # Guardar el archivo en la carpeta especificada
-    ruta_guardado = f'{carpeta_guardado}\\{nombre_archivo}'
-    with open(ruta_guardado, 'wb') as file:
-        file.write(response.content)
+        # Segundo archivo
+        # Encontrar el enlace al segundo archivo
+        archivo_2 = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[2]/div[1]/div[2]/div[4]/div[1]/div[2]/div/div/div/div/a[1]")))
+        # Obtener la URL del segundo archivo
+        url_archivo_2 = archivo_2.get_attribute('href')
+        # Imprimir la URL del segundo archivo
+        print(url_archivo_2)
 
-    #Segundo archivo
-    # Encontrar el enlace al segundo archivo
-    archivo_2 = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[2]/div[1]/div[2]/div[4]/div[1]/div[2]/div/div/div/div/a[1]"))) 
-    # Obtener la URL del segundo archivo
-    url_archivo_2 = archivo_2.get_attribute('href')
-    # Imprimir la URL del segundo archivo
-    print(url_archivo_2)
+        # Nombre del segundo archivo
+        nombre_archivo_2 = 'EMAEVAR.xls'  # Reemplaza con el nombre deseado para el segundo archivo
 
-    # Nombre del segundo archivo
-    nombre_archivo_2 = 'EMAEVAR.xls'  # Reemplaza con el nombre deseado para el segundo archivo
+        # Descargar el segundo archivo
+        response_2 = requests.get(url_archivo_2)
 
-    # Descargar el segundo archivo
-    response_2 = requests.get(url_archivo_2)
+        # Guardar el segundo archivo en la carpeta especificada
+        ruta_guardado_2 = os.path.join(carpeta_guardado, nombre_archivo_2)
+        with open(ruta_guardado_2, 'wb') as file:
+            file.write(response_2.content)
 
-    # Guardar el segundo archivo en la carpeta especificada
-    ruta_guardado_2 = f'{carpeta_guardado}\\{nombre_archivo_2}'
-    with open(ruta_guardado_2, 'wb') as file:
-        file.write(response_2.content)
-
-    # Cerrar el navegador
-    driver.quit()
+        # Cerrar el navegador
+        driver.quit()
