@@ -37,6 +37,8 @@ class readSheets:
 
         #ID del documento:
         SPREADSHEET_ID = '1L_EzJNED7MdmXw_rarjhhX8DpL7HtaKpJoRwyxhxHGI'
+        
+        #Documento ------> https://docs.google.com/spreadsheets/d/1L_EzJNED7MdmXw_rarjhhX8DpL7HtaKpJoRwyxhxHGI/edit?gid=0#gid=0
 
         # Carga las credenciales desde el archivo JSON
         creds = service_account.Credentials.from_service_account_file(KEY, scopes=SCOPES)
