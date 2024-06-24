@@ -23,7 +23,7 @@ class loadDataBase:
     
     def cargaBaseDatos(self, df):
         print("\n*****************************************************************************")
-        print("***********************Inicio de IPC precios minoristas************************")
+        print("***********************Inicio de IPC************************")
         print("\n*****************************************************************************")
 
         #engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")

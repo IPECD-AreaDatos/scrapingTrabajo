@@ -45,7 +45,10 @@ class readSheets:
         
         #Direccion del archivo json 
         directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
-        KEY = os.path.join(directorio_desagregado, 'key.json')
+        KEY = os.path.join(directorio_desagregado, 'files', 'key.json')
+
+        if not os.path.exists(KEY):
+            raise FileNotFoundError(f'No se encontró el archivo key.json en la ruta: {KEY}')
 
         #ID del documento:
         SPREADSHEET_ID = '1L_EzJNED7MdmXw_rarjhhX8DpL7HtaKpJoRwyxhxHGI'

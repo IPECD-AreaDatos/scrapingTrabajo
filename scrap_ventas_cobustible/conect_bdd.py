@@ -40,5 +40,6 @@ class conexcionBaseDatos:
         for i, df_fraccionado in enumerate(df_fraccionado):
             df_fraccionado.to_sql(name="combustible", con=engine, if_exists='append', index=False)
             print(f"Parte {i+1} subida a la base de datos.")
+            print(df.tail())
     
         

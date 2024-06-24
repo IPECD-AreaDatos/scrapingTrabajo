@@ -23,6 +23,8 @@ class uploadDataInDataBase:
         print("\n*****************************************************************************")
         print("***********************Inicio de la seccion Ieric Empresas actividad***********************")
         print("\n*****************************************************************************")
+        print(df)
+
         #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
         engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
         df.to_sql(name="ieric_actividad", con=engine, if_exists='replace', index=False)

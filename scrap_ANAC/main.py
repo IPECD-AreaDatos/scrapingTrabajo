@@ -23,8 +23,8 @@ credenciales_datalake_economico = Credenciales("datalake_economico")
 
 
 if __name__ == "__main__":
-    #home_page = HomePage()
-    #home_page.descargar_archivo()
+    home_page = HomePage()
+    home_page.descargar_archivo()
 
     directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
     ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
