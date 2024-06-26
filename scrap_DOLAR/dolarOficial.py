@@ -94,27 +94,34 @@ class dolarOficial:
         # Espera un tiempo suficiente para que la descarga se complete
         time.sleep(10)
         
-    def lecturaDolarOficial(self, host, user, password,database):
+    def lecturaDolarOficial(self, host, user, password, database):
         conn = mysql.connector.connect(
             host=host, user=user, password=password, database=database
         )
 
-        cursor= conn.cursor()
-        
-        
-        table_name= 'dolar_oficial'
-        directorio_actual= os.path.dirname(os.path.abspath(__file__))
+        cursor = conn.cursor()
+        table_name = 'dolar_oficial'
+
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
         ruta_carpeta_files = os.path.join(directorio_actual, 'files')
         file_name = "MyCsvLol.csv"
         file_path = os.path.join(ruta_carpeta_files, file_name)
-        
-        df = pd.read_csv(file_path, delimiter=';')
-        df= df.replace({np.nan: None})
 
-        df['Fecha cotizacion'] = pd.to_datetime(df['Fecha cotizacion'], format='%d/%m/%Y')
+        df = pd.read_csv(file_path, delimiter=';')
+        
+        # Asegurarse de manejar NaN correctamente
+        df = df.replace({np.nan: None})
+
+        # Convertir la columna de fecha al formato adecuado
+        df['Fecha cotizacion'] = pd.to_datetime(df['Fecha cotizacion'], format='%d/%m/%Y').dt.strftime('%Y-%m-%d')
+
+        # Reemplazar comas por puntos y convertir a float
         df['Compra'] = df['Compra'].str.replace(',', '.').astype(float)
         df['Venta'] = df['Venta'].str.replace(',', '.').astype(float)
+
+        # Eliminar columnas no deseadas
         df = df.drop(columns=['Unnamed: 3'], errors='ignore')
+
         print(df)
         
         longitud_datos_excel = len(df)
@@ -129,14 +136,17 @@ class dolarOficial:
             df_datos_nuevos = df.tail(longitud_datos_excel - filas_BD)
             
             print("Dolar Oficial")
-            insert_query = f"INSERT INTO {table_name} VALUES ({', '.join(['%s' for _ in range(len(df_datos_nuevos.columns))])})"
+            insert_query = f"INSERT INTO {table_name} VALUES ({', '.join(['%s' for _ in range(len(df.columns))])})"
+            
             for index, row in df_datos_nuevos.iterrows():
                 data_tuple = tuple(row)
-                conn.cursor().execute(insert_query, data_tuple)
+                cursor.execute(insert_query, data_tuple)
                 print(data_tuple)
                 nuevos_datos.append(data_tuple)
+            
             conn.commit()
+            cursor.close()
             conn.close()
             print("Se agregaron nuevos datos")
         else:
-            print("Se realizo una verificacion de la base de datos")
+            print("Se realizó una verificación de la base de datos")

@@ -67,20 +67,3 @@ class readSheets:
                                         valueInputOption='RAW',
                                         body={'values':[lista_combustible]}).execute()
 
-""""
-#Zona de pruebas
-
-host = '54.94.131.196'
-user = 'estadistica'
-password = 'Estadistica2024!!'
-database = 'datalake_economico'
-
-conn = pymysql.connect(host = host,user=user,password= password, database=database)
-
-query_select = 'SELECT * FROM combustible WHERE provincia = 18 and fecha >= "2018-12-01"'
-df = pd.read_sql(query_select,conn)
-
-readSheets().cargar_datos(df)
-
-
-"""

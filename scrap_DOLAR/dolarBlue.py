@@ -26,13 +26,19 @@ class dolarBlue:
         
         wait = WebDriverWait(self.driver, 30)
         
-        popup = wait.until(EC.element_to_be_clickable((By.ID, "onesignal-slidedown-cancel-button")))
-        self.driver.execute_script("arguments[0].scrollIntoView();", popup)
-        popup.click()
+         # Manejo del popup si existe
+        try:
+            popup = wait.until(EC.element_to_be_clickable((By.ID, "onesignal-slidedown-cancel-button")))
+            self.driver.execute_script("arguments[0].scrollIntoView();", popup)
+            popup.click()
+        except Exception as e:
+            print("No se encontró el popup o no se pudo cerrar:", e)
         
-        # Esperar a que el iframe desaparezca
-        if self.driver.find_elements(By.ID, "google_ads_iframe_/78858960/Ambito/Not-HE_0"):
-            wait.until(EC.invisibility_of_element_located((By.ID, "google_ads_iframe_/78858960/Ambito/Not-HE_0")))
+        # Esperar a que el iframe de Google Ads desaparezca
+        try:
+            wait.until(EC.invisibility_of_element_located((By.ID, "google_ads_iframe_/78858960/Ambito/Not-he_0")))
+        except Exception as e:
+            print("No se pudo esperar a que desapareciera el iframe:", e)
 
         wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "general-historical__datepicker.datepicker.desde.form-control")))
         wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "general-historical__datepicker.datepicker.hasta.form-control")))
@@ -53,9 +59,15 @@ class dolarBlue:
         fecha_hasta.clear()
         fecha_hasta.send_keys(dia_anterior)
         
-        # Ahora, hacer clic en el botón
-        boton = self.driver.find_element(By.CLASS_NAME, "general-historical__button")
-        boton.click()
+         # Hacer clic en el botón
+        try:
+            boton = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "general-historical__button")))
+            boton.click()
+        except Exception as ElementClickInterceptedException:
+            print("Elemento click interceptado, intentando desplazarse y hacer clic nuevamente...")
+            self.driver.execute_script("arguments[0].scrollIntoView();", boton)
+            time.sleep(1)  # Añade un pequeño tiempo de espera
+            boton.click()
         time.sleep(20)
         table = self.driver.find_element(By.CLASS_NAME, 'general-historical__table')
 
