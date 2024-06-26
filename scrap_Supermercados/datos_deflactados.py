@@ -3,6 +3,12 @@
 from sqlalchemy import create_engine
 import mysql.connector
 import pandas as pd
+from googleapiclient.discovery import build
+import pandas as pd
+import sys
+import os
+from google.oauth2 import service_account
+
 
 class Deflactador:
 
@@ -254,5 +260,51 @@ class Deflactador:
         df_deflactado = self.calculo_deflactacion(df_datos_todas_las_provincias)
 
         self.cargar_datos(df_deflactado)
+        self.save_data_sheet()
+        print("sheet cargado")
+
+
+
+    def save_data_sheet(self):
+        query_select = 'SELECT total_facturacion FROM dwh_economico.supermercado_deflactado WHERE id_provincia_indec = 18 and fecha >= "2018-12-01"'
+        df = pd.read_sql(query_select, self.conn)
+
+        # Convierte el resultado a una lista de Python
+        lista_deflactada = df['total_facturacion'].tolist()
+
+        print(lista_deflactada)
+
+        # Define los alcances y la ruta al archivo JSON de credenciales
+        SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+        
+        #Direccion del archivo json 
+        directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
+        KEY = os.path.join(directorio_desagregado, 'files', 'key.json')
+
+        if not os.path.exists(KEY):
+            raise FileNotFoundError(f'No se encontró el archivo key.json en la ruta: {KEY}')
+
+        #ID del documento:
+        SPREADSHEET_ID = '1L_EzJNED7MdmXw_rarjhhX8DpL7HtaKpJoRwyxhxHGI'
+
+        # Carga las credenciales desde el archivo JSON
+        creds = service_account.Credentials.from_service_account_file(KEY, scopes=SCOPES)
+
+        # Crea una instancia de la API de Google Sheets
+        service = build('sheets', 'v4', credentials=creds)
+        sheet = service.spreadsheets()
+
+
+        #Remplzamos los datos en la fila correspondiente
+        request = sheet.values().update(spreadsheetId=SPREADSHEET_ID,
+                                        range='Datos!C11:11',
+                                        valueInputOption='RAW',
+                                        body={'values':[lista_deflactada]}).execute()
+
+
+
+#Deflactador(host = '54.94.131.196',user = 'estadistica',password = 'Estadistica2024!!',database = 'dwh_economico').main()
+
+
 
 

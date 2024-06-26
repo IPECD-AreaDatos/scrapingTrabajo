@@ -1,6 +1,8 @@
 import mysql.connector
 from sqlalchemy import create_engine
 from datos_deflactados import Deflactador
+import os
+
 class conexionBaseDatos:
 
     def __init__(self, host, user, password, database):
@@ -26,6 +28,7 @@ class conexionBaseDatos:
         
         #Conectamos a la base de datos
         self.conectar_bdd(self.host,self.user,self.password,self.database)
+
 
         #Definimos querys que vamos a utilizar
         nombre_tabla = 'supermercado_encuesta'
@@ -75,8 +78,4 @@ class conexionBaseDatos:
         return (cant_filas_df > row_count_before)
 
 
-
-
-
-
-
+   
