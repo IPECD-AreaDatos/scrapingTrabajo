@@ -38,50 +38,38 @@ class InformesEmae:
 
         #Envio de mensajes
         self.enviar_correo(df_mensual,df_interanual,df_acumulado,fecha_maxima)
-        self.enviar_wpp(df_mensual,df_interanual,df_acumulado,fecha_maxima)
     
-
-
     #Construccion de correo a mandar
     def enviar_correo(self,df_mensual,df_interanual,df_acumulado,fecha_maxima):
-            email_emisor='departamientoactualizaciondato@gmail.com'
-            email_contraseña = 'cmxddbshnjqfehka'
-            email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
-            #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com', 'manumarder@gmail.com']
-            
-            #Construimos la cadena de la fecha actual
-            cadena_fecha_actual = self.obtener_fecha_actual(fecha_maxima)
+        email_emisor='departamientoactualizaciondato@gmail.com'
+        email_contraseña = 'cmxddbshnjqfehka'
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com', 'manumarder@gmail.com']
+        
+        #Construimos la cadena de la fecha actual
+        cadena_fecha_actual = self.obtener_fecha_actual(fecha_maxima)
 
-            asunto = f'Actualizacion de datos EMAE - {cadena_fecha_actual}'
-            datos_ultimos, datos_penultimos = self.obtener_variacion_anualymensual()
+        asunto = f'Actualizacion de datos EMAE - {cadena_fecha_actual}'
+        datos_ultimos, datos_penultimos = self.obtener_variacion_anualymensual()
+        # Verificar que los datos no sean None antes de desempaquetar
+        if datos_ultimos and datos_penultimos:
             # Desempaquetar los datos
             fecha_ultima, variacion_interanual_ultima, variacion_mensual_ultima = datos_ultimos
             fecha_penultima, variacion_interanual_penultima, variacion_mensual_penultima = datos_penultimos
 
-
-           
-        
             cadena_inicio = f'''
-
             <html>
             <body>
-
             <h2 style="font-size: 24px;"><strong> DATOS ACTUALIZADOS DEL ESTIMADOR MENSUAL DE ACTIVIDAD ECONOMICO (EMAE) A {cadena_fecha_actual.upper()}. </strong></h2>
-
             <h3 style="font-size: 19px;">Variación Mensual Desestacionalizada: {variacion_mensual_ultima:.1f}%<br>
             Variación Interanual: {variacion_interanual_ultima:.1f}%</h3>
-            
             <hr>
             '''
-
+            
             # Cabeza de tabla
             cabeza_tabla_variaciones = f'''
-
             <h3> Variaciones a nivel Nacional del Estimador Mensual de Actividad Económico (EMAE) - Argentina </h3>
-
-            
             <table style="border-collapse: collapse; width: 100%;">
-
             <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> INDICE </th>
             <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;">  VAR. MENSUAL </th>
             <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> INDICE </th>
@@ -90,102 +78,45 @@ class InformesEmae:
             <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> VAR. ACUMULADA</th>
             '''
 
-
-            #Datos correspondientes a cada variacion
-            for nombre_mensual,var_mensual,nombre_interanual,var_interanual, nombre_acumulado,var_acumulada in zip(df_mensual['nombre_indices'],df_mensual['var_mensual'],df_interanual['nombre_indices'],df_interanual['var_interanual'],df_acumulado['nombre_indices'],df_acumulado['var_acumulada']):
-            
+            # Datos correspondientes a cada variacion
+            for nombre_mensual, var_mensual, nombre_interanual, var_interanual, nombre_acumulado, var_acumulada in zip(df_mensual['nombre_indices'], df_mensual['var_mensual'], df_interanual['nombre_indices'], df_interanual['var_interanual'], df_acumulado['nombre_indices'], df_acumulado['var_acumulada']):
                 fila_de_nea = f'''
                     <tr>
-
                     <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {nombre_mensual}</td>
                     <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {var_mensual:.2f}%</td>
-
                     <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {nombre_interanual}</td>
                     <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {var_interanual:.2f}%</td>
-
                     <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {nombre_acumulado}</td>
                     <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {var_acumulada:.2f}%</td>
                     </tr>
                     '''
-
                 cabeza_tabla_variaciones = cabeza_tabla_variaciones + fila_de_nea
-        
 
             fin_mensaje = f'''
             </table> 
-
-
             <hr>
-
             <p> Instituto Provincial de Estadistica y Ciencia de Datos de Corrientes<br>
                 Dirección: Tucumán 1164 - Corrientes Capital<br>
                 Contacto Coordinación General: 3794 284993</p>
-
             </body>
             </html>
             '''
 
-
-
             mensaje_final = cadena_inicio + cabeza_tabla_variaciones + fin_mensaje
-
-
 
             em = EmailMessage()
             em['From'] = email_emisor
             em['To'] = email_receptores
             em['Subject'] = asunto
-            em.set_content(mensaje_final, subtype = 'html')
-            
-            contexto= create_default_context()
-            
+            em.set_content(mensaje_final, subtype='html')
+
+            contexto = create_default_context()
             with SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
                 smtp.login(email_emisor, email_contraseña)
                 smtp.sendmail(email_emisor, email_receptores, em.as_string())
+        else:
+            print("No hay suficientes registros para desempaquetar los datos.")
 
-    def enviar_wpp(self,df_mensual,df_interanual,df_acumulado,fecha_maxima):
-
-        #Id del grupo de WPP
-        id_group = "HLDflq1b7Zn3iT4zNSAIhF"
-
-        fecha_cadena = self.obtener_fecha_actual(fecha_maxima)
-        #Inicio de mensaje
-        inicio_mensaje = f"""*EMAE*        
-        Nuevos datos correspondientes a {fecha_cadena}
-        """
-      
-        espacio_parrafos = "\n"
-        #===== Construccion de variaciones
-
-
-
-        #Variaciones mensuales
-        variaciones_mensuales = """\n*VARIACIONES MENSUALES*\n"""
-        for nombre_mensual,var_mensual in zip(df_mensual['nombre_indices'],df_mensual['var_mensual']):
-
-            cadena_mensual = f"\n{nombre_mensual} - Variacion: {var_mensual:.2f} %"
-            variaciones_mensuales = variaciones_mensuales + cadena_mensual
-
-        
-        #Variaciones interanuales
-        variaciones_interanuales = """\n*VARIACIONES INTERANUALES*\n"""
-        for nombre_interanual,var_interanual in zip(df_interanual['nombre_indices'],df_interanual['var_interanual']):
-
-            cadena = f"\n{nombre_interanual} - Variacion: {var_interanual:.2f}%"
-            variaciones_interanuales = variaciones_interanuales + cadena
-
-
-        #Variaciones acumuladas              
-        variaciones_acumuladas = """\n*VARIACIONES ACUMULADAS*\n"""
-        for nombre_acumulada,var_acumulada in zip(df_acumulado['nombre_indices'],df_acumulado['var_acumulada']):
-
-            cadena = f"\n{nombre_acumulada} - Variacion: {var_acumulada:.2f}%"
-            variaciones_acumuladas = variaciones_acumuladas + cadena
-
-
-        mensaje_armado = inicio_mensaje + variaciones_mensuales + espacio_parrafos + variaciones_interanuales + espacio_parrafos +variaciones_acumuladas
-        
-        
 
     def variaciones_mensual_interanual_acumulada(self):
         
@@ -193,7 +124,7 @@ class InformesEmae:
         nombre_tabla = 'emae'
         query_select = f'SELECT * from {nombre_tabla}' 
         df_bdd = pd.read_sql(query_select,self.conn)
-        df_bdd['Fecha'] = pd.to_datetime(df_bdd['Fecha'])#--> Cambiamos formato de la fecha para su manipulacion
+        df_bdd['fecha'] = pd.to_datetime(df_bdd['fecha'])#--> Cambiamos formato de la fecha para su manipulacion
         
         #Buscamos los datos de las categorias del emae, para lograr un for con cada indice, y para organizar la tabla por |INDICE|VALOR
         nombre_tabla = 'emae_categoria'
@@ -202,8 +133,8 @@ class InformesEmae:
 
 
         #OBTENCION DEL GRUPO DE LA FECHA MAXIMA 
-        fecha_maxima = max(df_bdd['Fecha'])
-        df_bdd_ultima_fecha = df_bdd[df_bdd['Fecha'] == fecha_maxima]
+        fecha_maxima = max(df_bdd['fecha'])
+        df_bdd_ultima_fecha = df_bdd[df_bdd['fecha'] == fecha_maxima]
 
 
         #LISTAS que acumulan consecutivamente los indices y las variaciones
@@ -216,30 +147,30 @@ class InformesEmae:
 
 
             #Obtenemos el valor actual y el valor del mes anterior de la misma categoria --> SE USA EL MISMO VALOR PARA CADA VARIACION
-            valor_actual = df_bdd_ultima_fecha['Valor'][df_bdd_ultima_fecha['Sector_Productivo'] == indice].values[0]
+            valor_actual = df_bdd_ultima_fecha['valor'][df_bdd_ultima_fecha['sector_productivo'] == indice].values[0]
 
             # === CALCULO VARIACION MENSUAL
 
-            valor_mes_anterior = df_bdd['Valor'][ (df_bdd['Fecha'].dt.year == fecha_maxima.year)
-                                                & (df_bdd['Fecha'].dt.month == fecha_maxima.month - 1)
-                                                & (df_bdd['Sector_Productivo'] == indice)].values[0]
+            valor_mes_anterior = df_bdd['valor'][ (df_bdd['fecha'].dt.year == fecha_maxima.year)
+                                                & (df_bdd['fecha'].dt.month == fecha_maxima.month - 1)
+                                                & (df_bdd['sector_productivo'] == indice)].values[0]
 
             #Calculo final
             var_mensual = ((valor_actual / valor_mes_anterior) - 1) * 100
 
             # === CALCULO VARIACION INTERANUAL
             
-            valor_año_anterior = df_bdd['Valor'][ (df_bdd['Fecha'].dt.year == fecha_maxima.year - 1)
-                                                & (df_bdd['Fecha'].dt.month == fecha_maxima.month)
-                                                & (df_bdd['Sector_Productivo'] == indice)].values[0]
+            valor_año_anterior = df_bdd['valor'][ (df_bdd['fecha'].dt.year == fecha_maxima.year - 1)
+                                                & (df_bdd['fecha'].dt.month == fecha_maxima.month)
+                                                & (df_bdd['sector_productivo'] == indice)].values[0]
 
             #Calculo final
             var_intearnual = ((valor_actual / valor_año_anterior) - 1) * 100
 
             # === CALCULO VARIACION ACUMULADA    
-            valor_diciembre_año_anterior = df_bdd['Valor'][ (df_bdd['Fecha'].dt.year == fecha_maxima.year - 1)
-                                                & (df_bdd['Fecha'].dt.month == 12)
-                                                & (df_bdd['Sector_Productivo'] == indice)].values[0]
+            valor_diciembre_año_anterior = df_bdd['valor'][ (df_bdd['fecha'].dt.year == fecha_maxima.year - 1)
+                                                & (df_bdd['fecha'].dt.month == 12)
+                                                & (df_bdd['sector_productivo'] == indice)].values[0]
 
             #Calculo final
             var_acumulada = ((valor_actual / valor_diciembre_año_anterior) - 1) * 100
@@ -251,10 +182,7 @@ class InformesEmae:
             lista_var_mensual.append(var_mensual)
             lista_var_interanual.append(var_intearnual)
             lista_var_acumulada.append(var_acumulada)
-
-
-        
-
+            
         #Creacion de DATAFRAME
         data = {
                 
@@ -306,7 +234,7 @@ class InformesEmae:
     def obtener_variacion_anualymensual(self):
         # Buscamos los datos de la tabla emae_variaciones y lo transformamos a un DataFrame
         nombre_tabla = 'emae_variaciones'
-        query_select = f'SELECT * FROM {nombre_tabla} ORDER BY Fecha DESC LIMIT 2' 
+        query_select = f'SELECT * FROM {nombre_tabla} ORDER BY fecha DESC LIMIT 2' 
         df_bdd = pd.read_sql(query_select, self.conn)
 
         # Verificar que haya al menos dos registros en el DataFrame
@@ -316,13 +244,13 @@ class InformesEmae:
             penultima_fila = df_bdd.iloc[1]
 
             # Acceder a los valores específicos
-            fecha_ultima = ultima_fila['Fecha']
-            variacion_interanual_ultima = ultima_fila['Variacion_Interanual']
-            variacion_mensual_ultima = ultima_fila['Variacion_Mensual']
+            fecha_ultima = ultima_fila['fecha']
+            variacion_interanual_ultima = ultima_fila['variacion_interanual']
+            variacion_mensual_ultima = ultima_fila['variacion_mensual']
 
-            fecha_penultima = penultima_fila['Fecha']
-            variacion_interanual_penultima = penultima_fila['Variacion_Interanual']
-            variacion_mensual_penultima = penultima_fila['Variacion_Mensual']
+            fecha_penultima = penultima_fila['fecha']
+            variacion_interanual_penultima = penultima_fila['variacion_interanual']
+            variacion_mensual_penultima = penultima_fila['variacion_mensual']
 
             # Puedes imprimir o retornar los valores según tus necesidades
             print(f"Última Fecha: {fecha_ultima}, Variación Interanual: {variacion_interanual_ultima}, Variación Mensual: {variacion_mensual_ultima}")
