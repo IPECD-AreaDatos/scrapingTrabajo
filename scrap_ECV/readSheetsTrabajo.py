@@ -3,6 +3,8 @@ from googleapiclient.discovery import build
 from google.oauth2 import service_account
 import os
 import pandas as pd
+from datetime import datetime
+
 
 class readSheetsTrabajo:   
     def leer_datos_trabajo(self):
@@ -62,6 +64,8 @@ class readSheetsTrabajo:
 
         # Convertir la primera columna a tipo de datos de fecha
         df['Fecha'] = pd.to_datetime(df['Fecha'], format='%d/%m/%Y')
+        df['Fecha'] = df['Fecha'].dt.strftime('%Y-%m-%d')  # Formatear a 'YYYY-MM-DD'
+
         df['Año'] = df['Año'].astype(int)
         # Convertir la segunda columna a tipo de datos entero
         df['Trimestre'] = df['Trimestre'].astype(str)

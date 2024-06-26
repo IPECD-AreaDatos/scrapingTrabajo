@@ -3,6 +3,8 @@ from googleapiclient.discovery import build
 from google.oauth2 import service_account
 import os
 import pandas as pd
+from datetime import datetime
+
 
 
 
@@ -66,6 +68,8 @@ class readSheetsSaludCobertura:
             df.loc[no_nulos, columna] = df.loc[no_nulos, columna] / 100
         # Convertir la primera columna a tipo de datos de fecha
         df['Fecha'] = pd.to_datetime(df['Fecha'], format='%d/%m/%Y')
+        df['Fecha'] = df['Fecha'].dt.strftime('%Y-%m-%d')  # Formatear a 'YYYY-MM-DD'
+
         # Convertir la segunda columna a tipo de datos entero
         df['Semestre'] = df['Semestre'].astype(str)
         df['Aglomerado'] = df['Aglomerado'].astype(str)

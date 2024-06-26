@@ -4,6 +4,8 @@ from google.oauth2 import service_account
 import os
 import pandas as pd
 import numpy as np
+from datetime import datetime
+
 
 class readSheetsEducacionMay25:   
     def leer_datos_educacionMay25(self):
@@ -64,6 +66,8 @@ class readSheetsEducacionMay25:
             df.loc[no_nulos, columna] = df.loc[no_nulos, columna] / 100
         # Convertir la primera columna a tipo de datos de fecha
         df['Fecha'] = pd.to_datetime(df['Fecha'], format='%d/%m/%Y')
+        df['Fecha'] = df['Fecha'].dt.strftime('%Y-%m-%d')  # Formatear a 'YYYY-MM-DD'
+
         # Convertir la segunda columna a tipo de datos entero
         df['Trimestre'] = df['Trimestre'].astype(str)
         df['Aglomerado'] = df['Aglomerado'].astype(str)
