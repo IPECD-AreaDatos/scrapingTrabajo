@@ -16,7 +16,11 @@ class armadoDF:
     
         df = df.iloc[fila_target:(fila_target + 58)]
         # Borrar columnas que tienen solo None
-        df = df.loc[:, df.isnull().sum() < len(df)]
+        print("Columnas antes de eliminar:", df.columns)
+        df = df.dropna(axis=1, how='all')
+        print("Columnas después de eliminar:", df.columns)
+        print(df)
+        exit(0)
         df = df.transpose()
         # Renombrar las columnas con el nombre de la primera fila
         df.columns = df.iloc[0]

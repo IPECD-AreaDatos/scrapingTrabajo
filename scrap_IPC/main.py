@@ -38,8 +38,8 @@ if __name__ == '__main__':
     lista_valores = list()
 
     #Descargar EXCEL - Tambien almacenamos las rutas que usaremos
-    #home_page = HomePage()
-    #home_page.descargar_archivo()
+    home_page = HomePage()
+    home_page.descargar_archivo()
     
     #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ CARGA DE IPC DESAGREGADO ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
     directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
