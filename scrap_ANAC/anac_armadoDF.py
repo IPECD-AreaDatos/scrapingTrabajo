@@ -6,7 +6,8 @@ from dateutil.relativedelta import relativedelta
 class armadoDF:
     def armadoDF(file_path):
         # Leer el archivo xlsx y cargarlo en un DataFrame
-        df = pd.read_excel(file_path, index_col=None) 
+        sheet_name ='OUT'
+        df = pd.read_excel(file_path, sheet_name=sheet_name)
 
         target_value = "TABLA 11"
 
