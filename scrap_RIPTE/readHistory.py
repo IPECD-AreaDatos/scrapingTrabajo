@@ -51,7 +51,7 @@ class ripte_cargaHistorico:
         conn.commit()
             
         print("====================================================================")
-        print("Se realizo la actualizacion de la tabla de Salarios Sector Privado")
+        print("Se cargo el historico de RIPTE")
         print("====================================================================")
 
         #Se toma el tiempo de finalizacion y se calcula
@@ -61,26 +61,3 @@ class ripte_cargaHistorico:
         
         # Cerrar la conexión a la base de datos
         conn.close()
-        
-        
-def enviar_correo():
-    email_emisor='departamientoactualizaciondato@gmail.com'
-    email_contraseña = 'oxadnhkcyjnyibao'
-    email_receptor = ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com']
-    asunto = 'Modificación en la base de datos'
-    mensaje = 'Se ha producido una modificación en la base de datos.'
-    body = "Se han agregado nuevos datos:\n\n"
-    for data in nuevos_datos:
-        body += ', '.join(map(str, data)) + '\n'
-    
-    em = EmailMessage()
-    em['From'] = email_emisor
-    em['To'] = email_receptor
-    em['Subject'] = asunto
-    em.set_content(mensaje)
-    
-    contexto= ssl.create_default_context()
-    
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
-        smtp.login(email_emisor, email_contraseña)
-        smtp.sendmail(email_emisor, email_receptor, em.as_string())

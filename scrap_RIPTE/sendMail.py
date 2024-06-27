@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import locale
 import smtplib
 
-class InformesRipte:
+class InformeRipte:
 
     def __init__(self,host,user,password,database):
 
@@ -36,8 +36,6 @@ class InformesRipte:
         self.cursor = self.conn.cursor()
 
     def enviar_mensajes(self,nueva_fecha, nuevo_valor, valor_anterior):
-
-
             #Obtencion de valores para informe por CORREO
             variacion_mensual = ((nuevo_valor / valor_anterior) - 1) * 100
             variacion_interanual, variacion_acumulada, fecha_mes_anterior,fecha_mes_AñoAnterior, diciembre_AñoAnterior = self.obtener_datos(nueva_fecha,nuevo_valor)
@@ -59,8 +57,8 @@ class InformesRipte:
     def enviar_correo(self,fecha_cadena, nuevo_valor,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada, ruta_archivo_grafico):
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com', 'manumarder@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com', 'manumarder@gmail.com']
         em = MIMEMultipart()
         asunto = f'Modificación en la base de datos - Remuneración Imponible Promedio de los Trabajadores Estables (RIPTE) - Fecha {fecha_cadena}'
         mensaje = f'''\
@@ -116,10 +114,7 @@ class InformesRipte:
         consulta = f'SELECT * FROM {nombre_tabla}'
         df_bdd = pd.read_sql(consulta,self.conn)
 
-
         # ==== CALCULO VARIACION INTERANUAL ==== #
-
-
         #Obtencion de la fecha actual - se usara para determinar el valor del año anterior en el mismo mes
         fecha_actual = df_bdd['fecha'].iloc[-1]
 
@@ -134,17 +129,12 @@ class InformesRipte:
         fecha_mes_AñoAnterior = datetime.strptime(fecha_mes_AñoAnterior,'%Y-%m-%d').date()
 
         valor_mes_AñoAnterior = df_bdd.loc[df_bdd['fecha'] == fecha_mes_AñoAnterior]
-        print(valor_mes_AñoAnterior)
         valor = valor_mes_AñoAnterior['valor'].values[0]
-
-        print(f'NUEVO VALOR:{nuevo_valor} - VALOR ANTERIOR: {valor}')
 
         #Calculo final
         variacion_interanual = ((nuevo_valor / valor) - 1 ) * 100
 
-
         # ===== CALCULO VARIACION ACUMULADA ==== #
-
         diciembre_AñoAnterior = datetime.strptime(str(año_anterior) + "-" + "12-01",'%Y-%m-%d').date() #--> Fecha de DIC del año anterior
 
         #SMVM del año anterior
@@ -154,10 +144,7 @@ class InformesRipte:
         #calculo final
         variacion_acumulada = ((nuevo_valor / smvm_dic_AñoAnterior) - 1) * 100
 
-
         #==== CONSTRUCCION DE FECHAS
-
-
         
         #Construccion de la fecha del mes anterior al actual --> Para variacion Mensual
         mes_anterior = df_bdd['fecha'].iloc[-2]
@@ -169,9 +156,6 @@ class InformesRipte:
 
         #Construccion de la fecha de diciembre del año anterior al ACTUAL --> Para Variacion Acumulada
         cadena_dic_añoAnterior = str(diciembre_AñoAnterior.year) +"-"+str(diciembre_AñoAnterior.month)
-
-
-
 
         return variacion_interanual, variacion_acumulada,cadena_mes_anterior,cadena_mes_añoAnterior,cadena_dic_añoAnterior
 
@@ -206,16 +190,6 @@ class InformesRipte:
     
 
     def generar_y_guardar_grafico(self, columna_fecha='fecha', columna_valor='valor', nombre_archivo='variacion_ripte.png'):
-        """
-        Genera un gráfico de línea a partir de un DataFrame y guarda el resultado en un archivo PNG dentro de la carpeta 'files'.
-
-        Args:
-        df (pd.DataFrame): DataFrame que contiene los datos a graficar.
-        columna_fecha (str): Nombre de la columna en df que contiene las fechas.
-        columna_valor (str): Nombre de la columna en df que contiene los valores a graficar.
-        nombre_archivo (str): Nombre del archivo donde se guardará el gráfico.
-        """
-
         #Obtencion de datos de la BDD - Transformacion a DF
         nombre_tabla = 'ripte'
         consulta = f'SELECT * FROM {nombre_tabla} ORDER BY fecha DESC LIMIT 13'
