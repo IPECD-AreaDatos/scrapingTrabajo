@@ -61,8 +61,10 @@ class connection_db:
         
         #Obtenemos los tamanios
         tamanio_df,tamanio_bdd = self.determinar_tamanios(df)
+        df_cba_ipc = self.verificar_null_dwh_cbt_ipc()
+        df_cba_ipc = df_cba_ipc.iloc[-1]
 
-        if tamanio_df > tamanio_bdd: #Si el DF es mayor que lo almacenado, cargar los datos nuevos
+        if tamanio_df > tamanio_bdd or pd.isna(df_cba_ipc['vmensual_nea_ipc']): #Si el DF es mayor que lo almacenado, cargar los datos nuevos
             
             #Es necesario el borrado ya que posteriormente las estimaciones tendremos que recalcularlas
             delete_query_datalake = 'TRUNCATE cbt_cba'
@@ -310,3 +312,14 @@ class connection_db:
 
 # =========================================================================================== #        
 # =========================================================================================== #
+
+    def verificar_null_dwh_cbt_ipc(self):
+        self.close_conections()#--> Cerramos
+        self.set_database("dwh_sociodemografico") #--> Cambiamos BDD
+        self.connect_db() #--> Reconectarnos al datalake economico
+        query = "SELECT * FROM dwh_sociodemografico.correo_cbt_cba;"
+        df = pd.read_sql(query, self.conn)
+        self.close_conections()
+        self.set_database("datalake_sociodemografico")
+        self.connect_db()#--> Reconectarnos al datalake sociodemografico
+        return df
