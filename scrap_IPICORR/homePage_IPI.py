@@ -8,7 +8,7 @@ import pandas as pd
 import xlrd
 from datetime import date
 from dateutil.relativedelta import relativedelta
-
+import urllib3
 
 class HomePage_IPI:
 
@@ -19,10 +19,15 @@ class HomePage_IPI:
 
 
     def descargar_archivo(self):
-    
-        # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
-        driver = webdriver.Chrome()  # Reemplaza con la ubicación de tu ChromeDriver
 
+        #Desactivamos protecciones 
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+    
+        # Configuración del navegador
+        driver = webdriver.Chrome(options=options)
 
         # URL de la página que deseas obtener
         url_pagina = 'https://www.indec.gob.ar/indec/web/Nivel4-Tema-3-6-14'
@@ -55,7 +60,10 @@ class HomePage_IPI:
         response = requests.get(url_archivo)
 
         # Guardar el archivo en la carpeta especificada
-        ruta_guardado = f'{carpeta_guardado}/{nombre_archivo}'
+        ruta_guardado = os.path.join(carpeta_guardado, nombre_archivo)
+
+        ruta_guardado = os.path.normpath(ruta_guardado)
+
         with open(ruta_guardado, 'wb') as file:
             file.write(response.content)
 
@@ -72,14 +80,13 @@ class HomePage_IPI:
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
 
         # Construir la ruta de la carpeta "files" dentro del directorio actual
-        carpeta_guardado = os.path.join(directorio_actual, 'files\\')
+        carpeta_guardado = os.path.join(directorio_actual, 'files')
 
         # Nombre del archivo
         nombre_archivo = 'IPI.xls'
 
         #Construimos cadena final para buscar el archivo
-        path_guardado = carpeta_guardado + nombre_archivo
-
+        path_guardado = os.path.join(carpeta_guardado,nombre_archivo)
 
         #Abrimos EXCEl, y ubicamos en la hoja la hoja que queremos
         woorkbook = xlrd.open_workbook(path_guardado)
