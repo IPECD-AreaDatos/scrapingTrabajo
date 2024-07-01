@@ -4,13 +4,19 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import os
-
+import urllib3
 
 class HomePage:
     
     def __init__(self):
-        # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
-        self.driver = webdriver.Chrome()  # Reemplaza con la ubicación de tu ChromeDriver
+        #Desactivamos protecciones 
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+    
+        # Configuración del navegador
+        self.driver = webdriver.Chrome(options=options)
 
         # URL de la página que deseas obtener
         self.url_pagina = 'https://www.indec.gob.ar/indec/web/Nivel4-Tema-4-31-61'

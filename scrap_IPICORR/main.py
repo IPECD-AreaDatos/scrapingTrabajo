@@ -30,6 +30,5 @@ if __name__ == "__main__":
     home_page = HomePage_IPI()
     home_page.descargar_archivo()
     df_ipi = home_page.construir_df()
-    print(df_ipi)
     Database_ipi().cargar_datos(credenciales.host, credenciales.user, credenciales.password, credenciales.database,df_ipi)
     Database_ipi().cargar_datos(credenciales2.host, credenciales2.user, credenciales2.password, credenciales2.database,df_ipi)
