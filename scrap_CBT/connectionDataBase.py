@@ -250,50 +250,43 @@ class connection_db:
         self.set_database("datalake_economico") #--> Cambiamos BDD
         self.connect_db() #--> Reconectarnos al datalake economico
         
-        #Calculamos las variaciones necesarias del IPC
-        self.connecting_with_ipc(df)
+        df = self.connecting_with_ipc(df)
 
-        #Cerramos las conexiones nuevamente
         self.close_conections()
-        
 
         return df
 
-
     #En esta funcion realizamos los calculos sobre las variaciones de IPC
     def connecting_with_ipc(self,df):
+        # Consulta a la base de datos del IPC
+        query_consulta = 'SELECT * FROM ipc_valores WHERE ID_Region = 5 and ID_Categoria = 1'
+        df_bdd_ipc = pd.read_sql(query_consulta, self.conn)
 
-        #Explicacion: la consulta ira a ipc_valores, y traera todos los datos de la region 5 (NEA) y de la categoria 1 (Nivel general del IPC)
-        query_consulta = f'SELECT * FROM ipc_valores WHERE ID_Region = 5 and ID_Categoria = 1'
+        # Convertir las fechas a datetime
+        df['fecha'] = pd.to_datetime(df['fecha'])
+        df_bdd_ipc['fecha'] = pd.to_datetime(df_bdd_ipc['fecha'])
 
-        #Construccion de dataframe a partir de la consulta
-        df_bdd = pd.read_sql(query_consulta,self.conn)
+        # Unir los DataFrames utilizando la fecha más cercana
+        df = pd.merge_asof(df.sort_values('fecha'), df_bdd_ipc.sort_values('fecha'), on='fecha', direction='nearest')
 
-        # ==== CALCULOS DE VARIACIONES MENSUALES Y INTERANUALES
+        # Renombrar columna para claridad
+        df.rename(columns={'valor': 'ipc_valor'}, inplace=True)
 
-        #=== Creamos columnas para evitar conflictos de manipulacion del datafarame
-        df['vmensual_nea_ipc'] = float('nan')
-        df['vinter_nea_ipc'] = float('nan')
+        # Inicializar las nuevas columnas con None
+        df['vmensual_nea_ipc'] = None
+        df['vinter_nea_ipc'] = None
 
-        #=== Tomamos la primera fecha del grupo de IPC -- Esto porque CBT y CBA empieza su historico antes que los datos oficiales de IPC
-        firt_date = pd.to_datetime(df_bdd['fecha'].values[0])
+        # Calcular variaciones mensuales e interanuales del IPC
+        for i in range(1, len(df)):
+            if pd.notna(df['ipc_valor'].iloc[i]) and pd.notna(df['ipc_valor'].iloc[i-1]):
+                df['vmensual_nea_ipc'].iloc[i] = (df['ipc_valor'].iloc[i] / df['ipc_valor'].iloc[i-1] - 1)
+            if i >= 12 and pd.notna(df['ipc_valor'].iloc[i]) and pd.notna(df['ipc_valor'].iloc[i-12]):
+                df['vinter_nea_ipc'].iloc[i] = (df['ipc_valor'].iloc[i] / df['ipc_valor'].iloc[i-12] - 1)
 
-        #=== Creacion de variaciones mensual, interanual PARA IPC del NEA
-        df['vmensual_nea_ipc'].iloc[df['fecha'] >= firt_date] =( df_bdd['valor'] / df_bdd['valor'].shift(1) - 1)   #--> Var. Mensual de IPC
-        df['vinter_nea_ipc'].iloc[df['fecha'] >= firt_date] = ((df_bdd['valor'] / df_bdd['valor'].shift(12)) - 1) #--> Var. Interanual de IPC
-
+        return df
 
     #Objetivo: cargar los datos correspondientes al correo de CBT y CBA. Es llamado en la funcion table_a1()
     def load_date_mail(self,df):
-        
-        """
-        Para la carga es necesario:
-        1 - Cambiar por setter el nombre de la bdd
-        2 - Conectarnos a la bdd
-        3 - Truncar la tabla correspondiente (ya que trabajamos con estimaciones)
-        4 - Cargar los datos nuevos
-        """
-
         #Paso 1 - vamos a usar DWH de socio
         self.set_database("dwh_sociodemografico")
 

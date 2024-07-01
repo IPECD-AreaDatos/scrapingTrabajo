@@ -55,8 +55,6 @@ class MailCBTCBA:
 
         #Extracion de datos
         df = self.extract_date()
-
-
         #Asunto del correo - Tomamos la ultima fecha y la transformamos en un formato normal
         fecha_actual = df['fecha'].iloc[-1]
         mes_actual = self.fecha_formato_legible(fecha_actual) #--> Usada para el asunto
@@ -95,7 +93,7 @@ class MailCBTCBA:
         <span style="font-size: 17px;"><b>${df['cba_nea_familia'].iloc[-1]:,.2f}</b></span> para no ser indigente y
         <span style="font-size: 17px;"><b>${df['cbt_nea_familia'].iloc[-1]:,.2f}</b></span> para no ser pobre.
         </p> 
-        <p> En {mes_anterior}, una misma familia había necesitado 
+        <p> 👥👥En {mes_anterior}, una misma familia había necesitado 
         <span style="font-size: 17px;"><b>${df['cba_nea_familia'].iloc[-2]:,.2f}</b></span> para no ser indigente y 
         <span style="font-size: 17px;"><b>${df['cbt_nea_familia'].iloc[-2]:,.2f}</b></span> para no ser pobre.
         </p> 
@@ -108,23 +106,31 @@ class MailCBTCBA:
         # Verificar si var_interanual_cba es negativa o positiva
         if df['vinter_cba'].iloc[-1] < 0:
             aumento_disminucion = "disminuyó ⬇️"
+            emoji_aumento_disminucion = "📉"
         else:
             aumento_disminucion = "aumentó ⬆️"
+            emoji_aumento_disminucion = "📈"
         
         if df['vinter_cbt'].iloc[-1] < 0:
             aumento_canastaBasica = "disminuyó ⬇️"
+            emoji_aumento_disminucion = "📉"
         else:
             aumento_canastaBasica = "aumentó ⬆️"
+            emoji_aumento_disminucion = "📈"
 
         if df['vmensual_cba'].iloc[-1] < 0:
             aumento_mensual_canastaBasica= "disminuyó ⬇️"
+            emoji_aumento_disminucion = "📉"
         else:
             aumento_mensual_canastaBasica = "aumentó ⬆️"
+            emoji_aumento_disminucion = "📈"
 
         if df['vmensual_cbt'].iloc[-1] < 0:
             aumento_mensual_canastaTotal=  "disminuyó ⬇️"
+            emoji_aumento_disminucion = "📉"
         else:
             aumento_mensual_canastaTotal = "aumentó ⬆️"
+            emoji_aumento_disminucion = "📈"
 
 
         #Fechas a manejar
@@ -138,36 +144,45 @@ class MailCBTCBA:
     
         mensaje_dos = f"""
         <p>
-        La canasta básica alimentaria <span style="font-weight: bold; text-decoration: underline;">{aumento_disminucion}</span> interanualmente ({cadena_fecha_actual.upper()} VS {cadena_var_inter.upper()}) un 
+        {emoji_aumento_disminucion}La canasta básica alimentaria <span style="font-weight: bold; text-decoration: underline;">{aumento_disminucion}</span> interanualmente ({cadena_fecha_actual.upper()} VS {cadena_var_inter.upper()}) un 
         <span style="font-size: 17px; font-weight: bold;">{abs( df['vinter_cba'].iloc[-1]*100):.2f}%</span>
         mientras que la canasta básica total <span style="font-weight: bold; text-decoration: underline;">{aumento_canastaBasica}</span> para el mismo periodo un 
         <span style="font-size: 17px; font-weight: bold;">{ df['vinter_cbt'].iloc[-1]*100:.2f}%</span>.
         </p>
         <p>
-        La canasta básica alimentaria <span style="font-weight: bold; text-decoration: underline;">{aumento_mensual_canastaBasica}</span> mensualmente ({cadena_fecha_actual.upper()} VS {cadena_mes_anterior.upper()}) un 
+        {emoji_aumento_disminucion}La canasta básica alimentaria <span style="font-weight: bold; text-decoration: underline;">{aumento_mensual_canastaBasica}</span> mensualmente ({cadena_fecha_actual.upper()} VS {cadena_mes_anterior.upper()}) un 
         <span style="font-size: 17px; font-weight: bold;">{df['vmensual_cba'].iloc[-1]*100:.2f}%</span>
         mientras que la canasta básica total <span style="font-weight: bold; text-decoration: underline;">{aumento_mensual_canastaTotal}</span> para el mismo periodo un 
         <span style="font-size: 17px; font-weight: bold;">{df['vmensual_cbt'].iloc[-1]*100:.2f}%</span>.
         </p>
-
-        
         <hr>
-
-            <p> Instituto Provincial de Estadistica y Ciencia de Datos de Corrientes<br>
-            Dirección: Tucumán 1164 - Corrientes Capital<br>
-            Contacto Coordinación General: 3794 284993</p>
-
-
-        </body>
-        </html>
-
         """
 
-
-        #===== SECCION DE ENVIO DE CORREO
-
-        #Concatenacion de cadena
-        cadena = mensaje_uno + mensaje_dos
+        # Verificar si las variaciones del IPC no son None
+        cadena_variaciones = ""
+        if pd.notna(df['vmensual_nea_ipc'].iloc[-1]) and pd.notna(df['vinter_nea_ipc'].iloc[-1]):
+            try:
+                var_mensual_ipc = float(df['vmensual_nea_ipc'].iloc[-1])
+                var_interanual_ipc = float(df['vinter_nea_ipc'].iloc[-1])
+                cadena_variaciones = f"""
+                <p>
+                📊Respecto al Índice de Precios al Consumidor del NEA, para el mes de {cadena_fecha_actual.upper()} la variación general de precios respecto a {cadena_mes_anterior.upper()} fue de 
+                <span style="font-size: 17px;"><b>{var_mensual_ipc*100:.2f}%</b></span>. La variación interanual fue de <span style="font-size: 17px;"><b>{var_interanual_ipc*100:.2f}%</b></span>
+                ({cadena_fecha_actual.upper()} VS {cadena_var_inter.upper()})
+                </p>
+                """
+            except ValueError:
+                pass
+        #===== SECCION DE ENVIO DE CORREO =====
+        # Concatenación del mensaje final con el footer siempre presente
+        cadena = mensaje_uno + mensaje_dos + cadena_variaciones + """
+        <hr>
+        <p> Instituto Provincial de Estadística y Ciencia de Datos de Corrientes<br>
+        Dirección: Tucumán 1164 - Corrientes Capital<br>
+        Contacto Coordinación General: 3794 284993</p>
+        </body>
+        </html>
+        """
 
         #Declaramos email desde el que se envia, la contraseña de la api, y los correos receptores.
         email_emisor='departamientoactualizaciondato@gmail.com'
@@ -218,8 +233,6 @@ class MailCBTCBA:
         #Retornamos una cadena con la fecha en espanol en un formato legible
         return nombre_mes_espanol
     
-
-
     def graficos_vars_mensuales_interanuales(self,df):
 
 

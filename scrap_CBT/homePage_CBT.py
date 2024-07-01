@@ -10,14 +10,11 @@ import time
 
 class HomePageCBT:
     def __init__(self):
-
         options = webdriver.ChromeOptions()
         options.add_argument('--headless')
 
-        # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
-        self.driver =webdriver.Chrome(options=options)  # Reemplaza con la ubicación de tu ChromeDriver
+        self.driver =webdriver.Chrome(options=options) 
 
-        # URL de la página que deseas obtener
         self.url_pagina = 'https://www.indec.gob.ar/indec/web/Nivel4-Tema-4-43-149'
     
     def descargar_archivo(self):
@@ -49,7 +46,6 @@ class HomePageCBT:
         print(url_archivo)
         
         # Ruta de la carpeta donde guardar el archivo
-        # Obtener la ruta del directorio actual (donde se encuentra el script)
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
 
         # Construir la ruta de la carpeta "files" dentro del directorio actual
@@ -62,7 +58,7 @@ class HomePageCBT:
         response = requests.get(url_archivo)
 
         # Guardar el archivo en la carpeta especificada
-        ruta_guardado = f'{carpeta_guardado}\\{nombre_archivo}'
+        ruta_guardado = os.path.join(carpeta_guardado, nombre_archivo)
         with open(ruta_guardado, 'wb') as file:
             file.write(response.content)
 
