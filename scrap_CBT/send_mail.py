@@ -170,13 +170,13 @@ class MailCBTCBA:
                 <span style="font-size: 17px;"><b>{var_mensual_ipc*100:.2f}%</b></span>. La variación interanual fue de <span style="font-size: 17px;"><b>{var_interanual_ipc*100:.2f}%</b></span>
                 ({cadena_fecha_actual.upper()} VS {cadena_var_inter.upper()})
                 </p>
+                <hr>
                 """
             except ValueError:
                 pass
         #===== SECCION DE ENVIO DE CORREO =====
         # Concatenación del mensaje final con el footer siempre presente
         cadena = mensaje_uno + mensaje_dos + cadena_variaciones + """
-        <hr>
         <p> Instituto Provincial de Estadística y Ciencia de Datos de Corrientes<br>
         Dirección: Tucumán 1164 - Corrientes Capital<br>
         Contacto Coordinación General: 3794 284993</p>
@@ -188,8 +188,8 @@ class MailCBTCBA:
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contrasenia = 'cmxddbshnjqfehka'
 
-        #email_receptores =  ['samaniego18@gmail.com','benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com', 'samaniego18@gmail.com', 'guillermobenasulin@gmail.com', 'leclerc.mauricio@gmail.com','alejandrobrunel@gmail.com']
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com', 'manumarder@gmail.com']
+        email_receptores =  ['samaniego18@gmail.com','benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com', 'samaniego18@gmail.com', 'guillermobenasulin@gmail.com', 'leclerc.mauricio@gmail.com','alejandrobrunel@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com', 'manumarder@gmail.com']
 
         #==== Zona de envio de correo
         em = EmailMessage()
