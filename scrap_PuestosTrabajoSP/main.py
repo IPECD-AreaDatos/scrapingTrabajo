@@ -18,8 +18,8 @@ credenciales = Credenciales('datalake_economico')
 if __name__ == '__main__':
     #Carga de documento de departamentos
     #LoadCSVDataDepartamentos().loadInDataBase(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
-    #home_page = HomePage()
-    #home_page.descargar_archivo()
+    home_page = HomePage()
+    home_page.descargar_archivo()
     instancia = LoadCSVData(host=credenciales.host, user=credenciales.user, password=credenciales.password, database=credenciales.database)
     instancia_privado = LoadCSVDataPuestosTotal(host=credenciales.host, user=credenciales.user, password=credenciales.password, database=credenciales.database)
     instancia.loadInDataBase()
