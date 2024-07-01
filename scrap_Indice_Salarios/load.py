@@ -80,5 +80,5 @@ class Database:
             #Se retorna true para enviar el correo
             return True
         else:
-            print("\n - No existen datos nuevos de SIPA para cargar \n")
+            print("\n - No existen datos nuevos de INDICE DE SALARIOS para cargar \n")
             return False
