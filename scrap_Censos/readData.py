@@ -29,10 +29,10 @@ class homePage:
 
         # Inicializar listas para almacenar los datos
         data = {
-            'Fecha': [],
-            'ID_Provincia': [],
-            'ID_Departamento': [],
-            'Poblacion': []
+            'fecha': [],
+            'id_provincia': [],
+            'id_departamento': [],
+            'poblacion': []
         }
 
         # Iterar sobre las filas de datos
@@ -42,10 +42,10 @@ class homePage:
             valores = row[4:]
 
             # Agregar los datos a las listas
-            data['Fecha'].extend(fechas_date)
-            data['ID_Provincia'].extend([id_provincia] * len(fechas_date))
-            data['ID_Departamento'].extend([id_departamento] * len(fechas_date))
-            data['Poblacion'].extend(valores)
+            data['fecha'].extend(fechas_date)
+            data['id_provincia'].extend([id_provincia] * len(fechas_date))
+            data['id_departamento'].extend([id_departamento] * len(fechas_date))
+            data['poblacion'].extend(valores)
 
         # Crear el DataFrame
         df = pd.DataFrame(data)

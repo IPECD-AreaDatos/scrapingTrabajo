@@ -6,6 +6,8 @@ import pandas as pd
 
 class readSheetsCensoIPECD:
     def leer_datos_censo(self):
+        #Direccion de Sheets = https://docs.google.com/spreadsheets/d/1IBOsYSVDWs9Tz1BN0OlGOZpTsoRNwmiurFJFg__L5ao/edit?gid=0#gid=0
+        #La hoja que se toma es la ultima "Equipo Datos"
         df=[]
         
         SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
