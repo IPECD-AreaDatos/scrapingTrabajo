@@ -462,16 +462,13 @@ class connect_db:
         )
         cursor = conn.cursor()
 
-        table_name= 'ecv_transporte_medios'
+        table_name = 'ecv_transporte_medios'
         select_row_count_query = f"SELECT COUNT(*) FROM {table_name}"
         cursor.execute(select_row_count_query)
         filas_BD = cursor.fetchone()[0]
-        print("Base de datos:", filas_BD)
-        print("DataFrame:", len(df))
         longitud_df = len(df)
 
         if filas_BD != longitud_df:
-
             query_truncate = f'TRUNCATE TABLE {table_name}'
             cursor.execute(query_truncate)
             conn.commit()
@@ -480,25 +477,26 @@ class connect_db:
 
             for index, row in df.iterrows():
                 # Convertir la fecha al formato adecuado para MySQL
-                row['fecha'] = row['fecha'].strftime('%Y-%m-%d')
+                row['fecha'] = pd.to_datetime(row['fecha'], errors='coerce')
+                if pd.isna(row['fecha']):
+                    row['fecha'] = None
+                else:
+                    row['fecha'] = row['fecha'].strftime('%Y-%m-%d')
 
                 # Luego, puedes usar estos valores en tu consulta SQL
-                sql_insert = f"INSERT INTO {table_name} (aglomerado, año, trimestre,fecha, automovil, bicicleta, caminata, taxi_o_remis, transporte_publico, otros) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                sql_insert = f"INSERT INTO {table_name} (aglomerado, año, trimestre, fecha, automovil, motocicleta, bicicleta, caminata, taxi_o_remis, transporte_publico, otros) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
 
                 # Rellenar los valores faltantes (NaN) con None
                 row = row.where(pd.notnull(row), None)
-                
-                # Ejecutar la sentencia SQL de inserción
-                cursor.execute(sql_insert, (row['aglomerado'], row['año'], row['trimestre'], row['fecha'], row['automovil'], row['bicicleta'], row['caminata'], row['taxi_o_remis'], row['transporte_publico'], row['otros']))
 
+                # Ejecutar la sentencia SQL de inserción
+                cursor.execute(sql_insert, (row['aglomerado'], row['año'], row['trimestre'], row['fecha'], row['automovil'], row['motocicleta'], row['bicicleta'], row['caminata'], row['taxi_o_remis'], row['transporte_publico'], row['otros']))
 
             conn.commit()
             print(f"Se han insertado {longitud_df} nuevos registros en la tabla {table_name}.")
 
-
-        else: 
+        else:
             print("Se verifico la tabla de ecv")
-            
 
         print("Se verifico Tabla Transporte Medios")
 

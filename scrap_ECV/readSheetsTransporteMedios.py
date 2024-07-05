@@ -32,8 +32,8 @@ class readSheetsTransporteMedios:
         values = result.get('values', [])[1:]
         
         # Crea el DataFrame df1
-        df = pd.DataFrame(values, columns=['aglomerado', 'año', 'trimestre','fecha','estado_dato', 'automovil', 'bicicleta', 'caminata', 'taxi_o_remis', 'transporte_publico', 'otros'])
-        print(df)
+        df = pd.DataFrame(values, columns=['aglomerado', 'año', 'trimestre','fecha', 'estado_dato', 'automovil', 'motocicleta','bicicleta', 'caminata', 'taxi_o_remis', 'transporte_publico', 'otros'])
+
 
         for i, e in enumerate(df['estado_dato']):
             if e != 'FINALIZADO':
@@ -45,35 +45,41 @@ class readSheetsTransporteMedios:
 
           
         df = df.where(pd.notnull(df), None)
-        print(df)
+
         #print(df.iloc[:,:6])
         df.drop(['estado_dato'], axis=1, inplace=True)
 
         print(df.dtypes)
-        self.transformar_tipo_datos(df)
+        df = self.transformar_tipo_datos(df)
 
-        print(df)
+
         print(df.columns)
         return df
         
 
     def transformar_tipo_datos(self, df):
         # Seleccionar las columnas numéricas
-        columnas_numericas_porcentajes = ['automovil', 'bicicleta', 'caminata', 'taxi_o_remis', 'transporte_publico', 'otros']
-        df[columnas_numericas_porcentajes] = df[columnas_numericas_porcentajes].replace({'%': '', ',': '.'}, regex=True).apply(pd.to_numeric)
+        columnas_numericas_porcentajes = ['automovil', 'motocicleta', 'bicicleta', 'caminata', 'taxi_o_remis', 'transporte_publico', 'otros']
+        
+        # Verificar que las columnas existen en el DataFrame
+        for col in columnas_numericas_porcentajes:
+            if col not in df.columns:
+                print(f"Columna {col} no encontrada en el DataFrame")
+                return df
+
+        # Reemplazar los caracteres y convertir a numérico
+        df[columnas_numericas_porcentajes] = df[columnas_numericas_porcentajes].replace({'%': '', ',': '.'}, regex=True).apply(pd.to_numeric, errors='coerce')
         # Divide los valores numéricos por 100
         df[columnas_numericas_porcentajes] = df[columnas_numericas_porcentajes] / 100
         
-       # columnas_numericas=['Salario Promedio Público', 'Salario Promedio Privado', 'Salario Promedio Privado Registrado', 'Salario Promedio Privado No Registrado']
-        #df[columnas_numericas] = df[columnas_numericas].replace({' ': '', '\$': '', ',': ''}, regex=True).apply(pd.to_numeric)
-
-        # Convertir la primera columna a tipo de datos de fecha
-        df['fecha'] = pd.to_datetime(df['fecha'], format='%d/%m/%Y')
+        # Convertir la columna de fecha a tipo datetime
+        df['fecha'] = pd.to_datetime(df['fecha'], format='%d/%m/%Y', errors='coerce')
         df['fecha'] = df['fecha'].dt.strftime('%Y-%m-%d')  # Formatear a 'YYYY-MM-DD'
 
-        df['año'] = df['año'].astype(int)
-        # Convertir la segunda columna a tipo de datos entero
+        # Convertir las columnas a sus tipos adecuados
+        df['año'] = pd.to_numeric(df['año'], errors='coerce').astype('Int64')
         df['trimestre'] = df['trimestre'].astype(str)
         df['aglomerado'] = df['aglomerado'].astype(str)
-
+        
+        return df
 
