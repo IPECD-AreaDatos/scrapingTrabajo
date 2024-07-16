@@ -26,7 +26,9 @@ class ExtractDnrpa:
         self.driver.get('https://www.dnrpa.gov.ar/portal_dnrpa/estadisticas/rrss_tramites/tram_prov.php?origen=portal_dnrpa&tipo_consulta=inscripciones')
         self.buscar_datos_de_tabla(1) #--> Datos de AUTOS
         self.buscar_datos_de_tabla(2) #--> Datos de MOTOS
-        #self.transformar_cantidad_vehiculos(self.df_total)
+
+        #Pasamos de STR a INT los numeros
+        self.transformar_cantidad_vehiculos(self.df_total)
         return self.df_total
 
 
