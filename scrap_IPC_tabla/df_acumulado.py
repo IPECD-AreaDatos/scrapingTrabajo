@@ -30,22 +30,22 @@ class Create_Df_Acum:
 
         print(tabla_ipc)
 
-        resultados_acumulados_df.loc[0, 'fecha'] = '2024-05-30'
+        resultados_acumulados_df.loc[0, 'fecha'] = '2024'
         
         # Calcular los valores acumulados para cada columna y asignarlos correctamente
         for columna in tabla_ipc.columns:
             if columna != 'fecha':  # Excluir la columna de fecha
                 acumulado = 1.0  # Inicializar acumulado en 1 para el producto
-                print("primer acum:", acumulado)
-                for valor in tabla_ipc[columna]:
+                for valor in tabla_ipc[columna].dropna():
                     acumulado *= (valor / 100) + 1  # Multiplicar por cada valor ajustado
                 acumulado = (acumulado - 1) * 100  # Calcular acumulado final
-                print("seg acum:", acumulado)
+                print("acum:", acumulado)
 
                 resultados_acumulados_df.loc[0, columna] = acumulado
 
         # Mostrar los resultados acumulados
         print("Resultados acumulados:")
-        
+        resultados_acumulados_df = resultados_acumulados_df.round({'ipc_general': 1, 'ipc_nea': 1, 'ipc_caba': 1, 'ipc_online': 1, 'rem': 1})
+
         print(resultados_acumulados_df)
-        
+        return resultados_acumulados_df

@@ -26,7 +26,6 @@ class conexcionBaseDatos:
         print("***********************Inicio de Tabla IPC variaciones************************")
         print("\n*****************************************************************************")
         # Suponiendo que 'df' es tu DataFram
-        print(df)
         query_delete = 'TRUNCATE tabla_ipc'
         self.cursor.execute(query_delete)
         #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
@@ -34,5 +33,19 @@ class conexcionBaseDatos:
        
     
         df.to_sql(name="tabla_ipc", con=engine, if_exists='replace', index=False)
+
+    def cargaBaseDatos2(self, df):
+        print("\n*****************************************************************************")
+        print("***********************Inicio de Tabla IPC acumulado************************")
+        print("\n*****************************************************************************")
+        # Suponiendo que 'df' es tu DataFram
+        print(df)
+        query_delete = 'TRUNCATE tabla_ipc_acumulados'
+        self.cursor.execute(query_delete)
+        #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+       
+    
+        df.to_sql(name="tabla_ipc_acumulados", con=engine, if_exists='replace', index=False)
 
      
