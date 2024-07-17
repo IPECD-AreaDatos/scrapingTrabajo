@@ -73,7 +73,7 @@ class readData:
         # Buscamos la tabla que contiene los datos
         try:
             elemento = WebDriverWait(driver, 20).until(
-                EC.presence_of_element_located((By.XPATH, '//*[@id="block-system-main"]/section/article/div/div[9]/div/div/div/div/div[1]/div/h3'))
+                EC.presence_of_element_located((By.XPATH, '/html/body/main/div[2]/div/section/article/div/div[9]/div/div/div/div/div[2]/div/h3'))
             )
             contenido_texto = elemento.text
             contenido_numerico = contenido_texto.replace('$', '').replace('.', '').replace(',', '.')
