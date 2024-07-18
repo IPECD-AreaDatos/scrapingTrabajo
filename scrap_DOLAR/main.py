@@ -26,33 +26,25 @@ from dolarMEP import dolarMEP
 from dolarCCL import dolarCCL
 
 # Definir el rango de fechas
-fecha_inicio = "01/06/2020"
-fecha_fin = "01/07/2024"  # Usar el primer día del mes siguiente
+fecha_inicio = "01/01/2003"
+fecha_fin = "31/12/2003"
 
 # Convertir a objetos datetime
 start_date = datetime.strptime(fecha_inicio, "%d/%m/%Y")
 end_date = datetime.strptime(fecha_fin, "%d/%m/%Y")
 
-# Crear un rango de fechas mensual
-dates = pd.date_range(start=start_date, end=end_date, freq='MS')
-
 if __name__ == '__main__':
     # dolarOficial().descargaArchivo()
     # dolarOficial().lecturaDolarOficial(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
     
-    for date in dates:
-        # Obtener el primer día del mes
-        first_day_of_month = date.strftime("%d/%m/%Y")
-        # Obtener el último día del mes
-        last_day_of_month = (date + pd.offsets.MonthEnd()).strftime("%d/%m/%Y")
-        
-        try:
-            # Llamar a la función tomaDolarBlue para el rango de fechas del mes actual
-            print(f"Ejecutando tomaDolarBlue para el mes: {first_day_of_month} - {last_day_of_month}")
-            dolarBlue(credenciales.host, credenciales.user, credenciales.password, credenciales.database, fecha_inicio=first_day_of_month, fecha_fin=last_day_of_month).tomaDolarBlue()
-            print(f"Datos del dólar blue para el mes: {first_day_of_month} - {last_day_of_month} obtenidos.")
-        except Exception as e:
-            print(f"Error al obtener datos del dólar blue para el mes: {first_day_of_month} - {last_day_of_month}: {e}")
+    try:
+        # Llamar a la función tomaDolarBlue para el rango de fechas
+        print(f"Ejecutando tomaDolarBlue para el rango de fechas: {start_date.strftime('%d/%m/%Y')} - {end_date.strftime('%d/%m/%Y')}")
+        db_scraper = dolarBlue(credenciales.host, credenciales.user, credenciales.password, credenciales.database, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
+        db_scraper.tomaDolarBlue()
+        print(f"Datos del dólar blue obtenidos para el rango de fechas: {start_date.strftime('%d/%m/%Y')} - {end_date.strftime('%d/%m/%Y')}.")
+    except Exception as e:
+        print(f"Error al obtener datos del dólar blue para el rango de fechas: {start_date.strftime('%d/%m/%Y')} - {end_date.strftime('%d/%m/%Y')}: {e}")
     
     # dolarMEP().tomaDolarMEP(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
     # dolarCCL().tomaDolarCCL(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
