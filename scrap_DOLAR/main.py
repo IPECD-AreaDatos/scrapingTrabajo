@@ -26,7 +26,7 @@ from dolarMEP import dolarMEP
 from dolarCCL import dolarCCL
 
 # Definir el rango de fechas
-fecha_inicio = "01/04/2003"
+fecha_inicio = "01/06/2020"
 fecha_fin = "01/07/2024"  # Usar el primer día del mes siguiente
 
 # Convertir a objetos datetime
