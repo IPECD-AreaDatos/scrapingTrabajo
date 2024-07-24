@@ -8,7 +8,9 @@ En este script lo que vamos a hacer es rescatar los valores de distintos tipos d
 
 from dolarOficial import dolarOficial
 import os
-import sys 
+import sys
+from datetime import datetime
+
 # Obtener la ruta al directorio actual del script
 script_dir = os.path.dirname(os.path.abspath(__file__))
 credenciales_dir = os.path.join(script_dir, '..', 'Credenciales_folder')
@@ -19,13 +21,14 @@ from credenciales_bdd import Credenciales
 # Después puedes crear una instancia de Credenciales
 credenciales = Credenciales('datalake_economico')
 from dolarBlue import dolarBlue
+#from dolarBlueHistorico import dolarBlueHistorico
+#dolarBlueHistorico(credenciales.user, credenciales.password, credenciales.host, credenciales.database, 'dolar_blue').load_xlsx_to_mysql()
 from dolarMEP import dolarMEP
 from dolarCCL import dolarCCL
 
-
 if __name__ == '__main__': 
-    #dolarOficial().descargaArchivo()
-    #dolarOficial().lecturaDolarOficial(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    dolarOficial().descargaArchivo()
+    dolarOficial().lecturaDolarOficial(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
     dolarBlue(credenciales.host, credenciales.user, credenciales.password, credenciales.database).tomaDolarBlue()
     #dolarMEP().tomaDolarMEP(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
     #dolarCCL().tomaDolarCCL(credenciales.host, credenciales.user, credenciales.password, credenciales.database)

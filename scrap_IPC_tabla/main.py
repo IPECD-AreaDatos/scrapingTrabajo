@@ -29,6 +29,9 @@ if __name__ == '__main__':
     credenciales = conexcionBaseDatos(credenciales_datalake_economico.host, credenciales_datalake_economico.user, credenciales_datalake_economico.password, credenciales_datalake_economico.database).conectar_bdd()
     credenciales.cargaBaseDatos(df)
 
-    credenciales = Create_Df_Acum(credenciales_datalake_economico.host, credenciales_datalake_economico.user, credenciales_datalake_economico.password, credenciales_datalake_economico.database).conectar_bdd()
+    credenciales2 = Create_Df_Acum(credenciales_datalake_economico.host, credenciales_datalake_economico.user, credenciales_datalake_economico.password, credenciales_datalake_economico.database).conectar_bdd()
 
-    credenciales.armarAcum()
+    df_acum = credenciales2.armarAcum()
+
+    credenciales2 = conexcionBaseDatos(credenciales_datalake_economico.host, credenciales_datalake_economico.user, credenciales_datalake_economico.password, credenciales_datalake_economico.database).conectar_bdd()
+    credenciales2.cargaBaseDatos2(df_acum)

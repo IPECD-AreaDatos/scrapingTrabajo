@@ -9,13 +9,16 @@ import urllib3
 
 class HomePage:
     def descargar_archivos(self):
+
+        #Desactivamos restricciones de navegador
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+        #Configuracion inicial del Chrome
         options = webdriver.ChromeOptions()
-        options.add_argument('--headless')
+        options.add_argument('--headless') #--> Abrir el navegador de forma no visual
+        driver = webdriver.Chrome(options=options)
 
-        # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
-        driver = webdriver.Chrome(options=options)  # Asegúrate de que ChromeDriver esté en tu PATH o proporciona la ruta completa
+        #=== PRIMER ARCHIVO - VALORES DE EMAE
 
         # URL de la página que deseas obtener
         url_pagina = 'https://www.indec.gob.ar/indec/web/Nivel4-Tema-3-9-48'
@@ -23,6 +26,7 @@ class HomePage:
         # Cargar la página web
         driver.get(url_pagina)
 
+        #Esperamos 10 segundos
         wait = WebDriverWait(driver, 10)
 
         # Encontrar el enlace al archivo
@@ -30,8 +34,6 @@ class HomePage:
 
         # Obtener la URL del archivo
         url_archivo = archivo.get_attribute('href')
-        # Imprimir la URL del archivo
-        print(url_archivo)
 
         # Ruta de la carpeta donde guardar el archivo
         # Obtener la ruta del directorio actual (donde se encuentra el script)
@@ -45,7 +47,7 @@ class HomePage:
             os.makedirs(carpeta_guardado)
 
         # Nombre del archivo
-        nombre_archivo = 'EMAE.xls'
+        nombre_archivo = 'emae.xls'
 
         # Descargar el archivo
         response = requests.get(url_archivo)
@@ -55,7 +57,9 @@ class HomePage:
         with open(ruta_guardado, 'wb') as file:
             file.write(response.content)
 
-        # Segundo archivo
+        
+        #=== SEGUNDO ARCHIVO - EMAR VARIACIONES
+
         # Encontrar el enlace al segundo archivo
         archivo_2 = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[2]/div[1]/div[2]/div[4]/div[1]/div[2]/div/div/div/div/a[1]")))
         # Obtener la URL del segundo archivo
@@ -63,10 +67,10 @@ class HomePage:
         # Imprimir la URL del segundo archivo
         print(url_archivo_2)
 
-        # Nombre del segundo archivo
-        nombre_archivo_2 = 'EMAEVAR.xls'  # Reemplaza con el nombre deseado para el segundo archivo
+        #Nombre del archivo de las variaciones
+        nombre_archivo_2 = 'emaevar.xls' 
 
-        # Descargar el segundo archivo
+        #Descargamos el archivo de las variaciones
         response_2 = requests.get(url_archivo_2)
 
         # Guardar el segundo archivo en la carpeta especificada
