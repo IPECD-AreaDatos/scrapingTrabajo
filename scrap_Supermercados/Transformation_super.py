@@ -3,7 +3,8 @@ import os
 import pandas as pd
 from datetime import date
 from dateutil.relativedelta import relativedelta
-
+# Desactivar las advertencias
+pd.options.mode.chained_assignment = None  # default='warn'
 
 class Transformation_Data:
 
@@ -24,10 +25,8 @@ class Transformation_Data:
         #Recordatorio - Si yo quiero acceder a la fila 6 de un excel por ejemplo, hay que poner 2 filas menos siempre.
         df_aux = pd.read_excel(path_archivo,sheet_name=5,skiprows=5, usecols='c',names=nombre_columna)
 
-        print(df_aux)
         tamaño_secciones = self.construccion_lista_meses(df_aux['fecha']) #--> Obtenemos el tamaño que es la misma para cada pronvicia
 
-        print("el tamaño de las secciones es:",tamaño_secciones)
 
         nombre_columnas = ['id_provincia_indec','fecha','total_facturacion','bebidas','almacen','panaderia','lacteos','carnes','verduleria_fruteria','alimentos_preparados_rostiseria',
                 'articulos_limpieza_perfumeria','indumentaria_calzado_textiles_hogar','electronica_hogar','otros']
@@ -50,7 +49,6 @@ class Transformation_Data:
                 
                 lista_retorno.append(valor)
                 
-        print("lista_retorno",lista_retorno)
         return len(lista_retorno)
 
 

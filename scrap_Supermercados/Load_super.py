@@ -35,7 +35,6 @@ class conexionBaseDatos:
         delete_query ="TRUNCATE `datalake_economico`.`supermercado_encuesta`"
         query_cantidad_datos = f'SELECT COUNT(*) FROM {nombre_tabla}'
 
-        print(self.validacion_de_carga(df,query_cantidad_datos)) 
         #Si las cantidad de filas del DF descargado, es mayor que el ya almacenado --> Realizar carga
         if (self.validacion_de_carga(df,query_cantidad_datos)):
 
@@ -71,9 +70,6 @@ class conexionBaseDatos:
         #Obtencion de cantidad de filas de 
         self.cursor.execute(query_cantidad_datos)
         row_count_before = self.cursor.fetchone()[0]
-
-        print("Cantidad de filas del Df:",cant_filas_df)
-        print("cantidad de filas de la bdd:",row_count_before)
 
         return (cant_filas_df > row_count_before)
 

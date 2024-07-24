@@ -20,7 +20,7 @@ instancia_credenciales = Credenciales('datalake_economico')
 if __name__ == '__main__':
 
     #Descarga del archivo
-    #HomePage().descargar_archivo()
+    HomePage().descargar_archivo()
 
     #Obtencion del dataframe con formato solicitado
     df = Transformation_Data().contruccion_df()
