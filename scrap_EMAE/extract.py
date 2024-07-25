@@ -6,6 +6,9 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 import os
 import urllib3
+from webdriver_manager.chrome import ChromeDriverManager
+import subprocess
+
 
 class HomePage:
     def descargar_archivos(self):
@@ -13,10 +16,30 @@ class HomePage:
         #Desactivamos restricciones de navegador
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-        #Configuracion inicial del Chrome
+        #Configuracion de SELENIUM
         options = webdriver.ChromeOptions()
-        options.add_argument('--headless') #--> Abrir el navegador de forma no visual
-        driver = webdriver.Chrome(options=options)
+        options.add_argument("--headless")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--disable-extensions")
+        options.add_argument("--disable-software-rasterizer")
+        options.add_argument("--remote-debugging-port=9222")
+
+
+        # Obtener la versión de Google Chrome instalada
+        chrome_version = subprocess.check_output(['google-chrome', '--version']).decode('utf-8').strip().split()[-1]
+
+        # Descargar e instalar la versión correcta de chromedriver
+        chromedriver_path = ChromeDriverManager(driver_version=chrome_version).install()
+    
+        # Asegurarse de que el archivo chromedriver es ejecutable
+        os.chmod(chromedriver_path, 0o755)
+
+
+        # Descargar e instalar la versión correcta de chromedriver
+        service = Service(ChromeDriverManager().install())
+        driver = webdriver.Chrome(service=service, options=options)
 
         #=== PRIMER ARCHIVO - VALORES DE EMAE
 
