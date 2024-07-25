@@ -5,7 +5,10 @@ varias operaciones para concatenar las tablas de diferentes años entre si.
 """
 
 from exctract import ExtractDnrpa
+from exctract_last_year import ExtractLast
 from load import conexionBaseDatos
+from load_last import conexionBaseDatosLast
+
 import os , sys
 
 # Obtener la ruta al directorio actual del script
@@ -22,9 +25,9 @@ credenciales = Credenciales('datalake_economico')
 if __name__=='__main__':
 
     #Extraccion y TRANSFORMACION de datos
-    df = ExtractDnrpa().extraer_tablas()
-
+    df = ExtractLast().extraer_tablas()
+    
     #Cargamos al datalake economico
-    instancia_bdd = conexionBaseDatos(credenciales.host,credenciales.user,credenciales.password,credenciales.database)
+    instancia_bdd = conexionBaseDatosLast(credenciales.host,credenciales.user,credenciales.password,credenciales.database)
     instancia_bdd.cargar_datalake(df)
 
