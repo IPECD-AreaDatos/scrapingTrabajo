@@ -18,10 +18,11 @@ from credenciales_bdd import Credenciales
 credenciales_datalakeEconomico = Credenciales('datalake_economico')
 
 
-if __name__ == '__main__':
-    
+#Rama principal de ejecucion
+def main():
+
     #Obtencion del archivo
-    url = HomePage().descargar_archivos()
+    HomePage().descargar_archivos()
 
     #Creamos una instancia del TRANSFORMADOR y generamos DF's
     instancia_transformador = Transformer()
@@ -38,3 +39,6 @@ if __name__ == '__main__':
     instancia_load.main_load(df_emae_valores,df_emae_variaciones)
 
     
+if __name__ == '__main__':
+    
+    main()
