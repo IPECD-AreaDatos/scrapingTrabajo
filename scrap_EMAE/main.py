@@ -18,8 +18,9 @@ from credenciales_bdd import Credenciales
 credenciales_datalakeEconomico = Credenciales('datalake_economico')
 
 
-if __name__ == '__main__':
-    
+#Rama principal de ejecucion
+def main():
+
     #Obtencion del archivo
     url = HomePage().descargar_archivos()
 
