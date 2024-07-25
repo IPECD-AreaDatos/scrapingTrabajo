@@ -23,7 +23,7 @@ class Transformation_Data:
         nombre_columna = ['fecha']
 
         #Recordatorio - Si yo quiero acceder a la fila 6 de un excel por ejemplo, hay que poner 2 filas menos siempre.
-        df_aux = pd.read_excel(path_archivo,sheet_name=5,skiprows=5, usecols='c',names=nombre_columna)
+        df_aux = pd.read_excel(path_archivo,sheet_name=5,skiprows=4, usecols='c',names=nombre_columna)
 
         tamaño_secciones = self.construccion_lista_meses(df_aux['fecha']) #--> Obtenemos el tamaño que es la misma para cada pronvicia
 
