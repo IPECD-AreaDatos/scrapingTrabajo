@@ -1,28 +1,43 @@
-import mysql
-import mysql.connector
 from sqlalchemy import create_engine
 import pandas as pd
 import numpy as np
 
 
-class Create_Df:
+class ExtractDataBDD:
 
+    #Definicion de atributos
     def __init__(self, host, user, password, database):
+
         self.host = host
         self.user = user
         self.password = password
         self.database = database
-        self.conn = None
-        self.cursor = None
-    
-    def conectar_bdd(self):
-        self.conn = mysql.connector.connect(
-            host = self.host, user = self.user, password = self.password, database = self.database
-        )
-        self.cursor = self.conn.cursor()
-        return self
+
+        #Engine que conecta a la BDD con SQLAlchemy
+        self.engine = None
+
+
+        #DF total de los IPC's
+        self.df = pd.DataFrame(columns=['fecha', 'ipc_general', 'ipc_nea', 'ipc_caba', 'ipc_online', 'rem'])
+
+
+    # ===== ZONA DE TOMA DE LOS IPC ===== #
+
+    #Buscamos los valores de IPC ONLINE en la tabla 'ipc_online' del datalake_economico
+    def ipc_online(self):
+        
+        #Cargamos campos 'fecha' y 'ipc_online' que corresponde a las variaciones mensuales
+        self.df[['fecha','ipc_online']] = pd.read_sql('SELECT fecha, variacion_mensual FROM ipc_online ORDER BY fecha',con=self.engine)
+
+    #Buscamos los valores de IPC ONLINE en la tabla 'ipc_caba' del datalake_economico
+    def ipc_caba(self,fecha_min):
+
+        #Cargamos campo 'ipc_caba' que corresponde a las variaciones mensuales - Usamos la fecha base de IPC ONLINE
+        self.df['ipc_caba'] = pd.read_sql(f"SELECT var_mensual_ipc_caba FROM ipc_caba WHERE fecha >= '{fecha_min}'",con=self.engine)
+     
     
     def extraer_datos(self):
+
         df = pd.DataFrame( columns= ['fecha', 'ipc_general', 'ipc_nea', 'ipc_caba', 'ipc_online', 'rem'])
         engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
 
@@ -38,7 +53,6 @@ class Create_Df:
         df['rem'] = rem_mediana
         df.at[4, 'rem'] = 7.5
 
-        print(df)
 
         caba = pd.read_sql_query("SELECT var_mensual_ipc_caba FROM ipc_caba order by fecha desc limit 5", con=engine)
         caba = caba.sort_index(ascending=False)
@@ -47,7 +61,6 @@ class Create_Df:
         df['ipc_caba'] = caba
         df.at[5, 'ipc_caba'] = 4.8
 
-        print(df)
 
         nea = pd.read_sql_query("select vmensual_nea_ipc from dwh_sociodemografico.correo_cbt_cba order by fecha desc limit 5", con=engine)
         nea = nea.sort_index(ascending=False)
@@ -67,11 +80,41 @@ class Create_Df:
         df['ipc_general']= general
         df.at[5, 'ipc_general'] = np.NaN
 
-        print(df)
 
         df = df.round({'ipc_general': 1, 'ipc_nea': 1, 'ipc_caba': 1, 'ipc_online': 1, 'rem': 1})
 
         # Mostrar DataFrame después de redondear
         print("\nDataFrame después de redondear:")
+
         print(df)
+        
         return df
+    
+
+    #OBJETIVO: Buscar las variaciones de los distintos IPC - USAMOS COMO FECHA BASE A IPC ONLINE
+    def main(self):
+
+        #Conexion a la base de datos
+        self.engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+
+        #Buscamos datos de IPC ONLINE
+        self.ipc_online()
+
+        # -- Fecha base para el resto de columnas, se usara para poner una fecha minima de busqueda en las base de datos
+        fecha_min = min(self.df['fecha'])
+
+        #Buscamos datos de IPC CABA
+        self.ipc_caba(fecha_min)
+        
+        print(self.df)
+
+"""
+database = 'datalake_economico'
+host = '54.94.131.196'
+user = 'estadistica'
+password = 'Estadistica2024!!'
+
+instancia = ExtractDataBDD(host=host,user=user,password=password,database=database)
+instancia.main()
+
+"""
