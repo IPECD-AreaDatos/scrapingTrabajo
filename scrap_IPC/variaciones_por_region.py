@@ -71,4 +71,4 @@ class LoadXLSDregiones:
         df_melted['id_region']=2
         print(df_melted)
 
-        return df
+        return df_melted
