@@ -39,9 +39,14 @@ class ExtractDataBDD:
     #Buscamos los valores de IPC REM en la tabla 'ipc_rem_variaciones' del datalake_economico
     def ipc_rem(self,fecha_min):
 
-        #Cargamos campo 'ipc_rem' que corresponde a las variaciones mensuales - Usamos la fecha base de IPC ONLINE
-        self.df['ipc_rem'] = pd.read_sql(f"SELECT var_mensual FROM ipc_rem_variaciones WHERE fecha >= '{fecha_min}'",con=self.engine)
+        # Obtenemos todos los datos de ipc_rem_variaciones
+        ipc_rem_variaciones = pd.read_sql(f"SELECT * FROM ipc_rem_variaciones WHERE fecha >= '{fecha_min}'", con=self.engine)
+        
+        #Aca asignamos valores CON LA MISMA LONGITUD - Osea, faltan datos, que serian los del ultimo mes.
+        self.df['ipc_rem'] = ipc_rem_variaciones['var_mensual']
 
+        #Asignamos el ultimo valor de otra forma
+        self.df.loc[len(self.df)] = [ipc_rem_variaciones['fecha'].values[-1],None,None,None,None,ipc_rem_variaciones['var_mensual'].values[-1]]
 
     #SALVADA DE IPC GENERAL Y NEA
     def ipc_salvada(self):
@@ -120,11 +125,10 @@ class ExtractDataBDD:
 
         #Buscamos datos de IPC CABA
         self.ipc_caba(fecha_min)
+        self.ipc_salvada()
 
         #Buscamos datos de IPC REM
         self.ipc_rem(fecha_min)
-
-        self.ipc_salvada()
         
         print(self.df)
 
