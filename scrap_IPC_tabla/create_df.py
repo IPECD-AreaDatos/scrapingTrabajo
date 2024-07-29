@@ -18,7 +18,7 @@ class ExtractDataBDD:
 
 
         #DF total de los IPC's
-        self.df = pd.DataFrame(columns=['fecha', 'ipc_general', 'ipc_nea', 'ipc_caba', 'ipc_online', 'rem'])
+        self.df = pd.DataFrame(columns=['fecha', 'ipc_general', 'ipc_nea', 'ipc_caba', 'ipc_online', 'ipc_rem'])
 
 
     # ===== ZONA DE TOMA DE LOS IPC ===== #
@@ -34,7 +34,22 @@ class ExtractDataBDD:
 
         #Cargamos campo 'ipc_caba' que corresponde a las variaciones mensuales - Usamos la fecha base de IPC ONLINE
         self.df['ipc_caba'] = pd.read_sql(f"SELECT var_mensual_ipc_caba FROM ipc_caba WHERE fecha >= '{fecha_min}'",con=self.engine)
-     
+
+
+    #Buscamos los valores de IPC REM en la tabla 'ipc_rem_variaciones' del datalake_economico
+    def ipc_rem(self,fecha_min):
+
+        #Cargamos campo 'ipc_rem' que corresponde a las variaciones mensuales - Usamos la fecha base de IPC ONLINE
+        self.df['ipc_rem'] = pd.read_sql(f"SELECT var_mensual FROM ipc_rem_variaciones WHERE fecha >= '{fecha_min}'",con=self.engine)
+
+
+    #SALVADA DE IPC GENERAL Y NEA
+    def ipc_salvada(self):
+
+        self.df['ipc_general'] = [19.6,15.0,11.5,9.2,4.3,4.4]
+        self.df['ipc_nea'] = [21.7,11.7,8.8,9.1,4.2,4.8]
+
+
     
     def extraer_datos(self):
 
@@ -105,10 +120,15 @@ class ExtractDataBDD:
 
         #Buscamos datos de IPC CABA
         self.ipc_caba(fecha_min)
+
+        #Buscamos datos de IPC REM
+        self.ipc_rem(fecha_min)
+
+        self.ipc_salvada()
         
         print(self.df)
 
-"""
+
 database = 'datalake_economico'
 host = '54.94.131.196'
 user = 'estadistica'
@@ -116,5 +136,3 @@ password = 'Estadistica2024!!'
 
 instancia = ExtractDataBDD(host=host,user=user,password=password,database=database)
 instancia.main()
-
-"""

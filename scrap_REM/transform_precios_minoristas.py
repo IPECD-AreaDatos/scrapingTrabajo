@@ -68,12 +68,27 @@ class Transform:
         Vemos que la Var. Mensual de febrero, no aparecera dos veces, por ende es necesario tomar, de cada bloque, solo la primera fila
         """
 
-        df_seleccionado = df_seleccionado.drop_duplicates(subset=['fecha'])#--> Se eliminan los datos duplicados (toma la primera fecha de cada bloque)
+        df_seleccionado_filtrado = df_seleccionado.drop_duplicates(subset=['fecha'])#--> Se eliminan los datos duplicados (toma la primera fecha de cada bloque)
+
+
+        #Como tenemos que buscar el valor del proximo mes, tenemos que buscar los datos correspondiente a la ultima fecha
+        #Que representa el ultimo bloque. Lo buscaremos en 'df_var_mensuales'
+        fecha_max = max(df_seleccionado['fecha'])
+        last_data = df_seleccionado[df_seleccionado['fecha'] == fecha_max]
+
+        #Ahora tendriamos los datos de la ultima fecha, y el unico dato que nos interesa es la segunda fila, que representa
+        #la prediccion de la inflacion al sig. mes del actual. Buscamos el dato y lo concatenamos
+        data_next_month = last_data.iloc[[1]]
+        data_next_month['fecha'] = pd.to_datetime(f'{fecha_max.year}-{fecha_max.month + 1}-01') #Le damos la fecha correcta del prox mes.
+
+        #Concatenamos al DF ORIGINAL
+        df_seleccionado_filtrado = pd.concat([df_seleccionado_filtrado,data_next_month])
 
         # Resetear el índice || SIRVE PARA LA CARGA
-        df_seleccionado = df_seleccionado.reset_index(drop=True)
+        df_seleccionado_filtrado = df_seleccionado_filtrado.reset_index(drop=True)
 
-        return df_seleccionado
+
+        return df_seleccionado_filtrado
     
 
     #Objetivo: obtener los datos del historial del REM - CAMBIO NOMINAL
@@ -106,13 +121,28 @@ class Transform:
         Vemos que la Var. Mensual de febrero, no aparecera dos veces, por ende es necesario tomar, de cada bloque, solo la primera fila
         """
 
-        df_seleccionado = df_seleccionado.drop_duplicates(subset=['fecha'])#--> Se eliminan los datos duplicados (toma la primera fecha de cada bloque)
+        df_seleccionado_filtrado = df_seleccionado.drop_duplicates(subset=['fecha'])#--> Se eliminan los datos duplicados (toma la primera fecha de cada bloque)
+
+
+        #Como tenemos que buscar el valor del proximo mes, tenemos que buscar los datos correspondiente a la ultima fecha
+        #Que representa el ultimo bloque. Lo buscaremos en 'df_var_mensuales'
+        fecha_max = max(df_seleccionado['fecha'])
+        last_data = df_seleccionado[df_seleccionado['fecha'] == fecha_max]
+
+        #Ahora tendriamos los datos de la ultima fecha, y el unico dato que nos interesa es la segunda fila, que representa
+        #la prediccion de la inflacion al sig. mes del actual. Buscamos el dato y lo concatenamos
+        data_next_month = last_data.iloc[[1]]
+        data_next_month['fecha'] = pd.to_datetime(f'{fecha_max.year}-{fecha_max.month + 1}-01') #Le damos la fecha correcta del prox mes.
+
+        #Concatenamos al DF ORIGINAL
+        df_seleccionado_filtrado = pd.concat([df_seleccionado_filtrado,data_next_month])
 
         # Resetear el índice || SIRVE PARA LA CARGA
-        df_seleccionado = df_seleccionado.reset_index(drop=True)
+        df_seleccionado_filtrado = df_seleccionado_filtrado.reset_index(drop=True)
+
 
         return df_seleccionado
 
 
 
-
+Transform().get_historico_cambio_nominal()

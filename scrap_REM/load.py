@@ -130,8 +130,6 @@ class conexionBaseDatos:
 
             #Buscamos solo los datos nuevos.
             df_tail = df_rem_cambio_nominal.tail(tamano_df - tamano_bdd)
-
-            print(df_tail)
             df_tail.to_sql(name = "rem_cambio_nominal",con = self.engine,if_exists='append',index = False) #--> Carga final
 
             print("************************************************************************")
