@@ -7,6 +7,7 @@ from armadoXLSDatacuyo import LoadXLSDataCuyo
 from armadoXLSDataPatagonia import LoadXLSDataPatagonia
 from conexionBaseDatos import conexionBaseDatos
 from armadoXLSProductos import LoadXLSDataProductos
+from variaciones_por_region import LoadXLSDregiones
 import os
 import sys
 from homePage import HomePage
@@ -25,6 +26,19 @@ instancia_credenciales = Credenciales('datalake_economico')
 
 print("Las credenciales son", instancia_credenciales.host,instancia_credenciales.user,instancia_credenciales.password,instancia_credenciales.database)
 
+if __name__ == '__main__':
+    #Descargar EXCEL - Tambien almacenamos las rutas que usaremos
+    #home_page = HomePage()
+    #home_page.descargar_archivo()
+    
+    #↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ CARGA DE IPC DESAGREGADO ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+    directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
+    ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
+    file_path_desagregado = os.path.join(ruta_carpeta_files, 'IPC_Desagregado.xls')
+
+    variaciones = LoadXLSDregiones(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database).conectar_bdd()
+    df = variaciones.crear_tabla(file_path_desagregado)
+exit()
 valor_region = 2
 
 if __name__ == '__main__':
