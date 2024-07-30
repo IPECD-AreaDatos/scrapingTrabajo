@@ -37,7 +37,7 @@ if __name__ == '__main__':
     file_path_desagregado = os.path.join(ruta_carpeta_files, 'IPC_Desagregado.xls')
 
     variaciones = LoadXLSDregiones(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database).conectar_bdd()
-    df = variaciones.crear_tabla(file_path_desagregado)
+    df = variaciones.armado_dfs(file_path_desagregado)
 exit()
 valor_region = 2
 

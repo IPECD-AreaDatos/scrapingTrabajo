@@ -6,8 +6,8 @@ from dateutil.relativedelta import relativedelta
 class armadoDF:
     def armadoDF(file_path):
         # Leer el archivo xlsx y cargarlo en un DataFrame
-        sheet_name ='OUT'
-        df = pd.read_excel(file_path, sheet_name=sheet_name)
+        sheet_name ='OUT Propuesta JUN24' # Nombre de la hoja en caso de necesitar
+        df = pd.read_excel(file_path, sheet_name=0)
 
         target_value = "TABLA 11"
 
@@ -21,7 +21,6 @@ class armadoDF:
         df = df.dropna(axis=1, how='all')
         print("Columnas después de eliminar:", df.columns)
         print(df)
-        exit(0)
         df = df.transpose()
         # Renombrar las columnas con el nombre de la primera fila
         df.columns = df.iloc[0]

@@ -21,6 +21,10 @@ class Transformacion:
         print(df.columns)
         print(df.dtypes)
         print(np.unique(df['provincia']))
+        df = df.drop(columns=['unidad'])
+
+        print(df)
+
         return df        
 
 
