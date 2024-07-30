@@ -73,7 +73,7 @@ class LoadXLSDregiones:
 
             dfs.append(df_nuevo)
             print(f"DataFrame {contador}:")
-            print(df_nuevo)
+            #print(df_nuevo)
             
             # Guardar cada DataFrame en una nueva variable
             #globals()[f'df_{contador}'] = df_nuevo
@@ -84,7 +84,6 @@ class LoadXLSDregiones:
 
         region = 2
         dfs_editados = []
-
         for df in dfs:
             df = df.copy()
             # Asegúrate de que 'Región GBA' es una lista
@@ -106,7 +105,9 @@ class LoadXLSDregiones:
 
             dfs_editados.append(df_melted)
             region += 1
-
+            print("-------------------------------")
+            print(df)
+            
         return dfs_editados
 
 
