@@ -4,6 +4,7 @@ import xlrd
 import pandas as pd
 from sqlalchemy import create_engine
 import mysql.connector
+import pymysql 
 
 
 
@@ -17,13 +18,16 @@ class LoadXLSDregiones:
         self.cursor = None
     
     def conectar_bdd(self):
-        self.conn = mysql.connector.connect(
-            host = self.host, user = self.user, password = self.password, database = self.database
-        )
-        self.cursor = self.conn.cursor()
+        try:
+            self.conn = mysql.connector.connect(
+                host=self.host, user=self.user, password=self.password, database=self.database
+            )
+            self.cursor = self.conn.cursor()
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
         return self
 
-    def crear_tabla(self, ruta):
+    def armado_dfs(self, ruta):
         # conexion con la base de datos
         engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
 
@@ -40,23 +44,81 @@ class LoadXLSDregiones:
         print(nombre_a_codigo)
 
         # df del excel con valores
-        df = pd.read_excel(ruta, sheet_name='Índices aperturas', skiprows=5, nrows=46)
-        df = df.drop(0)
+        df_original = pd.read_excel(ruta, sheet_name='Variación mensual aperturas', skiprows=5, nrows=295)
+        df_original['Región GBA'] = df_original['Región GBA'].map(nombre_a_codigo)
 
-        # cambiamos la columna de categoria por su codigo
-        df['Región GBA'] = df['Región GBA'].map(nombre_a_codigo)
-        # Unpivot the DataFrame to long format
-        #df = df.melt(id_vars=['Región GBA'], var_name='fecha', value_name='valor')
+        #print(df_original.head(96))
+        #print(df_original)
+        # Asegurarse de que el DataFrame no sea más pequeño que la cantidad de filas necesarias
+        primer_tamano = 50
+        tamano_resto= 49
+        if len(df_original) < primer_tamano + tamano_resto:
+            raise ValueError("El DataFrame es demasiado pequeño para dividir con los tamaños proporcionados.")
         
-        # Mapea la columna de categorías a los códigos correspondientes
-        #df[['id_categoria', 'id_division', 'id_subdivision']] = df['Región GBA'].apply(lambda x: pd.Series(nombre_a_codigo.get(x, [None, None, None])))
+        # Obtener el primer DataFrame
+        df1 = df_original.iloc[:primer_tamano].copy()
+        print("DataFrame 1:")
+        print(df1)        
+        # Guardar el primer DataFrame en una variable
+        dfs = [df1]
+        # Obtener el resto de los DataFrames
+        resto_df = df_original.iloc[primer_tamano:].copy()
+        contador = 2
+        while len(resto_df) > 0:
+            df_nuevo = resto_df.iloc[:tamano_resto].copy()
+            
+            # Eliminar la fila en la posición 1 (índice 0) de los DataFrames después del primero
+            if contador >= 2:
+                df_nuevo = df_nuevo.iloc[1:].copy()
+
+            dfs.append(df_nuevo)
+            print(f"DataFrame {contador}:")
+            print(df_nuevo)
+            
+            # Guardar cada DataFrame en una nueva variable
+            #globals()[f'df_{contador}'] = df_nuevo
+
+            resto_df = resto_df.iloc[tamano_resto:].copy()
+            contador += 1
 
 
-        print(df)
+        region = 2
+        dfs_editados = []
+
+        for df in dfs:
+            df = df.copy()
+            # Asegúrate de que 'Región GBA' es una lista
+            df['Región GBA'] = df['Región GBA'].apply(lambda x: x if isinstance(x, list) else [None, None, None])
+
+            # Descomponer 'Región GBA' en tres columnas utilizando .loc
+            df.loc[:, ['id_categoria', 'id_division', 'id_subdivision']] = pd.DataFrame(df['Región GBA'].tolist(), index=df.index)
+
+            # Eliminar la columna 'Región GBA'
+            df = df.drop(columns=['Región GBA'])
+
+            # Usar pd.melt para "dar vuelta" el DataFrame
+            df_melted = pd.melt(df, id_vars=['id_categoria', 'id_division', 'id_subdivision'], var_name='fecha', value_name='valor')
+            df_melted = df_melted[['fecha', 'id_categoria', 'id_division', 'id_subdivision', 'valor']]
+            df_melted['fecha'] = pd.to_datetime(df_melted['fecha'], errors='coerce')
+
+            df_melted['id_region'] = region
+            df_melted = df_melted[['fecha', 'id_region', 'id_categoria', 'id_division', 'id_subdivision', 'valor']]
+
+            dfs_editados.append(df_melted)
+            region += 1
+
+        return dfs_editados
 
 
-        # Crear las columnas id_categoria, id_division, id_subdivision a partir de la columna 'Región GBA'
-        df[['id_categoria', 'id_division', 'id_subdivision']] = pd.DataFrame(df['Región GBA'].tolist(), index=df.index)
+    def df_individual(self, region, df):
+        
+        df = df.iloc[2:]
+
+        # Asegúrate de que 'Región GBA' es una lista
+        df['Región GBA'] = df['Región GBA'].apply(lambda x: x if isinstance(x, list) else [None, None, None])
+
+        # Descomponer 'Región GBA' en tres columnas utilizando .loc
+        df.loc[:, ['id_categoria', 'id_division', 'id_subdivision']] = pd.DataFrame(df['Región GBA'].tolist(), index=df.index)
 
         # Eliminar la columna 'Región GBA' ya que hemos descompuesto su contenido
         df = df.drop(columns=['Región GBA'])
@@ -66,9 +128,21 @@ class LoadXLSDregiones:
         df_melted = df_melted[['fecha', 'id_categoria', 'id_division', 'id_subdivision', 'valor']]
         df_melted['fecha'] = pd.to_datetime(df_melted['fecha'], errors='coerce')
 
-        new_column = pd.Series(2, name='id_region')
-        df_melted.insert(loc=1, column='id_region', value=new_column)
-        df_melted['id_region']=2
-        print(df_melted)
+        df_melted['id_region'] = region
+        df_melted = df_melted[['fecha', 'id_region', 'id_categoria', 'id_division', 'id_subdivision', 'valor']]
 
         return df_melted
+    
+    def procesar_dfs(self, ruta):
+        # Obtener los DataFrames divididos
+        dfs = self.armado_dfs(ruta)
+
+        # Procesar cada DataFrame individualmente
+        region = 2
+        dfs_editados = []
+        for df in dfs:  
+            df_editado = self.df_individual(region, df)
+            dfs_editados.append(df_editado)
+            region += 1
+
+        return dfs_editados

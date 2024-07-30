@@ -18,8 +18,8 @@ credenciales = Credenciales('datalake_economico')
 
 if __name__ == "__main__":
     print("Las credenciales son: ", credenciales.host, credenciales.user, credenciales.password, credenciales.database)
-    extraer = Extraccion()
-    extraer.descargar_archivo()
+    #extraer = Extraccion()
+    #extraer.descargar_archivo()
     df_combustible = Transformacion().crear_df()
     print("salida df")
     conexion = conexcionBaseDatos(credenciales.host, credenciales.user, credenciales.password, credenciales.database).conectar_bdd()
