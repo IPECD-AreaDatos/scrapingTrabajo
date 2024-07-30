@@ -33,14 +33,14 @@ credenciales_datalake_economico = Credenciales("datalake_economico")
 
 if __name__ == '__main__':
     
-    credenciales = ExtractDataBDD(credenciales_datalake_economico.host, credenciales_datalake_economico.user, credenciales_datalake_economico.password, credenciales_datalake_economico.database)
+    instancia = ExtractDataBDD(credenciales_datalake_economico.host, credenciales_datalake_economico.user, credenciales_datalake_economico.password, credenciales_datalake_economico.database)
 
-    df = credenciales.extraer_datos()
-
-    sys.exit()
+    df = instancia.main()
 
     credenciales = conexcionBaseDatos(credenciales_datalake_economico.host, credenciales_datalake_economico.user, credenciales_datalake_economico.password, credenciales_datalake_economico.database).conectar_bdd()
     credenciales.cargaBaseDatos(df)
+
+    sys.exit()
 
     credenciales2 = Create_Df_Acum(credenciales_datalake_economico.host, credenciales_datalake_economico.user, credenciales_datalake_economico.password, credenciales_datalake_economico.database).conectar_bdd()
 
