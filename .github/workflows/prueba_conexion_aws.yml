@@ -20,8 +20,8 @@ jobs:
 
     - name: Verify SSH connection and create file
       env:
-        EC2_IP: ${{ secrets.EC2_IP }}
-        EC2_USER: ${{ secrets.EC2_USER }}
+        EC2_IP: ${{ secrets.AWS_ HOST}}
+        EC2_USER: ${{ secrets.AWS_USER }}
       run: |
         ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_IP '
           FILENAME=$(date +%Y%m%d%H%M%S).txt
