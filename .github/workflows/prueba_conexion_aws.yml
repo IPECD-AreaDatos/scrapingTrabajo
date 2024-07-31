@@ -25,13 +25,13 @@ jobs:
       run: |
         ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_IP "echo 'Conexión exitosa a EC2'"
 
-    - name: Create file on EC2
-      env:
-        EC2_IP: ${{ secrets.AWS_HOST }}
-        EC2_USER: ${{ secrets.AWS_USER }}
-      run: |
-        ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_IP '
-          FILENAME=$(date +%Y%m%d%H%M%S).txt
-          echo "Archivo creado el $(date)" > $FILENAME
-          echo "Archivo $FILENAME creado en el servidor"
-        '
+    #- name: Create file on EC2
+    #  env:
+    #    EC2_IP: ${{ secrets.AWS_HOST }}
+    #    EC2_USER: ${{ secrets.AWS_USER }}
+    #  run: |
+    #    ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_IP '
+    #      FILENAME=$(date +%Y%m%d%H%M%S).txt
+    #      echo "Archivo creado el $(date)" > $FILENAME
+    #      echo "Archivo $FILENAME creado en el servidor"
+    #    '
