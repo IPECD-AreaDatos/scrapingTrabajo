@@ -18,13 +18,17 @@ jobs:
       with:
         ssh-private-key: ${{ secrets.AWS_PEM }}
 
-    - name: Verify SSH connection and create file
+    - name: Verify SSH connection
       env:
-        EC2_IP: ${{ secrets.AWS_ HOST}}
+        EC2_IP: ${{ secrets.AWS_HOST }}
         EC2_USER: ${{ secrets.AWS_USER }}
+      
       run: |
-        ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_IP '
-          FILENAME=$(date +%Y%m%d%H%M%S).txt
-          echo "Archivo creado el $(date)" > $FILENAME
-          echo "Archivo $FILENAME creado en el servidor"
+        ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_IP "echo 'Conexión exitosa a EC2'"
+        - name: Create file on EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.AWS_USER }}@${{ secrets.AWS_HOST }} '
+            FILENAME=$(date +%Y%m%d%H%M%S).txt
+            echo "Archivo creado el $(date)" > $FILENAME
+            echo "Archivo $FILENAME creado en el servidor"
           '
