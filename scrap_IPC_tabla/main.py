@@ -9,10 +9,14 @@ IPC's que se tienen cuenta:
     - IPC ONLINE
     - IPC REM Precios minorista
 
+    * Todos estos datos se extraen de "Datalake_economico"
+
+Al ser una tabla analitica, la almacenaremos en dwh_economico
+
 """
 
 from create_df import ExtractDataBDD
-from loaddb import conexcionBaseDatos
+from loaddb import Load
 from df_acumulado import Create_Df_Acum
 import os
 import sys
@@ -29,22 +33,16 @@ sys.path.append(credenciales_dir)
 from credenciales_bdd import Credenciales
 
 #instancia de Credenciales
-credenciales_datalake_economico = Credenciales("datalake_economico")
+cred_dl_economico = Credenciales("datalake_economico")
 
 if __name__ == '__main__':
     
-    instancia = ExtractDataBDD(credenciales_datalake_economico.host, credenciales_datalake_economico.user, credenciales_datalake_economico.password, credenciales_datalake_economico.database)
+    #Creamos la intancia para buscar los datos
+    instancia = ExtractDataBDD(cred_dl_economico.host, cred_dl_economico.user, cred_dl_economico.password, cred_dl_economico.database)
+    df = instancia.main()#--> Obtenemos los datos en un DF
 
-    df = instancia.main()
+    #Cargamos la BDD --> En este caso indicamos que la base de datos sera 'dwh_economico' | No creamos instancia, ya que solo cambiariamos esta cadena
+    credenciales = Load(cred_dl_economico.host, cred_dl_economico.user, cred_dl_economico.password, 'dwh_economico')
+    credenciales.main(df)
 
-    credenciales = conexcionBaseDatos(credenciales_datalake_economico.host, credenciales_datalake_economico.user, credenciales_datalake_economico.password, credenciales_datalake_economico.database).conectar_bdd()
-    credenciales.cargaBaseDatos(df)
 
-    sys.exit()
-
-    credenciales2 = Create_Df_Acum(credenciales_datalake_economico.host, credenciales_datalake_economico.user, credenciales_datalake_economico.password, credenciales_datalake_economico.database).conectar_bdd()
-
-    df_acum = credenciales2.armarAcum()
-
-    credenciales2 = conexcionBaseDatos(credenciales_datalake_economico.host, credenciales_datalake_economico.user, credenciales_datalake_economico.password, credenciales_datalake_economico.database).conectar_bdd()
-    credenciales2.cargaBaseDatos2(df_acum)

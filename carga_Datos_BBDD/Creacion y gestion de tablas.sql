@@ -777,3 +777,19 @@ create table combustible(
     provincia int,
     cantidad float
 );
+
+CREATE TABLE tabla_ipc_acumulados(
+
+	fecha date,
+	ipc_nacion float,
+	ipc_nea float,
+	ipc_caba float,
+	ipc_online float,
+	ipc_rem float,
+	ipc_nacion_acum float,
+	ipc_nea_acum float,
+	ipc_caba_acum float,
+	ipc_oline_acum float,
+	ipc_rem_acum float
+
+)

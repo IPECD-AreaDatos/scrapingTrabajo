@@ -149,12 +149,3 @@ class ExtractDataBDD:
         print(df)
         return df
     
-
-
-database = 'datalake_economico'
-host = '54.94.131.196'
-user = 'estadistica'
-password = 'Estadistica2024!!'
-
-instancia = ExtractDataBDD(host=host,user=user,password=password,database=database)
-instancia.main()
