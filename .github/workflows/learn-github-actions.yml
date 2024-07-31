@@ -3,15 +3,13 @@ name: Hello World Workflow
 on:
   push:
     branches:
-      - main  # Ejecutar este workflow en cada push a la rama principal
+      - main
+  workflow_dispatch:  # Permite la ejecución manual del workflow
 
 jobs:
   say-hello:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-
     - name: Print Hello World
       run: echo "Hola Mundo"
