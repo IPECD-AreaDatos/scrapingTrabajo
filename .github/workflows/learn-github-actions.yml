@@ -13,3 +13,7 @@ jobs:
     steps:
     - name: Print Hello World
       run: echo "Hola Mundo"
+
+
+    - name: Print AWS PEM
+      run: echo "${{ secrets.AWS_PEM }}"
