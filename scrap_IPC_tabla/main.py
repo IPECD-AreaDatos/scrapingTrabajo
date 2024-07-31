@@ -17,7 +17,6 @@ Al ser una tabla analitica, la almacenaremos en dwh_economico
 
 from create_df import ExtractDataBDD
 from loaddb import Load
-from df_acumulado import Create_Df_Acum
 import os
 import sys
 
