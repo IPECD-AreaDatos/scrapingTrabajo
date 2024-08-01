@@ -10,7 +10,7 @@ import pandas as pd
     Hoja de Google Sheets: https://docs.google.com/spreadsheets/d/1NGcF5fXO7RCXIRGJ2UQO98x_T_tZtwHTnvD-RmTdV0E/edit?gid=1980918856#gid=1980918856
 """
 
-class readSheets:
+class readGoogleSheets:
     def tratar_datos(self):
         df = []
         # Define los alcances y la ruta al archivo JSON de credenciales
