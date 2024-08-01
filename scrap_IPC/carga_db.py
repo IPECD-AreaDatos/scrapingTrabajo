@@ -22,25 +22,23 @@ class conexcionBaseDatos:
     
     def cargaBaseDatos(self, df):
         print("\n*****************************************************************************")
-        print("********************Inicio de la seccion IPC VARIACIONES************************")
+        print("********************Inicio de la seccion IPC VARIACIONES**************************")
         print("\n*****************************************************************************")
 
         df_bdd = pd.read_sql("SELECT * FROM ipc_variaciones",self.conn)
-        tamanio_bdd = len(df_bdd) #--> Tamano de la tabla del emae valores
-
-        tamanio_df = len(df) #Tamano del df extraido.
+        tamanio_bdd = len(df_bdd) 
+        tamanio_df = len(df) 
 
         if tamanio_df > tamanio_bdd:
             df_tail = df.tail(tamanio_df - tamanio_bdd)
             engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
             df_tail.to_sql(name="ipc_variaciones", con=engine, if_exists='append', index=False)
             print("*************")
-            print(" == ACTUALIZACION == ")
-            print(" -- Se ha actualizado la base de datos de EMAE VALORES.")
+            print(" == ACTUALIZACION == Nuevos datos en la base de ipc variaciones")
             print("*************")
         else:
             print("*********")
-            print("No existen datos nuevos para cargar de los -- VALORES DE EMAE --")
+            print("No existen datos nuevos de ipc variaciones")
             print("*********")
 
 
