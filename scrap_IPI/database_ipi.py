@@ -1,65 +1,97 @@
-import mysql.connector
-from datetime import datetime, date
-import pandas as pd
-from dateutil.relativedelta import relativedelta
-from correo_ipi_nacion import Correo_ipi_nacion
+"""
+Archivo destinado a controlar, verificar y ejecutar la carga de datos relacionadas
+al IPI NACIONAL.
+"""
+from pymysql import connect #--> Se usa para hacer consultas a la bdd
+from sqlalchemy import create_engine #--> Se usa para cargar la bdd
 
 class Database_ipi:
 
-    def __init__(self):
-        
+    #Definicion de atributos
+    def __init__(self,host, user, password, database):
+
+        self.host = host
+        self.user = user
+        self.password = password
+        self.database = database
 
         self.conn = None
         self.cursor = None
 
-    def conectar_bdd(self, host, user, password, database):
+        #Se usa para cargar la BDD
+        self.engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
 
-        self.conn = mysql.connector.connect(
-            host=host,
-            user=user,
-            password=password,
-            database=database
+
+    #Objetivo: Conectar a la bdd con las credenciales proporcionadas
+    def conectar_bdd(self):
+
+        self.conn = connect(
+            host=self.host,
+            user=self.user,
+            password=self.password,
+            database=self.database
         )
         self.cursor = self.conn.cursor()
 
 
-    def cargar_datos(self, host, user, password, database, df):
+    #Objetivo: obtener tamanos de base de datos, y del df, posteriormente se usa para verificar la carga
+    def verificar_carga(self,df):
 
-        self.conectar_bdd(host, user, password, database)
-
+        #Obtencion del tamano de los datos de la bdd
         table_name= 'ipi'
         select_row_count_query = f"SELECT COUNT(*) FROM {table_name}"
         self.cursor.execute(select_row_count_query)
-        filas_BD = self.cursor.fetchone()[0]
+        tamano_bdd = self.cursor.fetchone()[0]   
 
-        print("Tamaño base de datos:", filas_BD)
-        print("Tamaño del dataframe construido",len(df))
+        #Obtenemos tamano del DF a cargar
+        tamano_df = len(df) 
 
+        return tamano_bdd,tamano_df
 
-        #Vemos las longitudes de los datos guardados, y del archivo descargado. Para cargar solo  lo nuevo
-        longitud_df = len(df)
-        if filas_BD != len(df):
-            df_datos_nuevos = df.tail(longitud_df - filas_BD)
-            print(df_datos_nuevos)
+    #Objetivo: realizar efectivamente la carga a la BDD
+    def cargar_datos(self,df):
 
-            for fecha,var_ipi,var_interanual_alimentos,var_interanual_textil,var_interanual_maderas,var_interanual_sustancias,var_interanual_MinNoMetalicos,var_interanual_metales in zip(df_datos_nuevos['fecha'],df_datos_nuevos['var_IPI'],df_datos_nuevos['var_interanual_alimentos'],df_datos_nuevos['var_interanual_textil'],df_datos_nuevos['var_interanual_sustancias'],df_datos_nuevos['var_interanual_maderas'],df_datos_nuevos['var_interanual_MinNoMetalicos'],df_datos_nuevos['var_interanual_metales']):
-                
+        
+        #Obtencion de cantidades de datos
+        tamano_bdd, tamano_df = self.verificar_carga(df)
 
-                print(fecha)
-                sql_insert = "INSERT INTO ipi (fecha,var_IPI, var_interanual_alimentos, var_interanual_textil,var_interanual_sustancias, var_interanual_maderas, var_interanual_minnoMetalicos, var_interanual_metales) VALUES (%s, %s, %s,%s, %s, %s,%s, %s)"
-                values = (fecha,var_ipi,var_interanual_alimentos,var_interanual_textil,var_interanual_maderas,var_interanual_sustancias,var_interanual_MinNoMetalicos,var_interanual_metales)
-                self.cursor.execute(sql_insert,values)
-                print(sql_insert)
-                # Ejecutar la sentencia SQL de inserción
+        print(tamano_bdd,tamano_df)
 
+        if tamano_df > tamano_bdd:
+            
+            #Obtenemos solo los datos que cargaremos, que serian los nuevos.
+            df_datos_nuevos = df.tail(tamano_df - tamano_bdd)
+
+            #Carga a la BDD
+            df_datos_nuevos.to_sql(name="ipi", con=self.engine, if_exists='append', index=False)
+
+            #Cerramos conexiones
             self.conn.commit()
+            self.conn.close()
+            self.cursor.close()
 
-            #SECCION DE ENVIO DE CORREO     
-            instancia_correo = Correo_ipi_nacion()
-            instancia_correo.connect(host, user, password,database)
-            instancia_correo.construccion_correo()
+            print("*****************************************************************")
+            print(" *** SE HA PRODUCIDO UNA CARGA DE IPI ***")
+            print("*****************************************************************")
 
-    
+            #Retornamos bandera para que se mande el correo
+            return True
+        else:
 
+            print(" ==== NO EXISTEN DATOS NUEVOS DE IPI ====")
+
+            #Retornamos bandera para que no se envie el correo
+            return False
+
+
+    def main(self,df):
+        
+        #Conectamos a la bdd
+        self.conectar_bdd()
+
+        #Verificamos carga - Obtenemos una bandera para ver si mandamos o no un correo
+        bandera = self.cargar_datos(df)
+
+        return bandera
 
     

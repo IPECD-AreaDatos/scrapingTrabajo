@@ -1,28 +1,34 @@
-import mysql.connector
+"""
+Archivo destinado a construir y enviar el correo de IPI a nivel NACIONAL
+"""
+from pymysql import connect
 import pandas as pd
-from datetime import datetime
 import calendar
 from email.message import EmailMessage
 import ssl
 import smtplib
 
 
-class Correo_ipi_nacion():
+class Correo_ipi_nacion:
 
-
-    def __init__(self):
+    #Inicializacion de atributos
+    def __init__(self,host, user, password, database):
         
+        self.host = host
+        self.user = user
+        self.password = password
+        self.database = database
         self.cursor = None
         self.conn = None
 
     #Conectar con la BDD
-    def connect(self, host, user, password, database):
+    def connect_bdd(self):
 
-        self.conn = mysql.connector.connect(
-            host=host,
-            user=user,
-            password=password,
-            database=database
+        self.conn = connect(
+            host=self.host,
+            user=self.user,
+            password=self.password,
+            database=self.database
         )
 
         self.cursor = self.conn.cursor()
@@ -32,8 +38,8 @@ class Correo_ipi_nacion():
         
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com', 'manumarder@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com', 'manumarder@gmail.com']
         table_name = 'ipi'
         query_consulta = f'SELECT * FROM {table_name} ORDER BY fecha DESC LIMIT 1'
         df_bdd = pd.read_sql(query_consulta,self.conn)
@@ -110,3 +116,10 @@ class Correo_ipi_nacion():
         nombre_mes_espanol = traducciones_meses.get(nombre_mes_ingles, nombre_mes_ingles)
 
         return f"{nombre_mes_espanol} del {fecha_ultimo_registro.year}"
+    
+
+    def main(self):
+
+        self.connect_bdd()
+
+        print("main de ejecucion")

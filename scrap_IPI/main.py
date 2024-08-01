@@ -1,9 +1,9 @@
 import os
 import sys
-from readSheets import readSheets
-from connect_db import DatabaseManager
 from homePage_IPI import HomePage_IPI
+from transform import Transform
 from database_ipi import Database_ipi
+from correo_ipi_nacion import Correo_ipi_nacion
 
 #Configuracion de la ruta de credenciales
 # Obtiene la ruta absoluta al directorio donde reside el script actual.
@@ -21,14 +21,24 @@ credenciales2 = Credenciales('datalake_economico')
 
 
 if __name__ == "__main__":
-    #-----IPICORR--------
-    df = readSheets().tratar_datos()
-    DatabaseManager(credenciales.host, credenciales.user, credenciales.password, credenciales.database).update_database_with_new_data(df)
-    DatabaseManager(credenciales2.host, credenciales2.user, credenciales2.password, credenciales2.database).update_database_with_new_data(df)
 
-    #-----IPI NACION------
-    home_page = HomePage_IPI()
-    home_page.descargar_archivo()
-    df_ipi = home_page.construir_df()
-    Database_ipi().cargar_datos(credenciales.host, credenciales.user, credenciales.password, credenciales.database,df_ipi)
-    Database_ipi().cargar_datos(credenciales2.host, credenciales2.user, credenciales2.password, credenciales2.database,df_ipi)
+    #Extract de data
+    HomePage_IPI().descargar_archivo()
+
+    #Obtencion de DF con formato adecuado
+    df= Transform().construir_df()
+
+    #Carga en la BDD - Datalake economico
+    instancia_bdd = Database_ipi(credenciales2.host, credenciales2.user, credenciales2.password, credenciales2.database)
+    bandera = instancia_bdd.main(df)
+
+    #Si es V, envia correo, sino, no pasa nada.
+    if bandera:
+
+        instancia_correo = Correo_ipi_nacion(credenciales2.host, credenciales2.user, credenciales2.password, credenciales2.database)
+        instancia_correo.main()
+
+
+
+    #Carga en IPECD 
+    Database_ipi(credenciales.host, credenciales.user, credenciales.password, credenciales.database).main(df)
