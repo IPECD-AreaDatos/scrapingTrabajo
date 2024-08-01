@@ -13,6 +13,8 @@ class SendMail:
     def __init__(self, user, password, host, database):
         locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
         self.database = create_engine(f'mysql+pymysql://{user}:{password}@{host}/{database}')
+        # Obtener la ruta de la carpeta de guardado
+        self.carpeta_guardado = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'files')
 
     def extract_data(self):
         # Obtener la fecha actual y la fecha de un mes atrás
@@ -38,10 +40,6 @@ class SendMail:
         return df_oficial, df_blue, df_mep, df_ccl
 
     def generate_graph(self, df, title, filename, y_label):
-        # Crear la carpeta files si no existe
-        if not os.path.exists('files'):
-            os.makedirs('files')
-        
         plt.style.use('ggplot')
         fig, ax = plt.subplots(figsize=(12, 6))
         
@@ -64,7 +62,7 @@ class SendMail:
         ax.grid(True, which='both', linestyle='--', linewidth=0.5)
         plt.xticks(rotation=45)
         plt.tight_layout()
-        plt.savefig(f'files/{filename}', dpi=300)
+        plt.savefig(os.path.join(self.carpeta_guardado, filename), dpi=300)
         plt.close()
 
     def calcular_variacion(self, df, columna):
@@ -196,7 +194,7 @@ class SendMail:
 
         # Adjuntar gráficos
         for filename in ['dolar_oficial.png', 'dolar_blue.png', 'dolar_mep.png', 'dolar_ccl.png']:
-            with open(f'files/{filename}', 'rb') as f:
+            with open(os.path.join(self.carpeta_guardado, filename), 'rb') as f:
                 file_data = f.read()
                 attachment = MIMEText(file_data, 'base64', 'utf-8')
                 attachment.add_header('Content-Disposition', 'attachment', filename=filename)
