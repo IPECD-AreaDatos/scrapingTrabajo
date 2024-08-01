@@ -1,6 +1,6 @@
 import os
 import sys
-from readSheets import readSheets
+from readGoogleSheets import readGoogleSheets
 from connect_db import DatabaseManager
 
 #Configuracion de la ruta de credenciales
@@ -20,6 +20,6 @@ credenciales2 = Credenciales('datalake_economico')
 
 if __name__ == "__main__":
     #-----IPICORR--------
-    df_ipicorr = readSheets().tratar_datos()
+    df_ipicorr = readGoogleSheets().tratar_datos()
     DatabaseManager(credenciales.host, credenciales.user, credenciales.password, credenciales.database).update_database_with_new_data(df_ipicorr)
     DatabaseManager(credenciales2.host, credenciales2.user, credenciales2.password, credenciales2.database).update_database_with_new_data(df_ipicorr)
