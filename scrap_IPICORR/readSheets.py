@@ -4,7 +4,11 @@ from google.oauth2 import service_account
 import os
 import pandas as pd
 
-
+"""
+    readSheets.py
+    Objetivo: Obtener los datos de una hoja de Google Sheets(Datos para tablero)  y convertirlos en un dataframe
+    Hoja de Google Sheets: https://docs.google.com/spreadsheets/d/1NGcF5fXO7RCXIRGJ2UQO98x_T_tZtwHTnvD-RmTdV0E/edit?gid=1980918856#gid=1980918856
+"""
 
 class readSheets:
     def tratar_datos(self):
