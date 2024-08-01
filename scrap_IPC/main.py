@@ -7,7 +7,9 @@ from armadoXLSDatacuyo import LoadXLSDataCuyo
 from armadoXLSDataPatagonia import LoadXLSDataPatagonia
 from conexionBaseDatos import conexionBaseDatos
 from armadoXLSProductos import LoadXLSDataProductos
+
 from variaciones_por_region import LoadXLSDregiones
+from carga_db import conexcionBaseDatos
 import os
 import sys
 from homePage import HomePage
@@ -37,6 +39,9 @@ if __name__ == '__main__':
 
     variaciones = LoadXLSDregiones(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database).conectar_bdd()
     df = variaciones.armado_dfs(file_path_desagregado)
+
+    conexion = conexcionBaseDatos(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database).conectar_bdd()
+    conexion.cargaBaseDatos(df)
 exit()
 valor_region = 2
 

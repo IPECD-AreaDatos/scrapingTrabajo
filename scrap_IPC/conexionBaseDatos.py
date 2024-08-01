@@ -168,10 +168,7 @@ class conexionBaseDatos:
 
         </body>
         </html>
-        '''
-
-
-
+        '''                                                                                                                                                                                                                                      
         cadena_final = mensaje + variaciones_nacionales + variaciones_nea + tabla
         
         em = EmailMessage()

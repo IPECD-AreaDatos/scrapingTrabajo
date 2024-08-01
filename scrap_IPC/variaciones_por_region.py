@@ -81,6 +81,8 @@ class LoadXLSDregiones:
             # Descomponer 'Región GBA' en tres columnas utilizando .loc
             df[['id_categoria', 'id_division', 'id_subdivision']] = pd.DataFrame(df['Región GBA'].tolist(), index=df.index)
 
+            df[['id_categoria', 'id_division', 'id_subdivision']] = df[['id_categoria', 'id_division', 'id_subdivision']].fillna(0).astype(int)
+
             # Eliminar la columna 'Región GBA'
             df = df.drop(columns=['Región GBA'])
 
@@ -90,7 +92,8 @@ class LoadXLSDregiones:
 
             df_melted = df_melted.iloc[2:-3]
 
-            df[['id_categoria', 'id_division', 'id_subdivision']] = df[['id_categoria', 'id_division', 'id_subdivision']].fillna(0).astype(int)
+            df_melted[['id_categoria', 'id_division', 'id_subdivision']] = df_melted[['id_categoria', 'id_division', 'id_subdivision']].fillna(0).astype(int)
+
 
             df_melted['id_region'] = region
             df_melted = df_melted[['fecha', 'id_region', 'id_categoria', 'id_division', 'id_subdivision', 'valor']]
@@ -101,5 +104,10 @@ class LoadXLSDregiones:
             print("-------------------------------")
             print(df_melted)
             n +=1
+
+            df_juntos = pd.concat(dfs_editados, ignore_index=True)
+            print(df_juntos)
+            df_juntos['valor'] = df_juntos['valor'].replace('///', 0).astype(float)
+            df_juntos = df_juntos.dropna(subset=['valor'])
             
-        return dfs_editados
+        return df_juntos
