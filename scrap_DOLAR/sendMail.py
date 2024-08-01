@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import smtplib
 from email.message import EmailMessage
@@ -37,6 +38,10 @@ class SendMail:
         return df_oficial, df_blue, df_mep, df_ccl
 
     def generate_graph(self, df, title, filename, y_label):
+        # Crear la carpeta files si no existe
+        if not os.path.exists('files'):
+            os.makedirs('files')
+        
         plt.style.use('ggplot')
         fig, ax = plt.subplots(figsize=(12, 6))
         
@@ -59,7 +64,7 @@ class SendMail:
         ax.grid(True, which='both', linestyle='--', linewidth=0.5)
         plt.xticks(rotation=45)
         plt.tight_layout()
-        plt.savefig(filename, dpi=300)
+        plt.savefig(f'files/{filename}', dpi=300)
         plt.close()
 
     def calcular_variacion(self, df, columna):
@@ -191,7 +196,7 @@ class SendMail:
 
         # Adjuntar gráficos
         for filename in ['dolar_oficial.png', 'dolar_blue.png', 'dolar_mep.png', 'dolar_ccl.png']:
-            with open(filename, 'rb') as f:
+            with open(f'files/{filename}', 'rb') as f:
                 file_data = f.read()
                 attachment = MIMEText(file_data, 'base64', 'utf-8')
                 attachment.add_header('Content-Disposition', 'attachment', filename=filename)
