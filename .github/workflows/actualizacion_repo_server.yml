@@ -40,14 +40,14 @@ jobs:
       run: |
         ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_IP "
           if [ ! -d '$DEPLOY_DIR' ]; then
-            mkdir -p '$DEPLOY_DIR'
+            sudo mkdir -p '$DEPLOY_DIR'
             cd '$DEPLOY_DIR'
-            git clone '$REPO_URL' .
+            sudo git clone '$REPO_URL' .
           else
             cd '$DEPLOY_DIR'
-            git reset --hard HEAD
-            git pull origin main
+            sudo git reset --hard HEAD
+            sudo git pull origin main
             cd ..
-            chmod 777 -R '$DEPLOY_DIR'
+            sudo chmod 777 -R '$DEPLOY_DIR'
           fi
         "
