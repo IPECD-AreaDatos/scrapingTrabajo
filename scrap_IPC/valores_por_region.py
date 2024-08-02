@@ -2,7 +2,7 @@ import pandas as pd
 from sqlalchemy import create_engine
 import mysql.connector
 
-class LoadXLSDregionesVariacion:
+class LoadXLSDregionesValor:
     def __init__(self, host, user, password, database):
         self.host = host
         self.user = user
@@ -32,15 +32,15 @@ class LoadXLSDregionesVariacion:
         # Crear un diccionario de mapeo entre 'nombre' y la lista de 'codigo' que le corresponde
         nombre_a_codigo = dict(zip(tabla_subdivision['nombre'], tabla_subdivision['codigo']))
 
-        df_original = pd.read_excel(ruta, sheet_name=0, skiprows=5, nrows=295)
+        df_original = pd.read_excel(ruta, sheet_name=2, skiprows=5, nrows=295)
         df_original.rename(columns={'Región GBA': 'claves_listas'}, inplace=True)
 
         # Mapea la columna donde estaban las categorias con el diccionario, reeplazando el string por una lista de tres valores
         df_original['claves_listas'] = df_original['claves_listas'].map(nombre_a_codigo)
 
         # Tamaños necesarios para dividir el df, ya que tienen diferente cantidad de filas
-        primer_tamano = 50
-        tamano_resto= 49
+        primer_tamano = 49
+        tamano_resto= 48
 
         # Obtener el primer DataFrame: GBA y lo guardamos en una lista de dfs
         df1 = df_original.iloc[:primer_tamano]
@@ -61,6 +61,10 @@ class LoadXLSDregionesVariacion:
             dfs.append(df_nuevo)
             resto_df = resto_df.iloc[tamano_resto:]
             contador += 1
+        
+        # Eliminar el último DataFrame de la lista
+        if dfs:
+            dfs.pop()
 
         n_df = 1 # Numero de df
         region = 2 # Contador que representa la region
@@ -81,7 +85,7 @@ class LoadXLSDregionesVariacion:
             df_melted['fecha'] = pd.to_datetime(df_melted['fecha'], errors='coerce')
 
             # Eliminamos las dos primeras y tres ultimas filas porque estan vacias
-            df_melted = df_melted.iloc[2:-3]
+            df_melted = df_melted.iloc[1:-3]
 
             df_melted[['id_categoria', 'id_division', 'id_subdivision']] = df_melted[['id_categoria', 'id_division', 'id_subdivision']].fillna(0).astype(int)
             df_melted['id_region'] = region
@@ -99,7 +103,11 @@ class LoadXLSDregionesVariacion:
         df_juntos = pd.concat(dfs_editados, ignore_index=True)
         print(df_juntos)
         df_juntos['valor'] = df_juntos['valor'].replace('///', None).astype(float)
-
+        
+        # Eliminar filas que tienen 0 en los campos 'id_categoria', 'id_division', y 'id_subdivision'
         df_juntos = df_juntos.query('id_categoria != 0 and id_division != 0 and id_subdivision != 0')
    
         return df_juntos
+
+    
+    
