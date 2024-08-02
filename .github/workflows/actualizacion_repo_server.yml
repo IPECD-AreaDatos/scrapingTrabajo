@@ -50,5 +50,5 @@ jobs:
             git pull origin main
             cd ..
             chmod 777 -R $DEPLOY_DIR
-          if
+          fi
         '
