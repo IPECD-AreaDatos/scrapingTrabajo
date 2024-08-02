@@ -1,4 +1,5 @@
-from variaciones_por_region import LoadXLSDregiones
+from variaciones_por_region import LoadXLSDregionesVariacion
+from valores_por_region import LoadXLSDregionesValor
 from carga_db import conexcionBaseDatos
 import os
 import sys
@@ -25,8 +26,12 @@ if __name__ == '__main__':
     ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
     file_path_desagregado = os.path.join(ruta_carpeta_files, 'IPC_Desagregado.xls')
 
-    variaciones = LoadXLSDregiones(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database).conectar_bdd()
-    df = variaciones.armado_dfs(file_path_desagregado)
+    variaciones = LoadXLSDregionesVariacion(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database).conectar_bdd()
+    df_variaciones = variaciones.armado_dfs(file_path_desagregado)
 
-    conexion = conexcionBaseDatos(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database).conectar_bdd()
-    conexion.cargaBaseDatos(df)
+    valores = LoadXLSDregionesValor(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database).conectar_bdd()
+    df_valores = valores.armado_dfs(file_path_desagregado)
+
+    instancia_bdd = conexcionBaseDatos(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database).conectar_bdd()
+    bandera_var, bandera_val = instancia_bdd.main(df_variaciones, df_valores)
+    

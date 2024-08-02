@@ -1,5 +1,5 @@
-#Archivo destinado a realizar la carga de los cambios del repositorio en el servidor EC2 que usamos en el area.
-#Las variables secretas estan configuradas en Settings.
+# Archivo destinado a realizar la carga de los cambios del repositorio en el servidor EC2 que usamos en el área.
+# Las variables secretas están configuradas en Settings.
 
 name: Carga de repositorio a la M.V EC2 proporcionada por Telco.
 
@@ -9,23 +9,47 @@ on:
       - main  # Ejecutar este workflow en cada push a la rama principal
 
 jobs:
-  verify-connection:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    #Objetivo: anadir la clave SSH al agente que se conectara al servidor.
+    # Objetivo: añadir la clave SSH al agente que se conectará al servidor.
     - name: Add SSH key
       uses: webfactory/ssh-agent@v0.5.3
       with:
         ssh-private-key: ${{ secrets.AWS_PEM }}
 
-    #Objetivo: Verificar que la conexion se realizo exitosamente.
+    # Objetivo: Verificar que la conexión se realizó exitosamente.
     - name: Verify SSH connection
       env:
         EC2_IP: ${{ secrets.AWS_HOST }}
         EC2_USER: ${{ secrets.AWS_USER }}
       run: |
         ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_IP "echo 'Conexión exitosa a EC2'"
+
+    # Objetivo: Clonar o actualizar el repositorio en el servidor EC2
+    - name: Deploy to EC2
+      env:
+        EC2_IP: ${{ secrets.AWS_HOST }}
+        EC2_USER: ${{ secrets.AWS_USER }}
+        REPO_URL: ${{ secrets.HTTP_GIT }}  # URL del repositorio - es la dirección SSH o HTTP que usamos para el git clone
+        DEPLOY_DIR: ${{ secrets.PATH_FOLDER_SAVE }}  # Directorio de despliegue en EC2
+      run: |
+        ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_IP "
+          if [ ! -d '$DEPLOY_DIR' ]; then
+            sudo mkdir -p '$DEPLOY_DIR'
+            cd '$DEPLOY_DIR'
+            sudo git clone '$REPO_URL' .
+            cd ..
+            sudo chmod 777 -R '$DEPLOY_DIR'
+          else
+            cd '$DEPLOY_DIR'
+            sudo git reset --hard HEAD
+            sudo git pull origin main
+            cd ..
+            sudo chmod 777 -R '$DEPLOY_DIR'
+          fi
+        "
