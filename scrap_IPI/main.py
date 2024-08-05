@@ -26,19 +26,15 @@ if __name__ == "__main__":
     HomePage_IPI().descargar_archivo()
 
     #Obtencion de DF con formato adecuado
-    df= Transform().construir_df()
+    df_valores,df_variaciones = Transform().main()
+
 
     #Carga en la BDD - Datalake economico
     instancia_bdd = Database_ipi(credenciales2.host, credenciales2.user, credenciales2.password, credenciales2.database)
-    bandera = instancia_bdd.main(df)
+    bandera = instancia_bdd.main(df_valores,df_variaciones)
 
     #Si es V, envia correo, sino, no pasa nada.
-    if bandera:
+    if False:
 
         instancia_correo = Correo_ipi_nacion(credenciales2.host, credenciales2.user, credenciales2.password, credenciales2.database)
         instancia_correo.main()
-
-
-
-    #Carga en IPECD 
-    Database_ipi(credenciales.host, credenciales.user, credenciales.password, credenciales.database).main(df)

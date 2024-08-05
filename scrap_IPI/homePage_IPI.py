@@ -63,6 +63,12 @@ class HomePage_IPI:
         # Construir la ruta de la carpeta "files" dentro del directorio actual
         carpeta_guardado = os.path.join(directorio_actual, 'files')
 
+
+        # Crear la carpeta "files" si no existe
+        if not os.path.exists(carpeta_guardado):
+            os.makedirs(carpeta_guardado)
+
+
         #Definimos un nombre para el archivo
         nombre_archivo = 'IPI.xls'
 

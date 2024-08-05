@@ -34,8 +34,10 @@ class Database_ipi:
         self.cursor = self.conn.cursor()
 
 
+    ## ========================= CARGA DE IPI VARIACIONES ========================= ##
+
     #Objetivo: obtener tamanos de base de datos, y del df, posteriormente se usa para verificar la carga
-    def verificar_carga(self,df):
+    def verificar_carga_variaciones(self,df_variaciones):
 
         #Obtencion del tamano de los datos de la bdd
         table_name= 'ipi'
@@ -44,23 +46,21 @@ class Database_ipi:
         tamano_bdd = self.cursor.fetchone()[0]   
 
         #Obtenemos tamano del DF a cargar
-        tamano_df = len(df) 
+        tamano_df = len(df_variaciones) 
 
         return tamano_bdd,tamano_df
 
     #Objetivo: realizar efectivamente la carga a la BDD
-    def cargar_datos(self,df):
+    def cargar_datos_variaciones(self,df_variaciones):
 
         
         #Obtencion de cantidades de datos
-        tamano_bdd, tamano_df = self.verificar_carga(df)
-
-        print(tamano_bdd,tamano_df)
+        tamano_bdd, tamano_df = self.verificar_carga_variaciones(df_variaciones)
 
         if tamano_df > tamano_bdd:
             
             #Obtenemos solo los datos que cargaremos, que serian los nuevos.
-            df_datos_nuevos = df.tail(tamano_df - tamano_bdd)
+            df_datos_nuevos = df_variaciones.tail(tamano_df - tamano_bdd)
 
             #Carga a la BDD
             df_datos_nuevos.to_sql(name="ipi", con=self.engine, if_exists='append', index=False)
@@ -71,26 +71,93 @@ class Database_ipi:
             self.cursor.close()
 
             print("*****************************************************************")
-            print(" *** SE HA PRODUCIDO UNA CARGA DE IPI ***")
+            print(" *** SE HA PRODUCIDO UNA CARGA DE IPI - VARIACIONES INTERANUALES ***")
             print("*****************************************************************")
 
             #Retornamos bandera para que se mande el correo
             return True
         else:
 
-            print(" ==== NO EXISTEN DATOS NUEVOS DE IPI ====")
+            print(" ==== NO EXISTEN DATOS NUEVOS DE IPI - VARIACIONES INTERANUALES ====")
+
+            #Retornamos bandera para que no se envie el correo
+            return False
+        
+
+
+    ## ========================= CARGA DE IPI VALORES ========================= ##
+
+
+    #Objetivo: obtener tamanos de base de datos, y del df, posteriormente se usa para verificar la carga
+    def verificar_carga_valores(self,df_valores):
+
+        #Obtencion del tamano de los datos de la bdd
+        table_name= 'ipi_valores'
+        select_row_count_query = f"SELECT COUNT(*) FROM {table_name}"
+        self.cursor.execute(select_row_count_query)
+        tamano_bdd = self.cursor.fetchone()[0]   
+
+        #Obtenemos tamano del DF a cargar
+        tamano_df = len(df_valores) 
+
+        return tamano_bdd,tamano_df
+    
+   #Objetivo: realizar efectivamente la carga a la BDD
+    def cargar_datos_valores(self,df_valores):
+
+        #Obtencion de cantidades de datos
+        tamano_bdd, tamano_df = self.verificar_carga_valores(df_valores)
+
+        print(tamano_bdd,tamano_df)
+
+        #Si hay datos nuevos, CARGAR
+        if tamano_df > tamano_bdd:
+            
+            #Obtenemos solo los datos que cargaremos, que serian los nuevos.
+            df_datos_nuevos = df_valores.tail(tamano_df - tamano_bdd)
+
+            #Carga a la BDD
+            df_datos_nuevos.to_sql(name="ipi_valores", con=self.engine, if_exists='append', index=False)
+
+            #Cerramos conexiones
+            self.conn.commit()
+            self.conn.close()
+            self.cursor.close()
+
+            print("*****************************************************************")
+            print(" *** SE HA PRODUCIDO UNA CARGA DE IPI - VALORES DE SERIE ORIGINAL ***")
+            print("*****************************************************************")
+
+            #Retornamos bandera para que se mande el correo
+            return True
+        
+        #Si no hay datos nuevos, NO CARGAR
+        else:
+
+            print(" ==== NO EXISTEN DATOS NUEVOS DE IPI - SERIE ORIGINAL ====")
 
             #Retornamos bandera para que no se envie el correo
             return False
 
 
-    def main(self,df):
+
+    #Objetivo: funcionar como funcion principal
+    def main(self,df_valores,df_variaciones):
         
         #Conectamos a la bdd
         self.conectar_bdd()
 
-        #Verificamos carga - Obtenemos una bandera para ver si mandamos o no un correo
-        bandera = self.cargar_datos(df)
+        #Verificamos carga - Obtenemos una bandera para ver si mandamos o no un correo || VALORES
+        bandera_valores = self.cargar_datos_valores(df_valores)
+
+        #Conectamos a la bdd
+        self.conectar_bdd()
+
+        #Verificamos carga - Obtenemos una bandera para ver si mandamos o no un correo || VARIACIONES
+        bandera_vars = self.cargar_datos_variaciones(df_variaciones)
+
+        #Resultado final
+        bandera = (bandera_valores and bandera_vars)
 
         return bandera
 
