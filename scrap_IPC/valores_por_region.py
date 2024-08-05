@@ -21,7 +21,7 @@ class LoadXLSDregionesValor:
             print(f"Error: {err}")
         return self
 
-    def armado_dfs(self, ruta):
+    def armado_dfs(self, ruta, ruta_categoria):
         engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
 
         tabla_subdivision = pd.read_sql_query("SELECT * FROM ipc_subdivision", con=engine) 
@@ -35,6 +35,12 @@ class LoadXLSDregionesValor:
         df_original = pd.read_excel(ruta, sheet_name=2, skiprows=5, nrows=295)
         df_original.rename(columns={'Región GBA': 'claves_listas'}, inplace=True)
 
+        # Cargamos el df de nacion unicamente, cambiamos la columna de categorias por el mismo nombre 'claves_listas' y hacemos el mapeo, agregamos el df primero en la lista de dfs
+        df_nacion = self.df_nacion(ruta_categoria)
+        df_nacion.rename(columns={'Total nacional': 'claves_listas'}, inplace=True)
+        df_nacion['claves_listas'] = df_nacion['claves_listas'].map(nombre_a_codigo)
+        dfs = [df_nacion]
+
         # Mapea la columna donde estaban las categorias con el diccionario, reeplazando el string por una lista de tres valores
         df_original['claves_listas'] = df_original['claves_listas'].map(nombre_a_codigo)
 
@@ -44,7 +50,8 @@ class LoadXLSDregionesValor:
 
         # Obtener el primer DataFrame: GBA y lo guardamos en una lista de dfs
         df1 = df_original.iloc[:primer_tamano]
-        dfs = [df1]
+        dfs.append(df1)
+
 
         # Obtener el DataFrame sin la primer region, osea de gba en adelante
         resto_df = df_original.iloc[primer_tamano:]
@@ -66,8 +73,7 @@ class LoadXLSDregionesValor:
         if dfs:
             dfs.pop()
 
-        n_df = 1 # Numero de df
-        region = 2 # Contador que representa la region
+        region = 1 # Contador que representa la region
         dfs_editados = []
 
         # Busca editar cada uno de los df que estan en la lista de dfs
@@ -93,11 +99,11 @@ class LoadXLSDregionesValor:
 
             # Una vez editado agregamos al df a la lista de dfs editados
             dfs_editados.append(df_melted)
-            region += 1
-            print(F"DF N{n_df}")
+            print(F"DF N{region}")
             print("-------------------------------")
             print(df_melted)
-            n_df += 1
+            region += 1
+
 
         # Juntamos todos los dfs en uno solo, eliminamos datos incorrectos
         df_juntos = pd.concat(dfs_editados, ignore_index=True)
@@ -106,8 +112,11 @@ class LoadXLSDregionesValor:
         
         # Eliminar filas que tienen 0 en los campos 'id_categoria', 'id_division', y 'id_subdivision'
         df_juntos = df_juntos.query('id_categoria != 0 and id_division != 0 and id_subdivision != 0')
-   
+        self.conn.close()
+        self.cursor.close()
         return df_juntos
-
     
-    
+    def df_nacion(self, ruta):
+        df_original = pd.read_excel(ruta, sheet_name=2, skiprows=5, nrows=19)
+        df_original = df_original.iloc[2:]
+        return df_original

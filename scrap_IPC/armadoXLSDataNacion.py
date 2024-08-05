@@ -52,6 +52,8 @@ class LoadXLSDataNacion:
             6: 0.052,
             7: 0.046
         }
+        print("factor mapeo:")
+        print(factor_mapping)
 
         df['Factor'] = df['ID_Region'].map(factor_mapping)
 
@@ -67,8 +69,8 @@ class LoadXLSDataNacion:
         print(df_grouped)
         
         #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
-        engine = create_engine(f"mysql+pymysql://{user}:{password}@{host}:{3306}/{database}")
-        df_grouped.to_sql(name="ipc_valores", con=engine, if_exists='append', index=False)
+        #engine = create_engine(f"mysql+pymysql://{user}:{password}@{host}:{3306}/{database}")
+        #df_grouped.to_sql(name="ipc_valores", con=engine, if_exists='append', index=False)
 
         # Confirmar los cambios en la base de datos
         conn.commit()

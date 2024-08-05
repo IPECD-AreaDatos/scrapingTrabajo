@@ -25,7 +25,7 @@ class HomePage:
          # Cargar la página web
         self.driver.get(self.url_pagina)
 
-        wait = WebDriverWait(self.driver, 10)
+        wait = WebDriverWait(self.driver, 20)
         
         # Obtener la ruta del directorio actual (donde se encuentra el script)
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
@@ -76,6 +76,25 @@ class HomePage:
         ruta_guardado_2 = os.path.join(carpeta_guardado, nombre_archivo_Total)
         with open(ruta_guardado_2, 'wb') as file:
             file.write(response_2.content)
+
+        # Descarga el tercer archivo con nombre: sh_ipc_07_24
+        archivo_categoria = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div/div[2]/div/div[2]/div[1]/div[2]/div/div/a")))
+
+        time.sleep(5)
+
+        # Obtener la URL del segundo archivo
+        url_archivo_categoria = archivo_categoria.get_attribute('href')
+
+        # Nombre del segundo archivo
+        nombre_archivo_categoria = 'IPC_categoria.xls'
+
+        # Descargar el segundo archivo desactivando la verificación del certificado SSL
+        response_3 = requests.get(url_archivo_categoria, verify=False)
+
+        # Guardar el segundo archivo en la carpeta especificada
+        ruta_guardado_3 = os.path.join(carpeta_guardado, nombre_archivo_categoria)
+        with open(ruta_guardado_3, 'wb') as file:
+            file.write(response_3.content)
 
         # Cerrar el navegador
         self.driver.quit()
