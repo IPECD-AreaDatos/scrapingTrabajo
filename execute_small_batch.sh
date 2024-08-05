@@ -21,14 +21,41 @@ cd $path_dir
 
 # ============= EJECUCION DE SCRIPTS ============= #
 
+# Función para manejar errores
+try() {
+    "$@"
+    local status=$?
+    if [ $status -ne 0 ]; then
+        echo "Error con comando: $1" >&2
+    fi
+    return $status
+}
 
 # === CONSTRUCCION DE RUTAS
 
-path_dnrpa="$script_dir/DNRPA/" # (DNRPA) Registro automotor
+path_ipc="$script_dir/scrap_IPC/" #(IPC) Indice de precios al Consumidor
 path_sipa="$script_dir/scrap_SIPA/" #(SIPA) Nivel de EMPLEO
+path_cba_cbt="$script_dir/scrap_CBT/" #(CBT y CBA) Canasta basica y total
+path_supermercado="$script_dir/scrap_semaforo/" # Semaforo de Indicadores de Corientes
+path_ripte="$script_dir/scrap_RIPTE/" # (RIPTE) Remuneracion Imponible Promedio
+path_dnrpa="$script_dir/DNRPA/" #(DNRPA) Registro automotor
+path_ipi="$script_dir/scrap_IPI/" #(IPI) Indice manufacturero NACION
+path_ipicorr="$script_dir/IPICORR/" #Indice manufacturareo en corrientes
+
 
 # Crear un array con las rutas - se usara para recorrer las carpetas
-paths=("$path_dnrpa" "$path_sipa")
+paths=("$path_ipc" "$path_sipa" "$path_cba_cbt" "$path_supermercado" "$path_ripte"  "$path_dnrpa" "$path_ipi" "$path_ipicorr") 
+
+
+#FUNCION QUE CONTROLARA LOS ERRORES
+try() {
+    "$@"
+    local status=$?
+    if [ $status -ne 0 ]; then
+        echo "Error con comando: $1" >&2
+    fi
+    return $status
+}
 
 
 # Recorremos el array para ejecutar cada main
@@ -41,9 +68,16 @@ for path in "${paths[@]}"; do
 
     # Verificar si el archivo main.py existe y ejecutarlo
     if [ -f "$script_path" ]; then
-        echo "Ejecutando $script_path"
 
-        python3 "$script_path"
+        echo
+        echo
+        echo " ################################################### "
+
+        echo "Ejecutando $script_path"
+        try python3 "$script_path"
+        
+        echo " ################################################### "
+
 
     else
         echo "No se encontró el archivo $script_path"
