@@ -47,3 +47,11 @@ if __name__ == '__main__':
     print(bandera_var)
     print("se cargaron nuevos datos en ipc valores: ")
     print(bandera_val)
+
+    # Envío de correo si hay nuevos datos
+    if bandera_var or bandera_val:
+        correo = Correo(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database).conectar_bdd()
+        correo.enviar_correo()
+        print("Correo enviado.")
+    else:
+        print("No hay nuevos datos, no se enviará ningún correo.")
