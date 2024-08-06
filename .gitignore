@@ -3,6 +3,7 @@
 *.xlsx
 *.xls
 *.pdf
+*.png
 *.jpg
 *.venv
 entorno_trabajo/
