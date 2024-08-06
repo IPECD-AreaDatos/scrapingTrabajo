@@ -31,7 +31,7 @@ class Correo_ipi_nacion:
     def construccion_correo(self):
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores = ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com', 'manumarder@gmail.com']
+        email_receptores = ['matizalazar2001@gmail.com']
         table_name = 'ipi'
         query_consulta = f'SELECT * FROM {table_name} ORDER BY fecha DESC LIMIT 1'
         df_bdd = pd.read_sql(query_consulta, self.conn)
@@ -56,18 +56,30 @@ class Correo_ipi_nacion:
                     .container-data-general {{
                         width: 100%;
                         text-align: center;
+                        margin-bottom: 20px;
                     }}
                     .data-item-valor-general {{
-                        display: block;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        flex-direction: column;
                         border: 2px solid #8b4513;
                         border-radius: 10px;
                         padding: 10px;
-                        text-align: center;
                         background-color: #f1d0d0;
                         box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
-                        margin-bottom: 20px;
-                        width: 100%;
                         box-sizing: border-box;
+                        width: 100%;
+                        text-align: center; /* Asegurar centrado del texto */
+                        margin: 0 auto;
+                    }}
+                    .container-data-general span {{
+                        display: block;
+                        width: 100%;
+                        font-size: 24px;
+                        color: #8b4513;
+                        text-align: center;
+                        padding: 20px;
                     }}
                     .container-data {{
                         width: 100%;
@@ -112,32 +124,54 @@ class Correo_ipi_nacion:
                 <div class="container">
                     <h2><strong>INDICE DE PRODUCCION INDUSTRIAL MANUFACTURERO (IPI) A {fecha_cadena.upper()}.</strong></h2>
                     <div class='container-data-general'>
-                        <div class="data-item-valor-general">Variacion Interanual IPI
-                        <br><span>{df_bdd["var_IPI"].iloc[-1]:,.2f}%</span>
+                        <div class="data-item-valor-general">
+                        <img src="cid:ipi" alt="IPI Image" style="max-width: 70px; height: 70px; margin-bottom: 10px;">
+                        <span>Variacion Interanual IPI: <strong>{df_bdd["var_IPI"].iloc[-1]:,.2f}%</strong></span>
                         </div>
                     </div>
                     <div class='container-data'>    
-                        <div class="data-item-variaciones">Variacion Interanual Alimentos
+                        <div class="data-item-variaciones">
+                        <br><img src="cid:alimentos" alt="ALimentos Image" style="max-width: 70px; height: 70px; margin-bottom: 10px;">
+                        <br>
+                        Variacion Interanual Alimentos
                         <br> <span>{df_bdd["var_interanual_alimentos"].iloc[-1]:,.2f}%</span>
                         </div>
+
                         <div class="data-item-variaciones">
                         <br><img src="cid:sueter" alt="Textil Image" style="max-width: 70px; height: 70px; margin-bottom: 10px;">
                         <br>
                         Variacion Interanual Textil 
                         <br><span>{df_bdd["var_interanual_textil"].iloc[-1]:,.2f}%</span>
                         </div>
-                        <div class="data-item-variaciones">Variacion Interanual Sustancias 
+
+                        <div class="data-item-variaciones">
+                        <br><img src="cid:sustancia" alt="Sustancia Image" style="max-width: 70px; height: 70px; margin-bottom: 10px;">
+                        <br>
+                        Variacion Interanual Sustancias 
                         <br><span>{df_bdd["var_interanual_sustancias"].iloc[-1]:,.2f}%</span>
                         </div>
-                        <div class="data-item-variaciones">Variacion Interanual Maderas 
+
+                        <div class="data-item-variaciones">
+                        <br><img src="cid:maderas" alt="Maderas Image" style="max-width: 70px; height: 70px; margin-bottom: 10px;">
+                        <br>
+                        Variacion Interanual Maderas 
                         <br><span>{df_bdd["var_interanual_maderas"].iloc[-1]:,.2f}%</span>
                         </div>
-                        <div class="data-item-variaciones">Variacion Interanual min. No Metalicos 
+
+                        <div class="data-item-variaciones">
+                        <br><img src="cid:minerales_no_metalicos" alt="Min no metalicos Image" style="max-width: 70px; height: 70px; margin-bottom: 10px;">
+                        <br>
+                        Variacion Interanual min. No Metalicos 
                         <br><span>{df_bdd["var_interanual_MinNoMetalicos"].iloc[-1]:,.2f}%</span>
                         </div>
-                        <div class="data-item-variaciones">Variacion Interanual Metales 
+
+                        <div class="data-item-variaciones">
+                        <br><img src="cid:metales" alt="Metales Image" style="max-width: 70px; height: 70px; margin-bottom: 10px;">
+                        <br>
+                        Variacion Interanual Metales 
                         <br><span>{df_bdd["var_interanual_metales"].iloc[-1]:,.2f}%</span>
                         </div>
+
                     </div>
                     <div class="footer">
                         Instituto Provincial de Estadistica y Ciencia de Datos de Corrientes<br>
@@ -158,14 +192,23 @@ class Correo_ipi_nacion:
         # Adjuntar el cuerpo del mensaje HTML
         em.attach(MIMEText(mensaje, 'html'))
 
-        # Ruta de la imagen
-        image_path = "/home/usuario/Escritorio/scrapingTrabajo/scrap_IPI/files/sueter.png"
+        # Ruta de las imágenes
+        image_paths = {
+            "ipi": "/home/usuario/Escritorio/scrapingTrabajo/scrap_IPI/files/ipi.png",
+            "sueter": "/home/usuario/Escritorio/scrapingTrabajo/scrap_IPI/files/sueter.png",
+            "alimentos": "/home/usuario/Escritorio/scrapingTrabajo/scrap_IPI/files/alimentos.png",
+            "sustancia": "/home/usuario/Escritorio/scrapingTrabajo/scrap_IPI/files/sustancias.png",
+            "maderas": "/home/usuario/Escritorio/scrapingTrabajo/scrap_IPI/files/maderas.png",
+            "minerales_no_metalicos": "/home/usuario/Escritorio/scrapingTrabajo/scrap_IPI/files/minerales_no_metalicos.png",
+            "metales": "/home/usuario/Escritorio/scrapingTrabajo/scrap_IPI/files/metales.png"
+        }
 
-        # Adjuntar la imagen
-        with open(image_path, 'rb') as img_file:
-            img = MIMEImage(img_file.read())
-            img.add_header('Content-ID', '<sueter>')
-            em.attach(img)
+        # Adjuntar las imágenes
+        for cid, path in image_paths.items():
+            with open(path, 'rb') as img_file:
+                img = MIMEImage(img_file.read())
+                img.add_header('Content-ID', f'<{cid}>')
+                em.attach(img)
 
         # Configurar el servidor SMTP y enviar el correo
         contexto = ssl.create_default_context()

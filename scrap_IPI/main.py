@@ -23,18 +23,19 @@ credenciales2 = Credenciales('datalake_economico')
 if __name__ == "__main__":
 
     #Extract de data
-    HomePage_IPI().descargar_archivo()
+    #HomePage_IPI().descargar_archivo()
 
     #Obtencion de DF con formato adecuado
-    df_valores,df_variaciones = Transform().main()
+    #df_valores,df_variaciones = Transform().main()
 
 
     #Carga en la BDD - Datalake economico
-    instancia_bdd = Database_ipi(credenciales2.host, credenciales2.user, credenciales2.password, credenciales2.database)
-    bandera = instancia_bdd.main(df_valores,df_variaciones)
-
+    #instancia_bdd = Database_ipi(credenciales2.host, credenciales2.user, credenciales2.password, credenciales2.database)
+    #bandera = instancia_bdd.main(df_valores,df_variaciones)
+    
+    bandera = True
     #Si es V, envia correo, sino, no pasa nada.
-    if False:
+    if bandera == True:
 
         instancia_correo = Correo_ipi_nacion(credenciales2.host, credenciales2.user, credenciales2.password, credenciales2.database)
         instancia_correo.main()
