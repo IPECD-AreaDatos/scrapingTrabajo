@@ -1,30 +1,44 @@
+"""
+Archivo destinado a construir el DATAFRAME  que contendra:
+
+* Valores de la serie original. Cada dato dividido por REGION,CATEGORIA,DIVISION,SUBDIVISION
+"""
 import pandas as pd
 from sqlalchemy import create_engine
-import mysql.connector
+import os
 
-class LoadXLSDregionesValor:
+class TransformRegionesValores:
+
+    #Inicializacion de atributos
     def __init__(self, host, user, password, database):
-        self.host = host
-        self.user = user
-        self.password = password
-        self.database = database
-        self.conn = None
-        self.cursor = None
-    
-    def conectar_bdd(self):
-        try:
-            self.conn = mysql.connector.connect(
-                host=self.host, user=self.user, password=self.password, database=self.database
-            )
-            self.cursor = self.conn.cursor()
-        except mysql.connector.Error as err:
-            print(f"Error: {err}")
-        return self
 
-    def armado_dfs(self, ruta, ruta_categoria):
-        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+        self.engine = create_engine(f"mysql+pymysql://{user}:{password}@{host}:{3306}/{database}")
 
-        tabla_subdivision = pd.read_sql_query("SELECT * FROM ipc_subdivision", con=engine) 
+
+
+    #Objetivo: construir la ruta de acceso a la carpeta FILES
+    def construccion_rutas(self):
+
+        #Carpeta scrap_IPC
+        directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
+        ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
+
+        #Direcciones de los Excels
+        path_ipc_apertura = os.path.join(ruta_carpeta_files, 'sh_ipc_aperturas.xls') #Dato por region
+        path_ipc_mes_ano = os.path.join(ruta_carpeta_files, 'sh_ipc_mes_ano.xls') #Dato nacional
+
+        return path_ipc_apertura, path_ipc_mes_ano
+
+
+    def armado_dfs(self):
+        
+        
+        #Obtencion de rutas
+        path_ipc_apertura, path_ipc_mes_ano = self.construccion_rutas()
+
+        #=== CONSTRUCCION DE TABLA DE MAPEO - Se utiliza las subdivisiones como refencia
+
+        tabla_subdivision = pd.read_sql_query("SELECT * FROM ipc_subdivision", con=self.engine) 
 
         # Crear una columna 'codigo' combinando las columnas 'categoria', 'division' y 'subdivicion' creando una lista con 3 valores enteros
         tabla_subdivision['codigo'] = tabla_subdivision.apply(lambda row: [int(row['id_categoria']), int(row['id_division']), int(row['id_subdivision'])],axis=1)
@@ -32,11 +46,17 @@ class LoadXLSDregionesValor:
         # Crear un diccionario de mapeo entre 'nombre' y la lista de 'codigo' que le corresponde
         nombre_a_codigo = dict(zip(tabla_subdivision['nombre'], tabla_subdivision['codigo']))
 
-        df_original = pd.read_excel(ruta, sheet_name=2, skiprows=5, nrows=295)
+        #=== LECUTURA DEL EXCEL DIVIDO POR REGION
+
+
+        df_original = pd.read_excel(path_ipc_apertura, sheet_name=2, skiprows=5, nrows=295)
         df_original.rename(columns={'Región GBA': 'claves_listas'}, inplace=True)
 
+
+        #=== LECUTURA DEL EXCEL NACIONAL
+
         # Cargamos el df de nacion unicamente, cambiamos la columna de categorias por el mismo nombre 'claves_listas' y hacemos el mapeo, agregamos el df primero en la lista de dfs
-        df_nacion = self.df_nacion(ruta_categoria)
+        df_nacion = self.df_nacion(path_ipc_mes_ano)
         df_nacion.rename(columns={'Total nacional': 'claves_listas'}, inplace=True)
         df_nacion['claves_listas'] = df_nacion['claves_listas'].map(nombre_a_codigo)
         dfs = [df_nacion]
@@ -112,11 +132,23 @@ class LoadXLSDregionesValor:
         
         # Eliminar filas que tienen 0 en los campos 'id_categoria', 'id_division', y 'id_subdivision'
         df_juntos = df_juntos.query('id_categoria != 0 and id_division != 0 and id_subdivision != 0')
-        self.conn.close()
-        self.cursor.close()
+
         return df_juntos
     
     def df_nacion(self, ruta):
         df_original = pd.read_excel(ruta, sheet_name=2, skiprows=5, nrows=19)
         df_original = df_original.iloc[2:]
         return df_original
+    
+
+
+#Carpeta scrap_IPC
+directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
+ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
+
+#Direcciones de los Excels
+path_ipc_apertura = os.path.join(ruta_carpeta_files, 'sh_ipc_mes_ano.xls') #Dato por region
+
+df = TransformRegionesValores(None,None,None,None).df_nacion(path_ipc_apertura)
+
+print(df)
