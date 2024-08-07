@@ -71,6 +71,9 @@ class conexcionBaseDatos:
         self.conn.close()
         self.cursor.close()
 
-        return bandera_var, bandera_val
+        #Condicion final
+        bandera = (bandera_val and bandera_var)
+
+        return bandera
 
 
