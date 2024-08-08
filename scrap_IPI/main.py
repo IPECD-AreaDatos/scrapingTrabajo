@@ -33,7 +33,7 @@ if __name__ == "__main__":
     #instancia_bdd = Database_ipi(credenciales2.host, credenciales2.user, credenciales2.password, credenciales2.database)
     #bandera = instancia_bdd.main(df_valores,df_variaciones,df_var_inter_acum)
     
-    bandera = True
+    bandera = False
     #Si es V, envia correo, sino, no pasa nada.
     if bandera == True:
         instancia_correo = Correo_ipi_nacion(credenciales2.host, credenciales2.user, credenciales2.password, credenciales2.database)
