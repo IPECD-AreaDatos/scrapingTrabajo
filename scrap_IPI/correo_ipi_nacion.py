@@ -31,7 +31,30 @@ class Correo_ipi_nacion:
     def construccion_correo(self):
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores = ['matizalazar2001@gmail.com', 'gastongrillo2001@gmail.com', 'manumarder@gmail.com']
+        email_receptores = email_receptores = [
+                "cynthiacontre09@gmail.com",
+                "lcantero@corrientes.gob.ar",
+                "Margaritalovato@gmail.com",
+                "pintosdana1@gmail.com",
+                "benitezeliogaston@gmail.com",
+                "manumarder@gmail.com",
+                "matizalazar2001@gmail.com",
+                "agusssalinas3@gmail.com",
+                "rigonattofranco1@gmail.com",
+                "ivanfedericorodriguez@gmail.com",
+                "guillermobenasulin@gmail.com",
+                "leclerc.mauricio@gmail.com",
+                "joseignaciobaibiene@gmail.com",
+                "pauliherrero98@gmail.com",
+                "paulasalvay@gmail.com",
+                "samaniego18@gmail.com",
+                "misilvagenez@gmail.com",
+                "christianimariahebe@gmail.com",
+                "jgcasafus@gmail.com",
+                "lic.leandrogarcia@gmail.com",
+                "martinmmicelli@gmail.com",
+                "boscojfrancisco@gmail.com"
+            ]
         
         #Valores de IPI Numeros Indices
         query_consulta_valores = f'SELECT * FROM ipi_valores ORDER BY fecha DESC LIMIT 1'
@@ -212,7 +235,7 @@ class Correo_ipi_nacion:
                     </div>
                     <div class="container-footer">
                         <div class="footer" style="font-size: 15px; color: #888; margin-top: 20px; text-align: center; display: flex;padding-bottom: 20px;" >
-                            <img src="cid:ipecd" alt="IPI Image" style="margin-right: 20px; max-width: 100px; height: auto; pointer-events: none; user-select: none;" >
+                            <img src="cid:ipecd" alt="IPI Image" style="padding-left: 25%; margin-right: 20px; max-width: 100px; height: auto; pointer-events: none; user-select: none;" >
                             <div class="footer-text" style="text-align: left;" >
                                 Instituto Provincial de Estadística y Ciencia de Datos de Corrientes<br>
                                 Dirección: Tucumán 1164 - Corrientes Capital<br>
