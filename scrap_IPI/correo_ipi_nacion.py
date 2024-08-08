@@ -56,7 +56,6 @@ class Correo_ipi_nacion:
         <html>
             <head>
                 <style>
-                    
                     @media (max-width: 768px) {{
                         .data-item {{
                             width: 100%;
@@ -97,10 +96,10 @@ class Correo_ipi_nacion:
                 </style>
             </head>
             <body>
-                <div class="container" <div class="container" style= "background: #ffffff url('cid:fondo') no-repeat center center; background-size: cover;">
+                <div class="container" <div class="container" style= "background-color: #ffffff; background-image: url('cid:fondo'); background-repeat: no-repeat; background-position: center center; background-size: cover;">
                     <h2 style="font-size: 24px; color: #465c49; text-align: center;" ><strong>INDICE DE PRODUCCION INDUSTRIAL MANUFACTURERO (IPI) A {fecha_cadena.upper()}</strong></h2>
                     <div class='container-data-general' style="width: 100%; text-align: center; margin-bottom: 20px;">
-                        <div class="data-item-valor-general" style="display: inline-flex; justify-content: center; align-items: center; border: 2px solid #465c49; border-radius: 10px; padding: 10px; background-image: url("cid:fondo_cuadros"); background-size: cover; background-position: center; overflow: hidden; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); box-sizing: border-box; width: auto; text-align: center; margin: 0 auto; flex-direction: column;">
+                        <div class="data-item-valor-general" style="display: inline-flex; border: 2px solid #465c49; border-radius: 10px; padding: 10px; background-position-x: -75px; background-position-y: -149px; background-size: cover; background-image: url('cid:fondo_cuadros');">
                         <img src="cid:ipi" alt="IPI Image style="pointer-events: none; user-select: none; margin-bottom: 10px; height: 200px; width: 200px; display: block;">
                         <span style="display: block; width: 100%; font-size: 24px; color: #ffffff; text-align: center; padding: 20px;" >Nivel General <br>
                         Indice: <strong>{df_numeros_indices["ipi_manufacturero"].iloc[-1]:,.0f}</strong>
@@ -114,12 +113,12 @@ class Correo_ipi_nacion:
                         </div>
                     </div>
                     <div class='container-data' style="width: 100%; display: flex; flex-direction: column; gap: 20px;" >    
-                        <div class="data-item-variaciones" style="display: block; border: 2px solid #465c49; border-radius: 10px; padding: 10px; text-align: center; background-image: url("cid:fondo_cuadros"); background-size: cover; background-position: center; overflow: hidden; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); box-sizing: border-box; margin: 10px; width: 100%; color: #ffffff;" >
+                        <div class="data-item-variaciones" style="display: block; border: 2px solid #465c49; border-radius: 10px; padding: 10px; margin: 5px; text-align: center; background-position: center; background-image: url('cid:fondo_cuadros');">
                         <br><img src="cid:alimentos" alt="Alimentos Image" style="max-width: 70px; height: 70px; margin-bottom: 10px;">
                         <br>
+                        <span style="color: #ffffff;" >
                         <strong>Alimentos y Bebidas</strong>
                         <hr style="border: 1px solid #465c49;">
-                        <span style="color: #ffffff;" >
                         Indice: <strong>{df_numeros_indices["alimentos"].iloc[-1]:,.1f}</strong>
                         <hr style="border: 0px solid #f1d0d0;">
                         Variacion Interanual: <strong>{df_variacion_interanual["var_interanual_alimentos"].iloc[-1]:,.2f}%</strong>
@@ -130,12 +129,12 @@ class Correo_ipi_nacion:
                         </span>
                         </div>
                         
-                        <div class="data-item-variaciones">
+                        <div class="data-item-variaciones" style="display: block; border: 2px solid #465c49; border-radius: 10px; padding: 10px; margin: 5px; text-align: center; background-position: center; background-image: url('cid:fondo_cuadros');">
                         <br><img src="cid:sueter" alt="Textil Image" style="max-width: 70px; height: 70px; margin-bottom: 10px;">
                         <br>
+                        <span style="color: #ffffff;">
                         <strong> Productos Textiles </strong>
                         <hr style="border: 1px solid #465c49;">
-                        <span>
                         Indice: <strong>{df_numeros_indices["textil"].iloc[-1]:,.1f}</strong>
                         <hr style="border: 0px solid #f1d0d0;">
                         Variacion Interanual: <strong>{df_variacion_interanual["var_interanual_textil"].iloc[-1]:,.2f}%</strong>
@@ -146,12 +145,12 @@ class Correo_ipi_nacion:
                         </span>
                         </div>
                         
-                        <div class="data-item-variaciones">
+                        <div class="data-item-variaciones" style="display: block; border: 2px solid #465c49; border-radius: 10px; padding: 10px; margin: 5px; text-align: center; background-position: center; background-image: url('cid:fondo_cuadros');">
                         <br><img src="cid:sustancia" alt="Sustancia Image" style="max-width: 70px; height: 70px; margin-bottom: 10px;">
                         <br>
+                        <span style="color: #ffffff;">
                         <strong>Sustancias y Productos Quimicos</strong>
                         <hr style="border: 1px solid #465c49;">
-                        <span>
                         Indice: <strong>{df_numeros_indices["sustancias"].iloc[-1]:,.1f}</strong>
                         <hr style="border: 0px solid #f1d0d0;">
                         Variacion Interanual: <strong>{df_variacion_interanual["var_interanual_sustancias"].iloc[-1]:,.2f}%</strong>
@@ -162,12 +161,12 @@ class Correo_ipi_nacion:
                         </span>
                         </div>
 
-                        <div class="data-item-variaciones">
+                        <div class="data-item-variaciones" style="display: block; border: 2px solid #465c49; border-radius: 10px; padding: 10px; margin: 5px; text-align: center; background-position: center; background-image: url('cid:fondo_cuadros');">
                         <br><img src="cid:maderas" alt="Maderas Image" style="max-width: 90px; height: 70px; margin-bottom: 10px;">
                         <br>
+                        <span style="color: #ffffff;">
                         <strong>Madera, Papel, Edicion e Impresion</strong>
                         <hr style="border: 1px solid #465c49;">
-                        <span>
                         Indice: <strong>{df_numeros_indices["maderas"].iloc[-1]:,.1f}</strong>
                         <hr style="border: 0px solid #f1d0d0;">
                         Variacion Interanual: <strong>{df_variacion_interanual["var_interanual_maderas"].iloc[-1]:,.2f}%</strong>
@@ -178,12 +177,12 @@ class Correo_ipi_nacion:
                         </span>
                         </div>
 
-                        <div class="data-item-variaciones">
+                        <div class="data-item-variaciones" style="display: block; border: 2px solid #465c49; border-radius: 10px; padding: 10px; margin: 5px; text-align: center; background-position: center; background-image: url('cid:fondo_cuadros');">
                         <br><img src="cid:minerales_no_metalicos" alt="Min no metalicos Image" style="max-width: 70px; height: 70px; margin-bottom: 10px;">
                         <br>
+                        <span style="color: #ffffff;">
                         <strong>Productos Minerales No Metalicos</strong>
                         <hr style="border: 1px solid #465c49;">
-                        <span>
                         Indice: <strong>{df_numeros_indices["min_no_metalicos"].iloc[-1]:,.1f}</strong>
                         <hr style="border: 0px solid #f1d0d0;">
                         Variacion Interanual: <strong>{df_variacion_interanual["var_interanual_MinNoMetalicos"].iloc[-1]:,.2f}%</strong>
@@ -194,12 +193,12 @@ class Correo_ipi_nacion:
                         </span>
                         </div>
 
-                        <div class="data-item-variaciones">
+                        <div class="data-item-variaciones" style="display: block; justify-content: center !important;border: 2px solid #465c49; border-radius: 10px; padding: 10px; margin: 5px; text-align: center; background-position: center; background-image: url('cid:fondo_cuadros');">
                         <br><img src="cid:metales" alt="Metales Image" style="max-width: 70px; height: 70px; margin-bottom: 10px;">
                         <br>
+                        <span style="color: #ffffff;">
                         <strong>Productos de Metal</strong>
                         <hr style="border: 1px solid #465c49;">
-                        <span>
                         Indice: <strong>{df_numeros_indices["metales"].iloc[-1]:,.1f}</strong>
                         <hr style="border: 0px solid #f1d0d0;">
                         Variacion Interanual: <strong>{df_variacion_interanual["var_interanual_metales"].iloc[-1]:,.2f}%</strong>
@@ -212,7 +211,7 @@ class Correo_ipi_nacion:
 
                     </div>
                     <div class="container-footer">
-                        <div class="footer" style="font-size: 15px; color: #888; margin-top: 20px; text-align: center; display: flex; justify-content: center; align-items: center; padding-bottom: 20px;" >
+                        <div class="footer" style="font-size: 15px; color: #888; margin-top: 20px; text-align: center; display: flex;padding-bottom: 20px;" >
                             <img src="cid:ipecd" alt="IPI Image" style="margin-right: 20px; max-width: 100px; height: auto; pointer-events: none; user-select: none;" >
                             <div class="footer-text" style="text-align: left;" >
                                 Instituto Provincial de Estadística y Ciencia de Datos de Corrientes<br>
