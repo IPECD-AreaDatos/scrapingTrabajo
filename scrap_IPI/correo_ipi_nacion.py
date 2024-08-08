@@ -31,7 +31,7 @@ class Correo_ipi_nacion:
     def construccion_correo(self):
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores = ['matizalazar2001@gmail.com']
+        email_receptores = ['matizalazar2001@gmail.com', 'gastongrillo2001@gmail.com']
         
         #Valores de IPI Numeros Indices
         query_consulta_valores = f'SELECT * FROM ipi_valores ORDER BY fecha DESC LIMIT 1'
@@ -58,7 +58,7 @@ class Correo_ipi_nacion:
                 <style>
                     h2 {{
                         font-size: 24px;
-                        color: #8b4513;
+                        color: #465c49;
                         text-align: center;
                     }}
                     .container {{
@@ -77,7 +77,7 @@ class Correo_ipi_nacion:
                         display: inline-flex;
                         justify-content: center;
                         align-items: center;
-                        border: 2px solid #8b4513;
+                        border: 2px solid #465c49;
                         border-radius: 10px;
                         padding: 10px;
                         background-image: url("cid:fondo_cuadros");
@@ -97,7 +97,7 @@ class Correo_ipi_nacion:
                         display: block;
                         width: 100%;
                         font-size: 24px;
-                        color: #8b4513;
+                        color: #ffffff;
                         text-align: center;
                         padding: 20px;
                     }}
@@ -109,7 +109,7 @@ class Correo_ipi_nacion:
                     }}
                     .data-item-variaciones {{
                         display: block;
-                        border: 2px solid #8b4513;
+                        border: 2px solid #465c49;
                         border-radius: 10px;
                         padding: 10px;
                         text-align: center;
@@ -121,11 +121,12 @@ class Correo_ipi_nacion:
                         box-sizing: border-box;
                         margin: 10px;
                         width: 100%;
+                        color: #ffffff;
                     }}
-                    .data-item span {{
-                        font-weight: bold;
+                    .data-item-variaciones span {{
+                        color: #ffffff;
                     }}
-                    .container-footer {{
+                    .footer {{
                         font-size: 15px;
                         color: #888;
                         margin-top: 20px;
@@ -133,6 +134,8 @@ class Correo_ipi_nacion:
                         display: flex;
                         justify-content: center;
                         align-items: center;
+                        padding-left: 25%;
+                        padding-bottom: 20px;
                     }}
                     .footer img {{
                         margin-right: 20px;
@@ -186,7 +189,7 @@ class Correo_ipi_nacion:
                         <br><img src="cid:alimentos" alt="Alimentos Image" style="max-width: 70px; height: 70px; margin-bottom: 10px;">
                         <br>
                         <strong>Alimentos y Bebidas</strong>
-                        <hr style="border: 1px solid #8b4513;">
+                        <hr style="border: 1px solid #465c49;">
                         <span>
                         Indice: <strong>{df_numeros_indices["alimentos"].iloc[-1]:,.1f}</strong>
                         <hr style="border: 0px solid #f1d0d0;">
@@ -202,7 +205,7 @@ class Correo_ipi_nacion:
                         <br><img src="cid:sueter" alt="Textil Image" style="max-width: 70px; height: 70px; margin-bottom: 10px;">
                         <br>
                         <strong> Productos Textiles </strong>
-                        <hr style="border: 1px solid #8b4513;">
+                        <hr style="border: 1px solid #465c49;">
                         <span>
                         Indice: <strong>{df_numeros_indices["textil"].iloc[-1]:,.1f}</strong>
                         <hr style="border: 0px solid #f1d0d0;">
@@ -218,7 +221,7 @@ class Correo_ipi_nacion:
                         <br><img src="cid:sustancia" alt="Sustancia Image" style="max-width: 70px; height: 70px; margin-bottom: 10px;">
                         <br>
                         <strong>Sustancias y Productos Quimicos</strong>
-                        <hr style="border: 1px solid #8b4513;">
+                        <hr style="border: 1px solid #465c49;">
                         <span>
                         Indice: <strong>{df_numeros_indices["sustancias"].iloc[-1]:,.1f}</strong>
                         <hr style="border: 0px solid #f1d0d0;">
@@ -234,7 +237,7 @@ class Correo_ipi_nacion:
                         <br><img src="cid:maderas" alt="Maderas Image" style="max-width: 90px; height: 70px; margin-bottom: 10px;">
                         <br>
                         <strong>Madera, Papel, Edicion e Impresion</strong>
-                        <hr style="border: 1px solid #8b4513;">
+                        <hr style="border: 1px solid #465c49;">
                         <span>
                         Indice: <strong>{df_numeros_indices["maderas"].iloc[-1]:,.1f}</strong>
                         <hr style="border: 0px solid #f1d0d0;">
@@ -250,7 +253,7 @@ class Correo_ipi_nacion:
                         <br><img src="cid:minerales_no_metalicos" alt="Min no metalicos Image" style="max-width: 70px; height: 70px; margin-bottom: 10px;">
                         <br>
                         <strong>Productos Minerales No Metalicos</strong>
-                        <hr style="border: 1px solid #8b4513;">
+                        <hr style="border: 1px solid #465c49;">
                         <span>
                         Indice: <strong>{df_numeros_indices["min_no_metalicos"].iloc[-1]:,.1f}</strong>
                         <hr style="border: 0px solid #f1d0d0;">
@@ -266,7 +269,7 @@ class Correo_ipi_nacion:
                         <br><img src="cid:metales" alt="Metales Image" style="max-width: 70px; height: 70px; margin-bottom: 10px;">
                         <br>
                         <strong>Productos de Metal</strong>
-                        <hr style="border: 1px solid #8b4513;">
+                        <hr style="border: 1px solid #465c49;">
                         <span>
                         Indice: <strong>{df_numeros_indices["metales"].iloc[-1]:,.1f}</strong>
                         <hr style="border: 0px solid #f1d0d0;">
