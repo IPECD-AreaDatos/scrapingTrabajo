@@ -4,7 +4,6 @@
 *.xls
 *.pdf
 *.venv
-*.png
 *.jpg
 entorno_trabajo/
 __pycache__/

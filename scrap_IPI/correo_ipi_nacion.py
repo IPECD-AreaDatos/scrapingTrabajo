@@ -31,7 +31,7 @@ class Correo_ipi_nacion:
     def construccion_correo(self):
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores = ['matizalazar2001@gmail.com']
+        email_receptores = ['matizalazar2001@gmail.com', 'gastongrillo2001@gmail.com', 'manumarder@gmail.com']
         
         #Valores de IPI Numeros Indices
         query_consulta_valores = f'SELECT * FROM ipi_valores ORDER BY fecha DESC LIMIT 1'
@@ -61,13 +61,6 @@ class Correo_ipi_nacion:
                         color: #465c49;
                         text-align: center;
                     }}
-                    .container {{
-                        width: 100%;
-                        background-image: url("cid:fondo");
-                        background-size: cover;
-                        background-position: center;
-                        overflow: hidden; /* Oculta las barras de desplazamiento */
-                    }}
                     .container-data-general {{
                         width: 100%;
                         text-align: center;
@@ -90,15 +83,6 @@ class Correo_ipi_nacion:
                         text-align: center;
                         margin: 0 auto;
                         flex-direction: column;
-                    }}
-                    .data-item-valor-general img {{
-                        margin-bottom: 10px;
-                        height: 200px;
-                        width: 200px;
-                        display: block;
-                        border: none;
-                        pointer-events: none;
-                        user-select: none;
                     }}
                     .container-data-general span {{
                         display: block;
@@ -193,11 +177,11 @@ class Correo_ipi_nacion:
                 </style>
             </head>
             <body>
-                <div class="container">
+                <div class="container" <div class="container" style= "background: #ffffff url('cid:fondo') no-repeat center center; background-size: cover;">
                     <h2><strong>INDICE DE PRODUCCION INDUSTRIAL MANUFACTURERO (IPI) A {fecha_cadena.upper()}</strong></h2>
                     <div class='container-data-general'>
                         <div class="data-item-valor-general">
-                        <img src="cid:ipi" alt="IPI Image">
+                        <img src="cid:ipi" alt="IPI Image style="pointer-events: none; user-select: none; margin-bottom: 10px; height: 200px; width: 200px; display: block;">
                         <span>Nivel General <br>
                         Indice: <strong>{df_numeros_indices["ipi_manufacturero"].iloc[-1]:,.0f}</strong>
                         <br>
@@ -339,8 +323,8 @@ class Correo_ipi_nacion:
 
         # Diccionario de nombres de archivos de imágenes
         image_files = {
-            "fondo": "fondo_correo.jpg",
-            "fondo_cuadros": "fondo_cuadros.jpg",
+            "fondo": "fondo_correo.png",
+            "fondo_cuadros": "fondo_cuadros.png",
             "ipecd": "logo_ipecd.png",
             "ipi": "ipi.png",
             "sueter": "sueter.png",
