@@ -95,56 +95,69 @@ class Correo:
             smtp.login(email_emisor, email_contraseña)
             smtp.sendmail(email_emisor, email_receptores, em.as_string())
 
-    # Calcular la variacion mensual, intearanual y acumulado del IPC dependiendo la region
-    
+    # Calcular la variacion mensual, intearanual y acumulado del IPC de todas las regiones y categorias
     def calcular_variaciones(self):
         query = 'SELECT fecha, id_region, id_categoria, valor FROM ipc_valores'
         df = pd.read_sql(query, self.conn)
         df['fecha'] = pd.to_datetime(df['fecha'])
+        
+        # Se ordena el DataFrame por región, categoría y fecha, para organizar los datos cronológicamente.
         df = df.sort_values(by=['id_region', 'id_categoria', 'fecha'])
         
+        # Se crea una lista vacía para almacenar los resultados históricos.
         historico = []
 
+        # Se agrupan los datos por región e id_categoria para realizar cálculos en grupos de datos similares.
         for (region, categoria), grupo in df.groupby(['id_region', 'id_categoria']):
+            
+            # Se reindexa el grupo por fechas, asegurando que cada mes tenga un registro, sumando valores en caso de duplicados.
             grupo = grupo.set_index('fecha').resample('M').sum().reset_index()
             
+            # Se itera sobre cada fila del grupo de datos.
             for i, row in grupo.iterrows():
-                fecha = row['fecha']
-                valor = row['valor']
+                fecha = row['fecha']  # Fecha del registro actual
+                valor = row['valor']  # Valor del IPC del registro actual
                 
                 if i == 0:
-                    # No hay datos previos para calcular variaciones
+                    # Si es el primer registro del grupo, no hay datos anteriores para calcular variaciones.
                     variacion_mensual = None
                     variacion_interanual = None
                     variacion_acumulada = None
                 else:
-                    # Variación mensual
+                    # Se calculan las variaciones solo si no es el primer registro.
+                    
+                    # Variación mensual: comparación con el valor del mes anterior.
                     valor_mes_anterior = grupo.iloc[i-1]['valor']
                     variacion_mensual = ((valor / valor_mes_anterior) - 1) * 100
                     
-                    # Variación interanual
+                    # Variación interanual: comparación con el valor del mismo mes del año anterior.
                     fecha_anio_anterior = fecha - pd.DateOffset(years=1)
                     grupo_anio_anterior = grupo[grupo['fecha'] == fecha_anio_anterior]
                     valor_anio_anterior = grupo_anio_anterior['valor'].values[0] if not grupo_anio_anterior.empty else None
                     variacion_interanual = ((valor / valor_anio_anterior) - 1) * 100 if valor_anio_anterior is not None else None
                     
-                    # Variación acumulada desde diciembre del año anterior
+                    # Variación acumulada: comparación con el valor de diciembre del año anterior.
                     grupo_diciembre_anio_anterior = grupo[(grupo['fecha'].dt.year == fecha.year - 1) & (grupo['fecha'].dt.month == 12)]
                     valor_diciembre_anio_anterior = grupo_diciembre_anio_anterior['valor'].values[0] if not grupo_diciembre_anio_anterior.empty else None
                     variacion_acumulada = ((valor / valor_diciembre_anio_anterior) - 1) * 100 if valor_diciembre_anio_anterior is not None else None
                 
+                # Se agrega el resultado de las variaciones a la lista histórica.
                 historico.append({
                     'fecha': fecha,
                     'id_region': region,
-                    'id_categoria': categoria,  
+                    'id_categoria': categoria,
                     'var_mensual': np.floor(variacion_mensual * 10) / 10 if variacion_mensual is not None else None,
                     'var_interanual': np.floor(variacion_interanual * 10) / 10 if variacion_interanual is not None else None,
                     'var_acumulada': np.floor(variacion_acumulada * 10) / 10 if variacion_acumulada is not None else None
                 })
         
+        # Se convierte la lista de resultados históricos en un DataFrame.
         df_resultado = pd.DataFrame(historico)
         
+        # Se reemplazan los valores NaN por None para asegurar la compatibilidad con bases de datos.
         df_resultado = df_resultado.applymap(lambda x: None if pd.isna(x) else x)
+        
+        # Si el id_region es un tuple, se extrae el primer elemento; esto podría ocurrir por la forma en que se manejan los datos en pandas.
         df_resultado['id_region'] = df_resultado['id_region'].apply(lambda x: x[0] if isinstance(x, tuple) else x)
 
         return df_resultado
