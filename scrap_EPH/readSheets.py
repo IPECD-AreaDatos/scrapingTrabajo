@@ -26,12 +26,12 @@ class readSheets:
         sheet = service.spreadsheets()
 
         # Realiza una llamada a la API para obtener datos desde la hoja 'Hoja 1' en el rango 'A1:A8'
-        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='Trabajo_EPH!A:H').execute()
+        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='Trabajo_EPH!A:I').execute()
         # Extrae los valores del resultado
         values = result.get('values', [])[1:]
 
         # Crea el DataFrame df1
-        df = pd.DataFrame(values, columns=['Aglomerado', 'Año', 'Fecha', 'Trimestre', 'Estado del dato', 'Tasa de Actividad', 'Tasa de Empleo', 'Tasa de desocupación']) 
+        df = pd.DataFrame(values, columns=['Region','Aglomerado', 'Año', 'Fecha', 'Trimestre', 'Estado del dato', 'Tasa de Actividad', 'Tasa de Empleo', 'Tasa de desocupación']) 
         for e in df['Estado del dato']:
             if e != 'FINALIZADO':
                df.replace({e:pd.NA}, inplace=True)
@@ -61,5 +61,6 @@ class readSheets:
         # Convertir la segunda columna a tipo de datos entero
         df['Trimestre'] = df['Trimestre'].astype(str)
         df['Aglomerado'] = df['Aglomerado'].astype(str)
+        df['Region'] = df['Region'].astype(str)
         df['Año'] = df['Año'].astype(int)
         

@@ -529,17 +529,15 @@ class connect_db:
             print(f"Tabla {table_name} truncada.")
 
             for index, row in df.iterrows():
-                # Convertir la fecha al formato adecuado para MySQL
-                row['fecha'] = row['fecha'].strftime('%Y-%m-%d')
 
                 # Luego, puedes usar estos valores en tu consulta SQL
-                sql_insert = f"INSERT INTO {table_name} (aglomerado, año, trimestre,fecha, no_desplaza, desplaza_en_municipio, desplaza_fuera_municipio, sin_desplazamiento_fijo) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+                sql_insert = f"INSERT INTO {table_name} (aglomerado, año, trimestre,fecha, no_desplaza, desplaza_en_municipio, desplaza_fuera_municipio, sin_desplazamiento_fijo, tarda_menos_de_15_minutos, tarda_entre_15_y_30_minutos, tarda_entre_30_min_y_1_hora, tarda_mas_de_1_hora) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
 
                 # Rellenar los valores faltantes (NaN) con None
                 row = row.where(pd.notnull(row), None)
                 
                 # Ejecutar la sentencia SQL de inserción
-                cursor.execute(sql_insert, (row['aglomerado'], row['año'], row['trimestre'], row['fecha'], row['no_desplaza'], row['desplaza_en_municipio'], row['desplaza_fuera_municipio'], row['sin_desplazamiento_fijo']))
+                cursor.execute(sql_insert, (row['aglomerado'], row['año'], row['trimestre'], row['fecha'], row['no_desplaza'], row['desplaza_en_municipio'], row['desplaza_fuera_municipio'], row['sin_desplazamiento_fijo'], row['tarda_menos_de_15_minutos'], row['tarda_entre_15_y_30_minutos'], row['tarda_entre_30_min_y_1_hora'], row['tarda_mas_de_1_hora']))
 
 
             conn.commit()

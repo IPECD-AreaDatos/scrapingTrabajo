@@ -20,7 +20,7 @@ class connect_db:
         table_name= 'eph_tasas'
         delete_query = f"TRUNCATE {database}.{table_name}"
         query_cantidad_datos = f'SELECT COUNT(*) FROM {table_name}'
-        query_insertar_datos = f"INSERT INTO {table_name} VALUES (%s, %s, %s, %s, %s, %s, %s)"
+        query_insertar_datos = f"INSERT INTO {table_name} VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
         
         #Obtencion de tamaño del DF sacado del EXCEL
         cant_filas_df = len(df)
@@ -34,7 +34,7 @@ class connect_db:
 
             #Iteramos el dataframe, y vamos cargando fila por fila
             for index,valor in df.iterrows():
-                values = (valor['Aglomerado'], valor['Año'], valor['Fecha'], valor['Trimestre'], valor['Tasa de Actividad'], valor['Tasa de Empleo'], valor['Tasa de desocupación'])
+                values = (valor['Region'], valor['Aglomerado'], valor['Año'], valor['Fecha'], valor['Trimestre'], valor['Tasa de Actividad'], valor['Tasa de Empleo'], valor['Tasa de desocupación'])
                 # Convertir valores NaN a None --> Lo hacemos porque los valores 'nan' no son reconocidos por MYSQL
                 values = [None if isna(v) else v for v in values]
                 

@@ -27,12 +27,12 @@ class readSheetsTransporteDesplazamiento:
         sheet = service.spreadsheets()
 
         #Realiza una llamada a la API para obtener datos desde la hoja 'Hoja 1' en el rango 'A1:A8'
-        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='Transporte_Desplazamiento_ECV!A:U').execute()
+        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='Transporte_Desplazamiento_ECV!A:M').execute()
         # Extrae los valores del resultado
         values = result.get('values', [])[1:]
         
         # Crea el DataFrame df1
-        df = pd.DataFrame(values, columns=['aglomerado', 'año', 'trimestre','fecha','estado_dato', 'no_desplaza', 'desplaza_en_municipio', 'desplaza_fuera_municipio', 'sin_desplazamiento_fijo'])
+        df = pd.DataFrame(values, columns=['aglomerado', 'año', 'trimestre','fecha','estado_dato', 'no_desplaza', 'desplaza_en_municipio', 'desplaza_fuera_municipio', 'sin_desplazamiento_fijo', 'tarda_menos_de_15_minutos', 'tarda_entre_15_y_30_minutos', 'tarda_entre_30_min_y_1_hora', 'tarda_mas_de_1_hora'])
         print(df)
 
         for i, e in enumerate(df['estado_dato']):
@@ -59,7 +59,7 @@ class readSheetsTransporteDesplazamiento:
 
     def transformar_tipo_datos(self, df):
         # Seleccionar las columnas numéricas
-        columnas_numericas_porcentajes = ['no_desplaza', 'desplaza_en_municipio', 'desplaza_fuera_municipio', 'sin_desplazamiento_fijo']
+        columnas_numericas_porcentajes = ['no_desplaza', 'desplaza_en_municipio', 'desplaza_fuera_municipio', 'sin_desplazamiento_fijo', 'tarda_menos_de_15_minutos', 'tarda_entre_15_y_30_minutos', 'tarda_entre_30_min_y_1_hora', 'tarda_mas_de_1_hora']
         df[columnas_numericas_porcentajes] = df[columnas_numericas_porcentajes].replace({'%': '', ',': '.'}, regex=True).apply(pd.to_numeric)
         # Divide los valores numéricos por 100
         df[columnas_numericas_porcentajes] = df[columnas_numericas_porcentajes] / 100
