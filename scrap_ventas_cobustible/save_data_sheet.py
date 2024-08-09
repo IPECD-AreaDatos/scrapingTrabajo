@@ -2,13 +2,9 @@ from googleapiclient.discovery import build
 from google.oauth2 import service_account
 import os
 import pandas as pd
-import pymysql
-import mysql
-import mysql.connector
-
+from pymysql import connect
 
 class readSheets:
-
     def __init__(self, host, user, password, database):
         self.host = host
         self.user = user
@@ -18,7 +14,7 @@ class readSheets:
         self.cursor = None
     
     def conectar_bdd(self):
-        self.conn = mysql.connector.connect(
+        self.conn = connect(
             host = self.host, user = self.user, password = self.password, database = self.database
         )
         self.cursor = self.conn.cursor()
@@ -37,8 +33,6 @@ class readSheets:
 
         # Convierte el resultado a una lista de Python
         lista_combustible = df_combustible.tolist()
-
-        print(lista_combustible)
 
         # Define los alcances y la ruta al archivo JSON de credenciales
         SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
@@ -59,7 +53,6 @@ class readSheets:
         # Crea una instancia de la API de Google Sheets
         service = build('sheets', 'v4', credentials=creds)
         sheet = service.spreadsheets()
-
 
         #Remplzamos los datos en la fila correspondiente
         request = sheet.values().update(spreadsheetId=SPREADSHEET_ID,

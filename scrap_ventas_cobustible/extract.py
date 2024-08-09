@@ -9,7 +9,6 @@ import xlrd
 class Extraccion:
     
     def __init__(self):
-
         options = webdriver.ChromeOptions()
         options.add_argument('--headless')
     
@@ -20,7 +19,6 @@ class Extraccion:
         self.url_pagina = 'https://datos.gob.ar/dataset/energia-refinacion-comercializacion-petroleo-gas-derivados-tablas-dinamicas/archivo/energia_f0e4e10a-e4b8-44e6-bd16-763a43742107'
 
     def descargar_archivo(self):
-
         # Cargar la página web
         self.driver.get(self.url_pagina)
 
@@ -39,7 +37,6 @@ class Extraccion:
         # Esperar hasta que aparezca el enlace al primer archivo
         archivo = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div[2]/div/div/div[3]/a[1]")))
 
-
         # Obtener la URL del primer archivo
         url_archivo = archivo.get_attribute('href')
 
@@ -49,6 +46,7 @@ class Extraccion:
         # Descargar el primer archivo
         response = requests.get(url_archivo, verify=False)
         wait = WebDriverWait(self.driver, 500)
+        
         # Guardar el primer archivo en la carpeta especificada
         ruta_guardado = os.path.join(carpeta_guardado, nombre_archivo)
         with open(ruta_guardado, 'wb') as file:

@@ -9,42 +9,30 @@ ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
 file_path_desagregado = os.path.join(ruta_carpeta_files, 'ventas_combustible.csv')
 
 class Transformacion: 
-
+    # Objetivo: armar el df final con todos sus campos transformados correctamente
     def crear_df(self):
-        
         df = pd.read_csv(file_path_desagregado)
-        
         df = self.transformar_columnas(df)
-        df = self.transformar_fecha(df)
         df = self.transformar_provincia(df)
-
         print(df.columns)
         print(df.dtypes)
         print(np.unique(df['provincia']))
         df = df.drop(columns=['unidad'])
-
-        print(df)
-
         return df        
 
-
+    # Objetivo: modficar cantidad de columna y editar columna fecha
     def transformar_columnas(self, df):
         df = df.drop(columns = ['empresa','tipodecomercializacion','subtipodecomercializacion','pais', 'indice_tiempo'])
-        
-        return df
-
-    def transformar_fecha(self, df):
         df['fecha'] = pd.to_datetime(df['anio'].astype(str) + '-' + df['mes'].astype(str) + '-01')
         df = df.drop(columns = ['anio','mes'])
         df.insert(0, 'fecha', df.pop('fecha'))
-
         return df
 
+    # Objetivo: cambiar el nombre de las provincias por su codigo numerico representativo
     def transformar_provincia(self, df):
         df = df[df['provincia'] != 'S/D']
         df = df[df['provincia'] != 'no aplica']        
         df = df[df['provincia'] != 'Provincia']
-
         dict_provincias = {
             'Estado Nacional': 1,
             'Capital Federal': 2,
@@ -72,7 +60,5 @@ class Transformacion:
             'Tierra del Fuego': 94,
             'Tucuman': 90,
         }
-
-        # Reemplaza los nombres de las provincias por sus códigos
         df['provincia'] = df['provincia'].replace(dict_provincias)
         return df
