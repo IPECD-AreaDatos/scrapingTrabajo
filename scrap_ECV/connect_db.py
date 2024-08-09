@@ -552,3 +552,104 @@ class connect_db:
 
         cursor.close()
         conn.close()
+        
+    def connect_db_transporte_tiempo_medio(self, df, host, user, password, database): 
+        conn = mysql.connector.connect(
+            host=host,
+            user=user,
+            password=password,
+            database=database
+        )
+        cursor = conn.cursor()
+
+        table_name= 'ecv_transporte_tiempo_medio'
+        select_row_count_query = f"SELECT COUNT(*) FROM {table_name}"
+        cursor.execute(select_row_count_query)
+        filas_BD = cursor.fetchone()[0]
+        print("Base de datos:", filas_BD)
+        print("DataFrame:", len(df))
+        longitud_df = len(df)
+
+        if filas_BD != longitud_df:
+
+            query_truncate = f'TRUNCATE TABLE {table_name}'
+            cursor.execute(query_truncate)
+            conn.commit()
+
+            print(f"Tabla {table_name} truncada.")
+
+            for index, row in df.iterrows():
+
+                # Luego, puedes usar estos valores en tu consulta SQL
+                sql_insert = f"INSERT INTO {table_name} (aglomerado, año, fecha, trimestre, transporte, tarda_menos_de_15_minutos, tarda_entre_15_y_30_minutos, tarda_entre_30_min_y_1_hora, tarda_mas_de_1_hora) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+
+                # Rellenar los valores faltantes (NaN) con None
+                row = row.where(pd.notnull(row), None)
+                
+                # Ejecutar la sentencia SQL de inserción
+                cursor.execute(sql_insert, (row['aglomerado'], row['año'], row['fecha'], row['trimestre'], row['transporte'], row['tarda_menos_de_15_minutos'], row['tarda_entre_15_y_30_minutos'], row['tarda_entre_30_min_y_1_hora'], row['tarda_mas_de_1_hora']))
+
+
+            conn.commit()
+            print(f"Se han insertado {longitud_df} nuevos registros en la tabla {table_name}.")
+
+
+        else: 
+            print("Se verifico la tabla de ecv")
+            
+
+        print("Se verifico Tabla Transporte Desplazamientos")
+
+        cursor.close()
+        conn.close()
+        
+    def connect_db_transporte_universitarios(self, df, host, user, password, database):
+        conn = mysql.connector.connect(
+            host=host,
+            user=user,
+            password=password,
+            database=database
+        )
+        cursor = conn.cursor()
+
+        table_name= 'ecv_transporte_universitarios'
+        select_row_count_query = f"SELECT COUNT(*) FROM {table_name}"
+        cursor.execute(select_row_count_query)
+        filas_BD = cursor.fetchone()[0]
+        print("Base de datos:", filas_BD)
+        print("DataFrame:", len(df))
+        longitud_df = len(df)
+
+        if filas_BD != longitud_df:
+
+            query_truncate = f'TRUNCATE TABLE {table_name}'
+            cursor.execute(query_truncate)
+            conn.commit()
+
+            print(f"Tabla {table_name} truncada.")
+
+            for index, row in df.iterrows():
+
+                # Luego, puedes usar estos valores en tu consulta SQL
+                sql_insert = f"INSERT INTO {table_name} (aglomerado, año, trimestre, fecha, automovil, motocicleta, bicicleta, caminata, taxi_o_remis, transporte_urbano, transporte_interurbano, otros) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+
+                # Rellenar los valores faltantes (NaN) con None
+                row = row.where(pd.notnull(row), None)
+                
+                # Ejecutar la sentencia SQL de inserción
+                cursor.execute(sql_insert, (row['aglomerado'], row['año'], row['trimestre'], row['fecha'],  row['automovil'], row['motocicleta'], row['bicicleta'], row['caminata'], row['taxi_o_remis'], row['transporte_urbano'], row['transporte_interurbano'], row['otros']))
+
+
+            conn.commit()
+            print(f"Se han insertado {longitud_df} nuevos registros en la tabla {table_name}.")
+
+
+        else: 
+            print("Se verifico la tabla de ecv")
+            
+
+        print("Se verifico Tabla Transporte Desplazamientos")
+
+        cursor.close()
+        conn.close()
+        
