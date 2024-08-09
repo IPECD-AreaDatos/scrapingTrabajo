@@ -17,25 +17,19 @@ from credenciales_bdd import Credenciales
 instancia_credenciales = Credenciales('datalake_economico')
 instancia_credenciales2 = Credenciales('dwh_economico')
 
-print("Las credenciales son", instancia_credenciales.host,instancia_credenciales.user,instancia_credenciales.password,instancia_credenciales.database)
-print("Las credenciales2 son", instancia_credenciales2.host,instancia_credenciales2.user,instancia_credenciales2.password,instancia_credenciales2.database)
 
 if __name__ == '__main__':
 
     #Descargar EXCEL - Tambien almacenamos las rutas que usaremos
-    #home_page = HomePage()    
-    #home_page.descargar_archivo()
-
-    # Carga de Ipc desagregado y por categoria para Nacion
-    directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
-    ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
-    file_path_desagregado = os.path.join(ruta_carpeta_files, 'IPC_Desagregado.xls')
-    file_path_categoria = os.path.join(ruta_carpeta_files, 'IPC_categoria.xls')
+    home_page = HomePage()    
+    home_page.descargar_archivo()
     
     # Armado del df de ipc variaciones
     instancia_transform = TransformRegionesVariaciones(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database)
-    df_variaciones = instancia_transform.armado_dfs()
+    df_variaciones = instancia_transform.main()
 
+
+    sys.exit()
     # Armado del df de ipc valores
     instancia_valores = TransformRegionesValores(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database)
     df_valores = instancia_valores.armado_dfs()

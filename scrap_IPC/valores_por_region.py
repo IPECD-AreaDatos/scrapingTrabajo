@@ -140,15 +140,3 @@ class TransformRegionesValores:
         df_original = df_original.iloc[2:]
         return df_original
     
-
-
-#Carpeta scrap_IPC
-directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
-ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
-
-#Direcciones de los Excels
-path_ipc_apertura = os.path.join(ruta_carpeta_files, 'sh_ipc_mes_ano.xls') #Dato por region
-
-df = TransformRegionesValores(None,None,None,None).df_nacion(path_ipc_apertura)
-
-print(df)
