@@ -1,5 +1,4 @@
-from variaciones_por_region import TransformRegionesVariaciones
-from valores_por_region import TransformRegionesValores
+from variaciones_por_region import TransformRegiones
 from carga_db import conexcionBaseDatos
 import os
 import sys
@@ -21,18 +20,16 @@ instancia_credenciales2 = Credenciales('dwh_economico')
 if __name__ == '__main__':
 
     #Descargar EXCEL - Tambien almacenamos las rutas que usaremos
-    home_page = HomePage()    
-    home_page.descargar_archivo()
+    #home_page = HomePage()    
+    #home_page.descargar_archivo()
     
     # Armado del df de ipc variaciones
-    instancia_transform = TransformRegionesVariaciones(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database)
+    instancia_transform = TransformRegiones(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database)
     df_variaciones = instancia_transform.main()
 
 
     sys.exit()
-    # Armado del df de ipc valores
-    instancia_valores = TransformRegionesValores(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database)
-    df_valores = instancia_valores.armado_dfs()
+
 
     # Carga de los dfs a la base
     instancia_bdd = conexcionBaseDatos(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database).conectar_bdd()

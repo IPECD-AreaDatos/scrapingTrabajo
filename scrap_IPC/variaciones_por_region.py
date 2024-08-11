@@ -1,15 +1,14 @@
 """
 Archivo destinado a construir el DATAFRAME  que contendra:
-
-* Vars. mensuales. Cada dato dividido por REGION,CATEGORIA,DIVISION,SUBDIVISION
+* Valores de indice, Vars. mensuales. y Vars. interanuales. Cada dato dividido por REGION,CATEGORIA,DIVISION,SUBDIVISION
 """
 
 import pandas as pd
 from sqlalchemy import create_engine
 import os
-import sys
+import unidecode
 
-class TransformRegionesVariaciones:
+class TransformRegiones:
 
     #DEfinicion de atributos
     def __init__(self, host, user, password, database):
@@ -33,7 +32,20 @@ class TransformRegionesVariaciones:
         # Crear un diccionario de mapeo entre 'nombre' y la lista de 'codigo' que le corresponde
         self.diccionario = dict(zip(tabla_subdivision['nombre'], tabla_subdivision['codigo']))
 
-        
+        #Formateamos las keys, a un formato sin acentos, mayusculas, espacios, tildes
+        self.diccionario  = {self.formatear_key(key): value for key, value in self.diccionario.items()}
+
+
+    #Objetivo: formatear las keys del diciconario generado || Tambien se usa para formatear las subdivisiones que se presentan en el excel
+    def formatear_key(self,key):
+        # Convertir a minúsculas
+        key = key.lower()
+        # Eliminar tildes y acentos
+        key = unidecode.unidecode(key)
+        # Eliminar comas, puntos y espacios
+        key = key.replace(',', '').replace('.', '').replace(' ', '')
+        return key
+
 
     #Objetivo: construir la ruta de acceso a la carpeta FILES
     def construccion_rutas(self):
@@ -72,9 +84,20 @@ class TransformRegionesVariaciones:
         #Cambiamos el nombre de la primera columna, de Total nacional a claves_listas
         df_nacion.rename(columns={'Total nacional': 'claves_listas'}, inplace=True)
 
+
+        #==== FORMATEO DE DICCIONARIO
+
+        """
+        Funcionamiento: Al realizar apply, se aplica la funcion 'formatear_key' a cada valor de la serie.
+        No es necesario pasarle parametros, ya que la funcion ya apply, ya entiende que se aplica a las
+        columnas indicadas.
+        """
+        df_nacion['claves_listas'] = df_nacion['claves_listas'].apply(self.formatear_key)
+
+
+
         #Realizamos el mapeo de los datos
         df_nacion['claves_listas'] = df_nacion['claves_listas'].map(self.diccionario)
-
 
         #La lista generada en 'claves_listas', que contiene 3 valores, la usaremos para generar 3 columnas adicionales.
         #Cada columna tiene un valor que representa una CATEGORIA | DIVISION | SUBDIVISION
@@ -162,32 +185,34 @@ class TransformRegionesVariaciones:
             #Generamos una copia por las dudas
             df = df_region.copy()
 
-
             # Eliminar filas donde todos los valores son NaN || se aplica porque al buscar los valores, la ultima fila contiene valores Nulos
 
             #Paso 1
             df.columns = df.iloc[0]
+            df = df.iloc[1:,]
 
-            #Paso 2 (para eliminar las N primeras filas, tomaremos datos desde la N + 1 fila hasta el final)
-            df = df.iloc[filas_a_eliminar + 1:]
-
-            #Paso 3 - Accedemos a la primera columna con el supuesto de "no saber el nombre de la columna"         
-            nom_col = df.columns[0]
-            df.iloc[:, 0] = df[nom_col].map(self.diccionario)
-
+            #Paso 2, Eliminar aquellas filas que presenten TODAS las filas nulas
+            df = df.dropna(how='all')
             
             # ===== EXCEPCION DE LA FUNCION QUE SOLO SE UTILIZA PARA OBTENER LOS VALORES ===== #
 
             #Esta es una excepcion que se usa para poder obtener los valores del IPC. Ya que todos sus DFs presentan una ultima fila en blanco.
             #Entonces la revisamos, y si realmente es nulo, la eliminamos
-            if (df.iloc[-1].isnull().any()):
-                df = df.drop(df.index[-1])
-
+            #if (df.iloc[-1].isnull().any()):
+            #    df = df.drop(df.index[-1])
 
             # ====== FIN DE LA EXCEPCION ====== #
 
+            #Paso 3 - Accedemos a la primera columna con el supuesto de "no saber el nombre de la columna"         
+            nom_col = df.columns[0]
 
-            print(df)
+            #print(df)
+   
+            #Formateamos los nombres de las subdivisiones, para que coincidan con el diccionario
+            df[nom_col] = df[nom_col].apply(self.formatear_key)
+
+            #Realizamos, efectivamente el mapeo
+            df.iloc[:, 0] = df[nom_col].map(self.diccionario)
 
             #Paso 4
             df[['id_categoria', 'id_division', 'id_subdivision']] = pd.DataFrame(df[nom_col].tolist(), index=df.index)
@@ -208,7 +233,29 @@ class TransformRegionesVariaciones:
             df_acum = pd.concat([df_acum,df_melted])
 
         return df_acum
- 
+    
+
+    #Objetivo: juntar todos los datos, logrando un dataset que contenga: valores, vars. mensuales, y vars. interanuales.
+    def concatenacion_final(self,df_valores,df_variaciones,df_variaciones_interanuales):
+        
+        #Realizamos una copia para no afectar el df original
+        df_final = df_valores.copy()
+        df_final['fecha'] = pd.to_datetime(df_final['fecha'])
+        df_variaciones['fecha'] = pd.to_datetime(df_variaciones['fecha'])
+        df_variaciones_interanuales['fecha'] = pd.to_datetime(df_variaciones_interanuales['fecha'])
+
+        # Fusionar los DataFrames en función de las columnas comunes 
+
+        #Lo que se hace es revisar, que claves de df_final coinciden con las de df_variaciones. En caso de coincidir, se asigna el valor 'var_mensual'
+        df_final = pd.merge(df_final, df_variaciones[['fecha', 'id_region', 'id_subdivision', 'var_mensual']], 
+                        on=['fecha', 'id_region', 'id_subdivision'], how='left')
+        
+        #Lo que se hace es revisar, que claves de df_final coinciden con las de df_variaciones_interanuales. En caso de coincidir, se asigna el valor 'var_interanual'
+        df_final = pd.merge(df_final, df_variaciones_interanuales[['fecha', 'id_region', 'id_subdivision', 'var_interanual']], 
+                        on=['fecha', 'id_region', 'id_subdivision'], how='left')
+        
+        return df_final
+    
 
     def main(self):
 
@@ -217,7 +264,8 @@ class TransformRegionesVariaciones:
 
         #Construccion del rutas
         path_ipc_apertura, path_ipc_mes_ano = self.construccion_rutas()
-        
+
+        # ===== OBTENCION DE LOS VALORES DE INDICE TANTO NACIONALES COMO REGIONALES ==== #
      
         #ESTABLECEMOS LAS CONDICIONES INICIALES DE LOS VALORES
         num_hoja_nacion = 2
@@ -225,35 +273,66 @@ class TransformRegionesVariaciones:
         filas_a_eliminar = 1
         nombre_col_valor = 'valor'
 
+        #Obtencion de los valores nacionales
         df_nacion_valores = self.construir_datos_nacionales(path_ipc_mes_ano,num_hoja_nacion,nombre_col_valor)
 
-
+        #Obtencion de los valores por region
         df_region_valores = self.armado_dfs(path_ipc_apertura,num_hoja_regiones,filas_a_eliminar,nombre_col_valor)
 
-
+        #Concatenamos 
         df_valores = pd.concat([df_nacion_valores,df_region_valores])
 
+        #Ordenamos por region, y subdivision, sirve para futuro analisis. Tambien reseteamos el indice.
+        df_valores = df_valores.sort_values(['id_region','id_subdivision'],ascending=True)
+        df_valores = df_valores.reset_index(drop=True)
 
 
+        # ===== OBTENCION DE LAS VARIACIONES NACIONALES Y REGIONALES ==== #
 
-        return None
         #ESTABLECEMOS LAS CONDICIONES INICIALES DE LAS VARIACIONES
         num_hoja_nacion = 0
         num_hoja_regiones = 0
         filas_a_eliminar = 2
         nombre_col_valor = 'var_mensual'
 
-        #Construccion del DF con datos nacionales
+        #Obtencion de las variaciones nacionales
         df_nacion_variaciones = self.construir_datos_nacionales(path_ipc_mes_ano,num_hoja_nacion,nombre_col_valor)
 
-        #Construccion del DF del resto de las regiones
+        #Obtencion de las variaciones por region
         df_region_variaciones = self.armado_dfs(path_ipc_apertura,num_hoja_regiones,filas_a_eliminar,nombre_col_valor)
 
-        #Concatenamos el resultado final
+        #Concatenamos 
         df_variaciones = pd.concat([df_nacion_variaciones,df_region_variaciones])
 
+        #Ordenamos por region, y subdivision, sirve para futuro analisis. Tambien reseteamos el indice.
+        df_variaciones = df_variaciones.sort_values(['id_region','id_subdivision'],ascending=True)
+        df_variaciones = df_variaciones.reset_index(drop=True)
+
+        #df_variaciones['fecha'] = pd.to_datetime(df_variaciones['fecha'])
+
+        #print(df_variaciones[(df_variaciones['id_region'] == 1) & ( df_variaciones['fecha'].dt.year == 2017 ) & ( df_variaciones['id_subdivision'] == 1 ) ] )
 
 
+        # ===== OBTENCION DE LAS VARIACIONES NACIONALES Y REGIONALES ==== #        
+    
+        #ESTABLECEMOS LAS CONDICIONES INICIALES
+        num_hoja_nacion = 1
+        num_hoja_regiones = 1
+        filas_a_eliminar = 1
+        nombre_col_valor = 'var_interanual'
+        
+        #Obtencion de las variaciones interanuales nacionales
+        df_nacion_variaciones_interanuales = self.construir_datos_nacionales(path_ipc_mes_ano,num_hoja_nacion,nombre_col_valor)
+
+        #Obtencion de las variaciones interanuales por region
+        df_region_variaciones_interanuales = self.armado_dfs(path_ipc_apertura,num_hoja_regiones,filas_a_eliminar,nombre_col_valor)
+
+        #Concatenamos resultado final
+        df_variaciones_interanuales = pd.concat([df_nacion_variaciones_interanuales,df_region_variaciones_interanuales])
+
+        #Ordenamos por region, y subdivision, sirve para futuro analisis. Tambien reseteamos el indice.
+        df_variaciones_interanuales = df_variaciones_interanuales.sort_values(['id_region','id_subdivision'],ascending=True)
+        df_variaciones_interanuales = df_variaciones_interanuales.reset_index(drop=True)
 
 
-
+        dfs_concatenados = self.concatenacion_final(df_valores,df_variaciones,df_variaciones_interanuales)
