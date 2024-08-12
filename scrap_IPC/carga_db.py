@@ -1,6 +1,5 @@
 from pymysql import connect
 from sqlalchemy import create_engine
-import pandas as pd
 
 class conexcionBaseDatos:
 
@@ -20,10 +19,10 @@ class conexcionBaseDatos:
         return self
     
     #Objetivo: obtener tamanos de base de datos, y del df, posteriormente se usa para verificar la carga
-    def verificar_carga(self, df, tabla):
+    def verificar_carga(self, df):
 
         #Obtencion del tamano de los datos de la bdd
-        select_row_count_query = f"SELECT COUNT(*) FROM {tabla}"
+        select_row_count_query = f"SELECT COUNT(*) FROM ipc_valores"
         self.cursor.execute(select_row_count_query)
         tamano_bdd = self.cursor.fetchone()[0]   
 
@@ -33,46 +32,46 @@ class conexcionBaseDatos:
         return tamano_bdd,tamano_df
     
     #Objetivo: realizar efectivamente la carga a la BDD
-    def cargaBaseDatos(self, df, tabla):
+    def cargaBaseDatos(self, df):
+
         print("\n*****************************************************************************")
-        print(f"*************************Inicio de la seccion {tabla}*********************************")
+        print(f"*************************Inicio de la seccion IPC VALORES *********************************")
         print("\n*****************************************************************************")
 
         #Obtencion de cantidades de datos
-        tamano_bdd, tamano_df = self.verificar_carga(df, tabla)
-        print(tamano_bdd,tamano_df)
+        tamano_bdd, tamano_df = self.verificar_carga(df)
 
+        print(f" - Cantidad de datos en la base de datos: {tamano_bdd}")
+        print(f" - Cantidad de datos extraidos: {tamano_df}")
+
+        #Si existen mas datos extraidos, se produce la carga
         if tamano_df > tamano_bdd:
             engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
             df_tail = df.tail(tamano_df - tamano_bdd)
-            df_tail.to_sql(name=tabla, con=engine, if_exists='append', index=False)
+            df_tail.to_sql(name='ipc_valores', con=engine, if_exists='append', index=False)
 
             print("*************")
-            print(f" == ACTUALIZACION == Nuevos datos en la base de {tabla}")
+            print(f" == ACTUALIZACION == Nuevos datos en la base de IPC VALORES")
             print("*************")
             return True
         else:
             print("*********")
-            print(f"No existen datos nuevos de {tabla}")
+            print(f"No existen datos nuevos de IPC VALORES")
             print("*********")
             return False
 
-    def main(self, df1, df2):
+    def main(self, df):
+
+        #Nos conectamos a la BDD
         self.conectar_bdd()
 
-        tabla_var = 'ipc_variaciones'
-        tabla_val = 'ipc_valores'
-
-        bandera_var = self.cargaBaseDatos(df1, tabla_var)
-        bandera_val = self.cargaBaseDatos(df2, tabla_val)
+        #Realizamos carga, o no, y asignamos valor a la bandera
+        bandera = self.cargaBaseDatos(df)
 
         #Cerramos conexiones
         self.conn.commit()
         self.conn.close()
         self.cursor.close()
-
-        #Condicion final
-        bandera = (bandera_val and bandera_var)
 
         return bandera
 

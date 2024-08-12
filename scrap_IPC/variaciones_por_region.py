@@ -6,7 +6,8 @@ Archivo destinado a construir el DATAFRAME  que contendra:
 import pandas as pd
 from sqlalchemy import create_engine
 import os
-import unidecode
+from unidecode import unidecode
+from numpy import unique, nan
 
 class TransformRegiones:
 
@@ -41,7 +42,7 @@ class TransformRegiones:
         # Convertir a minúsculas
         key = key.lower()
         # Eliminar tildes y acentos
-        key = unidecode.unidecode(key)
+        key = unidecode(key)
         # Eliminar comas, puntos y espacios
         key = key.replace(',', '').replace('.', '').replace(' ', '')
         return key
@@ -185,9 +186,8 @@ class TransformRegiones:
             #Generamos una copia por las dudas
             df = df_region.copy()
 
-            # Eliminar filas donde todos los valores son NaN || se aplica porque al buscar los valores, la ultima fila contiene valores Nulos
-
             #Paso 1
+            # Eliminar filas donde todos los valores son NaN || se aplica porque al buscar los valores, la ultima fila contiene valores Nulos
             df.columns = df.iloc[0]
             df = df.iloc[1:,]
 
@@ -256,6 +256,62 @@ class TransformRegiones:
         
         return df_final
     
+    #Objetivo: calcular la var. acumulada por cada subdivision
+    def calculo_var_acumulada(self,dfs_concatenados):
+
+        #Creacion de lista de subdivisiones
+        subdivisiones_unicas = list(range(1,46))
+        regiones = [1,2,3,4,5,6,7]
+        anios = unique(dfs_concatenados['fecha'].dt.year)
+
+        #lista de variaciones acumuladas
+        lista_acumuladas = []
+
+        """
+        Explicacion: Para calcular las vars. acumuladas nos basamos en el uso de las
+        subdivisiones. La estrategia es:
+
+        1 - Buscar los datos por REGION|SUBDIVISION|ANO
+        2 - Previo al calculo de la var. acumulada necesitamos el dato.
+            de la misma REGION|SUBDIVISION pero del ano anterior.
+        3 - Si el dato existe, se busca y calcularemos la var. acumulada.
+            En el caso de no exitir, asignaremos un valor nulo en su lugar.
+
+        """
+        for region in regiones:
+            for subdivision in subdivisiones_unicas:
+                for anio in anios:
+                    
+                    #Buscamos el dato de Dic. del ano anterior
+                    try:
+                        dato_anio_anterior = dfs_concatenados[['valor']][(dfs_concatenados['id_subdivision'] == subdivision) & (dfs_concatenados['id_region'] == region) & (dfs_concatenados['fecha'].dt.year == (anio - 1) ) &(dfs_concatenados['fecha'].dt.month == 12 )].iloc[-1]
+                        dato_anio_anterior = dato_anio_anterior.values[0]
+
+                    #Si el dato no existe, asignamos un Nulo a la variable
+                    except:
+                        dato_anio_anterior = nan
+
+
+                    #Buscamos los datos del ANO buscado.
+                    data = dfs_concatenados[
+                        (dfs_concatenados['id_subdivision'] == subdivision) &
+                        (dfs_concatenados['id_region'] == region) &
+                        (dfs_concatenados['fecha'].dt.year == anio)
+                        ]
+                    
+                    #Calculamos la var. acumulada para todos los datos obtenidos
+                    variacion_acumulada = (data['valor'] / dato_anio_anterior) - 1
+
+                    #Recorremos el bloque de datos generado, y lo anadimos a nuestra lista
+                    for valor in variacion_acumulada:
+                        lista_acumuladas.append(valor)
+
+
+        #Asignacion final de los datos
+        dfs_concatenados['var_acumulada'] = lista_acumuladas
+
+                    
+                    
 
     def main(self):
 
@@ -308,12 +364,7 @@ class TransformRegiones:
         df_variaciones = df_variaciones.sort_values(['id_region','id_subdivision'],ascending=True)
         df_variaciones = df_variaciones.reset_index(drop=True)
 
-        #df_variaciones['fecha'] = pd.to_datetime(df_variaciones['fecha'])
-
-        #print(df_variaciones[(df_variaciones['id_region'] == 1) & ( df_variaciones['fecha'].dt.year == 2017 ) & ( df_variaciones['id_subdivision'] == 1 ) ] )
-
-
-        # ===== OBTENCION DE LAS VARIACIONES NACIONALES Y REGIONALES ==== #        
+        # ===== OBTENCION DE LAS VARIACIONES INTERANUALES NACIONALES Y REGIONALES ==== #        
     
         #ESTABLECEMOS LAS CONDICIONES INICIALES
         num_hoja_nacion = 1
@@ -334,5 +385,24 @@ class TransformRegiones:
         df_variaciones_interanuales = df_variaciones_interanuales.sort_values(['id_region','id_subdivision'],ascending=True)
         df_variaciones_interanuales = df_variaciones_interanuales.reset_index(drop=True)
 
-
+        #Concatenamos al df_valores los datos de las vars. mensuales y interanuales
         dfs_concatenados = self.concatenacion_final(df_valores,df_variaciones,df_variaciones_interanuales)
+
+        #El dataset presenta caracteres '///', lo remplazamos por None.
+        dfs_concatenados[['valor','var_mensual','var_interanual']] = dfs_concatenados[['valor','var_mensual','var_interanual']].replace('///', None).astype(float)
+
+        #Transformaciones de dato porcentual a decimal.
+        dfs_concatenados['var_mensual'] = dfs_concatenados['var_mensual'] / 100
+        dfs_concatenados['var_interanual'] = dfs_concatenados['var_interanual'] / 100
+
+
+        #Calculamos la var. acumulada y lo añadimos al dataset
+        self.calculo_var_acumulada(dfs_concatenados)
+
+
+        return dfs_concatenados
+
+
+
+
+        

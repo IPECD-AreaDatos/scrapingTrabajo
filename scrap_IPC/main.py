@@ -20,21 +20,19 @@ instancia_credenciales2 = Credenciales('dwh_economico')
 if __name__ == '__main__':
 
     #Descargar EXCEL - Tambien almacenamos las rutas que usaremos
-    #home_page = HomePage()    
-    #home_page.descargar_archivo()
+    home_page = HomePage()    
+    home_page.descargar_archivo()
     
     # Armado del df de ipc variaciones
     instancia_transform = TransformRegiones(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database)
-    df_variaciones = instancia_transform.main()
+    df = instancia_transform.main()
+
+    print(df)
 
 
-    sys.exit()
-
-
-    # Carga de los dfs a la base
+    #Creamos instancia de BDD y realizamos verficacion de carga. Si hay carga, la bandera sera True, sino False
     instancia_bdd = conexcionBaseDatos(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database).conectar_bdd()
-    # Banderas si se actualizaron las bases
-    bandera = instancia_bdd.main(df_variaciones, df_valores)
+    bandera = instancia_bdd.main(df)
 
     #Valor de bandera
     print(f"-- Condicion de carga en la base de datos: {bandera}")

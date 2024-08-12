@@ -6,6 +6,10 @@ from selenium.webdriver.support import expected_conditions as EC
 import os
 import time
 
+#Ignamos advertencias SSL
+from urllib3 import disable_warnings
+disable_warnings()
+
 class HomePage:
     
     def __init__(self):

@@ -100,7 +100,7 @@ class ExtractDataBDD:
         df['ipc_nea_acum'] = ((((df['ipc_nea']/100) + 1).cumprod()) - 1) * 100
 
         #CABA
-        df['ipc_caba_acum'] = ((((df['ipc_nea']/100) + 1).cumprod()) - 1) * 100
+        df['ipc_caba_acum'] = ((((df['ipc_caba']/100) + 1).cumprod()) - 1) * 100
 
         #ONLINE
         df['ipc_online_acum'] = ((((df['ipc_online']/100) + 1).cumprod()) - 1) * 100
