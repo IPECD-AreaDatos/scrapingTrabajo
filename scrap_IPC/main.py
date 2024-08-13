@@ -1,9 +1,9 @@
-from variaciones_por_region import TransformRegiones
+from transform_region import TransformRegiones
 from carga_db import conexcionBaseDatos
 import os
 import sys
 from homePage import HomePage
-from datos_correo import Correo
+from scrapingTrabajo.scrap_IPC.correo import Correo
 
 # Obtener la ruta al directorio actual del script
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -27,27 +27,6 @@ if __name__ == '__main__':
     instancia_transform = TransformRegiones(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database)
     df = instancia_transform.main()
 
-    print(df)
-
-
     #Creamos instancia de BDD y realizamos verficacion de carga. Si hay carga, la bandera sera True, sino False
     instancia_bdd = conexcionBaseDatos(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database).conectar_bdd()
     bandera = instancia_bdd.main(df)
-
-    #Valor de bandera
-    print(f"-- Condicion de carga en la base de datos: {bandera}")
-
-    sys.exit()
-    correo = Correo(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database).conectar_bdd()
-    df = correo.calcular_variaciones()
-    fecha_especifica = '2024-06-30'
-    df_filtrado = df.loc[df['fecha'] == fecha_especifica]
-    print(df_filtrado)
-    exit()
-    # Envío de correo si hay nuevos datos
-    if bandera_var or bandera_val:
-        correo = Correo(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database).conectar_bdd()
-        correo.enviar_correo()
-        print("Correo enviado.")
-    else:
-        print("No hay nuevos datos, no se enviará ningún correo.")
