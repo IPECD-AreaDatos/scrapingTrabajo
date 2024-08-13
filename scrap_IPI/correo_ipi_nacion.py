@@ -123,7 +123,7 @@ class Correo_ipi_nacion:
                     <h2 style="font-size: 24px; color: #465c49; text-align: center;" ><strong>INDICE DE PRODUCCION INDUSTRIAL MANUFACTURERO (IPI) A {fecha_cadena.upper()}</strong></h2>
                     <div class='container-data-general' style="width: 100%; text-align: center; margin-bottom: 20px;">
                         <div class="data-item-valor-general" style="display: inline-flex; border: 2px solid #465c49; border-radius: 10px; padding: 10px; background-position-x: -75px; background-position-y: -149px; background-size: cover; background-image: url('cid:fondo_cuadros');">
-                        <img src="cid:ipi" alt="IPI Image style="pointer-events: none; user-select: none; margin-bottom: 10px; height: 200px; width: 200px; display: block;">
+                        <img src="cid:ipi" alt="IPI Image" style="pointer-events: none; user-select: none; margin-bottom: 10px; height: 200px; width: 200px; display: block;">
                         <span style="display: block; width: 100%; font-size: 24px; color: #ffffff; text-align: center; padding: 20px;" >Nivel General <br>
                         Indice: <strong>{df_numeros_indices["ipi_manufacturero"].iloc[-1]:,.0f}</strong>
                         <br>
@@ -234,13 +234,8 @@ class Correo_ipi_nacion:
 
                     </div>
                     <div class="container-footer">
-                        <div class="footer" style="font-size: 15px; color: #888; margin-top: 20px; text-align: center; display: flex;padding-bottom: 20px;" >
-                            <img src="cid:ipecd" alt="IPI Image" style="padding-left: 25%; margin-right: 20px; max-width: 100px; height: auto; pointer-events: none; user-select: none;" >
-                            <div class="footer-text" style="text-align: left;" >
-                                Instituto Provincial de Estadística y Ciencia de Datos de Corrientes<br>
-                                Dirección: Tucumán 1164 - Corrientes Capital<br>
-                                Contacto Coordinación General: 3794-284993
-                            </div>
+                    <div class="footer" style="font-size: 15px; color: #888; text-align: center" >
+                            <img src="cid:ipecd" alt="IPI Image" style="margin-right: 20px; max-width: 250px; height: auto; pointer-events: none; user-select: none;" >
                         </div>
                     </div>
                 </div>
