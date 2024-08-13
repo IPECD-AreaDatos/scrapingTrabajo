@@ -54,38 +54,153 @@ class InformeRipte:
             
 
     #Envio de correos por GMAIL
-    def enviar_correo(self,fecha_cadena, nuevo_valor,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada, ruta_archivo_grafico):
+    def enviar_correo(self,fecha_cadena, nuevo_valor, valor_dolarizado,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada, ruta_archivo_grafico):
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
         #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com', 'manumarder@gmail.com']
+        email_receptores =  ['matizalazar2001@gmail.com', 'manumarder@gmail.com']
         em = MIMEMultipart()
         asunto = f'Modificación en la base de datos - Remuneración Imponible Promedio de los Trabajadores Estables (RIPTE) - Fecha {fecha_cadena}'
         mensaje = f'''\
             <html>
-            <body>
-                    <h2 style="font-size: 24px;"><strong> DATOS NUEVOS DE REMUNERACION IMPONIBLE PROMEDIO DE LOS TRABAJADORES ESTABLES (RIPTE) A {fecha_cadena.upper()}. </strong></h2>
+            <head>
+                <style>
+                    body {{
+                        font-family: Arial, sans-serif;
+                        color: #333;
+                        background-color: #f4f4f4;
+                        padding: 20px;
+                    }}
+                    h2 {{
+                        font-size: 24px;
+                        color: #444;
+                    }}
+                    h3 {{
+                        font-size: 18px;
+                        color: #666;
+                    }}
+                    .container {{
+                        background-color: #fff;
+                        padding: 20px;
+                        border-radius: 8px;
+                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                        text-align: center; 
+                    }}
+                    .icon {{
+                        font-size: 48px;
+                        color: #5c6bc0;
+                        margin: 20px 0;
+                    }}
+                    .valor {{
+                        font-size: 36px;
+                        font-weight: bold;
+                        color: #333;
+                        margin: 10px 0;
 
-            <hr>
-            <p>Nueva fecha: {fecha_cadena} -- Nuevo valor:  <span style="font-size: 17px;"><b>${nuevo_valor}<b></p>
-            <hr>
-            <p>Valor correspondiente a {fecha_mes_anterior}: ${valor_anterior} -- Variación Mensual:  <span style="font-size: 17px;"><b>{variacion_mensual:.2f}%</b>  </p>
-            <hr>
-            <p>Variación interanual de {fecha_mes_AñoAnterior} a {fecha_cadena}:  <span style="font-size: 17px;"><b>{variacion_interanual:.2f}%</b> </p>
-            <hr>
-            <p>Variación Acumulada desde {diciembre_AñoAnterior} a {fecha_cadena}:  <span style="font-size: 17px;"><b>{variacion_acumulada:.2f}%</b> </p>
-            <hr>
-            </body>
+                    }}
+                    .fecha {{
+                        font-size: 20px;
+                        color: #999;
+                        margin-bottom: 20px; 
+                    }}
+                    .boxes {{
+                        display: flex;
+                        justify-content: space-between;
+                        margin-top: 30px;
+                    }}
+                    .box {{
+                        background-color: #e8eaf6;
+                        padding: 20px;
+                        width: 30%;
+                        border-radius: 8px;
+                        text-align: center;
+                        margin-right: 10px; /* Espacio entre los boxes */
+                    }}
+                    .box:last-child {{
+                        margin-right: 0; /* Sin margen en el último box */
+                    }}
+                    .box h4 {{
+                        font-size: 20px;
+                        color: #444;
+                        margin-bottom: 10px;
+                    }}
+                    .box p {{
+                        font-size: 24px;
+                        color: #333;
+                        font-weight: bold;
+                    }}
+                    </style>
+                </head>
+                <body>
+                <div class="container">
+                    <h2><strong>DATOS NUEVOS DE REMUNERACION IMPONIBLE PROMEDIO DE LOS TRABAJADORES ESTABLES (RIPTE) A {fecha_cadena.upper()}.</strong></h2>
+                    <h3>RIPTE es un importante indicador salarial de naturaleza previsional, elaborado por la Subsecretaría de Seguridad Social. Este índice mide la remuneración promedio sujeta 
+                    a aportes al Sistema Integrado Previsional Argentino (SIPA) de los trabajadores en relación de dependencia, tanto del sector público como privado.</h3>
 
-            
-            Instituto Provincial de Estadistica y Ciencia de Datos de Corrientes <br>
-            Dirección: Tucumán 1164 - Corrientes Capital
-            - Contacto Coordinación General: 3794 284993
-        
+                    <div class="icon">
+                        <i class="fa-solid fa-users-gear"></i>
+                    </div>
+                    
+                    <div class="valor">
+                        AR${nuevo_valor}
+                        US${valor_dolarizado}
+                    </div>
+                    <div class="fecha">
+                        {fecha_cadena}
+                    </div>
+
+                    <div class="boxes">
+                        <div class="box">
+                            <h4>Variación Mensual</h4>
+                            <p>{variacion_mensual:.2f}%</p>
+                        </div>
+                        <div class="box">
+                            <h4>Variación Interanual</h4>
+                            <p>{variacion_interanual:.2f}%</p>
+                        </div>
+                        <div class="box">
+                            <h4>Variación Acumulada</h4>
+                            <p>{variacion_acumulada:.2f}%</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="container-footer">
+                    <div class="footer" style="font-size: 15px; color: #888; margin-top: 20px; text-align: center; display: flex;padding-bottom: 20px;" >
+                        <img src="cid:ipecd" alt="IPI Image" style="padding-left: 25%; margin-right: 20px; max-width: 100px; height: auto; pointer-events: none; user-select: none;" >
+                        <div class="footer-text" style="text-align: left;" >
+                            Instituto Provincial de Estadística y Ciencia de Datos de Corrientes<br>
+                            Dirección: Tucumán 1164 - Corrientes Capital<br>
+                            Contacto Coordinación General: 3794-284993
+                        </div>
+                    </div>
+                </div>
+            </body>    
             </html>
             '''
         # Establecer el contenido HTML del mensaje
         em.attach(MIMEText(mensaje, 'html'))
+
+        # Obtener el directorio actual donde se encuentra el script
+        script_dir = os.path.dirname(__file__)
+
+        # Definir la carpeta donde se encuentran las imágenes
+        image_dir = os.path.join(script_dir, 'files')
+
+        # Diccionario de nombres de archivos de imágenes
+        image_files = {
+            "ipecd": "logo_ipecd.png", 
+        }
+
+        # Construir las rutas completas y crear un diccionario para las rutas de las imágenes
+        image_paths = {cid: os.path.join(image_dir, filename) for cid, filename in image_files.items()}
+
+        # Adjuntar las imágenes
+        for cid, path in image_paths.items():
+            with open(path, 'rb') as img_file:
+                img = MIMEImage(img_file.read())
+                img.add_header('Content-ID', f'<{cid}>')
+                em.attach(img)
+
 
         # Adjuntar el gráfico como imagen incrustada
         with open(ruta_archivo_grafico, 'rb') as archivo:
@@ -105,6 +220,9 @@ class InformeRipte:
         with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
             smtp.login(email_emisor, email_contraseña)
             smtp.sendmail(email_emisor, email_receptores, em.as_string())
+
+    def dolarizar(self, valor, fecha):
+        consulta = f'SELECT '
 
     #Objetivo 
     def obtener_datos(self,nueva_fecha,nuevo_valor):

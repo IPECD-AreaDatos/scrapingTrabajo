@@ -49,6 +49,10 @@ class ripte_cargaUltimoDato:
 
         if abs(valor_ripte - ultimo_ripte) < tolerancia:
             print("El valor de ripte es el mismo, no se agregaron nuevos datos")
+            nueva_fecha = fecha_base + timedelta(days=calendar.monthrange(fecha_base.year, fecha_base.month)[1])
+
+            InformeRipte(self.host,self.user,self.password,self.database).enviar_mensajes(nueva_fecha, valor_ripte, ultimo_ripte)
+
         else:
             # Sentencia SQL para insertar los datos en la tabla ripte
             insert_query = f"INSERT INTO {table_name} (fecha, valor) VALUES (%s, %s)"
