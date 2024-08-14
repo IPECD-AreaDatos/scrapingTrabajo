@@ -31,6 +31,10 @@ class conexcionBaseDatos:
 
         return tamano_bdd,tamano_df
     
+    def eliminar5(self):
+        delete = f"DELETE FROM combustible WHERE (fecha, producto, provincia, cantidad) IN ( SELECT fecha, producto, provincia, cantidad FROM ( SELECT fecha, producto, provincia, cantidad FROM datalake_economico.combustible ORDER BY fecha DESC LIMIT 5000 ) subquery )"
+        self.cursor.execute(delete)
+    
     #Objetivo: realizar efectivamente la carga a la BDD
     def cargaBaseDatos(self, df):
         print("\n*****************************************************************************")

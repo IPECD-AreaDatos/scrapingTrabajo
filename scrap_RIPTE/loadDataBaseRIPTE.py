@@ -47,12 +47,15 @@ class ripte_cargaUltimoDato:
 
         valor_ripte=float(valor_ripte)
 
+        fecha = datetime(2024, 6, 1)
+        valor_ripte_junio = 933180
+        valor_ripte_mayo = 879483
+
+
+        InformeRipte(self.host,self.user,self.password,self.database).enviar_mensajes(fecha, valor_ripte_junio, valor_ripte_mayo)
+
         if abs(valor_ripte - ultimo_ripte) < tolerancia:
             print("El valor de ripte es el mismo, no se agregaron nuevos datos")
-            nueva_fecha = fecha_base + timedelta(days=calendar.monthrange(fecha_base.year, fecha_base.month)[1])
-
-            InformeRipte(self.host,self.user,self.password,self.database).enviar_mensajes(nueva_fecha, valor_ripte, ultimo_ripte)
-
         else:
             # Sentencia SQL para insertar los datos en la tabla ripte
             insert_query = f"INSERT INTO {table_name} (fecha, valor) VALUES (%s, %s)"
@@ -63,7 +66,8 @@ class ripte_cargaUltimoDato:
             self.conn.commit()
 
             print("Se agregaron nuevos datos")
+            print(f"nueva fecha {nueva_fecha}")
 
-            InformeRipte(self.host,self.user,self.password,self.database).enviar_mensajes(nueva_fecha, valor_ripte, ultimo_ripte)
+            #InformeRipte(self.host,self.user,self.password,self.database).enviar_mensajes(nueva_fecha, valor_ripte, ultimo_ripte)
         cursor.close()
         self.conn.close()

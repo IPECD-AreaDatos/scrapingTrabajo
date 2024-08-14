@@ -28,6 +28,7 @@ if __name__ == "__main__":
 
     # Carga de los dfs a la base
     instancia_bdd = conexcionBaseDatos(credenciales.host, credenciales.user, credenciales.password, credenciales.database).conectar_bdd()
+    instancia_bdd.eliminar5()
     # Banderas si se actualizaron las bases
     bandera = instancia_bdd.main(df_combustible)
     #Valor de bandera
@@ -39,3 +40,6 @@ if __name__ == "__main__":
         print("Sheet actualizado.")
     else:
         print("No hay nuevos datos para el sheet.")
+
+
+    

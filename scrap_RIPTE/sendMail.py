@@ -36,10 +36,15 @@ class InformeRipte:
         self.cursor = self.conn.cursor()
 
     def enviar_mensajes(self,nueva_fecha, nuevo_valor, valor_anterior):
-            #Obtencion de valores para informe por CORREO
+            # Calcular la variación mensual
             variacion_mensual = ((nuevo_valor / valor_anterior) - 1) * 100
-            variacion_interanual, variacion_acumulada, fecha_mes_anterior,fecha_mes_AñoAnterior, diciembre_AñoAnterior = self.obtener_datos(nueva_fecha,nuevo_valor)
 
+            variacion_interanual, variacion_acumulada, fecha_mes_anterior,fecha_mes_AñoAnterior, diciembre_AñoAnterior = self.obtener_datos(nueva_fecha,nuevo_valor)
+                
+            valor_dolarizado = self.dolarizar(nuevo_valor, nueva_fecha)
+            # Obtener la fecha y hora actuales
+            fecha_actual = datetime.now()
+            dia_actual = fecha_actual.day
             print(nueva_fecha)
             #Construccion de la cadena de la fecha actual
             nueva_fecha = nueva_fecha.date()
@@ -50,15 +55,15 @@ class InformeRipte:
             ruta_archivo_grafico= self.generar_y_guardar_grafico()
 
             #==== ENVIO DE MENSAJES
-            self.enviar_correo(fecha_cadena,nuevo_valor,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada, ruta_archivo_grafico)
+            self.enviar_correo(fecha_cadena,dia_actual ,nuevo_valor,valor_dolarizado,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada, ruta_archivo_grafico)
             
 
     #Envio de correos por GMAIL
-    def enviar_correo(self,fecha_cadena, nuevo_valor, valor_dolarizado,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada, ruta_archivo_grafico):
+    def enviar_correo(self,fecha_cadena, dia_actual, nuevo_valor, valor_dolarizado,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada, ruta_archivo_grafico):
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
         #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
-        email_receptores =  ['matizalazar2001@gmail.com', 'manumarder@gmail.com']
+        email_receptores =  ['matizalazar2001@gmail.com','manumarder@gmail.com']
         em = MIMEMultipart()
         asunto = f'Modificación en la base de datos - Remuneración Imponible Promedio de los Trabajadores Estables (RIPTE) - Fecha {fecha_cadena}'
         mensaje = f'''\
@@ -76,8 +81,9 @@ class InformeRipte:
                         color: #444;
                     }}
                     h3 {{
-                        font-size: 18px;
+                        font-size: 15px;
                         color: #666;
+                        font-weight: 100;
                     }}
                     .container {{
                         background-color: #fff;
@@ -96,12 +102,6 @@ class InformeRipte:
                         font-weight: bold;
                         color: #333;
                         margin: 10px 0;
-
-                    }}
-                    .fecha {{
-                        font-size: 20px;
-                        color: #999;
-                        margin-bottom: 20px; 
                     }}
                     .boxes {{
                         display: flex;
@@ -123,11 +123,22 @@ class InformeRipte:
                         font-size: 20px;
                         color: #444;
                         margin-bottom: 10px;
+                        text-transform: uppercase;
+                        font-weight: 200;
+
                     }}
                     .box p {{
                         font-size: 24px;
                         color: #333;
                         font-weight: bold;
+                    }}
+                    .container-footer {{
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        padding-bottom: 20px;
+                        margin-top: 20px;
                     }}
                     </style>
                 </head>
@@ -143,12 +154,9 @@ class InformeRipte:
                     
                     <div class="valor">
                         AR${nuevo_valor}
-                        US${valor_dolarizado}
+                        <br> 
+                        US${valor_dolarizado} 
                     </div>
-                    <div class="fecha">
-                        {fecha_cadena}
-                    </div>
-
                     <div class="boxes">
                         <div class="box">
                             <h4>Variación Mensual</h4>
@@ -164,15 +172,9 @@ class InformeRipte:
                         </div>
                     </div>
                 </div>
-                <div class="container-footer">
-                    <div class="footer" style="font-size: 15px; color: #888; margin-top: 20px; text-align: center; display: flex;padding-bottom: 20px;" >
-                        <img src="cid:ipecd" alt="IPI Image" style="padding-left: 25%; margin-right: 20px; max-width: 100px; height: auto; pointer-events: none; user-select: none;" >
-                        <div class="footer-text" style="text-align: left;" >
-                            Instituto Provincial de Estadística y Ciencia de Datos de Corrientes<br>
-                            Dirección: Tucumán 1164 - Corrientes Capital<br>
-                            Contacto Coordinación General: 3794-284993
-                        </div>
-                    </div>
+                <div class="container-footer" style="display: flex; flex-direction: column; justify-content: center; align-items: center; padding-bottom: 20px; margin-top: 20px;">
+                    <span class="leyenda" style="font-size: 14px; font-weight: 100;color: #666; display: block;">*Valor dolarizado en base al dólar blue cotización al {dia_actual} de {fecha_cadena}</span>
+                    <img src="cid:ipecd" alt="IPI Image" style="max-width: 100px; height: auto; pointer-events: none; user-select: none;">
                 </div>
             </body>    
             </html>
@@ -222,7 +224,24 @@ class InformeRipte:
             smtp.sendmail(email_emisor, email_receptores, em.as_string())
 
     def dolarizar(self, valor, fecha):
-        consulta = f'SELECT '
+        # Convertir la fecha a un formato compatible con la consulta SQL (Año-Mes)
+        fecha_formateada = fecha.strftime('%Y-%m')
+
+        # Consulta SQL para obtener el último valor del dólar blue en el mes de la fecha proporcionada
+        consulta = f'''
+        SELECT venta FROM dolar_blue
+        WHERE DATE_FORMAT(fecha, '%Y-%m') = '{fecha_formateada}'
+        ORDER BY fecha DESC
+        LIMIT 1;
+        '''
+        self.cursor.execute(consulta)
+        resultado = self.cursor.fetchone()
+        if resultado:
+            valor_dolar = resultado[0]
+            valor_dolarizado = round(valor/ valor_dolar, 2)
+            return valor_dolarizado
+        else:
+            raise ValueError("No se encontró un valor de dólar para la fecha proporcionada.")
 
     #Objetivo 
     def obtener_datos(self,nueva_fecha,nuevo_valor):
