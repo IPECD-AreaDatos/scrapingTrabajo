@@ -5,19 +5,14 @@ Detalles:
     - Al instanciar la clase, ya se genera la conexion a la bdd
 """
 
-from email.message import EmailMessage
-from ssl import create_default_context
-from smtplib import SMTP_SSL
 from calendar import month_name
 import pandas as pd
 from sqlalchemy import create_engine
 from email.mime.image import MIMEImage
-
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from jinja2 import Environment, FileSystemLoader
-
 import os
 import ssl
 
@@ -76,16 +71,78 @@ class Correo:
            
         }
         return dicc_variaciones
+    
+    #Objetivo: obtener los datos de las variaciones por CATEGORIA del NEA.
+    def get_data_nea(self,df,fecha_max):
+
+        """
+        Detalle: recordar que las categorias, estan incluidas con un ID en la tabla de subdivisiones.
+        Por ende, usaremos este ID como identificador de los datos.
+        
+        """
+
+
+        
+        #Subdivisiones que representan a las categorias
+        lista_subdivisiones = [1,2,14,17,20,25,27,30,35,37,41,42,44]
+
+        #Obtencion de los datos
+        data_nea = df[['id_categoria','var_mensual','var_interanual','var_acumulada']][ (df['fecha'] == fecha_max) & (df['id_region'] == 5) & ( df['id_subdivision'].isin(lista_subdivisiones) ) ]
+
+
+        # ==== ORDENAMIENTO DE LOS DATOS
+
+        """
+        Para ordenar los datos, vamos a buscar la tabla de categorias, con el objetivo de mapearlos con su nombre real, en lugar del ID.
+        Esto sirve para luego mostrar la tabla.
+        """
+
+        #Obtencion de los nombres
+        nombres = pd.read_sql("SELECT id_categoria, nombre FROM ipc_categoria",self.engine)
+
+        #Convertimos el DF a un diccionario, para el mapeo de los datos
+        diccionario_nombres = dict(zip(nombres['id_categoria'],nombres['nombre']))
+
+        #aplicamos el mapeo a los datos
+        data_nea['id_categoria'] = data_nea['id_categoria'].map(diccionario_nombres)
+
+
+        # Ordenar por variación mensual
+        df_sorted_mensual = data_nea.sort_values(by='var_mensual', ascending=False).reset_index(drop=True)
+
+        # Ordenar por variación interanual
+        df_sorted_interanual = data_nea.sort_values(by='var_interanual', ascending=False).reset_index(drop=True)
+
+        # Ordenar por variacion acumulada
+        df_sorted_acumulada = data_nea.sort_values(by='var_acumulada', ascending=False).reset_index(drop=True)
+
+        # Crear un nuevo DataFrame con las categorías y variaciones ordenadas
+        df_resultado = pd.DataFrame({
+            'categoria_mensual': df_sorted_mensual['id_categoria'],
+            'var_mensual': df_sorted_mensual['var_mensual'],
+            'categoria_interanual': df_sorted_interanual['id_categoria'],
+            'var_interanual': df_sorted_interanual['var_interanual'],
+            'categoria_acumulada': df_sorted_acumulada['id_categoria'],
+            'var_acumulada':df_sorted_acumulada['var_acumulada']
+        })
+
+        #Redondeamos datos por comodidad visual
+        df_resultado[['var_mensual','var_interanual','var_acumulada']] = df_resultado[['var_mensual','var_interanual','var_acumulada']]* 100
+
+        df_resultado[['var_mensual','var_interanual','var_acumulada']] = df_resultado[['var_mensual','var_interanual','var_acumulada']].round(2)
+
+        return df_resultado
+
 
     #Objetivo: renderizar la plantilla HTML del IPC
-    def get_template(self,ruta_folder_images,ruta_archivo,dicc_variaciones):
+    def get_template(self,ruta_folder_images,ruta_archivo,dicc_variaciones,df_data_nea):
 
         #Cargamos el entorno, donde esta incluido: la carpeta imagenes y el HTML del correo.
         env = Environment(loader=FileSystemLoader([ruta_folder_images, ruta_archivo]))
         template = env.get_template('correo_html_imagenes/new-email.html')
 
         # Renderizar la plantilla con los parámetros
-        html_content = template.render(dicc_variaciones = dicc_variaciones)
+        html_content = template.render(dicc_variaciones = dicc_variaciones,df_data_nea = df_data_nea)
 
         return html_content
     
@@ -127,7 +184,7 @@ class Correo:
         # datos del correo
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores = 'benitezeliogaston@gmail.com'
+        email_receptores = ['matizalazar2001@gmail.com','manu.marder@gmail.com','benitezeliogaston@gmail.com']    
 
         # ==== CREACION DEL MENSAJE DE GMAIL ==== #
 
@@ -135,7 +192,8 @@ class Correo:
         msg = MIMEMultipart('alternative')
         msg['Subject'] =f'INDICE DE PRECIOS AL CONSUMIDOR (IPC) - {fecha_asunto}'
         msg['From'] = email_emisor
-        msg['To'] = email_receptores
+        msg['To'] = ", ".join(email_receptores)
+
 
         # ==== INCLUCION DE IMAGENES EN EL HTML USANDO CID ==== #
 
@@ -204,13 +262,18 @@ class Correo:
 
         # === OBTENCION DE LOS DATOS PARA EL CORREO
 
-        #Como queremos los ultimos datos, le pasamos la fecha maxima
+
+        #OBTENCION DE LAS VARIACIONES REGIONALES. Como queremos los ultimos datos, le pasamos la fecha maxima
         dicc_variaciones = self.get_data_variaciones(df,fecha_max)
+
+        #Obtencion de los datos del NEA
+        df_data_nea = self.get_data_nea(df,fecha_max)
+
 
         # === RENDERIZADO DEL HTML
 
         #Obtenemos el html renderizado
-        html_content = self.get_template(ruta_archivo, ruta_folder_images,dicc_variaciones)
+        html_content = self.get_template(ruta_archivo, ruta_folder_images,dicc_variaciones,df_data_nea)
 
         #DEtalle: al enviar el correo, internamente en la funcion, al generar
         #el mensaje de CORREO, es necesario incluir un apartado de imagenes. 
