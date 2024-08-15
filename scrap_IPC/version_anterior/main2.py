@@ -3,9 +3,9 @@ from armadoXLSdataGBA import LoadXLSDataGBA
 from armadoXLSDataPampeana import LoadXLSDataPampeana
 from armadoXLSDataNOA import LoadXLSDataNOA
 from armadoXLSDataNEA import LoadXLSDataNEA
-from armadoXLSDatacuyo import LoadXLSDataCuyo
+from scrapingTrabajo.scrap_IPC.version_anterior.armadoXLSDatacuyo import LoadXLSDataCuyo
 from armadoXLSDataPatagonia import LoadXLSDataPatagonia
-from conexionBaseDatos import conexionBaseDatos
+from scrapingTrabajo.scrap_IPC.version_anterior.conexionBaseDatos import conexionBaseDatos
 from armadoXLSProductos import LoadXLSDataProductos
 
 from variaciones_por_region import LoadXLSDregiones

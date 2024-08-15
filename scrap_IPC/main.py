@@ -3,7 +3,7 @@ from carga_db import conexcionBaseDatos
 import os
 import sys
 from homePage import HomePage
-from scrapingTrabajo.scrap_IPC.correo import Correo
+from correo import Correo
 
 # Obtener la ruta al directorio actual del script
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -28,5 +28,9 @@ if __name__ == '__main__':
     df = instancia_transform.main()
 
     #Creamos instancia de BDD y realizamos verficacion de carga. Si hay carga, la bandera sera True, sino False
-    instancia_bdd = conexcionBaseDatos(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database).conectar_bdd()
+    instancia_bdd = conexcionBaseDatos(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database)
     bandera = instancia_bdd.main(df)
+
+    if bandera:
+
+        Correo(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database).main()

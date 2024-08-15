@@ -332,6 +332,7 @@ class TransformRegiones:
         #Obtencion de los valores nacionales
         df_nacion_valores = self.construir_datos_nacionales(path_ipc_mes_ano,num_hoja_nacion,nombre_col_valor)
 
+
         #Obtencion de los valores por region
         df_region_valores = self.armado_dfs(path_ipc_apertura,num_hoja_regiones,filas_a_eliminar,nombre_col_valor)
 
@@ -398,7 +399,6 @@ class TransformRegiones:
 
         #Calculamos la var. acumulada y lo añadimos al dataset
         self.calculo_var_acumulada(dfs_concatenados)
-
 
         return dfs_concatenados
 

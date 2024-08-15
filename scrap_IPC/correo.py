@@ -2,7 +2,7 @@
 Archivo destinado a obtener los datos necesarios para el correo del IPC, y el envio del mismo.
 
 Detalles:
-    - Al instanciar la clase, ya se genera la conexion a la bdd
+    - Al instanciar la clase, ya se genera la conexion a la bdd.
 """
 
 from calendar import month_name
@@ -48,13 +48,13 @@ class Correo:
     
     #Objetivo: obtener las ultimas variaciones mensuales, interanuales y acumuladas por region. Incluido Nacion
     def get_data_variaciones(self,df,fecha_max):
-        
+
         #Obtenemos las ultimas variaciones a nivel general
-        data_variaciones = df[['id_region','var_mensual','var_interanual','var_acumulada']][(df['id_categoria'] == 1) 
-                              & (df['id_division'] == 1) 
-                              & (df['id_subdivision'] == 1)
-                               & (df['fecha'] == fecha_max) ]
-        
+        data_variaciones = df[['id_region','var_mensual','var_interanual','var_acumulada']][ (df['id_categoria'] == 1) & (df['id_division'] == 1)  & (df['id_subdivision'] == 1) & (df['fecha'] == fecha_max) ]
+
+
+
+
         #Multiplicamos por cien las variaciones
         data_variaciones[['var_mensual','var_interanual','var_acumulada']] = data_variaciones[['var_mensual','var_interanual','var_acumulada']] * 100
         data_variaciones[['var_mensual','var_interanual','var_acumulada']] = data_variaciones[['var_mensual','var_interanual','var_acumulada']].round(2)
@@ -184,8 +184,32 @@ class Correo:
         # datos del correo
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores = ['matizalazar2001@gmail.com','manu.marder@gmail.com','benitezeliogaston@gmail.com']    
-
+        email_receptores = [
+                "cynthiacontre09@gmail.com",
+                "lcantero@corrientes.gob.ar",
+                "Margaritalovato@gmail.com",
+                "pintosdana1@gmail.com",
+                "benitezeliogaston@gmail.com",
+                "manumarder@gmail.com",
+                "matizalazar2001@gmail.com",
+                "agusssalinas3@gmail.com",
+                "rigonattofranco1@gmail.com",
+                "ivanfedericorodriguez@gmail.com",
+                "guillermobenasulin@gmail.com",
+                "leclerc.mauricio@gmail.com",
+                "joseignaciobaibiene@gmail.com",
+                "pauliherrero98@gmail.com",
+                "paulasalvay@gmail.com",
+                "samaniego18@gmail.com",
+                "misilvagenez@gmail.com",
+                "christianimariahebe@gmail.com",
+                "jgcasafus@gmail.com",
+                "lic.leandrogarcia@gmail.com",
+                "martinmmicelli@gmail.com",
+                "boscojfrancisco@gmail.com",
+                'misilvagenesenz@gmail.com'
+            ]
+        
         # ==== CREACION DEL MENSAJE DE GMAIL ==== #
 
         # Crear el objeto de mensaje MIME
@@ -250,6 +274,7 @@ class Correo:
         #Obtenemos los datos del ipc
         df = self.get_data()
 
+
         #Obtenemos las rutas a utilizar
         ruta_archivo, ruta_folder_images = self.rutas_a_usar()
 
@@ -279,11 +304,3 @@ class Correo:
         #el mensaje de CORREO, es necesario incluir un apartado de imagenes. 
         self.enviar_correo(ruta_folder_images,fecha_asunto,html_content)
 
-
-
-host = '54.94.131.196'
-user = 'estadistica'
-password = 'Estadistica2024!!'
-database = 'datalake_economico'
-
-Correo(host,user,password,database).main()
