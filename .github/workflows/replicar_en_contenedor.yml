@@ -35,7 +35,7 @@ jobs:
         REPO_URL: ${{ secrets.HTTP_GIT }}  # URL del repositorio - es la dirección SSH o HTTP que usamos para el git clone
       run: |
         ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_IP << 'EOF'
-          sudo docker exec baa7da4f3ad2 /bin/bash -c "
+          sudo docker exec baa7da4f3ad2 /bin/sh -c "
           cd src &&
           sudo git clone $REPO_URL .
           "
