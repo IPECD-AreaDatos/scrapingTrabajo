@@ -40,6 +40,8 @@ if __name__ == '__main__':
     instancia = ExtractDataBDD(cred_dl_economico.host, cred_dl_economico.user, cred_dl_economico.password, cred_dl_economico.database)
     df = instancia.main()#--> Obtenemos los datos en un DF
 
+    print(df)
+
     #Cargamos la BDD --> En este caso indicamos que la base de datos sera 'dwh_economico' | No creamos instancia, ya que solo cambiariamos esta cadena
     credenciales = Load(cred_dl_economico.host, cred_dl_economico.user, cred_dl_economico.password, 'dwh_economico')
     credenciales.main(df)

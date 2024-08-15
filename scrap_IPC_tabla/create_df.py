@@ -46,12 +46,19 @@ class ExtractDataBDD:
         return pd.read_sql(f"SELECT var_mensual FROM ipc_rem_variaciones WHERE fecha >= '{fecha_min}'", con=self.engine)
         
     #SALVADA DE IPC GENERAL Y NEA
-    def ipc_salvada(self):
+    def ipc_nacion_nea(self,fecha_min):
+        
+        #Obtencion de los datos
+        df_ipc_nacion_nea =  pd.read_sql(f"SELECT id_region,var_mensual FROM ipc_valores WHERE fecha >= '{fecha_min}' AND (id_region = 1 OR id_region = 5) AND (id_subdivision = 1) ", con=self.engine)
+        
+        #Creacion del DF con los datos
+        df_ipc = pd.DataFrame()
 
-        vars_ipc_general =  [20.6,13.2,11.0,8.8,4.2,4.6]
-        vars_ipc_nea = [19.5,10.9,10.3,6.3,3.7,4.4]
+        #Asignacion de los valores de nacion e IPC
+        df_ipc['ipc_nacion'] = df_ipc_nacion_nea['var_mensual'][df_ipc_nacion_nea['id_region'] == 1].values * 100
+        df_ipc['ipc_nea'] = df_ipc_nacion_nea['var_mensual'][df_ipc_nacion_nea['id_region'] == 5].values * 100
 
-        return vars_ipc_general, vars_ipc_nea
+        return df_ipc
 
     
     """
@@ -132,20 +139,16 @@ class ExtractDataBDD:
         #Datos del REM
         df_rem = self.ipc_rem(fecha_min)
         
-        #Datos del IPC - Actualmente falta los datos del IPC reales de las variaciones, por eso esto hay que corregir. Fecha = 30/7
-        df_ipc_regional = pd.DataFrame()
-        ipc_nacion,ipc_nea =  self.ipc_salvada()
+        #Datos del IPC 
+        df_ipc_nacion_nea =  self.ipc_nacion_nea(fecha_min)
 
-        df_ipc_regional['ipc_nacion'] = ipc_nacion
-        df_ipc_regional['ipc_nea'] = ipc_nea
 
         #3) Construccion final del dataframe
-        df = self.construir_df(df_online,df_caba,df_rem,df_ipc_regional,fecha_min)
+        df = self.construir_df(df_online,df_caba,df_rem,df_ipc_nacion_nea,fecha_min)
 
 
         #4)Calculo de acumulados
         self.calcular_acumulados(df)
 
-        print(df)
         return df
     
