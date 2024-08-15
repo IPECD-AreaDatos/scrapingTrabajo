@@ -60,6 +60,9 @@ class InformeRipte:
 
     #Envio de correos por GMAIL
     def enviar_correo(self,fecha_cadena, dia_actual, nuevo_valor, valor_dolarizado,fecha_mes_anterior,valor_anterior,variacion_mensual,fecha_mes_AñoAnterior,variacion_interanual,diciembre_AñoAnterior,variacion_acumulada, ruta_archivo_grafico):
+        nuevo_valor_formateado = f"{nuevo_valor:,}".replace(',', '.')
+        valor_dolarizado_formateado = f"{valor_dolarizado:,.2f}".replace(',', '.').replace('.', ',', 1)
+
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
         #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
@@ -70,6 +73,7 @@ class InformeRipte:
             <html>
             <head>
                 <style>
+                    .
                     .box h4 {{
                         font-size: 20px;
                         color: white;
@@ -89,35 +93,33 @@ class InformeRipte:
                 <div class="container" style= "background-color: #ffffff; background-image: url('cid:fondo'); background-repeat: no-repeat; background-position: center center; background-size: cover;">
                     <h2 style="font-size: 24px; color: #444; text-align: center;"><strong>DATOS NUEVOS DE REMUNERACION IMPONIBLE PROMEDIO DE LOS TRABAJADORES ESTABLES (RIPTE) A {fecha_cadena.upper()}</strong></h2>
                     <h3 style="font-size: 15px; color: #666; font-weight: 100; text-align: center;">RIPTE es un importante indicador salarial de naturaleza previsional, elaborado por la Subsecretaría de Seguridad Social. Este índice mide la remuneración promedio sujeta 
-                    a aportes al Sistema Integrado Previsional Argentino (SIPA) de los trabajadores en relación de dependencia, tanto del sector público como privado.</h3>
-                                    
-                    <div class="valor" style="font-size: 36px;font-weight: bold;color: #333;margin: 10px 0; text-align: center;">
-                        <img src="cid:icono_ripte" alt="Icono" style="width: 200px; height: 190px;">
+                    a aportes al Sistema Integrado Previsional Argentino (SIPA) de los trabajadores en relación de dependencia, tanto del sector público como privado.</h3>  
+                    <div class="container-valores" style="font-size: 36px;font-weight: bold;color: #333;margin: 10px 0; text-align: center;">
+                        <img src="cid:icono_ripte" alt="Icono" style="width: 200px; height: 190px;pointer-events: none; user-select: none;">
                         <br>
-                        AR${nuevo_valor}
+                        AR${nuevo_valor_formateado}
                         <br> 
-                        US${valor_dolarizado}*
+                        US${valor_dolarizado_formateado}*
+                        <span class="leyenda" style="font-size: 14px; font-weight: 100;color: #666; display: block;">*Valor calculado en base al dólar blue cotización al {dia_actual} de {fecha_cadena}</span>
                     </div>
-                    <div class="boxes" style="margin: 30px; display: flex;justify-content: space-between;">
-                        <div class="box" style="margin-right: 10px; background-color: #e86900; padding: 20px; width: 30%; border-radius: 8px; text-align: center;">
-                            <h4>Variación Mensual</h4>
-                            <p>{variacion_mensual:.2f}%</p>
+                    <div class="container-variaciones" style="width: 100%; display: flex; justify-content: center; align-items: center; flex-wrap: wrap;">
+                        <div class="box" style="background-color: #e86900; border-radius: 10px; padding: 10px; margin: 5px; text-align: center; flex: 1 1 100%; max-width: 300px;">
+                            <h4 style="font-size: 20px; color: white; margin-bottom: 10px;">Variación Mensual</h4>
+                            <p style="font-size: 24px; color: white;">{variacion_mensual:.1f}%</p>
                         </div>
-                        <div class="box" style="margin-right: 10px; background-color: #e86900; padding: 20px; width: 30%; border-radius: 8px; text-align: center;">
-                            <h4>Variación Interanual</h4>
-                            <p>{variacion_interanual:.2f}%</p>
+                        <div class="box" style="background-color: #e86900; border-radius: 10px; padding: 10px; margin: 5px; text-align: center; flex: 1 1 100%; max-width: 300px;">
+                            <h4 style="font-size: 20px; color: white; margin-bottom: 10px;">Variación Interanual</h4>
+                            <p style="font-size: 24px; color: white;">{variacion_interanual:.1f}%</p>
                         </div>
-                        <div class="box" style="margin-right: 10px; background-color: #e86900; padding: 20px; width: 30%; border-radius: 8px; text-align: center;">
-                            <h4>Variación Acumulada</h4>
-                            <p>{variacion_acumulada:.2f}%</p>
+                        <div class="box" style="background-color: #e86900; border-radius: 10px; padding: 10px; margin: 5px; text-align: center; flex: 1 1 100%; max-width: 300px;">
+                            <h4 style="font-size: 20px; color: white; margin-bottom: 10px;">Variación Acumulada</h4>
+                            <p style="font-size: 24px; color: white;">{variacion_acumulada:.1f}%</p>
                         </div>
                     </div>
-                    <span class="leyenda" style="font-size: 14px; font-weight: 100;color: #666; display: block;">*Valor dolarizado en base al dólar blue cotización al {dia_actual} de {fecha_cadena}</span>
                     <div class="footer" style="font-size: 15px; color: #888; text-align: center" >
                         <img src="cid:ipecd" alt="IPI Image" style="margin-right: 20px; max-width: 250px; height: auto; pointer-events: none; user-select: none;" >
                     </div>
                 </div>
-
             </body>    
             </html>
             '''
