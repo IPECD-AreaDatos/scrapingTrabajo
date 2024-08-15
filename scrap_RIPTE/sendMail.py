@@ -70,58 +70,9 @@ class InformeRipte:
             <html>
             <head>
                 <style>
-                    body {{
-                        font-family: Arial, sans-serif;
-                        color: #333;
-                        background-color: #f4f4f4;
-                        padding: 20px;
-                    }}
-                    h2 {{
-                        font-size: 24px;
-                        color: #444;
-                    }}
-                    h3 {{
-                        font-size: 15px;
-                        color: #666;
-                        font-weight: 100;
-                    }}
-                    .container {{
-                        background-color: #fff;
-                        padding: 20px;
-                        border-radius: 8px;
-                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                        text-align: center; 
-                    }}
-                    .icon {{
-                        font-size: 48px;
-                        color: #5c6bc0;
-                        margin: 20px 0;
-                    }}
-                    .valor {{
-                        font-size: 36px;
-                        font-weight: bold;
-                        color: #333;
-                        margin: 10px 0;
-                    }}
-                    .boxes {{
-                        display: flex;
-                        justify-content: space-between;
-                        margin-top: 30px;
-                    }}
-                    .box {{
-                        background-color: #e8eaf6;
-                        padding: 20px;
-                        width: 30%;
-                        border-radius: 8px;
-                        text-align: center;
-                        margin-right: 10px; /* Espacio entre los boxes */
-                    }}
-                    .box:last-child {{
-                        margin-right: 0; /* Sin margen en el último box */
-                    }}
                     .box h4 {{
                         font-size: 20px;
-                        color: #444;
+                        color: white;
                         margin-bottom: 10px;
                         text-transform: uppercase;
                         font-weight: 200;
@@ -129,53 +80,44 @@ class InformeRipte:
                     }}
                     .box p {{
                         font-size: 24px;
-                        color: #333;
+                        color: white;
                         font-weight: bold;
-                    }}
-                    .container-footer {{
-                        display: flex;
-                        flex-direction: column;
-                        justify-content: center;
-                        align-items: center;
-                        padding-bottom: 20px;
-                        margin-top: 20px;
                     }}
                     </style>
                 </head>
                 <body>
-                <div class="container">
-                    <h2><strong>DATOS NUEVOS DE REMUNERACION IMPONIBLE PROMEDIO DE LOS TRABAJADORES ESTABLES (RIPTE) A {fecha_cadena.upper()}.</strong></h2>
-                    <h3>RIPTE es un importante indicador salarial de naturaleza previsional, elaborado por la Subsecretaría de Seguridad Social. Este índice mide la remuneración promedio sujeta 
+                <div class="container" style= "background-color: #ffffff; background-image: url('cid:fondo'); background-repeat: no-repeat; background-position: center center; background-size: cover;">
+                    <h2 style="font-size: 24px; color: #444; text-align: center;"><strong>DATOS NUEVOS DE REMUNERACION IMPONIBLE PROMEDIO DE LOS TRABAJADORES ESTABLES (RIPTE) A {fecha_cadena.upper()}</strong></h2>
+                    <h3 style="font-size: 15px; color: #666; font-weight: 100; text-align: center;">RIPTE es un importante indicador salarial de naturaleza previsional, elaborado por la Subsecretaría de Seguridad Social. Este índice mide la remuneración promedio sujeta 
                     a aportes al Sistema Integrado Previsional Argentino (SIPA) de los trabajadores en relación de dependencia, tanto del sector público como privado.</h3>
-
-                    <div class="icon">
-                        <i class="fa-solid fa-users-gear"></i>
-                    </div>
-                    
-                    <div class="valor">
+                                    
+                    <div class="valor" style="font-size: 36px;font-weight: bold;color: #333;margin: 10px 0; text-align: center;">
+                        <img src="cid:icono_ripte" alt="Icono" style="width: 200px; height: 190px;">
+                        <br>
                         AR${nuevo_valor}
                         <br> 
-                        US${valor_dolarizado} 
+                        US${valor_dolarizado}*
                     </div>
-                    <div class="boxes">
-                        <div class="box">
+                    <div class="boxes" style="margin: 30px; display: flex;justify-content: space-between;">
+                        <div class="box" style="margin-right: 10px; background-color: #e86900; padding: 20px; width: 30%; border-radius: 8px; text-align: center;">
                             <h4>Variación Mensual</h4>
                             <p>{variacion_mensual:.2f}%</p>
                         </div>
-                        <div class="box">
+                        <div class="box" style="margin-right: 10px; background-color: #e86900; padding: 20px; width: 30%; border-radius: 8px; text-align: center;">
                             <h4>Variación Interanual</h4>
                             <p>{variacion_interanual:.2f}%</p>
                         </div>
-                        <div class="box">
+                        <div class="box" style="margin-right: 10px; background-color: #e86900; padding: 20px; width: 30%; border-radius: 8px; text-align: center;">
                             <h4>Variación Acumulada</h4>
                             <p>{variacion_acumulada:.2f}%</p>
                         </div>
                     </div>
-                </div>
-                <div class="container-footer" style="display: flex; flex-direction: column; justify-content: center; align-items: center; padding-bottom: 20px; margin-top: 20px;">
                     <span class="leyenda" style="font-size: 14px; font-weight: 100;color: #666; display: block;">*Valor dolarizado en base al dólar blue cotización al {dia_actual} de {fecha_cadena}</span>
-                    <img src="cid:ipecd" alt="IPI Image" style="max-width: 100px; height: auto; pointer-events: none; user-select: none;">
+                    <div class="footer" style="font-size: 15px; color: #888; text-align: center" >
+                        <img src="cid:ipecd" alt="IPI Image" style="margin-right: 20px; max-width: 250px; height: auto; pointer-events: none; user-select: none;" >
+                    </div>
                 </div>
+
             </body>    
             </html>
             '''
@@ -191,6 +133,8 @@ class InformeRipte:
         # Diccionario de nombres de archivos de imágenes
         image_files = {
             "ipecd": "logo_ipecd.png", 
+            "fondo": "fondo_correo.png",
+            "icono_ripte": "datos_empleo_icono.png"
         }
 
         # Construir las rutas completas y crear un diccionario para las rutas de las imágenes

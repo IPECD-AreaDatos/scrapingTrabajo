@@ -119,7 +119,7 @@ class Correo_ipi_nacion:
                 </style>
             </head>
             <body>
-                <div class="container" <div class="container" style= "background-color: #ffffff; background-image: url('cid:fondo'); background-repeat: no-repeat; background-position: center center; background-size: cover;">
+                <div class="container" style= "background-color: #ffffff; background-image: url('cid:fondo'); background-repeat: no-repeat; background-position: center center; background-size: cover;">
                     <h2 style="font-size: 24px; color: #465c49; text-align: center;" ><strong>INDICE DE PRODUCCION INDUSTRIAL MANUFACTURERO (IPI) A {fecha_cadena.upper()}</strong></h2>
                     <div class='container-data-general' style="width: 100%; text-align: center; margin-bottom: 20px;">
                         <div class="data-item-valor-general" style="display: inline-flex; border: 2px solid #465c49; border-radius: 10px; padding: 10px; background-position-x: -75px; background-position-y: -149px; background-size: cover; background-image: url('cid:fondo_cuadros');">
@@ -234,8 +234,8 @@ class Correo_ipi_nacion:
 
                     </div>
                     <div class="container-footer">
-                    <div class="footer" style="font-size: 15px; color: #888; text-align: center" >
-                            <img src="cid:ipecd" alt="IPI Image" style="margin-right: 20px; max-width: 250px; height: auto; pointer-events: none; user-select: none;" >
+                        <div class="footer" style="font-size: 15px; color: #888; text-align: center" >
+                                <img src="cid:ipecd" alt="IPI Image" style="margin-right: 20px; max-width: 250px; height: auto; pointer-events: none; user-select: none;" >
                         </div>
                     </div>
                 </div>
