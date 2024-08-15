@@ -34,9 +34,9 @@ jobs:
         EC2_USER: ${{ secrets.AWS_USER }}
         REPO_URL: ${{ secrets.HTTP_GIT }}  # URL del repositorio - es la dirección SSH o HTTP que usamos para el git clone
       run: |
-        ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_IP << 'EOF'
+        ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_IP << EOF
           sudo docker exec f83b584eb0ba /bin/sh -c "
           cd /app/src &&
-          sudo git clone '$REPO_URL' .
+          git clone $REPO_URL .
           "
         EOF
