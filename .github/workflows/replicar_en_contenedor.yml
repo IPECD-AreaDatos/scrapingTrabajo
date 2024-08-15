@@ -37,6 +37,6 @@ jobs:
         ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_IP << 'EOF'
           sudo docker exec f83b584eb0ba /bin/sh -c "
           cd /app/src &&
-          sudo git clone $REPO_URL .
+          sudo git clone '$REPO_URL' .
           "
         EOF
