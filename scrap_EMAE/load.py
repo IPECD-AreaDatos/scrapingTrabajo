@@ -134,6 +134,9 @@ class Load():
         bandera_valores = self.load_emae_valores(df_emae_valores)
         bandera_variaciones = self.load_emae_variaciones(df_emae_variaciones)
 
+        instancia_informe = InformesEmae(host=self.host,user=self.user,password=self.password,database=self.database)
+        instancia_informe.main_correo()
+        exit()
         #Si ambas banderas son positivas, enviar correo. Sino, saltaran errores.
         if bandera_valores and bandera_variaciones:
             instancia_informe = InformesEmae(host=self.host,user=self.user,password=self.password,database=self.database)

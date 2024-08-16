@@ -5,6 +5,12 @@ from smtplib import SMTP_SSL
 import pandas as pd
 from ssl import create_default_context
 from pymysql import connect
+import os
+from email.message import EmailMessage
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
+
 
 class InformesEmae:
 
@@ -39,10 +45,22 @@ class InformesEmae:
 
         cadena_inicio = f'''
         <html>
-        <body>
-        <h2 style="font-size: 24px;"><strong> DATOS ACTUALIZADOS DEL ESTIMADOR MENSUAL DE ACTIVIDAD ECONOMICO (EMAE) A {cadena_fecha_actual.upper()}. </strong></h2>
-        <h3 style="font-size: 19px;">Variación Mensual Desestacionalizada: {var_mensual:.1f}%<br>
-        Variación Interanual: {var_interanual:.1f}%</h3>
+            <body>
+                <h2 style="font-size: 24px; color: #444; text-align: center;"><strong>DATOS NUEVOS DEL ESTIMADOR MENSUAL DE ACTIVIDAD ECONÓMICA (EMAE) A {cadena_fecha_actual.upper()}</strong></h2>
+                <h3 style="font-size: 15px; color: #666; font-weight: 100; text-align: center;">EMAE es un indicador clave para medir la evolución de la actividad económica de Argentina en el corto plazo. Elaborado por INDEC, 
+                    este ofrece una estimación mensual de la producción de bienes y servicios, reflejando la dinámica de los diferentes sectores económicos del país. 
+                    Este índice es fundamental para el análisis económico y la toma de decisiones tanto en el ámbito público como privado.</h3>  
+                    
+                <div class="container-variaciones" style="justify-content: center; width: 100%; display: flex; flex-wrap: wrap; gap: 10px;">
+                    <div class="box" style="justify-content: center; background-color: #106490; border-radius: 10px; padding: 15px; text-align: center; padding:10px; margin:10px;flex: 1 1 300px; max-width: 300px;">
+                        <h4 style="font-size: 20px; color: white; margin-bottom: 10px;">Variación Mensual Desestacionalizada</h4>
+                        <p style="font-size: 24px; color: white;">{var_mensual:.1f}%</p>
+                    </div>
+                    <div class="box" style="justify-content: center; background-color: #106490; border-radius: 10px; padding: 15px; text-align: center; padding:10px; margin:10px;flex: 1 1 300px; max-width: 300px;">
+                        <h4 style="font-size: 20px; color: white; margin-bottom: 10px;">Variación Interanual</h4>
+                        <p style="font-size: 24px; color: white;">{var_interanual:.1f}%</p>
+                    </div>
+                </div>
         <hr>
         '''
         
@@ -80,12 +98,12 @@ class InformesEmae:
 
 
         fin_mensaje = f'''
-        </table> 
-        <hr>
-        <p> Instituto Provincial de Estadistica y Ciencia de Datos de Corrientes<br>
-            Dirección: Tucumán 1164 - Corrientes Capital<br>
-            Contacto Coordinación General: 3794 284993</p>
-        </body>
+                </table> 
+                <hr>
+                <div class="footer" style="font-size: 15px; color: #888; text-align: center" >
+                    <img src="cid:ipecd" alt="logo" style="margin-right: 20px; max-width: 250px; height: auto; pointer-events: none; user-select: none;" >
+                </div>
+            </body>
         </html>
         '''
 
@@ -97,15 +115,38 @@ class InformesEmae:
 
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com', 'manumarder@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
+        email_receptores =  [ 'matizalazar2001@gmail.com', 'manumarder@gmail.com']
+        email_receptores_str = ', '.join(email_receptores)
 
 
-        em = EmailMessage()
+        em = MIMEMultipart()
         em['From'] = email_emisor
         em['To'] = email_receptores
         em['Subject'] = asunto
-        em.set_content(mensaje_final, subtype='html')
+        em.attach(MIMEText(mensaje_final, 'html'))
+        # Obtener el directorio actual donde se encuentra el script
+        script_dir = os.path.dirname(__file__)
+
+        # Definir la carpeta donde se encuentran las imágenes
+        image_dir = os.path.join(script_dir, 'files')
+
+        # Diccionario de nombres de archivos de imágenes
+        image_files = {
+            "ipecd": "logo_ipecd.png", 
+        }
+
+        # Construir las rutas completas y crear un diccionario para las rutas de las imágenes
+        image_paths = {cid: os.path.join(image_dir, filename) for cid, filename in image_files.items()}
+
+        # Adjuntar las imágenes
+        for cid, filename in image_paths.items():
+            path = os.path.join(image_dir, filename)
+            with open(path, 'rb') as img_file:
+                img = MIMEImage(img_file.read())
+                img.add_header('Content-ID', f'<{cid}>')
+                em.attach(img)
+
 
         contexto = create_default_context()
         with SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
