@@ -22,7 +22,7 @@ credenciales_datalakeEconomico = Credenciales('datalake_economico')
 def main():
 
     #Obtencion del archivo
-    HomePage().descargar_archivos()
+    #HomePage().descargar_archivos()
 
     #Creamos una instancia del TRANSFORMADOR y generamos DF's
     instancia_transformador = Transformer()

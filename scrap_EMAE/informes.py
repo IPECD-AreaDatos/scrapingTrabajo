@@ -45,69 +45,70 @@ class InformesEmae:
 
         cadena_inicio = f'''
         <html>
-            <body>
+        <head>
+            <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+        </head>
+            <body >
+                <div class="container" style= "background-color: #ffffff; background-image: url('cid:fondo'); background-repeat: no-repeat; background-position: center center; background-size: cover;">
+
                 <h2 style="font-size: 24px; color: #444; text-align: center;"><strong>DATOS NUEVOS DEL ESTIMADOR MENSUAL DE ACTIVIDAD ECONÓMICA (EMAE) A {cadena_fecha_actual.upper()}</strong></h2>
                 <h3 style="font-size: 15px; color: #666; font-weight: 100; text-align: center;">EMAE es un indicador clave para medir la evolución de la actividad económica de Argentina en el corto plazo. Elaborado por INDEC, 
                     este ofrece una estimación mensual de la producción de bienes y servicios, reflejando la dinámica de los diferentes sectores económicos del país. 
                     Este índice es fundamental para el análisis económico y la toma de decisiones tanto en el ámbito público como privado.</h3>  
                     
-                <div class="container-variaciones" style="justify-content: center; width: 100%; display: flex; flex-wrap: wrap; gap: 10px;">
-                    <div class="box" style="justify-content: center; background-color: #106490; border-radius: 10px; padding: 15px; text-align: center; padding:10px; margin:10px;flex: 1 1 300px; max-width: 300px;">
-                        <h4 style="font-size: 20px; color: white; margin-bottom: 10px;">Variación Mensual Desestacionalizada</h4>
-                        <p style="font-size: 24px; color: white;">{var_mensual:.1f}%</p>
-                    </div>
-                    <div class="box" style="justify-content: center; background-color: #106490; border-radius: 10px; padding: 15px; text-align: center; padding:10px; margin:10px;flex: 1 1 300px; max-width: 300px;">
-                        <h4 style="font-size: 20px; color: white; margin-bottom: 10px;">Variación Interanual</h4>
-                        <p style="font-size: 24px; color: white;">{var_interanual:.1f}%</p>
+               <div class="container-variaciones" style="width: 100%; display: flex; justify-content: center;">
+                    <div class="box" style="width: 100%; border: 2px solid #465c49; border-radius: 5px;text-align: center; margin-left: 40px; margin-right: 40px; margin-top: 10px; margin-bottom:10px;background-position-x: -75px; background-position-y: -149px; background-size: cover; background-image: url('cid:fondo_cuadros');">
+                        <h4 style="font-size: 17px; font-weight: 200; color: white; ">VARIACIÓN MENSUAL DESESTACIONALIZADA: {var_mensual:.1f}%</h4>
+                        <h4 style="font-size: 17px;font-weight: 200; color: white; ">VARIACIÓN INTERANUAL: {var_interanual:.1f}%</h4>
                     </div>
                 </div>
-        <hr>
+       
         '''
+        html_content = '''
         
-        #HEAD de la tabla, contiene los titulos
-        cabeza_tabla_variaciones = f'''
-        <h3> Variaciones a nivel Nacional del Estimador Mensual de Actividad Económico (EMAE) - Argentina </h3>
-        <table style="border-collapse: collapse; width: 100%;">
-        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> INDICE </th>
-        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;">  VAR. MENSUAL </th>
-        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> INDICE </th>
-        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> VAR. INTERANUAL </th>
-        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> INDICE </th>
-        <th style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> VAR. ACUMULADA</th>
+        <div class="container">
+
+            <br>
+            <h3 style="justify-content: center; text-align: center; margin: 0 auto;"> Variaciones a nivel Nacional de EMAE - Argentina </h3>
+            <br>
+            <div class="row" style="display: flex;flex-wrap: wrap;justify-content: center;">
         '''
-    
-        #Ordenacion por var mensual | intearanual| acumulado
-        df_mensual = df_variaciones.sort_values(by='var_mensual',ascending=[False])
-        df_interanual = df_variaciones.sort_values(by='var_interanual',ascending=[False])
-        df_acumulado = df_variaciones.sort_values(by='var_acumulada',ascending=[False])
 
-        # Datos correspondientes a cada variacion
-        for nombre_mensual, var_mensual, nombre_interanual, var_interanual, nombre_acumulado, var_acumulada in zip(df_mensual['nombre_indices'], df_mensual['var_mensual'], df_interanual['nombre_indices'], df_interanual['var_interanual'], df_acumulado['nombre_indices'], df_acumulado['var_acumulada']):
-            fila_de_nea = f'''
-                <tr>
-                <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {nombre_mensual}</td>
-                <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {var_mensual:.2f}%</td>
-                <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {nombre_interanual}</td>
-                <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {var_interanual:.2f}%</td>
-                <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {nombre_acumulado}</td>
-                <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;"> {var_acumulada:.2f}%</td>
-                </tr>
-                '''
-            cabeza_tabla_variaciones = cabeza_tabla_variaciones + fila_de_nea
+                
+        # Añadir boxes al HTML
+        for index, row in df_variaciones.iterrows():
+            html_content += f'''
+            <div class="col-md-4 d-flex justify-content-center mb-4">
+                <div class="circle-box" style="background-color: #106490;border-radius: 50%;padding: 20px;text-align: center;color: white;display: flex;flex-direction: column;justify-content: center;align-items: center;height: 150px;width: 150px;margin: 10px auto;box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                    <h4 style="font-size: 17px; font-weight: 200; margin-bottom: 10px;">{row['nombre_indices']}</h4>
+                    <p style="font-size: 16px; margin: 0;">Var. Mensual: {row['var_mensual']:.1f}%</p>
+                    <p style="font-size: 16px; margin: 0;">Var. Interanual: {row['var_interanual']:.1f}%</p>
+                    <p style="font-size: 16px; margin: 0;">Var. Acumulada: {row['var_acumulada']:.1f}%</p>
+                </div>
+            </div>
+        '''
 
+        # Cerrar el HTML
+        html_content += '''
+                </div>
+            </div>
 
-
+        '''
         fin_mensaje = f'''
-                </table> 
-                <hr>
+                
+                <br>
                 <div class="footer" style="font-size: 15px; color: #888; text-align: center" >
                     <img src="cid:ipecd" alt="logo" style="margin-right: 20px; max-width: 250px; height: auto; pointer-events: none; user-select: none;" >
+                </div>
                 </div>
             </body>
         </html>
         '''
 
-        mensaje_final = cadena_inicio + cabeza_tabla_variaciones + fin_mensaje
+        mensaje_final = cadena_inicio + html_content + fin_mensaje
+
+
+
 
 
 
@@ -122,7 +123,7 @@ class InformesEmae:
 
         em = MIMEMultipart()
         em['From'] = email_emisor
-        em['To'] = email_receptores
+        em['To'] = email_receptores_str
         em['Subject'] = asunto
         em.attach(MIMEText(mensaje_final, 'html'))
         # Obtener el directorio actual donde se encuentra el script
@@ -134,6 +135,8 @@ class InformesEmae:
         # Diccionario de nombres de archivos de imágenes
         image_files = {
             "ipecd": "logo_ipecd.png", 
+            "fondo": "fondo_correo.png",
+            "fondo_cuadros": "fondo_cuadros.png"
         }
 
         # Construir las rutas completas y crear un diccionario para las rutas de las imágenes
