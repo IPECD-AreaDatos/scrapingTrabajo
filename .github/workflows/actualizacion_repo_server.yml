@@ -69,6 +69,10 @@ jobs:
 
           cd $DEPLOY_DIR
 
-          ls -l
+
+          echo "Creando archivo .env"
+          echo "GOOGLE_SHEETS_API_KEY=$GOOGLE_SHEETS_API_KEY" >> .env
+
+          cat .env
           
         "
