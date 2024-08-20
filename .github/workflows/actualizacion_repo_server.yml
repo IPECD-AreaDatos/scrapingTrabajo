@@ -67,6 +67,8 @@ jobs:
 
           echo 'Creando archivo .env'
 
-          echo $DEPLOY_DIR
+          cd $DEPLOY_DIR
+
+          ls -l
           
         "
