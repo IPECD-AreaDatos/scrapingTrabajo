@@ -25,6 +25,7 @@ if __name__ == '__main__':
 
     df_transformado = Transform().transform_data(df_semaforo)
 
+    print(df_transformado)
 
     #Almacenado en BDD
     instancia_bdd = Database(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
