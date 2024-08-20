@@ -67,7 +67,6 @@ jobs:
 
           echo 'Creando archivo .env'
 
-          echo 'GOOGLE_SHEETS_API_KEY=${GOOGLE_SHEETS_API_KEY}' | sudo tee $DEPLOY_DIR/$FOLDER_PROYECTO/.env
-
-          sudo chmod 600 $DEPLOY_DIR/.env
+          cd $DEPLOY_DIR
+          cd $FOLDER_PROYECTO
         "
