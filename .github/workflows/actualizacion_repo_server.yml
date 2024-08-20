@@ -53,3 +53,21 @@ jobs:
             sudo chmod 777 -R '$DEPLOY_DIR'
           fi
         "
+
+    # Objetivo: Crear el archivo .env en el servidor EC2 con la variable GOOGLE_SHEETS_API_KEY
+    - name: Create .env file on EC2
+      env:
+        EC2_IP: ${{ secrets.AWS_HOST }}
+        EC2_USER: ${{ secrets.AWS_USER }}
+        GOOGLE_SHEETS_API_KEY: ${{ secrets.GOOGLE_SHEETS_API_KEY }}
+        DEPLOY_DIR: ${{ secrets.PATH_FOLDER_SAVE }}
+        FOLDER_PROYECTO: scrapingTrabajo
+      run: |
+        ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_IP "
+
+          echo 'Creando archivo .env'
+
+          echo 'GOOGLE_SHEETS_API_KEY=${GOOGLE_SHEETS_API_KEY}' | sudo tee $DEPLOY_DIR/$FOLDER_PROYECTO/.env
+
+          sudo chmod 600 $DEPLOY_DIR/.env
+        "
