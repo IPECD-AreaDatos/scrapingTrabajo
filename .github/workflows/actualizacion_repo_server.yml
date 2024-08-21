@@ -59,6 +59,15 @@ jobs:
         EC2_USER: ${{ secrets.AWS_USER }}
         GOOGLE_SHEETS_API_KEY: ${{ secrets.GOOGLE_SHEETS_API_KEY }}
         DEPLOY_DIR: ${{ secrets.PATH_FOLDER_SAVE }}
+        HOST_DBB: ${{secrets.HOST_DBB}}
+        USER_DBB: ${{secrets.USER_DBB}}
+        PASSWORD_DBB: ${{secrets.PASSWORD_DBB}}
+        NAME_DBB_DATALAKE_ECONOMICO: ${{secrets.NAME_DBB_DATALAKE_ECONOMICO}}
+        NAME_DBB_DWH_ECONOMICO: ${{secrets.NAME_DBB_DWH_ECONOMICO}}
+        NAME_DBB_DATALAKE_SOCIO: ${{secrets.NAME_DBB_DATALAKE_SOCIO}}
+        NAME_DBB_DWH_SOCIO: ${{secrets.NAME_DBB_DWH_SOCIO}}
+        NAME_IPECD_ECONOMICO: ${{secrets.NAME_IPECD_ECONOMICO}}
+
         FOLDER_PROYECTO: scrapingTrabajo
       run: |
         ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_IP "
@@ -74,6 +83,13 @@ jobs:
   
           # Crear el archivo .env con las nuevas variables
           echo 'GOOGLE_SHEETS_API_KEY=$GOOGLE_SHEETS_API_KEY' >> .env
+          echo 'HOST_DBB=$HOST_DBB' >> .env
+          echo 'USER_DBB=$USER_DBB' >> .env
+          echo 'PASSWORD_DBB=$PASSWORD_DBB' >> .env
+          echo 'NAME_DBB_DATALAKE_ECONOMICO=$NAME_DBB_DATALAKE_ECONOMICO' >> .env
+          echo 'NAME_DBB_DWH_ECONOMICO=$NAME_DBB_DWH_ECONOMICO' >> .env
+          echo 'NAME_DBB_DATALAKE_SOCIO=$NAME_DBB_DATALAKE_SOCIO' >> .env
+          echo 'NAME_DBB_DWH_SOCIO=$NAME_DBB_DWH_SOCIO' >> .env
   
           # Mostrar el contenido del archivo .env
           cat .env
