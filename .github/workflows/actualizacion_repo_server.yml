@@ -43,13 +43,11 @@ jobs:
             sudo mkdir -p '$DEPLOY_DIR'
             cd '$DEPLOY_DIR'
             sudo git clone '$REPO_URL' .
-            cd ..
             sudo chmod 777 -R '$DEPLOY_DIR'
           else
             cd '$DEPLOY_DIR'
             sudo git reset --hard HEAD
             sudo git pull origin main
-            cd ..
             sudo chmod 777 -R '$DEPLOY_DIR'
           fi
         "
@@ -64,15 +62,19 @@ jobs:
         FOLDER_PROYECTO: scrapingTrabajo
       run: |
         ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_IP "
-
-          echo 'Creando archivo .env'
-
+          echo 'Creando o actualizando archivo .env'
+  
           cd $DEPLOY_DIR
-
-
-          echo "Creando archivo .env"
-          echo "GOOGLE_SHEETS_API_KEY=$GOOGLE_SHEETS_API_KEY" >> .env
-
+  
+          # Verificar si el archivo .env existe
+          if [ -f .env ]; then
+            echo 'El archivo .env existe, limpiando...'
+            sudo rm .env
+          fi
+  
+          # Crear el archivo .env con las nuevas variables
+          echo 'GOOGLE_SHEETS_API_KEY=$GOOGLE_SHEETS_API_KEY' >> .env
+  
+          # Mostrar el contenido del archivo .env
           cat .env
-          
         "
