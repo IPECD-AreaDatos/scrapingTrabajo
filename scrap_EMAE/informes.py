@@ -52,48 +52,227 @@ class InformesEmae:
                 <div class="container" style= "background-color: #ffffff; background-image: url('cid:fondo'); background-repeat: no-repeat; background-position: center center; background-size: cover;">
 
                 <h2 style="font-size: 24px; color: #444; text-align: center;"><strong>DATOS NUEVOS DEL ESTIMADOR MENSUAL DE ACTIVIDAD ECONÓMICA (EMAE) A {cadena_fecha_actual.upper()}</strong></h2>
-                <h3 style="font-size: 15px; color: #666; font-weight: 100; text-align: center;">EMAE es un indicador clave para medir la evolución de la actividad económica de Argentina en el corto plazo. Elaborado por INDEC, 
+                <h3 style="font-size: 15px; color: #666; font-weight: 180; text-align: center;">EMAE es un indicador clave para medir la evolución de la actividad económica de Argentina en el corto plazo. Elaborado por INDEC, 
                     este ofrece una estimación mensual de la producción de bienes y servicios, reflejando la dinámica de los diferentes sectores económicos del país. 
                     Este índice es fundamental para el análisis económico y la toma de decisiones tanto en el ámbito público como privado.</h3>  
                     
                <div class="container-variaciones" style="width: 100%; display: flex; justify-content: center;">
                     <div class="box" style="width: 100%; border: 2px solid #465c49; border-radius: 5px;text-align: center; margin-left: 40px; margin-right: 40px; margin-top: 10px; margin-bottom:10px;background-position-x: -75px; background-position-y: -149px; background-size: cover; background-image: url('cid:fondo_cuadros');">
-                        <h4 style="font-size: 17px; font-weight: 200; color: white; ">VARIACIÓN MENSUAL DESESTACIONALIZADA: {var_mensual:.1f}%</h4>
-                        <h4 style="font-size: 17px;font-weight: 200; color: white; ">VARIACIÓN INTERANUAL: {var_interanual:.1f}%</h4>
+                        <h4 style="font-size: 17px; font-weight: 200; color: white; ">VARIACIÓN MENSUAL DESESTACIONALIZADA: <strong>{var_mensual:.1f}%</strong></h4>
+                        <h4 style="font-size: 17px;font-weight: 200; color: white; ">VARIACIÓN INTERANUAL: <strong>{var_interanual:.1f}%</strong></h4>
                     </div>
                 </div>
        
         '''
-        html_content = '''
+
+        nombre1 = df_variaciones.loc[0, 'nombre_indices']
+        var_mensual1 = df_variaciones.loc[0, 'var_mensual']
+        var_interanual1 = df_variaciones.loc[0, 'var_interanual']
+        var_acumulada1 = df_variaciones.loc[0, 'var_acumulada']
+
+        nombre2 = df_variaciones.loc[1, 'nombre_indices']
+        var_mensual2 = df_variaciones.loc[1, 'var_mensual']
+        var_interanual2 = df_variaciones.loc[1, 'var_interanual']
+        var_acumulada2 = df_variaciones.loc[1, 'var_acumulada']
+
+        nombre3 = df_variaciones.loc[2, 'nombre_indices']
+        var_mensual3 = df_variaciones.loc[2, 'var_mensual']
+        var_interanual3 = df_variaciones.loc[2, 'var_interanual']
+        var_acumulada3 = df_variaciones.loc[2, 'var_acumulada']
+
+        nombre4 = df_variaciones.loc[3, 'nombre_indices']
+        var_mensual4 = df_variaciones.loc[3, 'var_mensual']
+        var_interanual4 = df_variaciones.loc[3, 'var_interanual']
+        var_acumulada4 = df_variaciones.loc[3, 'var_acumulada']
+
+        nombre5 = df_variaciones.loc[4, 'nombre_indices']
+        var_mensual5 = df_variaciones.loc[4, 'var_mensual']
+        var_interanual5 = df_variaciones.loc[4, 'var_interanual']
+        var_acumulada5 = df_variaciones.loc[4, 'var_acumulada']
+
+        nombre6 = df_variaciones.loc[5, 'nombre_indices']
+        var_mensual6 = df_variaciones.loc[5, 'var_mensual']
+        var_interanual6 = df_variaciones.loc[5, 'var_interanual']
+        var_acumulada6 = df_variaciones.loc[5, 'var_acumulada']
+
+        nombre7 = df_variaciones.loc[6, 'nombre_indices']
+        var_mensual7 = df_variaciones.loc[6, 'var_mensual']
+        var_interanual7 = df_variaciones.loc[6, 'var_interanual']
+        var_acumulada7 = df_variaciones.loc[6, 'var_acumulada']
+
+        nombre8 = df_variaciones.loc[7, 'nombre_indices']
+        var_mensual8 = df_variaciones.loc[7, 'var_mensual']
+        var_interanual8 = df_variaciones.loc[7, 'var_interanual']
+        var_acumulada8 = df_variaciones.loc[7, 'var_acumulada']
+
+        nombre9 = df_variaciones.loc[8, 'nombre_indices']
+        var_mensual9 = df_variaciones.loc[8, 'var_mensual']
+        var_interanual9 = df_variaciones.loc[8, 'var_interanual']
+        var_acumulada9 = df_variaciones.loc[8, 'var_acumulada']
+
+        nombre10 = df_variaciones.loc[9, 'nombre_indices']
+        var_mensual10 = df_variaciones.loc[9, 'var_mensual']
+        var_interanual10 = df_variaciones.loc[9, 'var_interanual']
+        var_acumulada10 = df_variaciones.loc[9, 'var_acumulada']
+
+        nombre11 = df_variaciones.loc[10, 'nombre_indices']
+        var_mensual11 = df_variaciones.loc[10, 'var_mensual']
+        var_interanual11 = df_variaciones.loc[10, 'var_interanual']
+        var_acumulada11 = df_variaciones.loc[10, 'var_acumulada']
+
+        nombre12 = df_variaciones.loc[11, 'nombre_indices']
+        var_mensual12 = df_variaciones.loc[11, 'var_mensual']
+        var_interanual12 = df_variaciones.loc[11, 'var_interanual']
+        var_acumulada12 = df_variaciones.loc[11, 'var_acumulada']
+
+        nombre13 = df_variaciones.loc[12, 'nombre_indices']
+        var_mensual13 = df_variaciones.loc[12, 'var_mensual']
+        var_interanual13 = df_variaciones.loc[12, 'var_interanual']
+        var_acumulada13 = df_variaciones.loc[12, 'var_acumulada']
+
+        nombre14 = df_variaciones.loc[13, 'nombre_indices']
+        var_mensual14 = df_variaciones.loc[13, 'var_mensual']
+        var_interanual14 = df_variaciones.loc[13, 'var_interanual']
+        var_acumulada14 = df_variaciones.loc[13, 'var_acumulada']
+
+        nombre15 = df_variaciones.loc[14, 'nombre_indices']
+        var_mensual15 = df_variaciones.loc[14, 'var_mensual']
+        var_interanual15 = df_variaciones.loc[14, 'var_interanual']
+        var_acumulada15 = df_variaciones.loc[14, 'var_acumulada']
+
+        nombre16 = df_variaciones.loc[15, 'nombre_indices']
+        var_mensual16 = df_variaciones.loc[15, 'var_mensual']
+        var_interanual16 = df_variaciones.loc[15, 'var_interanual']
+        var_acumulada16 = df_variaciones.loc[15, 'var_acumulada']
+
+        html_content = f'''
         
         <div class="container">
-
             <br>
-            <h3 style="justify-content: center; text-align: center; margin: 0 auto;"> Variaciones a nivel Nacional de EMAE - Argentina </h3>
+            <h3 style="color: #444; justify-content: center; text-align: center; margin: 0 auto;"> Variaciones a nivel Nacional de EMAE - Argentina </h3>
             <br>
-            <div class="row" style="display: flex;flex-wrap: wrap;justify-content: center;">
-        '''
-
-                
-        # Añadir boxes al HTML
-        for index, row in df_variaciones.iterrows():
-            html_content += f'''
-            <div class="col-md-4 d-flex justify-content-center mb-4">
-                <div class="circle-box" style="background-color: #106490;border-radius: 50%;padding: 20px;text-align: center;color: white;display: flex;flex-direction: column;justify-content: center;align-items: center;height: 150px;width: 150px;margin: 10px auto;box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-                    <h4 style="font-size: 17px; font-weight: 200; margin-bottom: 10px;">{row['nombre_indices']}</h4>
-                    <p style="font-size: 16px; margin: 0;">Var. Mensual: {row['var_mensual']:.1f}%</p>
-                    <p style="font-size: 16px; margin: 0;">Var. Interanual: {row['var_interanual']:.1f}%</p>
-                    <p style="font-size: 16px; margin: 0;">Var. Acumulada: {row['var_acumulada']:.1f}%</p>
+            <div class="row" style="display: flex;flex-wrap: wrap; width: 100%; justify-content: center;gap: 20px;" >
+                <div class="circle-box" style="max-width: 185px; display: block; border: 2px solid #465c49; border-radius: 10px; padding: 10px; margin: 15px; text-align: center; background-position: center; background-image: url('cid:fondo_cuadros');">
+                    <h4 style="color: white; font-size: 17px; font-weight: 200;"><strong>{nombre1}</strong></h4>
+                    <hr style="border: 1px solid #2e4744;">
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variacion Mensual: <strong>{var_mensual1:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variacion Interanual: <strong>{var_interanual1:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variacion Acumulada: <strong>{var_acumulada1:.2f}%</strong></p>
+                </div>
+                <div class="circle-box" style="max-width: 185px; display: block; border: 2px solid #465c49; border-radius: 10px; padding: 10px; margin: 15px; text-align: center; background-position: center; background-image: url('cid:fondo_cuadros');">
+                    <h4 style="color: white; font-size: 17px; font-weight: 200;"><strong>{nombre2}</strong></h4>
+                    <hr style="border: 1px solid #2e4744;">
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Mensual: <strong>{var_mensual2:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Interanual: <strong>{var_interanual2:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Acumulada: <strong>{var_acumulada2:.2f}%</strong></p>
+                </div>
+                <div class="circle-box" style="max-width: 185px; display: block; border: 2px solid #465c49; border-radius: 10px; padding: 10px; margin: 15px; text-align: center; background-position: center; background-image: url('cid:fondo_cuadros');">
+                    <h4 style="color: white; font-size: 17px; font-weight: 200;"><strong>{nombre3}</strong></h4>
+                    <hr style="border: 1px solid #2e4744;">
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Mensual: <strong>{var_mensual3:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Interanual: <strong>{var_interanual3:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Acumulada: <strong>{var_acumulada3:.2f}%</strong></p>
+                </div>
+                <div class="circle-box" style="max-width: 185px; display: block; border: 2px solid #465c49; border-radius: 10px; padding: 10px; margin: 15px; text-align: center; background-position: center; background-image: url('cid:fondo_cuadros');">
+                    <h4 style="color: white; font-size: 17px; font-weight: 200;"><strong>{nombre4}</strong></h4>
+                    <hr style="border: 1px solid #2e4744;">
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Mensual: <strong>{var_mensual4:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Interanual: <strong>{var_interanual4:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Acumulada: <strong>{var_acumulada4:.2f}%</strong></p>
+                </div>
+            </div>
+            <div class="row" style="display: flex;flex-wrap: wrap; width: 100%; justify-content: center;gap: 20px;" >
+                <div class="circle-box" style="max-width: 185px; display: block; border: 2px solid #465c49; border-radius: 10px; padding: 10px; margin: 15px; text-align: center; background-position: center; background-image: url('cid:fondo_cuadros');">
+                    <h4 style="color: white; font-size: 17px; font-weight: 200;"><strong>{nombre5}</strong></h4>
+                    <hr style="border: 1px solid #2e4744;">
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Mensual: <strong>{var_mensual5:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Interanual: <strong>{var_interanual5:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Acumulada: <strong>{var_acumulada5:.2f}%</strong></p>
+                </div>
+                <div class="circle-box" style="max-width: 185px; display: block; border: 2px solid #465c49; border-radius: 10px; padding: 10px; margin: 15px; text-align: center; background-position: center; background-image: url('cid:fondo_cuadros');">
+                    <h4 style="color: white; font-size: 17px; font-weight: 200;"><strong>{nombre6}</strong></h4>
+                    <hr style="border: 1px solid #2e4744;">
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Mensual: <strong>{var_mensual6:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Interanual: <strong>{var_interanual6:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Acumulada: <strong>{var_acumulada6:.2f}%</strong></p>
+                </div>
+                <div class="circle-box" style="max-width: 185px; display: block; border: 2px solid #465c49; border-radius: 10px; padding: 10px; margin: 15px; text-align: center; background-position: center; background-image: url('cid:fondo_cuadros');">
+                    <h4 style="color: white; font-size: 17px; font-weight: 200;"><strong>{nombre7}</strong></h4>
+                    <hr style="border: 1px solid #2e4744;">
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Mensual: <strong>{var_mensual7:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Interanual: <strong>{var_interanual7:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Acumulada: <strong>{var_acumulada7:.2f}%</strong></p>
+                </div>
+                <div class="circle-box" style="max-width: 185px; display: block; border: 2px solid #465c49; border-radius: 10px; padding: 10px; margin: 15px; text-align: center; background-position: center; background-image: url('cid:fondo_cuadros');">
+                    <h4 style="color: white; font-size: 17px; font-weight: 200;"><strong>{nombre8}</strong></h4>
+                    <hr style="border: 1px solid #2e4744;">
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Mensual: <strong>{var_mensual8:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Interanual: <strong>{var_interanual8:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Acumulada: <strong>{var_acumulada8:.2f}%</strong></p>
+                </div>
+            </div>
+            <div class="row" style="display: flex;flex-wrap: wrap; width: 100%; justify-content: center;gap: 20px;" >
+                <div class="circle-box" style="max-width: 185px; display: block; border: 2px solid #465c49; border-radius: 10px; padding: 10px; margin: 15px; text-align: center; background-position: center; background-image: url('cid:fondo_cuadros');">
+                    <h4 style="color: white; font-size: 17px; font-weight: 200;"><strong>{nombre9}</strong></h4>
+                    <hr style="border: 1px solid #2e4744;">
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Mensual: <strong>{var_mensual9:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Interanual: <strong>{var_interanual9:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Acumulada: <strong>{var_acumulada9:.2f}%</strong></p>
+                </div>
+                <div class="circle-box" style="max-width: 185px; display: block; border: 2px solid #465c49; border-radius: 10px; padding: 10px; margin: 15px; text-align: center; background-position: center; background-image: url('cid:fondo_cuadros');">
+                    <h4 style="color: white; font-size: 17px; font-weight: 200;"><strong>{nombre10}</strong></h4>
+                    <hr style="border: 1px solid #2e4744;">
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Mensual: <strong>{var_mensual10:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Interanual: <strong>{var_interanual10:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Acumulada: <strong>{var_acumulada10:.2f}%</strong></p>
+                </div>
+                <div class="circle-box" style="max-width: 185px; display: block; border: 2px solid #465c49; border-radius: 10px; padding: 10px; margin: 15px; text-align: center; background-position: center; background-image: url('cid:fondo_cuadros');">
+                    <h4 style="color: white; font-size: 17px; font-weight: 200;"><strong>{nombre11}</strong></h4>
+                    <hr style="border: 1px solid #2e4744;">
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Mensual: <strong>{var_mensual11:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Interanual: <strong>{var_interanual11:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Acumulada: <strong>{var_acumulada11:.2f}%</strong></p>
+                </div>
+                <div class="circle-box" style="max-width: 185px; display: block; border: 2px solid #465c49; border-radius: 10px; padding: 10px; margin: 15px; text-align: center; background-position: center; background-image: url('cid:fondo_cuadros');">
+                    <h4 style="color: white; font-size: 17px; font-weight: 200;"><strong>{nombre12}</strong></h4>
+                    <hr style="border: 1px solid #2e4744;">
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Mensual: <strong>{var_mensual12:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Interanual: <strong>{var_interanual12:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Acumulada: <strong>{var_acumulada12:.2f}%</strong></p>
+                </div>
+            </div>
+            <div class="row" style="display: flex;flex-wrap: wrap; width: 100%; justify-content: center;gap: 20px;" >
+                <div class="circle-box" style="max-width: 185px; display: block; border: 2px solid #465c49; border-radius: 10px; padding: 10px; margin: 15px; text-align: center; background-position: center; background-image: url('cid:fondo_cuadros');">
+                    <h4 style="color: white; font-size: 17px; font-weight: 200;"><strong>{nombre13}</strong></h4>
+                    <hr style="border: 1px solid #2e4744;">
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Mensual: <strong>{var_mensual13:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Interanual: <strong>{var_interanual13:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Acumulada: <strong>{var_acumulada13:.2f}%</strong></p>
+                </div>
+                <div class="circle-box" style="max-width: 185px; display: block; border: 2px solid #465c49; border-radius: 10px; padding: 10px; margin: 15px; text-align: center; background-position: center; background-image: url('cid:fondo_cuadros');">
+                    <h4 style="color: white; font-size: 17px; font-weight: 200;"><strong>{nombre14}</strong></h4>
+                    <hr style="border: 1px solid #2e4744;">
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Mensual: <strong>{var_mensual14:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Interanual: <strong>{var_interanual14:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Acumulada: <strong>{var_acumulada14:.2f}%</strong></p>
+                </div>
+                <div class="circle-box" style="max-width: 185px; display: block; border: 2px solid #465c49; border-radius: 10px; padding: 10px; margin: 15px; text-align: center; background-position: center; background-image: url('cid:fondo_cuadros');">
+                    <h4 style="color: white; font-size: 17px; font-weight: 200;"><strong>{nombre15}</strong></h4>
+                    <hr style="border: 1px solid #2e4744;">
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Mensual: <strong>{var_mensual15:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Interanual: <strong>{var_interanual15:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Acumulada: <strong>{var_acumulada15:.2f}%</strong></p>
+                </div>
+                <div class="circle-box" style="max-width: 185px; display: block; border: 2px solid #465c49; border-radius: 10px; padding: 10px; margin: 15px; text-align: center; background-position: center; background-image: url('cid:fondo_cuadros');">
+                    <h4 style="color: white; font-size: 17px; font-weight: 200;"><strong>{nombre16}</strong></h4>
+                    <hr style="border: 1px solid #2e4744;">
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Mensual: <strong>{var_mensual16:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Interanual: <strong>{var_interanual16:.2f}%</strong></p>
+                    <p style="color: white; font-size: 16px; margin-bottom: 5px;">Variación Acumulada: <strong>{var_acumulada16:.2f}%</strong></p>
                 </div>
             </div>
         '''
 
-        # Cerrar el HTML
-        html_content += '''
-                </div>
-            </div>
-
-        '''
         fin_mensaje = f'''
                 
                 <br>
@@ -107,17 +286,12 @@ class InformesEmae:
 
         mensaje_final = cadena_inicio + html_content + fin_mensaje
 
-
-
-
-
-
         # ==== ENVIO DE MENSAJE
 
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
         #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
-        email_receptores =  [ 'matizalazar2001@gmail.com', 'manumarder@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','manumarder@gmail.com']
         email_receptores_str = ', '.join(email_receptores)
 
 
