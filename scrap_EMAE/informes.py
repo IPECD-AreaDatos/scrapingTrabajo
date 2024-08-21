@@ -46,20 +46,32 @@ class InformesEmae:
         cadena_inicio = f'''
         <html>
         <head>
-            <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+            <style>
+                @media (prefers-color-scheme: dark) {{
+                    .titulo {{
+                        color: #444 !important; /* Mantén el color gris oscuro del título */
+                    }}
+                    .descripcion {{
+                        color: #666 !important; /* Mantén el color blanco del texto */
+                    }}
+                    .variaciones-imp {{
+                        color: white !important; /* Mantén el fondo negro */
+                    }}
+                }}
+            </style>
         </head>
-            <body >
-                <div class="container" style= "background-color: #ffffff; background-image: url('cid:fondo'); background-repeat: no-repeat; background-position: center center; background-size: cover;">
+            <body style="color-scheme: light;">
+                <div class="container" style= "color-scheme: light;background-image: url('cid:fondo'); background-repeat: no-repeat; background-position: center center; background-size: cover;">
 
-                <h2 style="font-size: 24px; color: #444; text-align: center;"><strong>DATOS NUEVOS DEL ESTIMADOR MENSUAL DE ACTIVIDAD ECONÓMICA (EMAE) A {cadena_fecha_actual.upper()}</strong></h2>
-                <h3 style="font-size: 15px; color: #666; font-weight: 180; text-align: center;">EMAE es un indicador clave para medir la evolución de la actividad económica de Argentina en el corto plazo. Elaborado por INDEC, 
+                <h2 class="titulo" style="font-size: 24px; color: #444; -webkit-text-fill-color: #444 !important;text-align: center;"><strong>DATOS NUEVOS DEL ESTIMADOR MENSUAL DE ACTIVIDAD ECONÓMICA (EMAE) A {cadena_fecha_actual.upper()}</strong></h2>
+                <h3 class="descripcion" style="font-size: 15px; color: #666; -webkit-text-fill-color: #666 !important;font-weight: 180; text-align: center;">EMAE es un indicador clave para medir la evolución de la actividad económica de Argentina en el corto plazo. Elaborado por INDEC, 
                     este ofrece una estimación mensual de la producción de bienes y servicios, reflejando la dinámica de los diferentes sectores económicos del país. 
                     Este índice es fundamental para el análisis económico y la toma de decisiones tanto en el ámbito público como privado.</h3>  
                     
-               <div class="container-variaciones" style="width: 100%; display: flex; justify-content: center;">
+               <div class="container-variaciones" style="color-scheme: light;width: 100%; display: flex; justify-content: center;">
                     <div class="box" style="width: 100%; border: 2px solid #465c49; border-radius: 5px;text-align: center; margin-left: 40px; margin-right: 40px; margin-top: 10px; margin-bottom:10px;background-position-x: -75px; background-position-y: -149px; background-size: cover; background-image: url('cid:fondo_cuadros');">
-                        <h4 style="font-size: 17px; font-weight: 200; color: white; ">VARIACIÓN MENSUAL DESESTACIONALIZADA: <strong>{var_mensual:.1f}%</strong></h4>
-                        <h4 style="font-size: 17px;font-weight: 200; color: white; ">VARIACIÓN INTERANUAL: <strong>{var_interanual:.1f}%</strong></h4>
+                        <h4 class="variaciones-imp" style="font-size: 17px; font-weight: 200; color: white;-webkit-text-fill-color: white !important; ">VARIACIÓN MENSUAL DESESTACIONALIZADA: <strong>{var_mensual:.1f}%</strong></h4>
+                        <h4 class="variaciones-imp" style="font-size: 17px;font-weight: 200; color: white; -webkit-text-fill-color: white !important;">VARIACIÓN INTERANUAL: <strong>{var_interanual:.1f}%</strong></h4>
                     </div>
                 </div>
        
@@ -147,9 +159,9 @@ class InformesEmae:
 
         html_content = f'''
         
-        <div class="container">
+        <div class="container" style="color-scheme: light;">
             <br>
-            <h3 style="color: #444; justify-content: center; text-align: center; margin: 0 auto;"> Variaciones a nivel Nacional de EMAE - Argentina </h3>
+            <h3 style="color: #444;-webkit-text-fill-color: #444 !important;justify-content: center; text-align: center; margin: 0 auto;"> Variaciones a nivel Nacional de EMAE - Argentina </h3>
             <br>
             <div class="row" style="display: flex;flex-wrap: wrap; width: 100%; justify-content: center;gap: 20px;" >
                 <div class="circle-box" style="max-width: 185px; display: block; border: 2px solid #465c49; border-radius: 10px; padding: 10px; margin: 15px; text-align: center; background-position: center; background-image: url('cid:fondo_cuadros');">
