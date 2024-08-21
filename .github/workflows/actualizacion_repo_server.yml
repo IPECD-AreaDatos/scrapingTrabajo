@@ -64,7 +64,7 @@ jobs:
         ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_IP "
           echo 'Creando o actualizando archivo .env'
   
-          cd $DEPLOY_DIR/$FOLDER_PROYECTO
+          cd $DEPLOY_DIR
   
           # Verificar si el archivo .env existe
           if [ -f .env ]; then
