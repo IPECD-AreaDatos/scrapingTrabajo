@@ -4,17 +4,17 @@ import os
 import sys
 from homePage import HomePage
 from correo import Correo
+from dotenv import load_dotenv
 
-# Obtener la ruta al directorio actual del script
-script_dir = os.path.dirname(os.path.abspath(__file__))
-credenciales_dir = os.path.join(script_dir, '..', 'Credenciales_folder')
-# Agregar la ruta al sys.path
-sys.path.append(credenciales_dir)
-# Ahora puedes importar tus credenciales
-from credenciales_bdd import Credenciales
-# Después puedes crear una instancia de Credenciales
-instancia_credenciales = Credenciales('datalake_economico')
-instancia_credenciales2 = Credenciales('dwh_economico')
+
+
+# Cargar las variables de entorno desde el archivo .env
+load_dotenv()
+
+host_dbb = (os.getenv('HOST_DBB'))
+user_dbb = (os.getenv('USER_DBB'))
+pass_dbb = (os.getenv('PASSWORD_DBB'))
+dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
 
 
 if __name__ == '__main__':
@@ -24,13 +24,13 @@ if __name__ == '__main__':
     home_page.descargar_archivo()
     
     # Armado del df de ipc variaciones
-    instancia_transform = TransformRegiones(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database)
+    instancia_transform = TransformRegiones(host_dbb, user_dbb,pass_dbb, dbb_datalake)
     df = instancia_transform.main()
 
     #Creamos instancia de BDD y realizamos verficacion de carga. Si hay carga, la bandera sera True, sino False
-    instancia_bdd = conexcionBaseDatos(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database)
+    instancia_bdd = conexcionBaseDatos(host_dbb, user_dbb,pass_dbb, dbb_datalake)
     bandera = instancia_bdd.main(df)
 
     if bandera:
 
-        Correo(instancia_credenciales.host, instancia_credenciales.user, instancia_credenciales.password, instancia_credenciales.database).main()
+        Correo(host_dbb, user_dbb,pass_dbb, dbb_datalake).main()
