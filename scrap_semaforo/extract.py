@@ -15,11 +15,8 @@ class ExtractSheet:
         # Define los alcances y la ruta al archivo JSON de credenciales
         SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
-        directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
-        ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
-
         #CARGAMOS LA KEY DE LA API y la convertimos a un JSON, ya que se almacena como str
-        key_dict = loads(os.getenv('GOOGLE_SHEET_API_KEY'))
+        key_dict = loads(os.getenv('GOOGLE_SHEETS_API_KEY'))
 
         # Escribe aquí el ID de tu documento:
         SPREADSHEET_ID = '1HnK6eMrd_P6V8P141WPZ0jz2ivoO6opyX0YWy342fRM'

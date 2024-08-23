@@ -1,63 +1,75 @@
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 import os
-import pandas as pd
+from json import loads
+from pymysql import connect
+from pandas import read_sql,to_datetime
+
+# Cargar las variables de entorno desde el archivo .env
+from dotenv import load_dotenv
+load_dotenv()
 
 class readSheets:
+    
+        def __init__(self):
 
-    def cargar_datos(self,df):
+                self.conn = None
 
-        #Creacion de listas
-        autos = df['cantidad'][(
-                df['id_provincia_indec'] == 18) 
-                & (df['id_vehiculo'] == 1) 
-                & (df['fecha'] >= '2018-12-01')]
-        
-        # Eliminar todos los ceros
-        autos = [dato for dato in autos if dato != 0]
-        lista_de_lista_autos = [autos]
+    #Objetivo: conectar a la base de datos
+        def connect_dbb(self):
 
-        motos = df['cantidad'][(
-                df['id_provincia_indec'] == 18) 
-                & (df['id_vehiculo'] == 2) 
-                & (df['fecha'] >= '2018-12-01')]
+                user_dbb = (os.getenv('USER_DBB'))
+                pass_dbb = (os.getenv('PASSWORD_DBB'))
+                host_dbb = (os.getenv('HOST_DBB'))
+                dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
 
-        motos = [dato for dato in motos if dato != 0]
-        lista_de_lista_motos = [motos]
+                self.conn = connect(host=host_dbb,password=pass_dbb,user=user_dbb,database=dbb_datalake)
 
+        def cargar_datos(self):
 
-        # Define los alcances y la ruta al archivo JSON de credenciales
-        SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+                #Buscamos los datos de la bdd
+                df = read_sql('SELECT * FROM dnrpa',self.conn)
 
-        
-        #Direccion del archivo json 
-        directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
-        ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
-        KEY = os.path.join(ruta_carpeta_files, 'key.json')
+                df['fecha'] = to_datetime(df['fecha'])
 
-        #ID del documento:
-        SPREADSHEET_ID = '1L_EzJNED7MdmXw_rarjhhX8DpL7HtaKpJoRwyxhxHGI'
-        
-        #Documento ------> https://docs.google.com/spreadsheets/d/1L_EzJNED7MdmXw_rarjhhX8DpL7HtaKpJoRwyxhxHGI/edit?gid=0#gid=0
+                #Creacion de listas
+                autos = df['cantidad'][(df['id_provincia_indec'] == 18) & (df['id_vehiculo'] == 1) & (df['fecha'] >= '2018-12-01')]
+                
+                # Eliminar todos los ceros
+                autos = [dato for dato in autos if dato != 0]
+                lista_de_lista_autos = [autos]
 
-        # Carga las credenciales desde el archivo JSON
-        creds = service_account.Credentials.from_service_account_file(KEY, scopes=SCOPES)
+                motos = df['cantidad'][(df['id_provincia_indec'] == 18)  & (df['id_vehiculo'] == 2)  & (df['fecha'] >= '2018-12-01')]
 
-        # Crea una instancia de la API de Google Sheets
-        service = build('sheets', 'v4', credentials=creds)
-        sheet = service.spreadsheets()
+                motos = [dato for dato in motos if dato != 0]
+                lista_de_lista_motos = [motos]
 
+                # Define los alcances y la ruta al archivo JSON de credenciales
+                SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+                
+                #CARGAMOS LA KEY DE LA API y la convertimos a un JSON, ya que se almacena como str
+                key_dict = loads(os.getenv('GOOGLE_SHEETS_API_KEY'))
 
-        #Remplzamos los datos en la fila correspondiente
-        request = sheet.values().update(spreadsheetId=SPREADSHEET_ID,
-                                        range='Datos!C7:7',
-                                        valueInputOption='RAW',
-                                        body={'values':lista_de_lista_autos}).execute()
-        
-        #Remplzamos los datos en la fila correspondiente
-        request = sheet.values().update(spreadsheetId=SPREADSHEET_ID,
-                                        range='Datos!C8:8',
-                                        valueInputOption='RAW',
-                                        body={'values':lista_de_lista_motos}).execute()
-        
+                #ID del documento:
+                SPREADSHEET_ID = '1L_EzJNED7MdmXw_rarjhhX8DpL7HtaKpJoRwyxhxHGI'
+                
+                #Documento ------> https://docs.google.com/spreadsheets/d/1L_EzJNED7MdmXw_rarjhhX8DpL7HtaKpJoRwyxhxHGI/edit?gid=0#gid=0
 
+                # Carga las credenciales desde el archivo JSON
+                creds = service_account.Credentials.from_service_account_info(key_dict, scopes=SCOPES)
+
+                # Crea una instancia de la API de Google Sheets
+                service = build('sheets', 'v4', credentials=creds)
+                sheet = service.spreadsheets()
+
+                #Remplzamos los datos en la fila correspondiente
+                request = sheet.values().update(spreadsheetId=SPREADSHEET_ID,range='Datos!C7:7',valueInputOption='RAW',body={'values':lista_de_lista_autos}).execute()
+                
+                #Remplzamos los datos en la fila correspondiente
+                request = sheet.values().update(spreadsheetId=SPREADSHEET_ID,range='Datos!C8:8',valueInputOption='RAW',body={'values':lista_de_lista_motos}).execute()
+                
+
+        def main(self):               
+                
+                self.connect_dbb()
+                self.cargar_datos()

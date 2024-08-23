@@ -83,7 +83,10 @@ class conexionBaseDatosLast:
             print("*****************************************")
             print(f" SE HA PRODUCIDO UNA CARGA DE DATOS DE DNRPA para {ultimo_anio} ")
             print("*****************************************")
-            readSheets().cargar_datos(df)
+
+
+            #Carga de datos en google sheets
+            readSheets().main()
 
 
         self.close_connections()

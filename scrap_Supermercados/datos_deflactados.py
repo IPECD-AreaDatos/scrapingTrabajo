@@ -8,7 +8,11 @@ import pandas as pd
 import sys
 import os
 from google.oauth2 import service_account
+from json import loads
 
+# Cargar las variables de entorno desde el archivo .env
+from dotenv import load_dotenv
+load_dotenv()
 
 class Deflactador:
 
@@ -277,18 +281,15 @@ class Deflactador:
         # Define los alcances y la ruta al archivo JSON de credenciales
         SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
         
-        #Direccion del archivo json 
-        directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
-        KEY = os.path.join(directorio_desagregado, 'files', 'key.json')
+        #CARGAMOS LA KEY DE LA API y la convertimos a un JSON, ya que se almacena como str
+        key_dict = loads(os.getenv('GOOGLE_SHEETS_API_KEY'))
 
-        if not os.path.exists(KEY):
-            raise FileNotFoundError(f'No se encontró el archivo key.json en la ruta: {KEY}')
 
         #ID del documento:
         SPREADSHEET_ID = '1L_EzJNED7MdmXw_rarjhhX8DpL7HtaKpJoRwyxhxHGI'
 
         # Carga las credenciales desde el archivo JSON
-        creds = service_account.Credentials.from_service_account_file(KEY, scopes=SCOPES)
+        creds = service_account.Credentials.from_service_account_info(key_dict, scopes=SCOPES)
 
         # Crea una instancia de la API de Google Sheets
         service = build('sheets', 'v4', credentials=creds)
