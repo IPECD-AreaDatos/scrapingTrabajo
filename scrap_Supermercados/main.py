@@ -15,8 +15,7 @@ user_dbb = (os.getenv('USER_DBB'))
 pass_dbb = (os.getenv('PASSWORD_DBB'))
 dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
 
-
-if __name__ == '__main__':
+def main():
 
     #Descarga del archivo
     HomePage().descargar_archivo()
@@ -30,4 +29,9 @@ if __name__ == '__main__':
 
     #Almacenamos los datos
     conexionBaseDatos(host_dbb,user_dbb,pass_dbb,dbb_datalake).cargar_datos(df)
+
+
+if __name__ == '__main__':
+
+    main()
 
