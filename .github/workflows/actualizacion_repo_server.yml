@@ -51,7 +51,6 @@ jobs:
             sudo chmod 777 -R '$DEPLOY_DIR'
           fi
         "
-
     # Objetivo: Crear el archivo .env en el servidor EC2 con la variable GOOGLE_SHEETS_API_KEY
     - name: Create .env file on EC2
       env:
