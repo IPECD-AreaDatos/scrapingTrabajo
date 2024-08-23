@@ -11,7 +11,6 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 
-
 class InformesEmae:
 
     #Declaracion de atributos
@@ -23,14 +22,12 @@ class InformesEmae:
         self.user = user
         self.password = password
         self.database = database
-
     
     #Establecemos la conexion a la BDD
     def conectar_bdd(self):
         self.conn = connect(host=self.host, user=self.user, password=self.password, database=self.database)
         self.cursor = self.conn.cursor()
 
-    
     #Objetivo: construir el correo que se enviara por GMAIL de forma interna
     def enviar_correo(self,df_variaciones,fecha_maxima):
 
@@ -41,7 +38,6 @@ class InformesEmae:
         asunto = f'Actualizacion de datos EMAE - {cadena_fecha_actual}'
 
         var_mensual, var_interanual = self.obtener_variacion_anualymensual()
-
 
         cadena_inicio = f'''
         <html>
@@ -74,9 +70,8 @@ class InformesEmae:
                         <h4 class="variaciones-imp" style="font-size: 17px;font-weight: 200; color: white; -webkit-text-fill-color: white !important;">VARIACIÓN INTERANUAL: <strong>{var_interanual:.1f}%</strong></h4>
                     </div>
                 </div>
-       
         '''
-
+        # Se definen variables nombre, variacion mensual, variacion interanual, variacion acumulada para cada categoria del emae
         nombre1 = df_variaciones.loc[0, 'nombre_indices']
         var_mensual1 = df_variaciones.loc[0, 'var_mensual']
         var_interanual1 = df_variaciones.loc[0, 'var_interanual']
@@ -284,9 +279,7 @@ class InformesEmae:
                 </div>
             </div>
         '''
-
         fin_mensaje = f'''
-                
                 <br>
                 <div class="footer" style="font-size: 15px; color: #888; text-align: center" >
                     <img src="cid:ipecd" alt="logo" style="margin-right: 20px; max-width: 250px; height: auto; pointer-events: none; user-select: none;" >
@@ -295,17 +288,16 @@ class InformesEmae:
             </body>
         </html>
         '''
-
+        # Juntamos todas las partes del correo que teniamos
         mensaje_final = cadena_inicio + html_content + fin_mensaje
 
         # ==== ENVIO DE MENSAJE
 
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','manumarder@gmail.com']
+        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','manumarder@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
+        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','manumarder@gmail.com']
         email_receptores_str = ', '.join(email_receptores)
-
 
         em = MIMEMultipart()
         em['From'] = email_emisor
@@ -336,13 +328,10 @@ class InformesEmae:
                 img.add_header('Content-ID', f'<{cid}>')
                 em.attach(img)
 
-
         contexto = create_default_context()
         with SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
             smtp.login(email_emisor, email_contraseña)
             smtp.sendmail(email_emisor, email_receptores, em.as_string())
-
-
 
     def variaciones_mensual_interanual_acumulada(self):
         
@@ -357,7 +346,6 @@ class InformesEmae:
         query_select = f'SELECT * from {nombre_tabla}' 
         df_categorias = pd.read_sql(query_select,self.conn)
 
-
         #OBTENCION DEL GRUPO DE LA FECHA MAXIMA 
         fecha_maxima = max(df_bdd['fecha'])
 
@@ -369,7 +357,6 @@ class InformesEmae:
 
         for indice,descripcion_categoria in zip(df_categorias['id_categoria'],df_categorias['categoria_descripcion']):
 
-
             #Obtenemos el ultimo valor, de el ID especificado por el valor de variable "indice" --> SE USA EL MISMO VALOR PARA CADA VARIACION
             valor_actual = df_bdd['valor'][df_bdd['sector_productivo'] == indice].values[-1]
 
@@ -379,7 +366,6 @@ class InformesEmae:
 
             #Calculo final
             var_mensual = ((valor_actual / valor_mes_anterior) - 1) * 100
-
 
             # === CALCULO VARIACION INTERANUAL
             
@@ -396,8 +382,6 @@ class InformesEmae:
             #Calculo final
             var_acumulada = ((valor_actual / valor_diciembre_ano_anterior) - 1) * 100
 
-
-
             #Agregamos cada valor a su correspondiente lista
             lista_indices.append(descripcion_categoria)
             lista_var_mensual.append(var_mensual)
@@ -406,7 +390,6 @@ class InformesEmae:
             
         #Creacion de DATAFRAME que contiene cada una de las variaciones
         data = {
-                
                 'nombre_indices':lista_indices,
                 'var_mensual': lista_var_mensual,
                 'var_interanual':lista_var_interanual,
@@ -416,11 +399,8 @@ class InformesEmae:
         df = pd.DataFrame(data)
 
         return df, fecha_maxima
-
-
         
     def obtener_fecha_actual(self,fecha_ultimo_registro):
-        
 
         # Obtener el nombre del mes actual en inglés
         nombre_mes_ingles = calendar.month_name[fecha_ultimo_registro.month]
@@ -458,7 +438,6 @@ class InformesEmae:
         var_interanual = df_bdd['variacion_interanual'].values[0]
         
         return var_mensual, var_interanual
-
 
     #Enviamos los mensajes a cada plataforma
     def main_correo(self):

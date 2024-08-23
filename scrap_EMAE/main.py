@@ -17,12 +17,11 @@ from credenciales_bdd import Credenciales
 # Después puedes crear una instancia de Credenciales
 credenciales_datalakeEconomico = Credenciales('datalake_economico')
 
-
 #Rama principal de ejecucion
 def main():
 
     #Obtencion del archivo
-    #HomePage().descargar_archivos()
+    HomePage().descargar_archivos()
 
     #Creamos una instancia del TRANSFORMADOR y generamos DF's
     instancia_transformador = Transformer()
@@ -30,14 +29,12 @@ def main():
     df_emae_variaciones = instancia_transformador.construir_df_emae_variaciones() #DF de las variaciones del EMAE.
 
     #== Carga de los DF's
-
     #Creacion de instancia
     instancia_load = Load(host=credenciales_datalakeEconomico.host,user=credenciales_datalakeEconomico.user,password=credenciales_datalakeEconomico.password,
                           database=credenciales_datalakeEconomico.database)
     
     #En el main de la carga se manejara el envio del correo
     instancia_load.main_load(df_emae_valores,df_emae_variaciones)
-
     
 if __name__ == '__main__':
     

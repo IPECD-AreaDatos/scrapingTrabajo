@@ -21,7 +21,6 @@ class Load():
         )
         self.cursor = self.conn.cursor()
 
-
     # ===================== ZONA DEL EMAE VALORES =====================#
 
     #Objetivo: verificar si existen mas datos en el DF que en la base de datos
@@ -51,7 +50,6 @@ class Load():
             podemos usar el tail para que busque unicamente los datos restantes.
 
             """
-
             df_tail = df.tail(tamanio_df - tamanio_bdd)
 
             #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
@@ -65,7 +63,6 @@ class Load():
 
             return True #Se actualizo la tabla, la bandera es positiva
             
-
         #Si es falso, descartar la carga
         else:
             print("*********")
@@ -73,7 +70,6 @@ class Load():
             print("*********")
 
             return False #NO actualizo la tabla, la bandera es NEGATIVA
-
 
         # ===================== ZONA DEL EMAE VARIACIONES =====================#
 
@@ -88,8 +84,7 @@ class Load():
 
         return tamanio_df , tamanio_bdd
 
-
-      #Objetivo: Realizar la carga de EMAE VARIACIONES
+    #Objetivo: Realizar la carga de EMAE VARIACIONES
     def load_emae_variaciones(self,df):
 
         #Buscamos los tamanos
@@ -120,7 +115,6 @@ class Load():
 
             return False #NO actualizo la tabla, la bandera es NEGATIVA
 
-
     """
     Este main tiene como proposito controlar las actualizaciones  y el envio del informe.
     Basicamente, se tendria que enviar el informe SOLO si las dos tablas se cargaron adecuadamente.
@@ -134,9 +128,6 @@ class Load():
         bandera_valores = self.load_emae_valores(df_emae_valores)
         bandera_variaciones = self.load_emae_variaciones(df_emae_variaciones)
 
-        instancia_informe = InformesEmae(host=self.host,user=self.user,password=self.password,database=self.database)
-        instancia_informe.main_correo()
-        exit()
         #Si ambas banderas son positivas, enviar correo. Sino, saltaran errores.
         if bandera_valores and bandera_variaciones:
             instancia_informe = InformesEmae(host=self.host,user=self.user,password=self.password,database=self.database)

@@ -21,7 +21,6 @@ class Transformer:
         df = pd.read_excel(file_path, sheet_name=0, skiprows=4)
         df = df.drop(df.index[-1])  # Eliminar la última fila que contiene "Fuente: INDEC"
         
-        
         """
         El archivo consiste en varias columnas, cada columna representa un valor en una fecha.
         Para la BDD el formato ideal es (FECHA,TIPO DE CATEGORIA[ID],VALOR).
@@ -32,13 +31,11 @@ class Transformer:
         3 - Ir concatenando cada conjunto de datos construido (los del paso anterior)
     
         """
-
         #PASO 1 - Creamos las fechas. La fecha inicial es ENERO DEL 2004
         num_rows = df.shape[0]
 
         # Generar un rango de fechas que comience en enero de 2004 y avance mensualmente
         fechas = pd.date_range(start='2004-01-01', periods=num_rows, freq='MS')
-
 
         # ========= #
 
@@ -50,9 +47,14 @@ class Transformer:
         #Generamos un DATAFRAME acumulador - Contendra los datos que iremos concatenando
         df_acum = pd.DataFrame()
 
-        
         #Lista de columnas que usaremos para recorrer el df
         list_columns = df.columns
+
+        # Encuentra la última fila con datos válidos (no NaN) en el DataFrame
+        last_valid_index = df.apply(pd.Series.last_valid_index).min()
+
+        # Ajusta el número de filas en base al último índice válido encontrado
+        fechas = fechas[:last_valid_index + 1]
 
         #En este for el INDEX representara el ID de la categoria al que pertenece el valor del EMAE.
         for index,column in enumerate(list_columns):
@@ -63,15 +65,12 @@ class Transformer:
             df_aux['fecha'] = fechas #--> Asignamos las fechas
             df_aux['sector_productivo'] = index + 1 #--> Sumamos 1, ya que el index arranca de 0, y nuestros ID arrancan en 1.
             df_aux['valor'] = df[column]
-
             
             #PASO 3 - IR concatenando los DATAFRAME 
             df_acum = pd.concat([df_acum,df_aux])
 
-
         #Finalmente reorganizamos el dataframe con fines de manipularlo mejor en la carga
         df_acum = df_acum.sort_values(['fecha','sector_productivo'])
-
 
         #Retornamos el DF acum que contiene los datos ordenados.
         return df_acum
@@ -104,7 +103,6 @@ class Transformer:
         # ==== PASO 1 - Cambiar nombres de columnas del DF
         df.columns = ['variacion_interanual','variacion_mensual']
 
-
         # ==== PASO 2 - GENERACION DE FECHAS
         num_rows = df.shape[0]
 
@@ -121,5 +119,4 @@ class Transformer:
 
         #Retornamos el DF de las variaciones.
         return df
-
 

@@ -85,7 +85,7 @@ class HomePage:
         ruta_guardado = os.path.join(carpeta_guardado, nombre_archivo)
         with open(ruta_guardado, 'wb') as file:
             file.write(response.content)
-
+            
         
         #=== SEGUNDO ARCHIVO - EMAR VARIACIONES
 
