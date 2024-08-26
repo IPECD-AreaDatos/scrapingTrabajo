@@ -40,7 +40,12 @@ class readDataPDF:
         # Definir las columnas del DataFrame en el orden especificado
         columnas = ["Inf.", "For", "Pan", "Vis", "Raz For", "Raz Obs", 
                     "Precio", "P.Norm.", "Ant Precio", "Ant P.Norm.", 
-                    "Var.", "T.", "TA", "Atributos"]
+                    "Var.", "T.", "TA", "Atributos", "otro"]
+        
+        # Imprimir la longitud de cada fila para verificar la consistencia
+        for i, fila in enumerate(datos):
+            if len(fila) != len(columnas):
+                print(f"Fila {i} tiene {len(fila)} columnas, debería tener {len(columnas)}")
 
         # Crear el DataFrame con los datos extraídos
         df = pd.DataFrame(datos, columns=columnas)
@@ -48,7 +53,7 @@ class readDataPDF:
         return df
 
 
-df = readDataPDF().leer_datos('C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_canasta_basica.py\\files\\ACEITE_GIRASOL.PDF')
+df =readDataPDF().leer_datos('C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_canasta_basica.py\\files\\ACEITE_GIRASOL.PDF')
 print(df)
-print(df[["Inf.", "For", "Pan", "Vis", "Raz For", "Raz Obs","Precio", "P.Norm.", "Ant Precio", "Ant P.Norm.", "Var.", "T.", "TA", "Atributos", "otro"]])
-print(df.columns)
+print(df[["Inf.", "For", "Pan", "Vis", "Raz For", "Raz Obs", "Precio", "P.Norm."]])
+#print(df.columns)
