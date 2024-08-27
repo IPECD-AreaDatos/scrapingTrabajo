@@ -23,7 +23,7 @@ if __name__ == "__main__":
     # Scrip principal
     # Obtenemos el ultimo valor de RIPTE desde la pagina de inicio
     ultimo_valor_ripte = readData().extract_last_value()
-
+    
     # Carga del último dato en la base de datos Datalake Economico
     conexion = ripte_cargaUltimoDato(
         credenciales_datalake_economico.host,

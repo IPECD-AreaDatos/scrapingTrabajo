@@ -30,7 +30,7 @@ class ripte_cargaUltimoDato:
     def loadInDataBaseDatalakeEconomico(self, valor_ripte):  
         table_name='ripte'
         # Se toma el tiempo de comienzo
-        tolerancia = 1.99         
+        tolerancia = 100         
         
         #Conexion a la BDD
         self.conectar_bdd()
@@ -45,14 +45,7 @@ class ripte_cargaUltimoDato:
         # Convertir la fecha a objeto datetime
         fecha_base = datetime.strptime(str(ultima_fecha), "%Y-%m-%d")
 
-        valor_ripte=float(valor_ripte)
-
-        fecha = datetime(2024, 6, 1)
-        valor_ripte_junio = 933180
-        valor_ripte_mayo = 879483
-
-
-        InformeRipte(self.host,self.user,self.password,self.database).enviar_mensajes(fecha, valor_ripte_junio, valor_ripte_mayo)
+        valor_ripte= float(valor_ripte)
 
         if abs(valor_ripte - ultimo_ripte) < tolerancia:
             print("El valor de ripte es el mismo, no se agregaron nuevos datos")
@@ -68,6 +61,6 @@ class ripte_cargaUltimoDato:
             print("Se agregaron nuevos datos")
             print(f"nueva fecha {nueva_fecha}")
 
-            #InformeRipte(self.host,self.user,self.password,self.database).enviar_mensajes(nueva_fecha, valor_ripte, ultimo_ripte)
+            InformeRipte(self.host,self.user,self.password,self.database).enviar_mensajes(nueva_fecha, valor_ripte, ultimo_ripte)
         cursor.close()
         self.conn.close()
