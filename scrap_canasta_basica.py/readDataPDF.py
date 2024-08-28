@@ -16,19 +16,23 @@ class readDataPDF:
 
                 for linea in text_sin_las_primeras_7_lineas:
                     # Verificar si la línea empieza con un número de 7 dígitos seguido de una letra
-                    if re.match(r"12\d{5}[A-Z]", linea[:]):
+                    if re.match(r"12\d{5}[A-Z]", linea[:8]):
                         # Si hay una fila actual, la añadimos a los datos
                         if fila_actual:
                             datos.append(fila_actual)
-                        
-                        # Iniciar una nueva fila
-                        fila_actual = linea.split(maxsplit=14)
+
+                        # Separar los 7 dígitos y la letra
+                        inf_num = linea[:7]
+                        inf_letra = linea[7]
+
+                        # Iniciar una nueva fila con los valores separados
+                        fila_actual = [inf_num, inf_letra] + linea[8:].split(maxsplit=13)
 
                         # Reemplazar valores vacíos en las columnas específicas con None
-                        for i in [5, 6, 7, 8, 9, 10]:  # Índices de las columnas "Precio", "P.Norm.", "Ant Precio", "Ant P.Norm."
+                        for i in [7, 8, 9, 10, 11, 12]:  # Índices de las columnas "Precio", "P.Norm.", "Ant Precio", "Ant P.Norm."
                             if i < len(fila_actual) and fila_actual[i] == "":
                                 fila_actual[i] = None
-                            
+
                     elif fila_actual:
                         # Concatenar la línea actual a la columna "Atributos" de la fila actual
                         fila_actual[-1] += " " + linea.strip()
@@ -38,10 +42,10 @@ class readDataPDF:
             datos.append(fila_actual)
 
         # Definir las columnas del DataFrame en el orden especificado
-        columnas = ["Inf.", "For", "Pan", "Vis", "Raz For", "Raz Obs", 
-                    "Precio", "P.Norm.", "Ant Precio", "Ant P.Norm.", 
-                    "Var.", "T.", "TA", "Atributos", "otro"]
-        
+        columnas = ["Inf.Num", "Inf.Letra", "For", "Pan", "Vis", "Raz", "Raz For", "Obs",
+                    "Precio", "P.Norm.", "Ant Precio", "Ant P.Norm.",
+                    "Var.", "T.", "TA", "Atributos"]
+
         # Imprimir la longitud de cada fila para verificar la consistencia
         for i, fila in enumerate(datos):
             if len(fila) != len(columnas):

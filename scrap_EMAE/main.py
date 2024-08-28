@@ -3,19 +3,16 @@ import os
 from transform import Transformer
 from load import Load
 import os
+from dotenv import load_dotenv
 import sys 
 
-# Obtener la ruta al directorio actual del script
-script_dir = os.path.dirname(os.path.abspath(__file__))
-credenciales_dir = os.path.join(script_dir, '..', 'Credenciales_folder')
-# Agregar la ruta al sys.path
-sys.path.append(credenciales_dir)
+# Cargar las variables de entorno desde el archivo .env
+load_dotenv()
 
-#Importamos biblioteca de credenciales
-from credenciales_bdd import Credenciales
-
-# Después puedes crear una instancia de Credenciales
-credenciales_datalakeEconomico = Credenciales('datalake_economico')
+host_dbb = (os.getenv('HOST_DBB'))
+user_dbb = (os.getenv('USER_DBB'))
+pass_dbb = (os.getenv('PASSWORD_DBB'))
+dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
 
 #Rama principal de ejecucion
 def main():
@@ -30,8 +27,7 @@ def main():
 
     #== Carga de los DF's
     #Creacion de instancia
-    instancia_load = Load(host=credenciales_datalakeEconomico.host,user=credenciales_datalakeEconomico.user,password=credenciales_datalakeEconomico.password,
-                          database=credenciales_datalakeEconomico.database)
+    instancia_load = Load(host=host_dbb,user=user_dbb,password=pass_dbb,database=dbb_datalake)
     
     #En el main de la carga se manejara el envio del correo
     instancia_load.main_load(df_emae_valores,df_emae_variaciones)
