@@ -3,10 +3,10 @@ from carga_db import conexcionBaseDatos
 import os
 import sys
 from homePage import HomePage
+from correo2 import InformeIPC
 from correo import Correo
 from dotenv import load_dotenv
-
-
+from datetime import datetime
 
 # Cargar las variables de entorno desde el archivo .env
 load_dotenv()
@@ -31,6 +31,9 @@ if __name__ == '__main__':
     instancia_bdd = conexcionBaseDatos(host_dbb, user_dbb,pass_dbb, dbb_datalake)
     bandera = instancia_bdd.main(df)
 
-    if bandera:
+    variable_fecha_max = datetime.strptime('2024-07-01', '%Y-%m-%d')
+    InformeIPC(host_dbb, user_dbb,pass_dbb, dbb_datalake).enviar_correo(variable_fecha_max)
+  
 
+    if bandera:
         Correo(host_dbb, user_dbb,pass_dbb, dbb_datalake).main()
