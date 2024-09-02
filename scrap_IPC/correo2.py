@@ -3,6 +3,7 @@ from email.message import EmailMessage
 from smtplib import SMTP_SSL
 import pandas as pd
 import os
+from datetime import datetime
 import calendar
 from ssl import create_default_context
 from pymysql import connect
@@ -149,9 +150,9 @@ class InformeIPC:
 
         # Asegúrate de que el DataFrame no esté vacío
         if not df_bdd.empty:
-            variacion_mensual = df_bdd['var_mensual'].iloc[0]
-            variacion_interanual = df_bdd['var_interanual'].iloc[0]
-            variacion_acumulada = df_bdd['var_acumulada'].iloc[0]
+            variacion_mensual = df_bdd['var_mensual'].iloc[0] * 100
+            variacion_interanual = df_bdd['var_interanual'].iloc[0] * 100
+            variacion_acumulada = df_bdd['var_acumulada'].iloc[0] * 100
         else:
             # Manejo de caso cuando no hay datos en el DataFrame
             variacion_mensual = None
@@ -159,3 +160,7 @@ class InformeIPC:
             variacion_acumulada = None
 
         return variacion_mensual,variacion_interanual,variacion_acumulada
+    
+    def main(self):
+        variable_fecha_max = datetime.strptime('2024-07-01', '%Y-%m-%d')
+        self.enviar_correo(variable_fecha_max)

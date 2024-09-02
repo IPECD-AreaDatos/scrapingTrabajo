@@ -31,9 +31,9 @@ if __name__ == '__main__':
     instancia_bdd = conexcionBaseDatos(host_dbb, user_dbb,pass_dbb, dbb_datalake)
     bandera = instancia_bdd.main(df)
 
-    variable_fecha_max = datetime.strptime('2024-07-01', '%Y-%m-%d')
-    InformeIPC(host_dbb, user_dbb,pass_dbb, dbb_datalake).enviar_correo(variable_fecha_max)
-  
+    instancia_correo = InformeIPC(host_dbb, user_dbb,pass_dbb, dbb_datalake)
+    instancia_correo.conectar_bdd()
+    instancia_correo.main()
 
     if bandera:
         Correo(host_dbb, user_dbb,pass_dbb, dbb_datalake).main()
