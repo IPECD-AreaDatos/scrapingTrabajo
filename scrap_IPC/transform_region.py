@@ -6,8 +6,8 @@ Archivo destinado a construir el DATAFRAME  que contendra:
 import pandas as pd
 from sqlalchemy import create_engine
 import os
+from numpy import nan
 from unidecode import unidecode
-from numpy import unique, nan
 
 class TransformRegiones:
 

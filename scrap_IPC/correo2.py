@@ -3,40 +3,36 @@ from email.message import EmailMessage
 from smtplib import SMTP_SSL
 import pandas as pd
 import os
+from sqlalchemy import create_engine
 from datetime import datetime
 import calendar
 from ssl import create_default_context
-from pymysql import connect
 from email.message import EmailMessage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from dotenv import load_dotenv
 from email.mime.image import MIMEImage
 
 class InformeIPC:
 
     #Declaracion de atributos
     def __init__(self,host,user,password,database):
-        self.conn = None
-        self.cursor = None
         self.host = host
         self.user = user
         self.password = password
         self.database = database
-    
-    #Establecemos la conexion a la BDD
-    def conectar_bdd(self):
-        self.conn = connect(host=self.host, user=self.user, password=self.password, database=self.database)
-        self.cursor = self.conn.cursor()
 
-    def enviar_correo(self, fecha_maxima):
+        #Creacion de conexion a la bdd
+        self.engine = create_engine('mysql+pymysql://root:tu_contraseña@localhost:3306/mi_base_de_datos')
+
+    # Objetivo: Juntar todos los elementos del correo y darle forma para enviarlo.
+    def enviar_correo(self, fecha_maxima, var_mensual, var_acumulada, var_interanual, df_var_nea, df_var_region ):
 
         #Pasamos la ultima fecha un formato mas legible
         cadena_fecha_actual = self.obtener_fecha_actual(fecha_maxima)
 
         #Asunto del correo
         asunto = f'Actualizacion de datos IPC - {cadena_fecha_actual}'
-
-        var_mensual, var_interanual, var_acumulada = self.variaciones_nacion()
 
         cadena_inicio = f'''
         <html>
@@ -111,6 +107,7 @@ class InformeIPC:
             smtp.login(email_emisor, email_contraseña)
             smtp.sendmail(email_emisor, email_receptores, em.as_string())
 
+    # Objetivo: Convertir a formato string una fecha
     def obtener_fecha_actual(self,fecha_ultimo_registro):
 
         # Obtener el nombre del mes actual en inglés
@@ -143,9 +140,9 @@ class InformeIPC:
         nombre_tabla = 'ipc_valores'
         query_consulta = f'SELECT * FROM {nombre_tabla} WHERE id_region = 1 AND id_categoria = 1 ORDER BY fecha DESC LIMIT 1'
         #query_consulta = f'SELECT * FROM {nombre_tabla} WHERE id_region = 1 and id_categoria = 1'
-        df_bdd = pd.read_sql(query_consulta,self.conn)
+        df_bdd = pd.read_sql(query_consulta,self.engine)
 
-        print("REGISTRO EXTRAIDO DE LA BDD")
+        print("VARIAICONES NACIONALES")
         print(df_bdd)
 
         # Asegúrate de que el DataFrame no esté vacío
@@ -160,7 +157,49 @@ class InformeIPC:
             variacion_acumulada = None
 
         return variacion_mensual,variacion_interanual,variacion_acumulada
+        
+    # Objetivo: Leer de la base las variaicones por region en la ultima fecha para tranformarlo en un df
+    def variaciones_region(self, fecha):
+        nombre_tabla = 'ipc_valores'
+        query_consulta = f'SELECT * FROM {nombre_tabla} WHERE fecha = {fecha} ORDER BY fecha DESC LIMIT 1'
+        #query_consulta = f'SELECT * FROM {nombre_tabla} WHERE id_region = 1 and id_categoria = 1'
+        df_bdd = pd.read_sql(query_consulta,self.engine)
+
+        print("VARIACIONES POR REGION")
+        print(df_bdd)
+        
+        df_bdd = df_bdd.sort_values(by='var_mensual', ascending=[False])
+
+        return df_bdd
     
+    # Objetivo: Leer de la base las variaciones desagregadas de la region del nea en la ultima fecha para tranformarlo en un df
+    def variaciones_nea(self, fecha):
+        nombre_tabla = 'ipc_valores'
+        query_consulta = f'SELECT * FROM {nombre_tabla} WHERE fecha = {fecha} AND id_region = 5 ORDER BY fecha DESC LIMIT 1'
+        #query_consulta = f'SELECT * FROM {nombre_tabla} WHERE id_region = 1 and id_categoria = 1'
+        df_bdd = pd.read_sql(query_consulta,self.engine)
+
+        print("VARIAICONES NEA")
+        print(df_bdd)
+
+        df_bdd = df_bdd.sort_values(by='var_mensual', ascending=[False])
+
+        return df_bdd
+
     def main(self):
+
         variable_fecha_max = datetime.strptime('2024-07-01', '%Y-%m-%d')
-        self.enviar_correo(variable_fecha_max)
+        
+        # Obtenemos variaciones nacionales de la ultima fecha
+        var_mensual, var_interanual, var_acumulada = self.variaciones_nacion()
+        
+        # Obtenemos df de variaciones por region de la ultima fecha
+        df_var_region = self.variaciones_region(variable_fecha_max)
+
+        # Obtenemos df de variaciones extendido del nea de la ultima fecha
+        df_var_nea = self.variaciones_nea(variable_fecha_max)
+
+        # Enviamos el correo
+        self.enviar_correo(variable_fecha_max, var_mensual, var_acumulada, var_interanual, df_var_nea, df_var_region)
+
+
