@@ -1,63 +1,48 @@
 import pandas as pd 
-import pdfplumber
-import re
+from bs4 import BeautifulSoup
 
-class readDataPDF:
-    def leer_datos(self, pdf_path):
-        datos = []
-        fila_actual = None
+class ReadDataHTM:
+    def leer_datos(self, htm_path):
+        # Leer el archivo HTM y cargar el contenido
+        with open(htm_path, 'r', encoding='ISO-8859-1') as file:
+            soup = BeautifulSoup(file, 'html.parser')
 
-        with pdfplumber.open(pdf_path) as pdf:
-            for page in pdf.pages:
-                text = page.extract_text().splitlines()
+        # Encontrar todas las tablas en el archivo HTML
+        tables = soup.find_all('table')
+        print(f"Se encontraron {len(tables)} tablas en el archivo HTML.")
 
-                # Omitir las primeras 7 líneas de cada página
-                text_sin_las_primeras_7_lineas = text[9:-1]
+        # Lista para almacenar los DataFrames de las tablas
+        df_list = []
 
-                for linea in text_sin_las_primeras_7_lineas:
-                    # Verificar si la línea empieza con un número de 7 dígitos seguido de una letra
-                    if re.match(r"12\d{5}[A-Z]", linea[:8]):
-                        # Si hay una fila actual, la añadimos a los datos
-                        if fila_actual:
-                            datos.append(fila_actual)
+        # Procesar cada tabla encontrada
+        for table in tables:
+            rows = table.find_all('tr')  # Encontrar todas las filas en la tabla
+            table_data = []
 
-                        # Separar los 7 dígitos y la letra
-                        inf_num = linea[:7]
-                        inf_letra = linea[7]
+            for row in rows:
+                cols = row.find_all(['td', 'th'])  # Encontrar todas las celdas en la fila
+                row_data = [col.get_text(strip=True) for col in cols]  # Obtener el texto de cada celda
+                table_data.append(row_data)  # Agregar la fila a la lista de datos de la tabla
 
-                        # Iniciar una nueva fila con los valores separados
-                        fila_actual = [inf_num, inf_letra] + linea[8:].split(maxsplit=13)
+            # Crear un DataFrame de Pandas para la tabla actual
+            df = pd.DataFrame(table_data)
+            #df = df.iloc[17:].reset_index(drop=True)
 
-                        # Reemplazar valores vacíos en las columnas específicas con None
-                        for i in [7, 8, 9, 10, 11, 12]:  # Índices de las columnas "Precio", "P.Norm.", "Ant Precio", "Ant P.Norm."
-                            if i < len(fila_actual) and fila_actual[i] == "":
-                                fila_actual[i] = None
+            
 
-                    elif fila_actual:
-                        # Concatenar la línea actual a la columna "Atributos" de la fila actual
-                        fila_actual[-1] += " " + linea.strip()
+            # Añadir el DataFrame a la lista
+            df_list.append(df)
 
-        # Añadir la última fila procesada
-        if fila_actual:
-            datos.append(fila_actual)
-
-        # Definir las columnas del DataFrame en el orden especificado
-        columnas = ["Inf.Num", "Inf.Letra", "For", "Pan", "Vis", "Raz", "Raz For", "Obs",
-                    "Precio", "P.Norm.", "Ant Precio", "Ant P.Norm.",
-                    "Var.", "T.", "TA", "Atributos"]
-
-        # Imprimir la longitud de cada fila para verificar la consistencia
-        for i, fila in enumerate(datos):
-            if len(fila) != len(columnas):
-                print(f"Fila {i} tiene {len(fila)} columnas, debería tener {len(columnas)}")
-
-        # Crear el DataFrame con los datos extraídos
-        df = pd.DataFrame(datos, columns=columnas)
-
-        return df
+        # Concatenar todos los DataFrames en uno solo
+        combined_df = pd.concat(df_list, ignore_index=True)
 
 
-df =readDataPDF().leer_datos('C:\\Users\\Usuario\\Desktop\\scrapingTrabajo\\scrap_canasta_basica.py\\files\\ACEITE_GIRASOL.PDF')
-print(df)
-print(df[["Inf.", "For", "Pan", "Vis", "Raz For", "Raz Obs", "Precio", "P.Norm."]])
-#print(df.columns)
+        return combined_df
+
+# Ruta al archivo HTM
+combined_df = ReadDataHTM().leer_datos('C:\\Users\\manum\\OneDrive\\Escritorio\\scrapingTrabajo\\scrap_canasta_basica.py\\AZUCAR.HTM')
+
+# Mostrar el DataFrame combinado
+print("DataFrame combinado:")
+print(combined_df.head(50))
+print(combined_df.iloc[:, :1].head(50))
