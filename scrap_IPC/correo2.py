@@ -162,7 +162,7 @@ class InformeIPC:
             "ipecd": "logo_ipecd.png", 
             "fondo": "fondo_correo.png",
             "fondo_cuadros": "fondo_cuadros.png",
-            "mapa_regiones": "mapa_regiones.webp"
+            "mapa_regiones": "mapa_regiones.png"
         }
 
         # Construir las rutas completas y crear un diccionario para las rutas de las imágenes
