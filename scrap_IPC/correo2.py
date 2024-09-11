@@ -39,9 +39,17 @@ class InformeIPC:
         <head>
             <style>
                 @media (max-width: 600px) {{
-                    .img-responsive {{
-                        width: 100%;
-                        height: auto;
+                    
+                    .box-mapa {{ 
+                        flex-direction: column !important; /* Cambia a columnas en lugar de filas */
+                        align-items: center; /* Alinea los elementos al inicio */
+                    }}
+                    .mapa {{ 
+                        margin-bottom: 5px;
+                    }}
+                    .tabla-reg {{
+                        width: 95% !important; /* Asegura que la tabla ocupe todo el ancho disponible */
+                        
                     }}
                 }}
             </style>
@@ -49,28 +57,28 @@ class InformeIPC:
             <body style="color-scheme: light;">
                 <div class="container" style= "color-scheme: light;background-image: url('cid:fondo'); background-repeat: no-repeat; background-position: center center; background-size: cover;">
 
-                <h2 class="titulo" style="font-size: 24px; color: #444; -webkit-text-fill-color: #444 !important;text-align: center;"><strong>DATOS NUEVOS DEL INDICE DE PRECIOS AL CONSUMIDOR (IPC) A {cadena_fecha_actual.upper()}</strong></h2>
-                <h3 class="descripcion" style="font-size: 15px; color: #666; -webkit-text-fill-color: #666 !important;font-weight: 180; text-align: center;">El IPC mide la variación de precios de los bienes y servicios representativos del gasto de consumo de los hogares residentes 
+                <h2 class="titulo" style="margin: 10px;font-size: 24px; color: #172147; -webkit-text-fill-color: #444 !important;text-align: center;"><strong>DATOS NUEVOS DEL INDICE DE PRECIOS AL CONSUMIDOR (IPC) A {cadena_fecha_actual.upper()}</strong></h2>
+                <h3 class="descripcion" style="padding: 10px; font-size: 15px; color: #172147; -webkit-text-fill-color: #666 !important;font-weight: 180; text-align: center;">El IPC mide la variación de precios de los bienes y servicios representativos del gasto de consumo de los hogares residentes 
                         en la zona seleccionada en comparación con los precios vigentes en el año base.</h3>  
                     
                <div class="container-variaciones" style="color-scheme: light;width: 100%; display: flex; justify-content: center;">
-                    <div class="box" style="width: 100%; border: 2px solid #465c49; border-radius: 5px;text-align: center; margin-left: 40px; margin-right: 40px; margin-top: 10px; margin-bottom:10px;background-position-x: -75px; background-position-y: -149px; background-size: cover; background-image: url('cid:fondo_cuadros');">
+                    <div class="box" style="width: 100%; border: 2px solid #465c49; border-radius: 5px;text-align: center; margin-left: 40px; margin-right: 40px; margin-top: 10px; margin-bottom:10px;background-position-x: -75px; background-position-y: -149px; background-size: 150% auto; background-image: url('cid:fondo_var');">
                         <h4 class="variaciones-imp" style="font-size: 17px; font-weight: 200; color: white;-webkit-text-fill-color: white !important; ">VARIACIÓN MENSUAL: <strong>{var_mensual:.2f}%</strong></h4>
                         <h4 class="variaciones-imp" style="font-size: 17px;font-weight: 200; color: white; -webkit-text-fill-color: white !important;">VARIACIÓN INTERANUAL: <strong>{var_interanual:.2f}%</strong></h4>
                         <h4 class="variaciones-imp" style="font-size: 17px;font-weight: 200; color: white; -webkit-text-fill-color: white !important;">VARIACIÓN ACUMULADA: <strong>{var_acumulada:.2f}%</strong></h4>
                     </div>
                 </div>
                 <!-- Box con imagen a la izquierda y tabla a la derecha -->
-                <div style="display: flex; align-items: center; justify-content: center; margin: 20px 0; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+                <div class="box-mapa" style="display: flex; align-items: center; justify-content: center; margin: 20px 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
                     <!-- Imagen -->
-                    <div style="flex: 1; padding: 20px;">
-                        <img src="cid:mapa_regiones" alt="Imagen Box" class="img-responsive" style="width: 100%; height: auto; border-radius: 8px;">
+                    <div class="mapa" style="flex: 1; padding: 10px; margin-right: 10px">
+                        <img src="cid:mapa_regiones" alt="Imagen Box" class="img-responsive" style="width: auto; border-radius: 8px; height: 380px;">
                     </div>
                     <!-- Tabla -->
-                    <div style="flex: 2; padding: 20px;">
+                    <div class="tabla-reg" style="flex: 2; padding: 25px; ">
                         <table style="border-collapse: separate; border-spacing: 0; width: 100%; background-color: #f9f9f9; border-radius: 8px; overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
                             <thead>
-                                <tr style="background-color: #465c49; color: #fff;">
+                                <tr style="background-color: #313A63; color: #fff;">
                                     <th style="padding: 10px; text-align: left; font-size: 16px;">Region</th>
                                     <th style="padding: 10px; text-align: left; font-size: 16px;">Variación Mensual</th>
                                     <th style="padding: 10px; text-align: left; font-size: 16px;">Variación Interanual</th>
@@ -99,13 +107,15 @@ class InformeIPC:
                 
                 <!-- Tabla de variaciones NEA -->
                 <div style="text-align: center; margin: 20px 0;">
-                    <table style="border-collapse: separate; border-spacing: 0; margin: 0 auto; width: 80%; max-width: 600px; background-color: #f9f9f9; border-radius: 8px; overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+                    <h2 class="titulo" style="margin: 30px; font-size: 25px; color: #172147; -webkit-text-fill-color: #444 !important;text-align: center;"><strong>Datos del NEA por subdivision.</strong></h2>
+
+                    <table style="border-collapse: separate; border-spacing: 0; padding: 10px, 25px;margin: 0 auto; width: 95%; background-color: #f9f9f9; border-radius: 8px; overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
                         <thead>
-                            <tr style="background-color: #465c49; color: #fff;">
-                                <th style="padding: 10px; text-align: left; font-size: 16px;">Categoría</th>
-                                <th style="padding: 10px; text-align: left; font-size: 16px;">Variación Mensual</th>
-                                <th style="padding: 10px; text-align: left; font-size: 16px;">Variación Interanual</th>
-                                <th style="padding: 10px; text-align: left; font-size: 16px;">Variación Acumulada</th>
+                            <tr style="background-color: #313A63; color: #fff;">
+                                <th style="padding: 10px; text-align: center; font-size: 16px;">Subdivision</th>
+                                <th style="padding: 10px; text-align: center; font-size: 16px;">Variación Mensual</th>
+                                <th style="padding: 10px; text-align: center; font-size: 16px;">Variación Interanual</th>
+                                <th style="padding: 10px; text-align: center; font-size: 16px;">Variación Acumulada</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -143,7 +153,7 @@ class InformeIPC:
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
         #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','manumarder@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
-        email_receptores =  ['benitezeliogaston@gmail.com','matizalazar2001@gmail.com','manumarder@gmail.com']
+        email_receptores =  [ 'matizalazar2001@gmail.com','manumarder@gmail.com']
         email_receptores_str = ', '.join(email_receptores)
 
         em = MIMEMultipart()
@@ -161,7 +171,7 @@ class InformeIPC:
         image_files = {
             "ipecd": "logo_ipecd.png", 
             "fondo": "fondo_correo.png",
-            "fondo_cuadros": "fondo_cuadros.png",
+            "fondo_var": "fondo_var.png",
             "mapa_regiones": "mapa_regiones.png"
         }
 
