@@ -7,6 +7,7 @@ import pandas as pd
 from sqlalchemy import create_engine
 import os
 from numpy import nan
+
 from unidecode import unidecode
 
 class TransformRegiones:
@@ -262,7 +263,7 @@ class TransformRegiones:
         #Creacion de lista de subdivisiones
         subdivisiones_unicas = list(range(1,46))
         regiones = [1,2,3,4,5,6,7]
-        anios = unique(dfs_concatenados['fecha'].dt.year)
+        anios = pd.unique(dfs_concatenados['fecha'].dt.year)
 
         #lista de variaciones acumuladas
         lista_acumuladas = []
