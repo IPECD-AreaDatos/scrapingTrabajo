@@ -62,7 +62,7 @@ class InformeIPC:
                         en la zona seleccionada en comparación con los precios vigentes en el año base.</h3>  
                     
                <div class="container-variaciones" style="color-scheme: light;width: 100%; display: flex; justify-content: center;">
-                    <div class="box" style="width: 100%; border: 2px solid #465c49; border-radius: 5px;text-align: center; margin-left: 40px; margin-right: 40px; margin-top: 10px; margin-bottom:10px;background-position-x: -75px; background-position-y: -149px; background-size: 150% auto; background-image: url('cid:fondo_var');">
+                    <div class="box" style="width: 100%; border: 2px solid #172147; border-radius: 5px;text-align: center; margin-left: 40px; margin-right: 40px; margin-top: 10px; margin-bottom:10px;background-position-x: -75px; background-position-y: -149px; background-size: 150% auto; background-image: url('cid:fondo_var');">
                         <h4 class="variaciones-imp" style="font-size: 17px; font-weight: 200; color: white;-webkit-text-fill-color: white !important; ">VARIACIÓN MENSUAL: <strong>{var_mensual:.2f}%</strong></h4>
                         <h4 class="variaciones-imp" style="font-size: 17px;font-weight: 200; color: white; -webkit-text-fill-color: white !important;">VARIACIÓN INTERANUAL: <strong>{var_interanual:.2f}%</strong></h4>
                         <h4 class="variaciones-imp" style="font-size: 17px;font-weight: 200; color: white; -webkit-text-fill-color: white !important;">VARIACIÓN ACUMULADA: <strong>{var_acumulada:.2f}%</strong></h4>
@@ -75,7 +75,7 @@ class InformeIPC:
                         <img src="cid:mapa_regiones" alt="Imagen Box" class="img-responsive" style="width: auto; border-radius: 8px; height: 380px;">
                     </div>
                     <!-- Tabla -->
-                    <div class="tabla-reg" style="flex: 2; padding: 25px; ">
+                    <div class="tabla-reg" style="flex: 2; padding: 30px; ">
                         <table style="border-collapse: separate; border-spacing: 0; width: 100%; background-color: #f9f9f9; border-radius: 8px; overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
                             <thead>
                                 <tr style="background-color: #313A63; color: #fff;">
