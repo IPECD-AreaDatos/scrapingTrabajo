@@ -51,6 +51,21 @@ class InformeIPC:
                         width: 95% !important; /* Asegura que la tabla ocupe todo el ancho disponible */
                         
                     }}
+                
+                @media (max-width: 1380px) {{
+                    
+                    .contenedor-horizontal {{ 
+                        display: flex;
+                        flex-wrap: wrap;
+                    }}
+                    .box-mapa, .tabla-grande {{ 
+                        flex: 1 1 100%; /* Ocupa todo el ancho de la pantalla en pequeñas resoluciones */
+                        max-width: 100%; /* Asegura que no se desborden */
+                        margin-bottom: 20px;
+                    }}
+                    .tabla-grande {{
+                        flex: 2;                        
+                    }}
                 }}
             </style>
         </head>
@@ -68,8 +83,10 @@ class InformeIPC:
                         <h4 class="variaciones-imp" style="font-size: 17px;font-weight: 200; color: white; -webkit-text-fill-color: white !important;">VARIACIÓN ACUMULADA: <strong>{var_acumulada:.2f}%</strong></h4>
                     </div>
                 </div>
+                <!-- Contenedor general que agrupa el mapa y ambas tablas -->
+                <div class="contenedor-horizontal">
                 <!-- Box con imagen a la izquierda y tabla a la derecha -->
-                <div class="box-mapa" style="display: flex; align-items: center; justify-content: center; margin: 20px 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+                <div class="box-mapa" style="display: flex; align-items: center; justify-content: space-between; margin: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
                     <!-- Imagen -->
                     <div class="mapa" style="flex: 1; padding: 10px; margin-right: 10px">
                         <img src="cid:mapa_regiones" alt="Imagen Box" class="img-responsive" style="width: auto; border-radius: 8px; height: 380px;">
@@ -106,7 +123,7 @@ class InformeIPC:
                 </div>
                 
                 <!-- Tabla de variaciones NEA -->
-                <div style="text-align: center; margin: 20px 0;">
+                <div class="tabla-grande" style="text-align: center; margin: 20px 0;">
                     <h2 class="titulo" style="margin: 30px; font-size: 25px; color: #172147; -webkit-text-fill-color: #444 !important;text-align: center;"><strong>Datos del NEA por subdivision.</strong></h2>
 
                     <table style="border-collapse: separate; border-spacing: 0; padding: 10px, 25px;margin: 0 auto; width: 95%; background-color: #f9f9f9; border-radius: 8px; overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
@@ -135,6 +152,7 @@ class InformeIPC:
         fin_mensaje = f'''
                         </tbody>
                     </table>
+                </div>
                 </div>
                 <br>
                 <div class="footer" style="font-size: 15px; color: #888; text-align: center" >
