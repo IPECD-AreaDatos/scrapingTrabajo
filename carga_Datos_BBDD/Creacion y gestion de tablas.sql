@@ -787,9 +787,18 @@ CREATE TABLE tabla_ipc_acumulados(
 	ipc_online float,
 	ipc_rem float,
 	ipc_nacion_acum float,
-	ipc_nea_acum float,
+	ipc_nea_acum float,5
 	ipc_caba_acum float,
 	ipc_oline_acum float,
 	ipc_rem_acum float
 
+)
+USE dwh_sociodemografico;
+CREATE TABLE dwh_sociodemografico.censo_municipio (
+	municipio char(50),
+	poblacion_viv_part_2010 int,
+	poblacion_viv_part_2022 int,
+	var_abs_poblacion_2010_vs_2022 int, 
+	peso_relativo_2022 float,
+	var_rel_poblacion_2010_vs_2022 float
 )
