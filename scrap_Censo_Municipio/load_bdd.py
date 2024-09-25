@@ -22,7 +22,7 @@ class loadDataBase:
     def carga_bdd(self, df):
         #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
         engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
-        df.to_sql(name="censo_municipio", con=engine, if_exists='replace', index=False)
+        df.to_sql(name="censo_ipecd_municipios", con=engine, if_exists='append', index=False)
 
         print("Datos cargados!")
 
