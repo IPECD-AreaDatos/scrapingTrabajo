@@ -31,5 +31,11 @@ if __name__ == '__main__':
     instancia_bdd = conexcionBaseDatos(host_dbb, user_dbb,pass_dbb, dbb_datalake)
     bandera = instancia_bdd.main(df)
 
+
     if bandera:
-        Correo(host_dbb, user_dbb,pass_dbb, dbb_datalake).main()
+        InformeIPC(host_dbb, user_dbb,pass_dbb, dbb_datalake).main()
+        print("Correo enviado!")
+    else:
+        print("Correo no enviado!")
+
+    

@@ -340,8 +340,11 @@ class InformeIPC:
 
     def main(self):
 
-        variable_fecha_max = datetime.strptime('2024-07-01', '%Y-%m-%d')
-        variable_fecha_max_str = variable_fecha_max.strftime('%Y-%m-%d %H:%M:%S')
+        fecha_max = pd.read_sql("SELECT fecha FROM ipc_valores ORDER BY fecha DESC LIMIT 1", self.engine)
+
+        Fecha_max = fecha_max['fecha'].iloc[0] 
+
+        variable_fecha_max_str = Fecha_max.strftime('%Y-%m-%d %H:%M:%S')
 
         # Obtenemos variaciones nacionales de la ultima fecha
         var_mensual, var_interanual, var_acumulada = self.variaciones_nacion()
@@ -355,10 +358,3 @@ class InformeIPC:
         # Enviamos el correo
         self.enviar_correo(variable_fecha_max_str, var_mensual, var_acumulada, var_interanual, df_var_nea, df_var_region)
 
-
-host = '54.94.131.196'
-user = 'estadistica'
-password = 'Estadistica2024!!'
-database = 'datalake_economico'
-
-InformeIPC(host,user,password,database).main()
