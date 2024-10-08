@@ -51,10 +51,7 @@ class loadXLSDataCBT:
         concatenacion_df = pd.concat([df_primeraHoja,df_segundaHoja,concatenacion_df],axis=1)
         concatenacion_df['Fecha'] = pd.to_datetime(concatenacion_df['Fecha'])
 
-        print(concatenacion_df)
         df_definitivo = self.estimaciones_nea(concatenacion_df)
-
-        print(df_definitivo)
 
         return df_definitivo
     
@@ -63,7 +60,7 @@ class loadXLSDataCBT:
 
     
         #Establecemos la fecha del ultimo periodo valido (recodar que para estimaciones se usa los ultimos 6 valores oficiales del NEA)
-        fecha_ultima_publicacion_oficial = pd.to_datetime("2023-12-01")
+        fecha_ultima_publicacion_oficial = pd.to_datetime("2024-06-01")
 
         #Verificacion para ver si es necesario o no calcular estimaciones del NEA - Se supone que el mismo mes que salen DATOS OFICIALES no se tiene que calcular
         if len(concatenacion_df['cba_nea'][concatenacion_df['Fecha'] > fecha_ultima_publicacion_oficial]) == 0:

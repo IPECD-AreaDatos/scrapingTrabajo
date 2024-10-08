@@ -31,6 +31,7 @@ if __name__ == '__main__':
 
     # Transformar datos del archivo Excel de HomePageCBT
     df = loadXLSDataCBT().transform_datalake()
+    
     # Conexión y carga de datos en la base de datos del DataLake Sociodemográfico
     instancia_conexion_bdd = connection_db(credenciales_datalake_sociodemografico.host, credenciales_datalake_sociodemografico.user, credenciales_datalake_sociodemografico.password, credenciales_datalake_sociodemografico.database)
     instancia_conexion_bdd.connect_db()
