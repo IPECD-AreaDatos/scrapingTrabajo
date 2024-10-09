@@ -802,3 +802,13 @@ CREATE TABLE dwh_sociodemografico.censo_municipio (
 	peso_relativo_2022 float,
 	var_rel_poblacion_2010_vs_2022 float
 )
+
+CREATE table OEDE_categorias(
+	id_categoria char(1),
+    categoria char(100)
+);
+CREATE table OEDE_subcategorias(
+	id_categoria char(1),
+	id_subcategoria int,
+    subcategoria char(100)
+);
