@@ -1,57 +1,77 @@
-from matplotlib.dates import relativedelta
 import pandas as pd
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 class armadoDF:
-    def armadoDF(file_path):
-        # Leer el archivo xlsx y cargarlo en un DataFrame
-        sheet_name ='OUT Propuesta JUN24' # Nombre de la hoja en caso de necesitar
-        df = pd.read_excel(file_path, sheet_name=0)
+    @staticmethod
+    def armado_df(file_path, target_value="TABLA 11"):
+        """
+        Función para leer un archivo xlsx y armar un DataFrame con la información
+        necesaria para la carga en la base de datos.
 
-        target_value = "TABLA 11"
+        Parameters
+        ----------
+        file_path : str
+            Ruta del archivo xlsx a leer
+        target_value : str
+            Valor para buscar en el archivo
 
-        fila_target = ArmadoDF.buscar_fila_por_valor(df, target_value) + 2
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame con la información necesaria para la carga en la base de datos
+        """
+        try:
+            df = pd.read_excel(file_path, sheet_name=0)
+        except Exception as e:
+            print(f"Error al leer el archivo: {e}")
+            return None
 
-        print("Número de fila:", fila_target)
-    
-        df = df.iloc[fila_target:(fila_target + 58)]
-        # Borrar columnas que tienen solo None
-        print("Columnas antes de eliminar:", df.columns)
-        df = df.dropna(axis=1, how='all')
-        print("Columnas después de eliminar:", df.columns)
-        print(df)
+        fila_target = armadoDF.buscar_fila_por_valor(df, target_value)
+        if fila_target is None:
+            print(f"No se encontró el valor '{target_value}' en el archivo.")
+            return None
+        
+        # Seleccionar las filas necesarias
+        fila_inicio = fila_target + 2
+        df = df.iloc[fila_inicio:(fila_inicio + 58)]
+        
+        # Borrar columnas que tienen solo valores None
+        df.dropna(axis=1, how='all', inplace=True)
+
+        # Transponer y renombrar columnas con los valores de la primera fila
         df = df.transpose()
-        # Renombrar las columnas con el nombre de la primera fila
         df.columns = df.iloc[0]
         df = df.drop(df.index[0])
         
-        # Crear una nueva columna con las fechas
-        fechas = []
-        fecha_inicio = datetime.strptime("2019-01-01", "%Y-%m-%d").date()  # Obtenemos solo la parte de la fecha
-        for i in range(len(df)):
-            fechas.append(fecha_inicio + relativedelta(months=i))
-
+        # Crear la nueva columna con las fechas
+        fecha_inicio = datetime.strptime("2019-01-01", "%Y-%m-%d").date()
+        fechas = [fecha_inicio + relativedelta(months=i) for i in range(len(df))]
         df.insert(0, 'fecha', fechas)
-        df = df.drop(df.columns[-1], axis=1)
-        df.reset_index(drop=True, inplace=True)
         
-        colums = ['Aeroparque', 'Bahía Blanca', 'Bariloche', 'Base Marambio',    
-       'Catamarca', 'Chapelco', 'Comod. Rivadavia', 'Concordia', 'Córdoba',    
-       'Corrientes', 'El Calafate', 'El Palomar', 'Esquel', 'Ezeiza',
-       'Formosa', 'General Pico', 'Goya', 'Gualeguaychú', 'Iguazú', 'Jujuy',   
-       'Junín', 'La Plata', 'La Rioja', 'Malargüe', 'Mar del Plata', 'Mendoza',
-       'Moreno', 'Morón', 'Neuquén', 'Paraná', 'Paso de los Libres', 'Posadas',
-       'Puerto Madryn', 'Reconquista', 'Resistencia', 'Río Cuarto',
-       'Río Gallegos', 'Río Grande', 'Rosario', 'Salta', 'San Fernando',       
-       'San Juan', 'San Luis', 'San Rafael', 'Santa Fe', 'Santa Rosa',
-       'Santa Rosa de Conlara', 'Santiago del Estero', 'Tandil',
-       'Termas Río Hondo', 'Trelew', 'Tucumán', 'Ushuaia', 'Viedma',
-       'Villa Gesell', 'Villa Reynolds', 'Otros']
-        for colum in colums: 
-            df[colum] = df[colum].astype(float)
-            df[colum] = df[colum]*1000
-        print(df['Corrientes'])
+        # Eliminar la última columna (si es necesario)
+        if df.columns[-1] is None:
+            df.drop(df.columns[-1], axis=1, inplace=True)
+
+        # Convertir columnas a float y multiplicar por 1000
+        columnas_a_convertir = ['Aeroparque', 'Bahía Blanca', 'Bariloche', 'Base Marambio',    
+           'Catamarca', 'Chapelco', 'Comod. Rivadavia', 'Concordia', 'Córdoba',    
+           'Corrientes', 'El Calafate', 'El Palomar', 'Esquel', 'Ezeiza',
+           'Formosa', 'General Pico', 'Goya', 'Gualeguaychú', 'Iguazú', 'Jujuy',   
+           'Junín', 'La Plata', 'La Rioja', 'Malargüe', 'Mar del Plata', 'Mendoza',
+           'Moreno', 'Morón', 'Neuquén', 'Paraná', 'Paso de los Libres', 'Posadas',
+           'Puerto Madryn', 'Reconquista', 'Resistencia', 'Río Cuarto',
+           'Río Gallegos', 'Río Grande', 'Rosario', 'Salta', 'San Fernando',       
+           'San Juan', 'San Luis', 'San Rafael', 'Santa Fe', 'Santa Rosa',
+           'Santa Rosa de Conlara', 'Santiago del Estero', 'Tandil',
+           'Termas Río Hondo', 'Trelew', 'Tucumán', 'Ushuaia', 'Viedma',
+           'Villa Gesell', 'Villa Reynolds', 'Otros']
+
+        for col in columnas_a_convertir:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce') * 1000
+
+        # Renombrar las columnas con el diccionario especificado
         column_names = {
             'fecha': 'fecha',
             'Aeroparque': 'aeroparque',
@@ -112,17 +132,17 @@ class armadoDF:
             'Villa Reynolds': 'villa_reynolds',
             'Otros': 'otros'
         }
-        # Corrige los nombres de las columnas en el DataFrame
+
         df.rename(columns=column_names, inplace=True)
         return df
-        
 
-    
-class ArmadoDF:
     @staticmethod
     def buscar_fila_por_valor(df, target_value):
-        # Buscar el valor en todas las columnas del DataFrame
-        for index, row in df.iterrows():
-            if target_value in row.values:
-                return index  # Devolver el índice de la fila si se encuentra el valor
+        """Busca el valor en todas las columnas del DataFrame y devuelve el índice de la fila si se encuentra el valor."""
+        try:
+            for index, row in df.iterrows():
+                if target_value in row.values:
+                    return index  # Devolver el índice de la fila si se encuentra el valor
+        except Exception as e:
+            print(f"Error durante la búsqueda del valor: {e}")
         return None  # Devolver None si el valor no se encuentra en ninguna fila

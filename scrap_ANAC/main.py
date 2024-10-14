@@ -1,44 +1,59 @@
 from home_page import HomePage
 from anac_armadoDF import armadoDF
-import sys
 import os
-import pandas as pd
 from loadDatabase import load_database
 from save_data_sheet import readSheets
+from dotenv import load_dotenv
 
-# Obtener la ruta al directorio actual del script
-script_dir = os.path.dirname(os.path.abspath(__file__))
-credenciales_dir = os.path.join(script_dir, "..", "Credenciales_folder")
-# Agregar la ruta al sys.path
-sys.path.append(credenciales_dir)
-# Importar las credenciales
+# Cargar las variables de entorno desde el archivo .env
+load_dotenv()
 
-# Documentación:
-# - Importaciones necesarias para el script.
-# - Obtención de las credenciales necesarias para la conexión a bases de datos.
-# - Bases con el mismo nombre / local_... para las del servidor local
-from credenciales_bdd import Credenciales
-# Después puedes crear una instancia de Credenciales
-credenciales_datalake_economico = Credenciales("datalake_economico")
+# Variables de entorno para la base de datos
+host_dbb = os.getenv('HOST_DBB')
+user_dbb = os.getenv('USER_DBB')
+pass_dbb = os.getenv('PASSWORD_DBB')
+dbb_datalake = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
 
+# Ruta del archivo descargado
+directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
+ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
+file_path_desagregado = os.path.join(ruta_carpeta_files, 'anac.xlsx')
 
 if __name__ == "__main__":
-    home_page = HomePage()
-    home_page.descargar_archivo()
+    try:
+        # Descarga el archivo desde la página de ANAC
+        home_page = HomePage()
+        home_page.descargar_archivo()
 
-    directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
-    ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
-    file_path_desagregado = os.path.join(ruta_carpeta_files, 'anac.xlsx')
-    
-    df = armadoDF.armadoDF(file_path_desagregado)
-    
-    credenciales_datalake_economico = load_database(credenciales_datalake_economico.host, credenciales_datalake_economico.user, credenciales_datalake_economico.password, credenciales_datalake_economico.database)
-    credenciales_datalake_economico.conectar_bdd()
-    df.loc[df["corrientes"] == 32200.000000000004, "corrientes"] = 19646
-    df.loc[df["corrientes"] == 39478, "corrientes"] = 18555
-    df.loc[df["corrientes"] == 40395, "corrientes"] = 19648
-    credenciales_datalake_economico.load_data(df)
-    values = credenciales_datalake_economico.read_data_excel()
-    print(values)
-    
-    readSheets().escribir_fila(values)
+        # Armar el DataFrame a partir del archivo descargado
+        df = armadoDF.armado_df(file_path_desagregado)
+        if df is None:
+            raise ValueError("No se pudo generar el DataFrame desde el archivo descargado.")
+
+        # Conectar y cargar el DataFrame a la base de datos
+        credenciales_datalake_economico = load_database(host_dbb, user_dbb, pass_dbb, dbb_datalake)
+        credenciales_datalake_economico.conectar_bdd()
+
+        # Corrección de valores específicos en el DataFrame
+        df.loc[df["corrientes"] == 32200.000000000004, "corrientes"] = 19646
+        df.loc[df["corrientes"] == 39478, "corrientes"] = 18555
+        df.loc[df["corrientes"] == 40395, "corrientes"] = 19648
+
+        # Cargar los datos en la base de datos
+        credenciales_datalake_economico.load_data(df)
+
+        # Leer los datos cargados y procesarlos
+        values = credenciales_datalake_economico.read_data_excel()
+        print("Valores desde la base de datos:")
+        print(values)
+
+        # Escribir los valores en Google Sheets
+        readSheets().escribir_fila(values)
+
+    except Exception as e:
+        print(f"Se produjo un error durante la ejecución del script: {e}")
+
+    finally:
+        # Cerrar la conexión a la base de datos si está abierta
+        if credenciales_datalake_economico:
+            credenciales_datalake_economico.cerrar_conexion()
