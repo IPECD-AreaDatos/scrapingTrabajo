@@ -7,7 +7,7 @@ import time
 import pandas as pd
 from datetime import datetime
 
-class ExtractDnrpa:
+class ExtractHistoricalDnrpa:
 
     def __init__(self):
         self.driver = None
