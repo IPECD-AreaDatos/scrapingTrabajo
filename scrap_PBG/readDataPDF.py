@@ -1,7 +1,7 @@
-import pandas as pd 
+import pandas as pd
 import pdfplumber
 import re  # Módulo para expresiones regulares
-
+from decimal import Decimal
 
 # Diccionario para mapear los nombres de los meses a sus valores numéricos
 meses = {
@@ -9,6 +9,7 @@ meses = {
     "MAYO": 5, "JUNIO": 6, "JULIO": 7, "AGOSTO": 8,
     "SEPTIEMBRE": 9, "OCTUBRE": 10, "NOVIEMBRE": 11, "DICIEMBRE": 12
 }
+
 # Preparar listas vacías para recoger los datos
 data = {
     "gastos_en_personal": 0,
@@ -29,24 +30,23 @@ class readDataPDF:
             text = page.extract_text()
             for line in text.split("\n"):
                 line_counter += 1  # Incrementa el contador para cada línea procesada
-                # Si la línea es la quinta o comienza con "Ministerio", imprímela directamente
                 if line_counter == 5:
-                    print(line)  # Imprime la quinta línea
+                    print(line)
                     # Utiliza una expresión regular para encontrar el primer número en la línea
                     match = re.search(r'\d+', line)
                     if match:
                         jurisdiccion = int(match.group()) # Convierte el primer número encontrado a entero
                 elif line.startswith("Ministerio"):
-                    # Inicializa el valor del mes como None
                     valor_mes = None
-                    # Busca cada mes en la línea y actualiza valor_mes cuando se encuentra
                     for mes, valor in meses.items():
                         if mes in line:
                             valor_mes = valor
-        # Para otras condiciones específicas (comienza con "100", "200", "300", "400"), procesa y agrega los datos
                 elif line.startswith(("100", "200", "300", "400")):
                     grupo_gasto = line.split(" ")[0]
-                    valor = float(line.split()[-2].replace(".", "").replace(",", "."))
+                    valor_str = line.split()[-2]
+                    # Reemplazamos adecuadamente los separadores de miles y decimales y convertimos a Decimal
+                    valor = Decimal(valor_str.replace(".", "").replace(",", "."))
+                    
                     if grupo_gasto == "100":
                         data['gastos_en_personal'] = valor
                     elif grupo_gasto == "200":
@@ -58,7 +58,7 @@ class readDataPDF:
 
         # Preparando datos para cargar en el DataFrame final
         carga_datos = {
-            'mes': [valor_mes],  # Asegúrate de que todos los valores sean listas
+            'mes': [valor_mes],
             'año': [2023],
             'jurisdiccion': [jurisdiccion],
             'gastos_en_personal': [data['gastos_en_personal']],
@@ -72,7 +72,4 @@ class readDataPDF:
         print("------------------------------------------------------------------")
         print(df)
         print("------------------------------------------------------------------")
-        return(df)
-        
-
-
+        return df

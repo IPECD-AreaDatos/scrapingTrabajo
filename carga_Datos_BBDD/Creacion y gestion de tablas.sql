@@ -812,3 +812,16 @@ CREATE table OEDE_subcategorias(
 	id_subcategoria int,
     subcategoria char(100)
 );
+CREATE table OEDE_diccionario(
+	id_categoria char(1),
+	id_subcategoria int,
+    nombre char(100)
+);
+
+CREATE table OEDE_valores(
+	fecha date, 
+	id_provincia int,
+	id_categoria char(1),
+	id_subcategoria int,
+    valor float
+);

@@ -23,7 +23,7 @@ class connectDBPrespuestoEjecutado:
 
     def update_database_with_new_data(self, df):
 
-        table_name= 'pbg_presupuesto_ejecutado'
+        table_name= 'pbg_presupuesto_ejecutado_uno_ivan'
         for index, row in df.iterrows():
                 # Luego, puedes usar estos valores en tu consulta SQL
                 sql_insert = f"INSERT INTO {table_name} (mes, año, jurisdiccion, gastos_en_personal, bienes_de_consumo, servicios_no_personales, bienes_de_uso) VALUES (%s, %s, %s, %s, %s, %s, %s)"

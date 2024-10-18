@@ -8,7 +8,7 @@ import time
 import pandas as pd
 from datetime import datetime
 
-class ExtractLast:
+class ExtractLastData:
 
     def __init__(self):
         self.driver = None
@@ -17,7 +17,15 @@ class ExtractLast:
 
      #Objetivo: extraer todas las tablas. La idea es usar esta funcion para una carga historica total.
     def extraer_tablas(self):
-        # Creación de Driver y abrir página
+        """
+        Extrae todas las tablas de la web de DNRPA y las carga en un Dataframe.
+        
+        Se utiliza el driver de Chrome en modo headless para no mostrar la ventana del navegador.
+        Se abre la página de la web de DNRPA y se extraen los datos de AUTOS y MOTOS.
+        Se transforman los numeros de la columna cantidad_vehiculos de str a int.
+        Se imprime el tipo de dato de cada columna del DataFrame.
+        Se devuelve el DataFrame con los datos extraidos.
+        """
         options = webdriver.ChromeOptions()
         options.add_argument('--headless')
     
