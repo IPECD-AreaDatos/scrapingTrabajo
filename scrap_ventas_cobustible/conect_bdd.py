@@ -31,10 +31,6 @@ class conexcionBaseDatos:
 
         return tamano_bdd,tamano_df
     
-    def eliminar5(self):
-        delete = f"DELETE FROM combustible WHERE (fecha, producto, provincia, cantidad) IN ( SELECT fecha, producto, provincia, cantidad FROM ( SELECT fecha, producto, provincia, cantidad FROM datalake_economico.combustible ORDER BY fecha DESC LIMIT 5000 ) subquery )"
-        self.cursor.execute(delete)
-    
     #Objetivo: realizar efectivamente la carga a la BDD
     def cargaBaseDatos(self, df):
         print("\n*****************************************************************************")
@@ -47,14 +43,16 @@ class conexcionBaseDatos:
         
         if tamano_df > tamano_bdd:
             engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
-
             df_tail = df.tail(tamano_df - tamano_bdd)
-            df_tail.to_sql(name='combustible', con=engine, if_exists='append', index=False)
-
-            print("*************")
-            print(f" == ACTUALIZACION == Nuevos datos en la base de combustibles")
-            print("*************")
-            return True
+            try:
+                df_tail.to_sql(name='combustible', con=engine, if_exists='append', index=False)
+                print("*************")
+                print(f" == ACTUALIZACION == Nuevos datos en la base de combustibles")
+                print("*************")
+                return True
+            except Exception as e:
+                print("Error durante la carga de datos:", e)
+                return False
         else:
             print("*********")
             print("No existen datos nuevos de combustible")
@@ -64,14 +62,19 @@ class conexcionBaseDatos:
     
     def main(self, df):
         self.conectar_bdd()
+        bandera = False
+        try:
+            bandera = self.cargaBaseDatos(df)
+            # Solo hacemos commit si la carga fue exitosa
+            if bandera:
+                self.conn.commit()
+        except Exception as e:
+            print("Error en el proceso principal:", e)
+        finally:
+            # Cerramos conexiones
+            if self.cursor:
+                self.cursor.close()
+            if self.conn:
+                self.conn.close()
 
-        bandera = self.cargaBaseDatos(df)
-
-        #Cerramos conexiones
-        self.conn.commit()
-        self.conn.close()
-        self.cursor.close()
-
-        #Condicion final
-        bandera = bandera
         return bandera

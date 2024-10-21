@@ -18,6 +18,7 @@ class Transformacion:
         print(df.dtypes)
         print(np.unique(df['provincia']))
         df = df.drop(columns=['unidad'])
+        
         return df        
 
     # Objetivo: modficar cantidad de columna y editar columna fecha
@@ -61,4 +62,8 @@ class Transformacion:
             'Tucuman': 90,
         }
         df['provincia'] = df['provincia'].replace(dict_provincias)
-        return df
+
+        # Filtrar para quedarte solo con las filas donde provincia es 18 (Corrientes)
+        df_corrientes = df[df['provincia'] == 18]        
+
+        return df_corrientes
