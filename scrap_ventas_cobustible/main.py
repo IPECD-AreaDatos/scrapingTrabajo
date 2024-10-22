@@ -16,25 +16,33 @@ pass_dbb = (os.getenv('PASSWORD_DBB'))
 dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
 
 if __name__ == "__main__":
-    #extraer = Extraccion()
-    #extraer.descargar_archivo()
+
+
+    extraer = Extraccion()
+    extraer.descargar_archivo()
         
     # Armado del df de combustible
     df_combustible = Transformacion().crear_df()
 
     # Carga de los dfs a la base
     instancia_bdd = conexcionBaseDatos(host_dbb, user_dbb,pass_dbb, dbb_datalake)
+
     # Banderas si se actualizaron las bases
     bandera = instancia_bdd.main(df_combustible)
+
     #Valor de bandera
     print(f"-- Condicion de carga en la base de datos: {bandera}")
-    exit()
-    conexion_excel = readSheets(host_dbb, user_dbb,pass_dbb, dbb_datalake).conectar_bdd()
+
+
     if bandera:
+        conexion_excel = readSheets(host_dbb, user_dbb,pass_dbb, dbb_datalake).conectar_bdd()
         conexion_excel.cargar_datos()
+
         print("Sheet actualizado.")
+
     else:
-        print("No hay nuevos datos para el sheet.")
+        print(" ** NO SE CONSIDERA NECESARIO ACTUALIZAR GOOGLE SHEET ** ")
+
 
 
     
