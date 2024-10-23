@@ -3,18 +3,18 @@ import os
 import sys 
 from loadDataBase import load_database
 
-# Obtener la ruta al directorio actual del script
-script_dir = os.path.dirname(os.path.abspath(__file__))
-credenciales_dir = os.path.join(script_dir, '..', 'Credenciales_folder')
-# Agregar la ruta al sys.path
-sys.path.append(credenciales_dir)
-# Ahora puedes importar tus credenciales
-from credenciales_bdd import Credenciales
-# Después puedes crear una instancia de Credenciales
-credenciales = Credenciales('datalake_sociodemografico')
+
+# Cargar las variables de entorno desde el archivo .env
+from dotenv import load_dotenv
+load_dotenv()
+
+host_dbb = (os.getenv('HOST_DBB'))
+user_dbb = (os.getenv('USER_DBB'))
+pass_dbb = (os.getenv('PASSWORD_DBB'))
+dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_SOCIO'))
 
 if __name__ == '__main__':
-    df = homePage().construir_df_estimaciones(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    df = homePage().construir_df_estimaciones(host_dbb,user_dbb,pass_dbb,dbb_datalake)
     print(df)
-    instancia_bdd = load_database(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    instancia_bdd = load_database(host_dbb,user_dbb,pass_dbb,dbb_datalake)
     instancia_bdd.carga_datos(df)

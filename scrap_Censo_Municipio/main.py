@@ -14,7 +14,6 @@ dbb_datalake = (os.getenv('NAME_DBB_DWH_SOCIO'))
 
 
 if __name__ == "__main__":
-    print("Las credenciales son: ", host_dbb, user_dbb, pass_dbb, dbb_datalake)
     df_censo = readSheetsCensoMunicipio().leer_datos_censo()
     conexion = loadDataBase(host_dbb, user_dbb, pass_dbb, dbb_datalake).conectar_bdd()
     conexion.carga_bdd(df_censo)

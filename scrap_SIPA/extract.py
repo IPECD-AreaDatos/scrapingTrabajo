@@ -16,6 +16,9 @@ class HomePage:
 
         options = webdriver.ChromeOptions()
         options.add_argument('--headless')
+        options.add_argument('--disable-gpu')  # Desactiva el uso de GPU
+        options.add_argument('--no-sandbox')   # Evita algunos problemas de permisos
+        options.add_argument('--disable-dev-shm-usage')  # Para sistemas con poco espacio en /dev/shm
     
         # Configuración del navegador
         driver = webdriver.Chrome(options=options)

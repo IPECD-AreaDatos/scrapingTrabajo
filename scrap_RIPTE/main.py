@@ -3,16 +3,14 @@ from readHistory import ripte_cargaHistorico
 from loadDataBaseRIPTE import ripte_cargaUltimoDato
 import sys
 import os
+# Cargar las variables de entorno desde el archivo .env
+from dotenv import load_dotenv
+load_dotenv()
 
-# Obtener la ruta al directorio que contiene las Credenciales
-script_dir = os.path.dirname(os.path.abspath(__file__))
-credenciales_dir = os.path.join(script_dir, "..", "Credenciales_folder")
-sys.path.append(credenciales_dir)
-from credenciales_bdd import Credenciales
-
-# Credenciales de las bases de datos a utilizar
-credenciales_datalake_economico = Credenciales("datalake_economico")
-credenciales_ipecd_economico = Credenciales("ipecd_economico")
+host_dbb = (os.getenv('HOST_DBB'))
+user_dbb = (os.getenv('USER_DBB'))
+pass_dbb = (os.getenv('PASSWORD_DBB'))
+dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
 
 
 if __name__ == "__main__":
@@ -26,10 +24,7 @@ if __name__ == "__main__":
     
     # Carga del último dato en la base de datos Datalake Economico
     conexion = ripte_cargaUltimoDato(
-        credenciales_datalake_economico.host,
-        credenciales_datalake_economico.user,
-        credenciales_datalake_economico.password,
-        credenciales_datalake_economico.database,
+        host_dbb,user_dbb,pass_dbb,dbb_datalake
     )
     conexion.loadInDataBaseDatalakeEconomico(ultimo_valor_ripte)
 

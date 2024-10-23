@@ -6,21 +6,19 @@ import os
 import pandas as pd
 import sys
 from send_mail_sipa import MailSipa
+from dotenv import load_dotenv
 
-# Obtener la ruta al directorio actual del script
-script_dir = os.path.dirname(os.path.abspath(__file__))
-credenciales_dir = os.path.join(script_dir, '..', 'Credenciales_folder')
-# Agregar la ruta al sys.path
-sys.path.append(credenciales_dir)
+# Cargar las variables de entorno desde el archivo .env
+load_dotenv()
 
-
-from credenciales_bdd import Credenciales
-
-credenciales = Credenciales("datalake_economico")
+host_dbb = (os.getenv('HOST_DBB'))
+user_dbb = (os.getenv('USER_DBB'))
+pass_dbb = (os.getenv('PASSWORD_DBB'))
+dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
 
 
 if __name__ == '__main__':    
-    #url = HomePage()
+    url = HomePage()
     directorio_actual = os.path.dirname(os.path.abspath(__file__))
     ruta_carpeta_files = os.path.join(directorio_actual, 'files')
     file_path = os.path.join(ruta_carpeta_files, 'SIPA.xlsx')
@@ -48,15 +46,18 @@ if __name__ == '__main__':
     df = df.sort_values(by = ['fecha','id_provincia','id_tipo_registro'])
 
     print(df)
-    instancia_bdd = conexionBaseDatos(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
-
+    instancia_bdd = conexionBaseDatos(host_dbb, user_dbb,pass_dbb, dbb_datalake)
+    print("xdddddddddddddddddddddddd")
     bandera_correo = instancia_bdd.load_datalake(df)
+    print("noooooooo")
 
 
     if bandera_correo:
+        print("siiiiiiiiiii")
 
         #Instancia de correo
-        instancia_correo = MailSipa(credenciales.host, credenciales.user, credenciales.password, "dwh_economico")
+        instancia_correo = MailSipa(host_dbb, user_dbb,pass_dbb, dbb_datalake)
         instancia_correo.connect_db()
         instancia_correo.send_mail()
+        print("Correo enviado!")
 

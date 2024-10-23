@@ -4,18 +4,14 @@ from load import Database
 import os
 import sys
 
+# Cargar las variables de entorno desde el archivo .env
+from dotenv import load_dotenv
+load_dotenv()
 
-#Ruta de SCRAPPING trabajo
-script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-credenciales_dir = os.path.join(script_dir, "Credenciales_folder") #--> Añadimos carpeta de credenciales folder
-
-# Agregar la ruta al sys.path
-sys.path.append(credenciales_dir)
-
-# Importar las credenciales
-from credenciales_bdd import Credenciales
-
-credenciales = Credenciales('datalake_economico')
+host_dbb = (os.getenv('HOST_DBB'))
+user_dbb = (os.getenv('USER_DBB'))
+pass_dbb = (os.getenv('PASSWORD_DBB'))
+dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
 
 if __name__ == '__main__':
 
@@ -27,4 +23,4 @@ if __name__ == '__main__':
     df = Transformer().transform_data_main()
 
     #Almacenamiento de datos
-    Database(credenciales.host, credenciales.user, credenciales.password, credenciales.database).load_data(df)
+    Database(host_dbb,user_dbb,pass_dbb,dbb_datalake).load_data(df)

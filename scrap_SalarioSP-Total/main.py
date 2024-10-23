@@ -4,17 +4,14 @@ import sys
 import os
 import transform
 
-# Obtener la ruta al directorio actual del script
-script_dir = os.path.dirname(os.path.abspath(__file__))
-credenciales_dir = os.path.join(script_dir, '..', 'Credenciales_folder')
-# Agregar la ruta al sys.path
-sys.path.append(credenciales_dir)
+# Cargar las variables de entorno desde el archivo .env
+from dotenv import load_dotenv
+load_dotenv()
 
-
-from credenciales_bdd import Credenciales
-
-
-credenciales = Credenciales('datalake_economico')
+host_dbb = (os.getenv('HOST_DBB'))
+user_dbb = (os.getenv('USER_DBB'))
+pass_dbb = (os.getenv('PASSWORD_DBB'))
+dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
 
 if __name__ == '__main__':
     home_page = HomePage()
@@ -25,7 +22,7 @@ if __name__ == '__main__':
     df_datos_totales = transform.datos_totales() #--> Datos TOTALES
     
     #Creamos instancia para cargar datos en el DATALAKE
-    instancia = Gestion_bdd(host=credenciales.host, user=credenciales.user, password=credenciales.password, database=credenciales.database)
+    instancia = Gestion_bdd(host_dbb,user_dbb,pass_dbb,dbb_datalake)
 
     #Carga de DATALAKE de datos de Salario Privado
     instancia.loadInDataBase(df_salario_sp,'dp_salarios_sector_privado')

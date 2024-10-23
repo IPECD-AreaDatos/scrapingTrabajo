@@ -34,17 +34,53 @@ class MailSipa:
         self.cursor.close()
         self.conn.close()
 
+    def obtener_correos(self):
+        conn = connect(
+                host = self.host,
+                user = self.user,
+                password = self.password,
+                database = 'ipecd_economico'
+            )
+
+        cursor = conn.cursor()
+
+        # Consulta para obtener los correos
+        #consulta = "SELECT email FROM correos WHERE prueba = 1"
+        consulta = "SELECT email FROM correos"
+        
+        cursor.execute(consulta)
+        correos = cursor.fetchall()
+
+        # Convertir tuplas a lista de strings
+        email_receptores = [correo[0] for correo in correos]
+
+        # Cerrar la conexión
+        conn.close()
+
+        return email_receptores
 
     #Objetivo: extraer tabla 'empleo_nacional_porcentajes_variaciones'
     def extract_date_nation(self):
 
+        conn = connect(
+                host = self.host,
+                user = self.user,
+                password = self.password,
+                database = 'dwh_economico'
+            )
+
+        cursor = conn.cursor()
+
         query = "SELECT * FROM empleo_nacional_porcentajes_variaciones"
-        df = pd.read_sql(query,self.conn)
-
+        df = pd.read_sql(query,conn)
+        
         query_nea = "SELECT * FROM empleo_nea_variaciones"
-        df_nea = pd.read_sql(query_nea,self.conn)
-        return df,df_nea
+        df_nea = pd.read_sql(query_nea,conn)
 
+        # Cerrar la conexión
+        conn.close()
+
+        return df,df_nea
 
     #Objetivo: enviar por correo el informe de SIPA
     def send_mail(self):
@@ -154,8 +190,8 @@ class MailSipa:
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contrasenia = 'cmxddbshnjqfehka'
 
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com', 'samaniego18@gmail.com', 'guillermobenasulin@gmail.com', 'leclerc.mauricio@gmail.com','christianimariahebe@gmail.com']
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'manumarder@gmail.com']
+        email_receptores = self.obtener_correos()
+        print(email_receptores)
 
         #==== Zona de envio de correo
         em = EmailMessage()

@@ -19,6 +19,15 @@ from credenciales_bdd import Credenciales
 credenciales_datalake_sociodemografico = Credenciales('datalake_sociodemografico')
 credenciales_ipecd_economico = Credenciales('ipecd_economico')
 
+# Cargar las variables de entorno desde el archivo .env
+from dotenv import load_dotenv
+load_dotenv()
+
+host_dbb = (os.getenv('HOST_DBB'))
+user_dbb = (os.getenv('USER_DBB'))
+pass_dbb = (os.getenv('PASSWORD_DBB'))
+dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_SOCIO'))
+dbb_dwh = (os.getenv('NAME_DBB_DWH_SOCIO'))
 
 if __name__ == '__main__':
     # ZONA DE EXTRACT -- Donde se buscan los datos
@@ -33,11 +42,11 @@ if __name__ == '__main__':
     df = loadXLSDataCBT().transform_datalake()
     
     # Conexión y carga de datos en la base de datos del DataLake Sociodemográfico
-    instancia_conexion_bdd = connection_db(credenciales_datalake_sociodemografico.host, credenciales_datalake_sociodemografico.user, credenciales_datalake_sociodemografico.password, credenciales_datalake_sociodemografico.database)
+    instancia_conexion_bdd = connection_db(host_dbb,user_dbb,pass_dbb,dbb_datalake)
     instancia_conexion_bdd.connect_db()
     bandera_correo = instancia_conexion_bdd.load_datalake(df)
     # Si se cargaron los datos correctamente en el DataLake Sociodemográfico, enviar correo.
     if bandera_correo:
-        instancia_correo = MailCBTCBA(credenciales_datalake_sociodemografico.host, credenciales_datalake_sociodemografico.user, credenciales_datalake_sociodemografico.password, "dwh_sociodemografico")
+        instancia_correo = MailCBTCBA(host_dbb,user_dbb,pass_dbb,dbb_dwh)
         instancia_correo.send_mail_cbt_cba()
 

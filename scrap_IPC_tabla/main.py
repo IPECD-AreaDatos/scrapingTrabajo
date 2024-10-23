@@ -20,30 +20,27 @@ from loaddb import Load
 import os
 import sys
 
+# Cargar las variables de entorno desde el archivo .env
+from dotenv import load_dotenv
+load_dotenv()
 
-# Obtener la ruta al directorio actual del script
-script_dir = os.path.dirname(os.path.abspath(__file__))
-credenciales_dir = os.path.join(script_dir, "..", "Credenciales_folder")
+host_dbb = (os.getenv('HOST_DBB'))
+user_dbb = (os.getenv('USER_DBB'))
+pass_dbb = (os.getenv('PASSWORD_DBB'))
+dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
+dbb_dwh = (os.getenv('NAME_DBB_DWH_ECONOMICO'))
 
-# Agregar la ruta al sys.path
-sys.path.append(credenciales_dir)
-
-# Importar las credenciales
-from credenciales_bdd import Credenciales
-
-#instancia de Credenciales
-cred_dl_economico = Credenciales("datalake_economico")
 
 if __name__ == '__main__':
     
     #Creamos la intancia para buscar los datos
-    instancia = ExtractDataBDD(cred_dl_economico.host, cred_dl_economico.user, cred_dl_economico.password, cred_dl_economico.database)
+    instancia = ExtractDataBDD(host_dbb,user_dbb,pass_dbb,dbb_datalake)
     df = instancia.main()#--> Obtenemos los datos en un DF
 
     print(df)
 
     #Cargamos la BDD --> En este caso indicamos que la base de datos sera 'dwh_economico' | No creamos instancia, ya que solo cambiariamos esta cadena
-    credenciales = Load(cred_dl_economico.host, cred_dl_economico.user, cred_dl_economico.password, 'dwh_economico')
+    credenciales = Load(host_dbb,user_dbb,pass_dbb,dbb_dwh)
     credenciales.main(df)
 
 

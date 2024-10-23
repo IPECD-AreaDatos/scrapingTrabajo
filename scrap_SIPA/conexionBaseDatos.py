@@ -59,6 +59,7 @@ class conexionBaseDatos:
         self.connect_db()
 
         len_bdd,len_df = self.check_lens(df)
+        print(f"df: {len_bdd} base: {len_df}")
 
         if len_df > len_bdd:
 

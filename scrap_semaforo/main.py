@@ -4,17 +4,14 @@ from load import Database
 import os
 import sys
 
-# Obtener la ruta al directorio actual del script
-script_dir = os.path.dirname(os.path.abspath(__file__))
-credenciales_dir = os.path.join(script_dir, '..', 'Credenciales_folder')
-# Agregar la ruta al sys.path
-sys.path.append(credenciales_dir)
+# Cargar las variables de entorno desde el archivo .env
+from dotenv import load_dotenv
+load_dotenv()
 
-
-from credenciales_bdd import Credenciales
-
-
-credenciales = Credenciales("dwh_economico")
+host_dbb = (os.getenv('HOST_DBB'))
+user_dbb = (os.getenv('USER_DBB'))
+pass_dbb = (os.getenv('PASSWORD_DBB'))
+dbb_dwh = (os.getenv('NAME_DBB_DWH_ECONOMICO'))
 
 
 if __name__ == '__main__':
@@ -30,7 +27,7 @@ if __name__ == '__main__':
     print(df_intermensual_transformado)
 
     #Almacenado en BDD
-    instancia_bdd = Database(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    instancia_bdd = Database(host_dbb,user_dbb,pass_dbb,dbb_dwh)
     instancia_bdd.load_data(df_interanual_transformado, df_intermensual_transformado)
 
     print("* Los indicadores de SEMAFORO han sido cargados")

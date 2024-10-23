@@ -4,13 +4,14 @@ from load import Load
 import os
 import sys
 
-# Obtener la ruta al directorio actual del script
-script_dir = os.path.dirname(os.path.abspath(__file__))
-credenciales_dir = os.path.join(script_dir, '..', 'Credenciales_folder')
-# Agregar la ruta al sys.path
-sys.path.append(credenciales_dir)
-from credenciales_bdd import Credenciales
-credenciales = Credenciales("datalake_economico")
+# Cargar las variables de entorno desde el archivo .env
+from dotenv import load_dotenv
+load_dotenv()
+
+host_dbb = (os.getenv('HOST_DBB'))
+user_dbb = (os.getenv('USER_DBB'))
+pass_dbb = (os.getenv('PASSWORD_DBB'))
+dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
 
 if __name__ == "__main__":
 
@@ -23,4 +24,4 @@ if __name__ == "__main__":
     print("\n")
     
     #Cargamos en el datalake
-    Load(credenciales.host, credenciales.user, credenciales.password, credenciales.database).load_datalake(df)
+    Load(host_dbb,user_dbb,pass_dbb,dbb_datalake).load_datalake(df)

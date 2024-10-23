@@ -27,15 +27,14 @@ from readDataDolarCCL import readDataDolarCCL
 # Carga de correos
 from sendMail import SendMail
 
-# Obtener la ruta al directorio actual del script
-script_dir = os.path.dirname(os.path.abspath(__file__))
-credenciales_dir = os.path.join(script_dir, '..', 'Credenciales_folder')
-# Agregar la ruta al sys.path
-sys.path.append(credenciales_dir)
-# Ahora puedes importar tus credenciales
-from credenciales_bdd import Credenciales
-# Después puedes crear una instancia de Credenciales
-credenciales = Credenciales('datalake_economico')
+# Cargar las variables de entorno desde el archivo .env
+from dotenv import load_dotenv
+load_dotenv()
+
+host_dbb = (os.getenv('HOST_DBB'))
+user_dbb = (os.getenv('USER_DBB'))
+pass_dbb = (os.getenv('PASSWORD_DBB'))
+dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
 
 
 if __name__ == '__main__': 
@@ -48,24 +47,24 @@ if __name__ == '__main__':
 
     """Nueva carga desde dolarito"""
     #Dolar Oficial
-    dolarOficial_reader = readDataDolarOficial(credenciales.user, credenciales.password, credenciales.host, credenciales.database, 'dolar_oficial')
+    dolarOficial_reader = readDataDolarOficial(host_dbb,user_dbb,pass_dbb,dbb_datalake, 'dolar_oficial')
     df_dolarOficial = dolarOficial_reader.readDataWebPage()
     dolarOficial_reader.insertDataFrameInDataBase(df_dolarOficial)
     #Dolar Blue
-    dolarBlue_reader = readDataDolarBlue(credenciales.user, credenciales.password, credenciales.host, credenciales.database, 'dolar_blue')
+    dolarBlue_reader = readDataDolarBlue(host_dbb,user_dbb,pass_dbb,dbb_datalake, 'dolar_blue')
     df_dolarBlue = dolarBlue_reader.readDataWebPage()
     dolarBlue_reader.insertDataFrameInDataBase(df_dolarBlue)
     #Dolar MEP
-    dolarMEP_reader = readDataDolarMEP(credenciales.user, credenciales.password, credenciales.host, credenciales.database, 'dolar_mep')
+    dolarMEP_reader = readDataDolarMEP(host_dbb,user_dbb,pass_dbb,dbb_datalake, 'dolar_mep')
     df_dolarMEP = dolarMEP_reader.readDataWebPage()
     dolarMEP_reader.insertDataFrameInDataBase(df_dolarMEP)
     #Dolar CCL
-    dolarCCL_reader = readDataDolarCCL(credenciales.user, credenciales.password, credenciales.host, credenciales.database, 'dolar_ccl')
+    dolarCCL_reader = readDataDolarCCL(host_dbb,user_dbb,pass_dbb,dbb_datalake, 'dolar_ccl')
     df_dolarCCL = dolarCCL_reader.readDataWebPage()
     dolarCCL_reader.insertDataFrameInDataBase(df_dolarCCL)
 
     #Envio de correos
-    send_mail= SendMail(credenciales.user, credenciales.password, credenciales.host, credenciales.database)
+    send_mail= SendMail(host_dbb,user_dbb,pass_dbb,dbb_datalake)
     df_dolarOficial, df_dolarBlue, df_dolarMEP, df_dolarCCL = send_mail.extract_data()
     send_mail.send_mail(df_dolarOficial, df_dolarBlue, df_dolarMEP, df_dolarCCL)
 

@@ -11,17 +11,15 @@ import glob
 # Obtiene la ruta absoluta al directorio donde reside el script actual.
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
-# Crea una ruta al directorio 'Credenciales_folder' que se supone está un nivel arriba en la jerarquía de directorios.
-credenciales_dir = os.path.join(script_dir, '..', 'Credenciales_folder')
+# Cargar las variables de entorno desde el archivo .env
+from dotenv import load_dotenv
+load_dotenv()
 
-# Agregar la ruta al sys.path
-sys.path.append(credenciales_dir)
+host_dbb = (os.getenv('HOST_DBB'))
+user_dbb = (os.getenv('USER_DBB'))
+pass_dbb = (os.getenv('PASSWORD_DBB'))
+dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
 
-# Ahora puedes importar tus credenciales
-from credenciales_bdd import Credenciales
-
-# Después puedes crear una instancia de Credenciales
-credenciales = Credenciales('datalake_economico')
 
 count = 0
 valor_gastos = 0
@@ -38,5 +36,5 @@ if __name__ == "__main__":
     
     for ruta_pdf in archivos_pdf:
         df = lector_pdf.leer_datos(ruta_pdf, valor_gastos, valor_bienes, valor_servicios, valor_bien)
-        instancia = connectDBPrespuestoEjecutado(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+        instancia = connectDBPrespuestoEjecutado(host_dbb,user_dbb,pass_dbb,dbb_datalake)
         instancia.update_database_with_new_data(df)

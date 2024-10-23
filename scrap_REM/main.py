@@ -6,18 +6,14 @@ from transform_precios_minoristas import Transform
 from load import conexionBaseDatos
 from pandas import to_datetime
 
-# Obtener la ruta al directorio actual del script
-script_dir = os.path.dirname(os.path.abspath(__file__))
-credenciales_dir = os.path.join(script_dir, "..", "Credenciales_folder")
+# Cargar las variables de entorno desde el archivo .env
+from dotenv import load_dotenv
+load_dotenv()
 
-# Agregar la ruta al sys.path
-sys.path.append(credenciales_dir)
-
-#Obtención de las credenciales necesarias para la conexión a bases de datos, usando una instancia.
-from credenciales_bdd import Credenciales
-
-# Después puedes crear una instancia de Credenciales
-credenciales_datalake_economico = Credenciales("datalake_economico")
+host_dbb = (os.getenv('HOST_DBB'))
+user_dbb = (os.getenv('USER_DBB'))
+pass_dbb = (os.getenv('PASSWORD_DBB'))
+dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
 
 
 if __name__ == "__main__":
@@ -31,5 +27,5 @@ if __name__ == "__main__":
     df_rem_cambio_nominal = instancia_transform.get_historico_cambio_nominal()
 
     #Carga de datos
-    instancia_load = conexionBaseDatos(credenciales_datalake_economico.host, credenciales_datalake_economico.user, credenciales_datalake_economico.password, credenciales_datalake_economico.database)
+    instancia_load = conexionBaseDatos(host_dbb,user_dbb,pass_dbb,dbb_datalake)
     instancia_load.main(df_rem_precios_minoristas,df_rem_cambio_nominal)

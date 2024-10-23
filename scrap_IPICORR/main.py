@@ -3,23 +3,17 @@ import sys
 from readGoogleSheets import readGoogleSheets
 from connect_db import DatabaseManager
 
-#Configuracion de la ruta de credenciales
-# Obtiene la ruta absoluta al directorio donde reside el script actual.
-script_dir = os.path.dirname(os.path.abspath(__file__))
-# Crea una ruta al directorio 'Credenciales_folder' que se supone está un nivel arriba en la jerarquía de directorios.
-credenciales_dir = os.path.join(script_dir, '..', 'Credenciales_folder')
-# Agregar la ruta al sys.path
-sys.path.append(credenciales_dir)
+# Cargar las variables de entorno desde el archivo .env
+from dotenv import load_dotenv
+load_dotenv()
 
-# Ahora puedes importar tus credenciales
-from credenciales_bdd import Credenciales
-# Después puedes crear una instancia de Credenciales
-credenciales = Credenciales('ipecd_economico')
-credenciales2 = Credenciales('datalake_economico')
+host_dbb = (os.getenv('HOST_DBB'))
+user_dbb = (os.getenv('USER_DBB'))
+pass_dbb = (os.getenv('PASSWORD_DBB'))
+dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
 
 
 if __name__ == "__main__":
     #-----IPICORR--------
     df_ipicorr = readGoogleSheets().tratar_datos()
-    DatabaseManager(credenciales.host, credenciales.user, credenciales.password, credenciales.database).update_database_with_new_data(df_ipicorr)
-    DatabaseManager(credenciales2.host, credenciales2.user, credenciales2.password, credenciales2.database).update_database_with_new_data(df_ipicorr)
+    DatabaseManager(host_dbb,user_dbb,pass_dbb,dbb_datalake).update_database_with_new_data(df_ipicorr)
