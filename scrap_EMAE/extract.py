@@ -6,7 +6,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 import os
 import urllib3
-from webdriver_manager.chrome import ChromeDriverManager
 import subprocess
 
 

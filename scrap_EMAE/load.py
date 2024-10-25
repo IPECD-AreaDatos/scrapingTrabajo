@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from pymysql import connect
 import pandas as pd
-from informes import InformesEmae
+from send_mail import EmailEmae
 
 class Load():
 
@@ -130,5 +130,4 @@ class Load():
 
         #Si ambas banderas son positivas, enviar correo. Sino, saltaran errores.
         if bandera_valores and bandera_variaciones:
-            instancia_informe = InformesEmae(host=self.host,user=self.user,password=self.password,database=self.database)
-            instancia_informe.main_correo()
+            EmailEmae(self.host,self.user,self.password,self.database).main_correo()

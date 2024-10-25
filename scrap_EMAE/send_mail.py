@@ -11,6 +11,9 @@ from email.mime.multipart import MIMEMultipart
 import ssl
 import smtplib
 import numpy as np
+from sqlalchemy import create_engine
+
+load_dotenv()
 
 class EmailEmae:
 
@@ -22,12 +25,21 @@ class EmailEmae:
         self.host = host
         self.user = user
         self.password = password
+
+        #Se carga la var del datalake economico
         self.database = database
+
+        #Nombre de ipecd_economico
+        self.database_correo = (os.getenv('NAME_IPECD_ECONOMICO'))
+
+        #Var de ipecd economico
     
     #Establecemos la conexion a la BDD
     def conectar_bdd(self):
+
+        #Conectamos al datalake para los datos del informe
         self.conn = connect(host=self.host, user=self.user, password=self.password, database=self.database)
-        self.cursor = self.conn.cursor()
+        
 
 
     #Objetivo: construir las rutas de la carpeta del EMAE y de la carpeta de las imagenes del HTML
@@ -84,15 +96,13 @@ class EmailEmae:
         return html_content
     
 
-
-        
     #Objetivo: finalizar el script enviado un correo.
     def enviar_correo(self,ruta_folder_images,fecha_asunto,html_content):
 
         # datos del correo
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores = ["benitezeliogaston@gmail.com"]
+        email_receptores = self.obtener_correos()
         
         # ==== CREACION DEL MENSAJE DE GMAIL ==== #
 
@@ -122,6 +132,22 @@ class EmailEmae:
             smtp.login(email_emisor, email_contraseña)
             smtp.sendmail(email_emisor, email_receptores, msg.as_string())
 
+
+    def obtener_correos(self):
+
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database_correo}")
+
+        #query = "SELECT email FROM correos WHERE prueba = 1"
+        query = "SELECT email FROM correos"
+        correos = pd.read_sql(query,engine).values
+
+        # Convertir tuplas a lista de strings
+        email_receptores = [correo[0] for correo in correos]
+
+        print(email_receptores)
+
+        return email_receptores
+        
 
     def variaciones_mensual_interanual_acumulada(self):
         
@@ -213,7 +239,6 @@ class EmailEmae:
         return df_resultado, fecha_maxima
 
 
-    # Función para truncar a un decimal
     def truncar_decimal(self,valor):
         return np.floor(valor * 100) / 100
         
@@ -283,14 +308,3 @@ class EmailEmae:
 
 
         self.enviar_correo(ruta_folder_images,fecha_maxima,html_content)
-
-
-# Cargar las variables de entorno desde el archivo .env
-load_dotenv()
-
-host_dbb = (os.getenv('HOST_DBB'))
-user_dbb = (os.getenv('USER_DBB'))
-pass_dbb = (os.getenv('PASSWORD_DBB'))
-dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
-
-EmailEmae(host_dbb,user_dbb,pass_dbb,dbb_datalake).main_correo()
