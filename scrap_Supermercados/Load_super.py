@@ -1,4 +1,4 @@
-import mysql.connector
+from pymysql import connect
 from sqlalchemy import create_engine
 from datos_deflactados import Deflactador
 import os
@@ -17,7 +17,7 @@ class conexionBaseDatos:
     #Conexion a la base de datos
     def conectar_bdd(self,host,user,password,database):
 
-        self.conn = mysql.connector.connect(
+        self.conn = connect(
             host=host, user=user, password=password, database=database
         )
 
