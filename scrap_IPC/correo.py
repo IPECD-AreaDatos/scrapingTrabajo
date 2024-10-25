@@ -8,6 +8,7 @@ Detalles:
 from calendar import month_name
 import pandas as pd
 from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from email.mime.image import MIMEImage
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -37,6 +38,26 @@ class Correo:
 
         return ruta_archivo, ruta_folder_images
 
+    def obtener_correos(self):
+        self.engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/ipecd_economico")
+
+       # Crear una sesión
+        Session = sessionmaker(bind=self.engine)
+        session = Session()
+
+        try:
+            # Ejecutar la consulta para obtener los correos
+            consulta = "SELECT email FROM correos WHERE prueba = 1"
+            #consulta = "SELECT email FROM correos"
+            result = session.execute(consulta)
+            
+            # Convertir los resultados a una lista de strings
+            email_receptores = [row[0] for row in result]
+        finally:
+            # Cerrar la sesión
+            session.close()
+
+        return email_receptores
     
     #Objetivo: traer todos los datos del IPC
     def get_data(self):
@@ -184,32 +205,9 @@ class Correo:
         # datos del correo
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores = [
-                "cynthiacontre09@gmail.com",
-                "lcantero@corrientes.gob.ar",
-                "Margaritalovato@gmail.com",
-                "pintosdana1@gmail.com",
-                "benitezeliogaston@gmail.com",
-                "manumarder@gmail.com",
-                "matizalazar2001@gmail.com",
-                "agusssalinas3@gmail.com",
-                "rigonattofranco1@gmail.com",
-                "ivanfedericorodriguez@gmail.com",
-                "guillermobenasulin@gmail.com",
-                "leclerc.mauricio@gmail.com",
-                "joseignaciobaibiene@gmail.com",
-                "pauliherrero98@gmail.com",
-                "paulasalvay@gmail.com",
-                "samaniego18@gmail.com",
-                "misilvagenez@gmail.com",
-                "christianimariahebe@gmail.com",
-                "jgcasafus@gmail.com",
-                "lic.leandrogarcia@gmail.com",
-                "martinmmicelli@gmail.com",
-                "boscojfrancisco@gmail.com",
-                'misilvagenesenz@gmail.com'
-            ]
-        
+        email_receptores = self.obtener_correos()
+        print(email_receptores)
+        print("correo gaston")
         # ==== CREACION DEL MENSAJE DE GMAIL ==== #
 
         # Crear el objeto de mensaje MIME

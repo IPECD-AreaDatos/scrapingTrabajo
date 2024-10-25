@@ -44,6 +44,31 @@ class MailCBTCBA:
         query = "SELECT * FROM correo_cbt_cba"
         df = pd.read_sql(query,self.conn)
         return df
+    
+    def obtener_correos(self):
+        conn = pymysql.connect(
+                host = self.host,
+                user = self.user,
+                password = self.password,
+                database = 'ipecd_economico'
+            )
+
+        cursor = conn.cursor()
+
+        # Consulta para obtener los correos
+        #consulta = "SELECT email FROM correos WHERE prueba = 1"
+        consulta = "SELECT email FROM correos"
+        
+        cursor.execute(consulta)
+        correos = cursor.fetchall()
+
+        # Convertir tuplas a lista de strings
+        email_receptores = [correo[0] for correo in correos]
+
+        # Cerrar la conexión
+        conn.close()
+
+        return email_receptores
 
 
     #Objetivo: enviar los correos de CBT y CBA. Le pasamos como parametro 'conn' que es la conexion a la BDD.
@@ -188,9 +213,7 @@ class MailCBTCBA:
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contrasenia = 'cmxddbshnjqfehka'
 
-        email_receptores =  ['samaniego18@gmail.com','benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com', 'samaniego18@gmail.com', 'guillermobenasulin@gmail.com', 'leclerc.mauricio@gmail.com','alejandrobrunel@gmail.com']
-        #email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com', 'manumarder@gmail.com']
-        #email_receptores =  ['benitezeliogaston@gmail.com']
+        email_receptores = self.obtener_correos()
 
         #==== Zona de envio de correo
         em = EmailMessage()

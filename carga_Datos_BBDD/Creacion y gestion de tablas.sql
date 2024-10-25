@@ -825,3 +825,41 @@ CREATE table OEDE_valores(
 	id_subcategoria int,
     valor float
 );
+
+
+
+
+
+
+
+
+CREATE TABLE correos (
+    id SERIAL PRIMARY KEY,  
+    email VARCHAR(255) NOT NULL,
+    prueba INT DEFAULT 0  
+);
+
+INSERT INTO correos (email, prueba) VALUES
+('cynthiacontre09@gmail.com', 0),
+('lcantero@corrientes.gob.ar', 0),
+('Margaritalovato@gmail.com', 0),
+('pintosdana1@gmail.com', 0),
+('benitezeliogaston@gmail.com', 1), 
+('manumarder@gmail.com', 1),         
+('matizalazar2001@gmail.com', 1),     
+('agusssalinas3@gmail.com', 0),
+('rigonattofranco1@gmail.com', 0),
+('ivanfedericorodriguez@gmail.com', 0),
+('guillermobenasulin@gmail.com', 0),
+('leclerc.mauricio@gmail.com', 0),
+('joseignaciobaibiene@gmail.com', 0),
+('pauliherrero98@gmail.com', 0),
+('paulasalvay@gmail.com', 0),
+('samaniego18@gmail.com', 0),
+('misilvagenez@gmail.com', 0),
+('christianimariahebe@gmail.com', 0),
+('jgcasafus@gmail.com', 0),
+('lic.leandrogarcia@gmail.com', 0),
+('martinmmicelli@gmail.com', 0),
+('boscojfrancisco@gmail.com', 0),
+('misilvagenesenz@gmail.com', 0);

@@ -191,7 +191,6 @@ class MailSipa:
         email_contrasenia = 'cmxddbshnjqfehka'
 
         email_receptores = self.obtener_correos()
-        print(email_receptores)
 
         #==== Zona de envio de correo
         em = EmailMessage()

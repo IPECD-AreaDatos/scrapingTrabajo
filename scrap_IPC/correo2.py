@@ -3,10 +3,12 @@ from email.message import EmailMessage
 from smtplib import SMTP_SSL
 import pandas as pd
 import os
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from datetime import datetime
+import mysql.connector
 import calendar
 from ssl import create_default_context
+from sqlalchemy.orm import sessionmaker
 from email.message import EmailMessage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -25,6 +27,31 @@ class InformeIPC:
         #Creacion de conexion a la bdd
         self.engine = create_engine(f'mysql+pymysql://{self.user}:{self.password}@{self.host}:3306/{self.database}')
 
+    def obtener_correos(self):
+        conn = mysql.connector.connect(
+                host = self.host,
+                user = self.user,
+                password = self.password,
+                database = 'ipecd_economico'
+            )
+
+        cursor = conn.cursor()
+
+        # Consulta para obtener los correos
+        consulta = "SELECT email FROM correos WHERE prueba = 1"
+        #consulta = "SELECT email FROM correos"
+        
+        cursor.execute(consulta)
+        correos = cursor.fetchall()
+
+        # Convertir tuplas a lista de strings
+        email_receptores = [correo[0] for correo in correos]
+
+        # Cerrar la conexión
+        conn.close()
+
+        return email_receptores
+    
     # Objetivo: Juntar todos los elementos del correo y darle forma para enviarlo.
     def enviar_correo(self, fecha_maxima, var_mensual, var_acumulada, var_interanual, df_var_nea, df_var_region ):
 
@@ -170,15 +197,17 @@ class InformeIPC:
 
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','manumarder@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
-        #email_receptores =  [ 'matizalazar2001@gmail.com','manumarder@gmail.com']
-        email_receptores_str = ', '.join(email_receptores)
+        email_receptores = self.obtener_correos()
+        print(email_receptores)
+        print("correo manu")
 
-        em = MIMEMultipart()
-        em['From'] = email_emisor
-        em['To'] = email_receptores_str
-        em['Subject'] = asunto
-        em.attach(MIMEText(mensaje_final, 'html'))
+        msg = MIMEMultipart('related')
+        msg['From'] = email_emisor
+        msg['To'] = ', '.join(email_receptores)  # Convertir lista de correos a una cadena
+        msg['Subject'] = asunto
+        # Parte del contenido HTML
+        parte_html = MIMEText(mensaje_final, 'html')
+        msg.attach(parte_html)        
         # Obtener el directorio actual donde se encuentra el script
         script_dir = os.path.dirname(__file__)
 
@@ -202,12 +231,12 @@ class InformeIPC:
             with open(path, 'rb') as img_file:
                 img = MIMEImage(img_file.read())
                 img.add_header('Content-ID', f'<{cid}>')
-                em.attach(img)
+                msg.attach(img)
 
         contexto = create_default_context()
         with SMTP_SSL('smtp.gmail.com', 465, context=contexto) as smtp:
             smtp.login(email_emisor, email_contraseña)
-            smtp.sendmail(email_emisor, email_receptores, em.as_string())
+            smtp.sendmail(email_emisor, email_receptores, msg.as_string())
 
     # Objetivo: Convertir a formato string una fecha
     def obtener_fecha_actual(self,fecha_ultimo_registro):

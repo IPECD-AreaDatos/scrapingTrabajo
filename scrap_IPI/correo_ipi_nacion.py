@@ -28,33 +28,36 @@ class Correo_ipi_nacion:
         )
         self.cursor = self.conn.cursor()
 
+    def obtener_correos(self):
+        conn = connect(
+                host = self.host,
+                user = self.user,
+                password = self.password,
+                database = 'ipecd_economico'
+            )
+
+        cursor = conn.cursor()
+
+        # Consulta para obtener los correos
+        consulta = "SELECT email FROM correos WHERE prueba = 1"
+        #consulta = "SELECT email FROM correos"
+        
+        cursor.execute(consulta)
+        correos = cursor.fetchall()
+
+        # Convertir tuplas a lista de strings
+        email_receptores = [correo[0] for correo in correos]
+
+        # Cerrar la conexión
+        conn.close()
+
+        return email_receptores
+
     def construccion_correo(self):
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores = email_receptores = [
-                "cynthiacontre09@gmail.com",
-                "lcantero@corrientes.gob.ar",
-                "Margaritalovato@gmail.com",
-                "pintosdana1@gmail.com",
-                "benitezeliogaston@gmail.com",
-                "manumarder@gmail.com",
-                "matizalazar2001@gmail.com",
-                "agusssalinas3@gmail.com",
-                "rigonattofranco1@gmail.com",
-                "ivanfedericorodriguez@gmail.com",
-                "guillermobenasulin@gmail.com",
-                "leclerc.mauricio@gmail.com",
-                "joseignaciobaibiene@gmail.com",
-                "pauliherrero98@gmail.com",
-                "paulasalvay@gmail.com",
-                "samaniego18@gmail.com",
-                "misilvagenez@gmail.com",
-                "christianimariahebe@gmail.com",
-                "jgcasafus@gmail.com",
-                "lic.leandrogarcia@gmail.com",
-                "martinmmicelli@gmail.com",
-                "boscojfrancisco@gmail.com"
-            ]
+        email_receptores = self.obtener_correos()
+        print(email_receptores)
         
         #Valores de IPI Numeros Indices
         query_consulta_valores = f'SELECT * FROM ipi_valores ORDER BY fecha DESC LIMIT 1'

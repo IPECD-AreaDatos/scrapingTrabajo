@@ -35,6 +35,31 @@ class InformeRipte:
         self.conn = mysql.connector.connect(host=self.host, user=self.user, password=self.password, database=self.database)
         self.cursor = self.conn.cursor()
 
+    def obtener_correos(self):
+        conn = mysql.connector.connect(
+                host = self.host,
+                user = self.user,
+                password = self.password,
+                database = 'ipecd_economico'
+            )
+
+        cursor = conn.cursor()
+
+        # Consulta para obtener los correos
+        #consulta = "SELECT email FROM correos WHERE prueba = 1"
+        consulta = "SELECT email FROM correos"
+        
+        cursor.execute(consulta)
+        correos = cursor.fetchall()
+
+        # Convertir tuplas a lista de strings
+        email_receptores = [correo[0] for correo in correos]
+
+        # Cerrar la conexión
+        conn.close()
+
+        return email_receptores
+
     def enviar_mensajes(self,nueva_fecha, nuevo_valor, valor_anterior):
             # Calcular la variación mensual
             variacion_mensual = ((nuevo_valor / valor_anterior) - 1) * 100
@@ -66,8 +91,8 @@ class InformeRipte:
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
 
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
-        #email_receptores =  ['matizalazar2001@gmail.com','manumarder@gmail.com']
+        email_receptores = self.obtener_correos()
+        print(email_receptores)
 
         em = MIMEMultipart()
         asunto = f'Modificación en la base de datos - Remuneración Imponible Promedio de los Trabajadores Estables (RIPTE) - Fecha {fecha_cadena}'
