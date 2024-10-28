@@ -17,8 +17,8 @@ dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
 
 if __name__ == "__main__":
 
-    #extraer = Extraccion()
-    #extraer.descargar_archivo()
+    extraer = Extraccion()
+    extraer.descargar_archivo()
         
     # Armado del df de combustible
     df_combustible = Transformacion().crear_df()
