@@ -166,9 +166,11 @@ class ExtractSheet:
         df_semaforo['exportaciones_aduana_corrientes_toneladas'] = lista_sin_nulos[7]
         df_semaforo['empleo_privado_registrado_sipa'] = lista_sin_nulos[8]
 
-        print(df_semaforo)
 
-        df_semaforo['ipicorr'] = lista_sin_nulos[9]
+        #Momentaneamente dejamos en NULL el ipicorr
+
+        #df_semaforo['ipicorr'] = lista_sin_nulos[9]
+        df_semaforo['ipicorr'] = None
 
         return df_semaforo
 
