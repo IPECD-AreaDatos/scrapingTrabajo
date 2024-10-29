@@ -92,7 +92,6 @@ class InformeRipte:
         email_contraseña = 'cmxddbshnjqfehka'
 
         email_receptores = self.obtener_correos()
-        print(email_receptores)
 
         em = MIMEMultipart()
         asunto = f'Modificación en la base de datos - Remuneración Imponible Promedio de los Trabajadores Estables (RIPTE) - Fecha {fecha_cadena}'

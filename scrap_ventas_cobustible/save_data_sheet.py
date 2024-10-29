@@ -6,9 +6,6 @@ from pymysql import connect
 from dotenv import load_dotenv
 from json import loads
 
-
-
-
 class readSheets:
     def __init__(self, host, user, password, database):
         self.host = host

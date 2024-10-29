@@ -107,7 +107,7 @@ if __name__ == "__main__":
     PASSWORD = os.getenv("DB_PASSWORD", "password")
     DATABASE = os.getenv("DB_NAME", "testdb")
 
-    db_loader = LoadDatabase(HOST, USER, PASSWORD, DATABASE)
+    db_loader = load_database(HOST, USER, PASSWORD, DATABASE)
     
     # Ejemplo de DataFrame a cargar
     df_example = pd.DataFrame({

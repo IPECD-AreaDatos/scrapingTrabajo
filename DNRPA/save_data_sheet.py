@@ -11,19 +11,20 @@ load_dotenv()
 
 class readSheets:
     
-        def __init__(self):
-
+        def __init__(self, host, user, password, database):
+                self.host = host
+                self.user = user
+                self.password = password
+                self.database = database
                 self.conn = None
-
-    #Objetivo: conectar a la base de datos
-        def connect_dbb(self):
-
-                user_dbb = (os.getenv('USER_DBB'))
-                pass_dbb = (os.getenv('PASSWORD_DBB'))
-                host_dbb = (os.getenv('HOST_DBB'))
-                dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
-
-                self.conn = connect(host=host_dbb,password=pass_dbb,user=user_dbb,database=dbb_datalake)
+                self.cursor = None
+    
+        def conectar_bdd(self):
+                self.conn = connect(
+                host = self.host, user = self.user, password = self.password, database = self.database
+                )
+                self.cursor = self.conn.cursor()
+                return self
 
         def cargar_datos(self):
 
@@ -70,6 +71,5 @@ class readSheets:
                 
 
         def main(self):               
-                
-                self.connect_dbb()
+                self.conectar_bdd()
                 self.cargar_datos()

@@ -3,22 +3,25 @@ from googleapiclient.discovery import build
 from google.oauth2 import service_account
 import os
 import pandas as pd
+from dotenv import load_dotenv
+from json import loads
 
 class readSheetsCensoIPECD:
     def leer_datos_censo(self):
+        #Cargamos varibles de entorno
+        load_dotenv()
         #Direccion de Sheets = https://docs.google.com/spreadsheets/d/1IBOsYSVDWs9Tz1BN0OlGOZpTsoRNwmiurFJFg__L5ao/edit?gid=0#gid=0
         #La hoja que se toma es la ultima "Equipo Datos"
         df=[]
         
         SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
-        directorio_actual= os.path.dirname(os.path.abspath(__file__))
-        ruta_carpeta_guardado = os.path.join(directorio_actual, 'files')
-        archivo_KEY = os.path.join(ruta_carpeta_guardado, 'key.json')
+        #CARGAMOS LA KEY DE LA API y la convertimos a un JSON, ya que se almacena como str
+        key_dict = loads(os.getenv('GOOGLE_SHEETS_API_KEY'))
 
         spreadsheets_ID= '1IBOsYSVDWs9Tz1BN0OlGOZpTsoRNwmiurFJFg__L5ao'
 
-        creds = service_account.Credentials.from_service_account_file(archivo_KEY, scopes=SCOPES)
+        creds = service_account.Credentials.from_service_account_info(key_dict, scopes=SCOPES)
 
         service= build('sheets', 'v4', credentials=creds)
 

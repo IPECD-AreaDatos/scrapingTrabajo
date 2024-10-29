@@ -17,11 +17,17 @@ class DatabaseManager:
         """
         Inicializa la conexión a la base de datos con las credenciales proporcionadas.
         """
+        # Guardar las credenciales de conexión como atributos de la clase
+        self.host = host
+        self.user = user
+        self.password = password
+        self.database = database
+        
         self.connection = mysql.connector.connect(
-            host=host,
-            user=user,
-            password=password,
-            database=database
+            host=self.host,
+            user=self.user,
+            password=self.password,
+            database=self.database
         )
         self.cursor = self.connection.cursor()
 
@@ -89,12 +95,32 @@ class DatabaseManager:
         """
         return (float(str(value).replace(',', '').replace('%', '')) / 10) / 100
     
+    def obtener_correos(self):
+        conn = mysql.connector.connect(
+                host = self.host,
+                user = self.user,
+                password = self.password,
+                database = 'ipecd_economico'
+            )
+        cursor = conn.cursor()
+
+        # Consulta para obtener los correos
+        #consulta = "SELECT email FROM correos WHERE prueba = 1"
+        consulta = "SELECT email FROM correos"
+        
+        cursor.execute(consulta)
+        correos = cursor.fetchall()
+
+        # Convertir tuplas a lista de strings
+        email_receptores = [correo[0] for correo in correos]
+        conn.close()
+        return email_receptores
 
     def envio_correo(self, df_datos_nuevos, ruta_archivo_grafico): 
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores =  ['benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com']
-        #email_receptores =  ['matizalazar2001@gmail.com, benitezeliogaston@gmail.com', 'manumarder@gmail.com']
+        email_receptores = self.obtener_correos()
+
         # Definir 'em' antes de su uso
         em = MIMEMultipart()
         fecha = df_datos_nuevos["Fecha"].iloc[-1]  # Accede a la última fecha desde el DataFrame

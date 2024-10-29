@@ -29,13 +29,10 @@ class conexcionBaseDatos:
         return self
     
     def cargaBaseDatos(self, df):
-        # Suponiendo que 'df' es tu DataFram
-        #print(df)
-
         #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
         engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
-        df.to_sql(name="censo_ipecd", con=engine, if_exists='replace', index=False)
-
+        df.to_sql(name="censo_ipecd_departamentos", con=engine, if_exists='replace', index=False)
+        print("Base actualizada")
         # Confirmar los cambios en la base de datos
         self.conn.commit()
         # Cerrar el cursor y la conexión
