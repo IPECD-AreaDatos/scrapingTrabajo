@@ -1,0 +1,125 @@
+import mysql
+import mysql.connector
+import datetime
+from email.message import EmailMessage
+import ssl
+import smtplib
+import pandas as pd
+from datetime import datetime
+import calendar
+import os
+import xlrd
+from sqlalchemy import create_engine
+
+class conexionBaseDatos:
+
+    def __init__(self, host, user, password, database):
+        self.host = host
+        self.user = user
+        self.password = password
+        self.database = database
+        self.conn = None
+        self.cursor = None
+    
+    def conectar_bdd(self):
+        self.conn = mysql.connector.connect(
+            host = self.host, user = self.user, password = self.password, database = self.database
+        )
+        self.cursor = self.conn.cursor()
+        return self
+    
+    def cargaBaseDatos_agua(self, df):
+        #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+        df.to_sql(name="base_agua_beber_o_cocinar", con=engine, if_exists='replace', index=False)
+        print("Base actualizada")
+        # Confirmar los cambios en la base de datos
+        self.conn.commit()
+
+    def cargaBaseDatos_cloaca(self, df):
+        #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+        df.to_sql(name="base_cloaca", con=engine, if_exists='replace', index=False)
+        print("Base actualizada")
+        # Confirmar los cambios en la base de datos
+        self.conn.commit()
+
+    def cargaBaseDatos_combustible(self, df):
+        #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+        df.to_sql(name="base_combustible_para_cocinar", con=engine, if_exists='replace', index=False)
+        print("Base actualizada")
+        # Confirmar los cambios en la base de datos
+        self.conn.commit()
+        
+    def cargaBaseDatos_inmat(self, df):
+        #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+        df.to_sql(name="base_inmat", con=engine, if_exists='replace', index=False)
+        print("Base actualizada")
+        # Confirmar los cambios en la base de datos
+        self.conn.commit()
+        
+    def cargaBaseDatos_internet(self, df):
+        #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+        df.to_sql(name="base_internet", con=engine, if_exists='replace', index=False)
+        print("Base actualizada")
+        # Confirmar los cambios en la base de datos
+        self.conn.commit()
+
+    def cargaBaseDatos_material_piso(self, df):
+        #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+        df.to_sql(name="base_material_piso", con=engine, if_exists='replace', index=False)
+        print("Base actualizada")
+        # Confirmar los cambios en la base de datos
+        self.conn.commit()
+        
+    def cargaBaseDatos_nbi(self, df):
+        #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+        df.to_sql(name="base_nbi", con=engine, if_exists='replace', index=False)
+        print("Base actualizada")
+        # Confirmar los cambios en la base de datos
+        self.conn.commit()
+        
+    def cargaBaseDatos_p18_corrientes(self, df):
+        #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+        df.to_sql(name="base_p18_corrientes", con=engine, if_exists='replace', index=False)
+        print("Base actualizada")
+        # Confirmar los cambios en la base de datos
+        self.conn.commit()
+        
+    def cargaBaseDatos_poblacion_viviendas(self, df):
+        #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+        df.to_sql(name="base_poblacion_viviendas", con=engine, if_exists='replace', index=False)
+        print("Base actualizada")
+        # Confirmar los cambios en la base de datos
+        self.conn.commit()
+        
+    def cargaBaseDatos_propiedad_vivienda(self, df):
+        #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+        df.to_sql(name="base_propiedad_de_la_vivienda", con=engine, if_exists='replace', index=False)
+        print("Base actualizada")
+        # Confirmar los cambios en la base de datos
+        self.conn.commit()
+
+    def cargaBaseDatos_tenencia_agua(self, df):
+        #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+        df.to_sql(name="base_tenencia_de_agua", con=engine, if_exists='replace', index=False)
+        print("Base actualizada")
+        # Confirmar los cambios en la base de datos
+        self.conn.commit()
+        
+    def cerrar_conexion(self):
+        # Cierra el cursor y la conexión si están abiertos
+        if self.cursor:
+            self.cursor.close()
+        if self.conn:
+            self.conn.close()
+        print("Conexión cerrada")
