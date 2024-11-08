@@ -47,13 +47,10 @@ if __name__ == '__main__':
 
     print(df)
     instancia_bdd = conexionBaseDatos(host_dbb, user_dbb,pass_dbb, dbb_datalake)
-    print("xdddddddddddddddddddddddd")
     bandera_correo = instancia_bdd.load_datalake(df)
-    print("noooooooo")
 
 
     if bandera_correo:
-        print("siiiiiiiiiii")
 
         #Instancia de correo
         instancia_correo = MailSipa(host_dbb, user_dbb,pass_dbb, dbb_datalake)
