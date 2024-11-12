@@ -20,8 +20,8 @@ dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
 if __name__ == '__main__':
 
     #Descargar EXCEL - Tambien almacenamos las rutas que usaremos
-    #home_page = HomePage()    
-    #home_page.descargar_archivo()
+    home_page = HomePage()    
+    home_page.descargar_archivo()
     
     # Armado del df de ipc variaciones
     instancia_transform = TransformRegiones(host_dbb, user_dbb,pass_dbb, dbb_datalake)
@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
 
     if bandera:
-        InformeIPC(host_dbb, user_dbb,pass_dbb, dbb_datalake).main()
+        Correo(host_dbb, user_dbb,pass_dbb, dbb_datalake).main()
         print("Correo enviado!")
     else:
         print("Correo no enviado!")

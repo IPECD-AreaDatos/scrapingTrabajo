@@ -42,20 +42,18 @@ class Correo:
         self.engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/ipecd_economico")
 
        # Crear una sesión
-        Session = sessionmaker(bind=self.engine)
-        session = Session()
+        #Session = sessionmaker(bind=self.engine)
+        #session = Session()
 
-        try:
-            # Ejecutar la consulta para obtener los correos
-            consulta = "SELECT email FROM correos WHERE prueba = 1"
-            #consulta = "SELECT email FROM correos"
-            result = session.execute(consulta)
-            
-            # Convertir los resultados a una lista de strings
-            email_receptores = [row[0] for row in result]
-        finally:
-            # Cerrar la sesión
-            session.close()
+        # Ejecutar la consulta para obtener los correos
+        consulta = "SELECT email FROM correos WHERE prueba = 1"
+        #consulta = "SELECT email FROM correos"
+        result = pd.read_sql(consulta,self.engine).values
+        print(result)
+
+        
+        # Convertir los resultados a una lista de strings
+        email_receptores = [row[0] for row in result]
 
         return email_receptores
     
@@ -207,7 +205,7 @@ class Correo:
         email_contraseña = 'cmxddbshnjqfehka'
         email_receptores = self.obtener_correos()
         print(email_receptores)
-        print("correo gaston")
+
         # ==== CREACION DEL MENSAJE DE GMAIL ==== #
 
         # Crear el objeto de mensaje MIME
@@ -301,4 +299,3 @@ class Correo:
         #DEtalle: al enviar el correo, internamente en la funcion, al generar
         #el mensaje de CORREO, es necesario incluir un apartado de imagenes. 
         self.enviar_correo(ruta_folder_images,fecha_asunto,html_content)
-
