@@ -53,14 +53,11 @@ class MailCBTCBA:
                 database = 'ipecd_economico'
             )
 
-        cursor = conn.cursor()
-
         # Consulta para obtener los correos
         #consulta = "SELECT email FROM correos WHERE prueba = 1"
         consulta = "SELECT email FROM correos"
-        
-        cursor.execute(consulta)
-        correos = cursor.fetchall()
+
+        correos = pd.read_sql(consulta,conn).values
 
         # Convertir tuplas a lista de strings
         email_receptores = [correo[0] for correo in correos]

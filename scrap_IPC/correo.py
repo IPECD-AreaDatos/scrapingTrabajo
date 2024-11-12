@@ -46,8 +46,8 @@ class Correo:
         #session = Session()
 
         # Ejecutar la consulta para obtener los correos
-        consulta = "SELECT email FROM correos WHERE prueba = 1"
-        #consulta = "SELECT email FROM correos"
+        #consulta = "SELECT email FROM correos WHERE prueba = 1"
+        consulta = "SELECT email FROM correos"
         result = pd.read_sql(consulta,self.engine).values
         print(result)
 
