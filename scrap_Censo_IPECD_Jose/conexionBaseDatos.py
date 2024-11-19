@@ -115,6 +115,49 @@ class conexionBaseDatos:
         print("Base actualizada")
         # Confirmar los cambios en la base de datos
         self.conn.commit()
+
+    #=== se AGREGO EL 19/11
+
+    def cargaBaseDatos_asistencia_escolar(self, df):
+    # Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+        df.to_sql(name="base_asistencia_escolar", con=engine, if_exists='replace', index=False)
+        print("Base actualizada")
+        # Confirmar los cambios en la base de datos
+        self.conn.commit()
+
+    def cargaBaseDatos_categoria_ocupacional(self, df):
+        # Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+        df.to_sql(name="base_categoria_ocupacional", con=engine, if_exists='replace', index=False)
+        print("Base actualizada")
+        # Confirmar los cambios en la base de datos
+        self.conn.commit()
+
+    def cargaBaseDatos_cobertura_salud(self, df):
+        # Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+        df.to_sql(name="base_cobertura_salud", con=engine, if_exists='replace', index=False)
+        print("Base actualizada")
+        # Confirmar los cambios en la base de datos
+        self.conn.commit()
+
+    def cargaBaseDatos_nivel_educativo_mayores_25(self, df):
+        # Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+        df.to_sql(name="base_nivel_educativo_mayores_25", con=engine, if_exists='replace', index=False)
+        print("Base actualizada")
+        # Confirmar los cambios en la base de datos
+        self.conn.commit()
+
+    def cargaBaseDatos_tasas_mercado_trabajo(self, df):
+        # Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+        df.to_sql(name="base_tasas_mercado_trabajo", con=engine, if_exists='replace', index=False)
+        print("Base actualizada")
+        # Confirmar los cambios en la base de datos
+        self.conn.commit()
+
         
     def cerrar_conexion(self):
         # Cierra el cursor y la conexión si están abiertos

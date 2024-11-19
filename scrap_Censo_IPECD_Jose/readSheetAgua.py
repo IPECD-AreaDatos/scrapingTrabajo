@@ -135,3 +135,71 @@ class readSheet:
         df = df.reset_index(drop=True)
         print(df)
         return df
+    
+
+    #=== SE AGREGO 19/11
+
+    def read_data_asistencia_escolar(self):
+        
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        ruta_carpeta_files = os.path.join(directorio_actual, 'files')
+        file_path_desagregado = os.path.join(ruta_carpeta_files, 'Base Asistencia Escolar.xlsx')
+        
+        df = pd.read_excel(file_path_desagregado, skiprows=0)
+        df = df.dropna()
+        df.columns = ['codigo','asiste','no_asiste','nunca_asistio','total_poblacion']
+        df = df.reset_index(drop=True)
+        print(df)
+        return df
+    
+
+    def read_data_categoria_ocupacional(self):
+
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        ruta_carpeta_files = os.path.join(directorio_actual, 'files')
+        file_path_desagregado = os.path.join(ruta_carpeta_files, 'Base Categoria Ocupacional.xlsx')
+        
+        df = pd.read_excel(file_path_desagregado, skiprows=0)
+        df = df.dropna()
+        df.columns = ['codigo','servicio_domestico','empleado_obrero','cuenta_propia','patron_empleador','trabajador_familiar','ignorado','total_individuos']
+        df = df.reset_index(drop=True)
+        print(df)
+        return df
+    
+    def read_data_cobertura_salud(self):
+
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        ruta_carpeta_files = os.path.join(directorio_actual, 'files')
+        file_path_desagregado = os.path.join(ruta_carpeta_files, 'Base Cobertura de Salud.xlsx')
+        
+        df = pd.read_excel(file_path_desagregado, skiprows=0)
+        df = df.dropna()
+        df.columns = ['codigo','obra_social_prepaga_pami','programas_estatales_salud','sin_obra_social_ni_plan_estatal','total_poblacion']
+        df = df.reset_index(drop=True)
+        print(df)
+        return df     
+
+    def read_data_nivel_educativo_mayores_veinticico(self):
+
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        ruta_carpeta_files = os.path.join(directorio_actual, 'files')
+        file_path_desagregado = os.path.join(ruta_carpeta_files, 'Base Nivel Educativo Mayores de 25 años.xlsx')
+        
+        df = pd.read_excel(file_path_desagregado, skiprows=0)
+        df = df.dropna()
+        df = df.reset_index(drop=True)
+        print(df)
+        return df
+
+    def read_data_tasa_mercado_de_trabajo(self):
+
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        ruta_carpeta_files = os.path.join(directorio_actual, 'files')
+        file_path_desagregado = os.path.join(ruta_carpeta_files, 'Base Tasas Mercado de Trabajo.xlsx')
+        
+        df = pd.read_excel(file_path_desagregado, skiprows=0)
+        df = df.dropna()
+        df = df.reset_index(drop=True)
+        print(df)
+        return df
+
