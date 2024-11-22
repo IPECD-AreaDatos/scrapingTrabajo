@@ -14,7 +14,7 @@ dbb_dwh = (os.getenv('NAME_DBB_DATALAKE_SOCIO'))
 
 if __name__ == "__main__":
     conexion = conexionBaseDatos(host_dbb,user_dbb,pass_dbb,dbb_dwh).conectar_bdd()
-
+    
     df_agua = readSheet().read_data_agua()
     conexion.cargaBaseDatos_agua(df_agua)
     
@@ -69,8 +69,13 @@ if __name__ == "__main__":
     # Crear y cargar datos de tasas del mercado de trabajo
     df_tasas_mercado_trabajo = readSheet().read_data_tasa_mercado_de_trabajo()
     conexion.cargaBaseDatos_tasas_mercado_trabajo(df_tasas_mercado_trabajo)
-
     
+
+    #Se agrego el 22/11
+
+    df_clima_educativo_municipios_2022 = readSheet().read_data_clima_educativo_municipio_2022()
+    conexion.cargarBaseDatos_clima_educativo_municipio_2022(df_clima_educativo_municipios_2022)
+ 
 
     
     conexion.cerrar_conexion()

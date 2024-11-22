@@ -203,3 +203,17 @@ class readSheet:
         print(df)
         return df
 
+    #=== SE AGREGO 22/11
+
+    def read_data_clima_educativo_municipio_2022(self):
+
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        ruta_carpeta_files = os.path.join(directorio_actual, 'files')
+        file_path_desagregado = os.path.join(ruta_carpeta_files, 'Clima Educativo del hogar por municipios 2022.xlsx')
+        
+        df = pd.read_excel(file_path_desagregado, skiprows=0)
+        df = df.dropna()
+        df = df.reset_index(drop=True)
+        print(df)
+        return df
+

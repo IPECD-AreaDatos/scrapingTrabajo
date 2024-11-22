@@ -157,6 +157,17 @@ class conexionBaseDatos:
         print("Base actualizada")
         # Confirmar los cambios en la base de datos
         self.conn.commit()
+    
+    #SE AGREGO 22/11
+    
+    def cargarBaseDatos_clima_educativo_municipio_2022(self,df):
+
+        # Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+        df.to_sql(name="base_clima_educativo_hogar", con=engine, if_exists='replace', index=False)
+        print("Base actualizada")
+        # Confirmar los cambios en la base de datos
+        self.conn.commit()
 
         
     def cerrar_conexion(self):
