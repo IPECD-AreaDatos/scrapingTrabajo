@@ -75,7 +75,22 @@ if __name__ == "__main__":
 
     df_clima_educativo_municipios_2022 = readSheet().read_data_clima_educativo_municipio_2022()
     conexion.cargarBaseDatos_clima_educativo_municipio_2022(df_clima_educativo_municipios_2022)
- 
 
-    
+    # Se agrego 26/11 
+
+    df_piramide_2022 = readSheet().read_piramide_poblacion_2022()
+    conexion.cargaBaseDatos_piramide_2022(df_piramide_2022)
+
+    df_piramide_2010 = readSheet().read_piramide_poblacion_2010()
+    conexion.cargaBaseDatos_piramide_2010(df_piramide_2010)
+
+    df_piramide_2001 = readSheet().read_piramide_poblacion_2001()
+    conexion.cargaBaseDatos_piramide_2001(df_piramide_2001)
+
+    df_piramide_1991 = readSheet().read_piramide_poblacion_1991()
+    conexion.cargaBaseDatos_piramide_1991(df_piramide_1991)
+
+    df_piramide_1980 = readSheet().read_piramide_poblacion_1980()
+    conexion.cargaBaseDatos_piramide_1980(df_piramide_1980)
+ 
     conexion.cerrar_conexion()

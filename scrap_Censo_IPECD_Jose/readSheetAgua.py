@@ -217,3 +217,65 @@ class readSheet:
         print(df)
         return df
 
+    #=== se agrego 26/11
+
+    def read_piramide_poblacion_2022(self):
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        ruta_carpeta_files = os.path.join(directorio_actual, 'files')
+        file_path_desagregado = os.path.join(ruta_carpeta_files, 'censo_2022_piramide.xlsx')
+        
+        df = pd.read_excel(file_path_desagregado, skiprows=0)
+        df['grupo_edad'] = df['grupo_edad'].astype(str)
+        df = df.dropna()
+        df = df.reset_index(drop=True)
+        print(df)
+        return df
+    
+    def read_piramide_poblacion_2010(self):
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        ruta_carpeta_files = os.path.join(directorio_actual, 'files')
+        file_path_desagregado = os.path.join(ruta_carpeta_files, 'censo_2010_piramide.xlsx')
+        
+        df = pd.read_excel(file_path_desagregado, skiprows=0)
+        df['grupo_edad'] = df['grupo_edad'].astype(str)
+        df = df.dropna()
+        df = df.reset_index(drop=True)
+        print(df)
+        return df
+
+    def read_piramide_poblacion_2001(self):
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        ruta_carpeta_files = os.path.join(directorio_actual, 'files')
+        file_path_desagregado = os.path.join(ruta_carpeta_files, 'censo_2001_piramide.xlsx')
+        
+        df = pd.read_excel(file_path_desagregado, skiprows=0)
+        df['grupo_edad'] = df['grupo_edad'].astype(str)
+        df = df.dropna()
+        df = df.reset_index(drop=True)
+        print(df)
+        return df
+
+    def read_piramide_poblacion_1991(self):
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        ruta_carpeta_files = os.path.join(directorio_actual, 'files')
+        file_path_desagregado = os.path.join(ruta_carpeta_files, 'censo_1991_piramide.xlsx')
+        
+        df = pd.read_excel(file_path_desagregado, skiprows=0)
+        df['grupo_edad'] = df['grupo_edad'].astype(str)
+        df = df.dropna()
+        df = df.reset_index(drop=True)
+        print(df)
+        return df
+
+    def read_piramide_poblacion_1980(self):
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        ruta_carpeta_files = os.path.join(directorio_actual, 'files')
+        file_path_desagregado = os.path.join(ruta_carpeta_files, 'censo_1980_piramide.xlsx')
+        
+        df = pd.read_excel(file_path_desagregado, skiprows=0)
+        df['grupo_edad'] = df['grupo_edad'].astype(str)
+        df = df.dropna()
+        df = df.reset_index(drop=True)
+        print(df)
+        return df
+

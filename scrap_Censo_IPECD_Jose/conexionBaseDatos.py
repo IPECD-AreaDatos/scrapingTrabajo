@@ -169,6 +169,47 @@ class conexionBaseDatos:
         # Confirmar los cambios en la base de datos
         self.conn.commit()
 
+    # Se agrego 26/11
+
+    def cargaBaseDatos_piramide_2022(self,df):
+        # Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+        df.to_sql(name="base_piramide_2022", con=engine, if_exists='replace', index=False)
+        print("Base actualizada")
+        # Confirmar los cambios en la base de datos
+        self.conn.commit()
+
+    def cargaBaseDatos_piramide_2010(self,df):
+        # Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+        df.to_sql(name="base_piramide_2010", con=engine, if_exists='replace', index=False)
+        print("Base actualizada")
+        # Confirmar los cambios en la base de datos
+        self.conn.commit()
+
+    def cargaBaseDatos_piramide_2001(self,df):
+        # Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+        df.to_sql(name="base_piramide_2001", con=engine, if_exists='replace', index=False)
+        print("Base actualizada")
+        # Confirmar los cambios en la base de datos
+        self.conn.commit()
+
+    def cargaBaseDatos_piramide_1991(self,df):
+        # Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+        df.to_sql(name="base_piramide_1991", con=engine, if_exists='replace', index=False)
+        print("Base actualizada")
+        # Confirmar los cambios en la base de datos
+        self.conn.commit()
+
+    def cargaBaseDatos_piramide_1980(self,df):
+        # Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+        df.to_sql(name="base_piramide_1980", con=engine, if_exists='replace', index=False)
+        print("Base actualizada")
+        # Confirmar los cambios en la base de datos
+        self.conn.commit()
         
     def cerrar_conexion(self):
         # Cierra el cursor y la conexión si están abiertos

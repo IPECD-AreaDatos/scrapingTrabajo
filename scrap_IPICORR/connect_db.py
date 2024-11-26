@@ -79,7 +79,7 @@ class DatabaseManager:
             ruta_archivo_grafico = self.generar_y_guardar_grafico(df)
             print(f"{len(data_to_insert)} nuevos registros insertados.")
             df_datos_nuevos['Fecha'] = pd.to_datetime(df_datos_nuevos['Fecha'], format='%Y-%m-%d')
-            self.envio_correo(df_datos_nuevos, ruta_archivo_grafico)
+            #self.envio_correo(df_datos_nuevos, ruta_archivo_grafico)
         else:
             print("No se encontraron nuevos datos para insertar.")
 
