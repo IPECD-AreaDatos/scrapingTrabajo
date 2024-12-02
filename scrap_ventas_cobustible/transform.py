@@ -13,24 +13,36 @@ class Transformacion:
         # Ruta al archivo CSV
         self.file_path = obtener_ruta_archivo(archivo)
 
-    def crear_df(self):
+    def crear_df(self, provincia_filtrada=False, ano_filtrado=2024, mes_filtrado=10):
         pd.set_option('mode.chained_assignment', None)
-        # Leer el archivo CSV
-        df = pd.read_csv(self.file_path)
+
+        # Leer el archivo CSV con control de errores
+        try:
+            df = pd.read_csv(self.file_path)
+        except FileNotFoundError:
+            raise FileNotFoundError(f"El archivo {self.file_path} no se encuentra en la ruta especificada.")
+        except pd.errors.EmptyDataError:
+            raise ValueError("El archivo está vacío.")
+        except pd.errors.ParserError:
+            raise ValueError("Hubo un error al parsear el archivo CSV.")
+        
+        # Filtrar por año (solo 2024 en este caso)
+        df = df[df['anio'] == ano_filtrado]
+        df = df[df['mes'] == mes_filtrado]
 
         # Aplicar transformaciones
         df = self.transformar_columnas(df)
         df = self.transformar_provincia(df)
 
-        # Mostrar columnas, tipos y valores únicos de la provincia para depuración
-        #print(df.columns)
-        #print(df.dtypes)
-        #print(np.unique(df['provincia']))
+        # Filtrar por provincia si se requiere
+        if provincia_filtrada:
+            df = df[df['provincia'] == 18]  # Solo Corrientes
 
         # Eliminar columna 'unidad' ya que no se necesita
         df = df.drop(columns=['unidad'])
 
         return df
+
 
     def transformar_columnas(self, df):
         # Eliminar columnas innecesarias de forma más eficiente
@@ -89,3 +101,14 @@ class Transformacion:
         df_corrientes = df[df['provincia'] == 18]
 
         return df_corrientes
+    def suma_por_fecha(self, fecha='2024-09-01'):
+        # Crear el DataFrame con los datos filtrados por el año
+        df = self.crear_df()
+
+        # Filtrar el DataFrame por la fecha proporcionada
+        df_fecha = df[df['fecha'] == fecha]
+
+        # Sumar las columnas numéricas
+        suma = df_fecha['cantidad'].sum()  # Solo sumamos la columna 'cantidad'
+
+        return suma  # Ahora retorna un valor numérico, no una Serie

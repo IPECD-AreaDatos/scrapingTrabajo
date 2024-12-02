@@ -32,24 +32,10 @@ class ReadSheets:
             self.logger.error(f"Error al conectar a la base de datos: {e}")
             raise
 
-    def cargar_datos(self):
-        #Link del documento: https://docs.google.com/spreadsheets/d/1L_EzJNED7MdmXw_rarjhhX8DpL7HtaKpJoRwyxhxHGI/edit?gid=0#gid=0
+    def cargar_datos(self, suma_fecha):
         try:
             # Cargar variables de entorno
             load_dotenv()
-
-            # Consulta SQL para obtener los datos de la base de datos
-            query_select = 'SELECT fecha, cantidad FROM combustible WHERE provincia = 18 and fecha >= "2018-12-01"'
-            df = pd.read_sql(query_select, self.conn)
-
-            # Agrupar por año y mes, sumando las cantidades
-            df_combustible = df.groupby(df['fecha'].dt.to_period('M'))['cantidad'].sum()
-
-            # Resetear el índice y convertir a lista
-            df_combustible = df_combustible.reset_index(drop=True)
-            lista_combustible = df_combustible.tolist()
-
-            self.logger.info(f"Datos extraídos y procesados. Total de registros: {len(lista_combustible)}")
 
             # Configuración de Google Sheets API
             SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
@@ -67,12 +53,34 @@ class ReadSheets:
             service = build('sheets', 'v4', credentials=creds)
             sheet = service.spreadsheets()
 
-            # Realizar la actualización en el Google Sheet
+            # Leer los valores de la fila 6 para obtener la última celda ocupada
+            result = sheet.values().get(
+                spreadsheetId=SPREADSHEET_ID,
+                range='Datos!6:6'  # Leer toda la fila 6
+            ).execute()
+
+            values = result.get('values', [])
+
+            # Si la fila 6 está vacía o no tiene datos
+            if not values or not values[0]:
+                # Si la fila está vacía, colocar en la primera celda (A6)
+                last_column = 0
+            else:
+                # Encontrar la última celda no vacía en la fila 6
+                last_column = len(values[0])
+
+            # Convertir el índice de la columna en letra (A, B, C, ..., Z, AA, AB, ...)
+            column_letter = self.num_to_col(last_column)  # Usamos nuestra función personalizada
+
+            # El rango adecuado sería algo como Datos!A6, Datos!B6, ..., Datos!BU6, etc.
+            range_to_update = f'Datos!{column_letter}6'
+
+            # Actualizar la celda con el valor de la suma
             request = sheet.values().update(
                 spreadsheetId=SPREADSHEET_ID,
-                range='Datos!C6:6',
+                range=range_to_update,  # Cambiar 'Datos!6' por la celda específica
                 valueInputOption='RAW',
-                body={'values': [lista_combustible]}
+                body={'values': [[suma_fecha]]}  # Aquí colocamos el valor de la suma como un array
             ).execute()
 
             # Verificar si la solicitud fue exitosa
@@ -97,3 +105,10 @@ class ReadSheets:
         except Exception as e:
             self.logger.error(f"Error al cerrar la conexión a la base de datos: {e}")
 
+    def num_to_col(self, n):
+        """Convierte un número de índice de columna a una letra de columna (A, B, C, ..., Z, AA, AB, ...)"""
+        result = ""
+        while n >= 0:
+            result = chr(n % 26 + 65) + result
+            n = n // 26 - 1
+        return result

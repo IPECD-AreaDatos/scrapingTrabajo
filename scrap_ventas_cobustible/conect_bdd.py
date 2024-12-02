@@ -27,40 +27,54 @@ class ConexionBaseDatos:
             self.logger.error(f"Error al conectar con la base de datos: {e}")
             raise  # Volver a lanzar la excepción para que el proceso falle
 
-    def verificar_carga(self, df):
-        # Obtención del tamaño de la base de datos
+    def obtener_ultima_fecha(self):
         try:
-            select_row_count_query = "SELECT COUNT(*) FROM combustible"
-            self.cursor.execute(select_row_count_query)
-            tamano_bdd = self.cursor.fetchone()[0]   
-            tamano_df = len(df)  # Obtener tamaño del DataFrame
-
-            return tamano_bdd, tamano_df
+            # Obtener la última fecha registrada en la base de datos
+            query = "SELECT MAX(fecha) FROM combustible"
+            self.cursor.execute(query)
+            ultima_fecha = self.cursor.fetchone()[0]  # Obtener el valor de la última fecha
+            return ultima_fecha
         except Exception as e:
-            self.logger.error(f"Error al verificar el tamaño de la base de datos: {e}")
+            self.logger.error(f"Error al obtener la última fecha: {e}")
             raise
+
+    def verificar_nuevos_datos(self, df):
+        # Verificar la última fecha registrada en la base de datos
+        ultima_fecha_bdd = self.obtener_ultima_fecha()
+
+        if ultima_fecha_bdd is None:  # Si no hay datos previos en la base de datos
+            self.logger.info("No existen datos previos en la base de datos, cargando todos los datos.")
+            return df  # Si no hay datos, cargar todo el DataFrame
+
+        # Filtrar el DataFrame para obtener solo los datos posteriores a la última fecha registrada
+        df['fecha'] = pd.to_datetime(df['fecha'])  # Asegurarse de que la columna 'fecha' esté en formato datetime
+        df_nuevos = df[df['fecha'] > ultima_fecha_bdd]
+
+        if not df_nuevos.empty:
+            self.logger.info(f"Se encontraron {len(df_nuevos)} nuevos registros después de la última fecha {ultima_fecha_bdd}.")
+        else:
+            self.logger.info("No hay nuevos registros para cargar.")
+        
+        return df_nuevos
 
     def cargaBaseDatos(self, df):
         print("\n*****************************************************************************")
         print("*********************Inicio de la sección venta Combustible**********************")
         print("\n*****************************************************************************")
         
-        # Obtención de cantidades de datos
-        tamano_bdd, tamano_df = self.verificar_carga(df)
-        print(f"Tamaño actual en la base de datos: {tamano_bdd}")
-        print(f"Tamaño del DataFrame: {tamano_df}")
-        
-        if tamano_df > tamano_bdd:
+        # Verificar si existen datos nuevos
+        df_nuevos = self.verificar_nuevos_datos(df)
+
+        if not df_nuevos.empty:
             engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
-            df_tail = df.tail(tamano_df - tamano_bdd)
             
             # Imprimir los datos nuevos (los que se van a cargar)
             print("************************ Datos nuevos que se van a cargar *************************")
-            print(df_tail)
+            print(df_nuevos)
             print("*****************************************************************************")
             
             try:
-                df_tail.to_sql(name='combustible', con=engine, if_exists='append', index=False)
+                df_nuevos.to_sql(name='combustible', con=engine, if_exists='append', index=False)
                 print("*************")
                 print(f" == ACTUALIZACIÓN == Nuevos datos en la base de combustibles")
                 print("*************")
