@@ -33,72 +33,55 @@ dbb_dwh = (os.getenv('NAME_DBB_DWH_SOCIO'))
 if __name__ == '__main__':
     # ZONA DE EXTRACT -- Donde se buscan los datos
     # Descargar archivos de HomePageCBT y HomePagePobreza
-    #home_page_CBT = HomePageCBT()
-    #home_page_CBT.descargar_archivo()
+    home_page_CBT = HomePageCBT()
+    home_page_CBT.descargar_archivo()
 
-    #home_page_Pobreza = HomePagePobreza()
-    #home_page_Pobreza.descargar_archivo()
+    home_page_Pobreza = HomePagePobreza()
+    home_page_Pobreza.descargar_archivo()
 
     # Transformar datos del archivo Excel de HomePageCBT
     df = loadXLSDataCBT().transform_datalake()
     print(df)
 
-    new_data = {
-        "Fecha": pd.to_datetime("2024-11-01"),  # Asegúrate de usar el formato adecuado de fecha
-        "CBA_Adulto": 140000.00,
-        "CBT_Adulto": 320000.00,
-        "CBA_Hogar": 400000.00,
-        "CBT_Hogar": 850000.00,
-        "cba_nea": 130000.00,  # Simula un nuevo valor de cba_nea
-        "cbt_nea": 270000.00   # Simula un nuevo valor de cbt_nea
-    }
-
-    # Convertir el diccionario de datos a un DataFrame
-    new_row = pd.DataFrame([new_data])
-
-    # Agregar la nueva fila al DataFrame
-    df = pd.concat([df, new_row], ignore_index=True)
-
-    # Imprimir el DataFrame actualizado para verificar que se haya agregado correctamente
-    print(df)
-
-    # Filtrar las últimas filas
-    last_row = df.tail(1).iloc[0]  # Esto obtiene la última fila del DataFrame
-
-    # Extraer los valores necesarios
-    anio = last_row['Fecha'].year  # Año de la columna 'Fecha'
-    mes = last_row['Fecha'].month  # Mes de la columna 'Fecha'
-    cbt = last_row['cbt_nea']  # Valor de 'cbt_nea'
-    cba = last_row['cba_nea']  # Valor de 'cba_nea'
-
-    # Endpoint
-    url = "https://ecv.corrientes.gob.ar/api/create_cbt"
-
-    # Datos que se van a enviar en la solicitud POST
-    data = {
-        "anio": anio,
-        "mes": mes,
-        "cbt": int(cbt),  # Convertimos a entero si es necesario
-        "cba": int(cba)   # Convertimos a entero si es necesario
-    }
-
-    # Realizar la solicitud POST
-    response = requests.post(url, data=data)
-
-    # Verificar la respuesta
-    if response.status_code == 200:
-        print("Solicitud exitosa:", response.json())
-    else:
-        print(f"Error en la solicitud: {response.status_code}")
-        print(response.text)
-    
-    exit(0)
     # Conexión y carga de datos en la base de datos del DataLake Sociodemográfico
     instancia_conexion_bdd = connection_db(host_dbb,user_dbb,pass_dbb,dbb_datalake)
     instancia_conexion_bdd.connect_db()
     bandera_correo = instancia_conexion_bdd.load_datalake(df)
+    
     # Si se cargaron los datos correctamente en el DataLake Sociodemográfico, enviar correo.
     if bandera_correo:
         instancia_correo = MailCBTCBA(host_dbb,user_dbb,pass_dbb,dbb_dwh)
         instancia_correo.send_mail_cbt_cba()
+        
+        # Pegada a la API
+        # Filtrar las últimas filas
+        last_row = df.tail(1).iloc[0]  # Esto obtiene la última fila del DataFrame
+
+        # Extraer los valores necesarios
+        anio = last_row['Fecha'].year  # Año de la columna 'Fecha'
+        mes = last_row['Fecha'].month  # Mes de la columna 'Fecha'
+        cbt = last_row['cbt_nea']  # Valor de 'cbt_nea'
+        cba = last_row['cba_nea']  # Valor de 'cba_nea'
+
+        # Endpoint
+        url = "https://ecv.corrientes.gob.ar/api/create_cbt"
+
+        # Datos que se van a enviar en la solicitud POST
+        data = {
+            "anio": anio,
+            "mes": mes,
+            "cbt": int(cbt),  # Convertimos a entero si es necesario
+            "cba": int(cba)   # Convertimos a entero si es necesario
+        }
+
+        # Realizar la solicitud POST
+        response = requests.post(url, data=data)
+
+        # Verificar la respuesta
+        if response.status_code == 200:
+            print("Solicitud exitosa:", response.json())
+        else:
+            print(f"Error en la solicitud: {response.status_code}")
+            print(response.text)
+        
 
