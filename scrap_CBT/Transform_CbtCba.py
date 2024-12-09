@@ -28,6 +28,19 @@ class loadXLSDataCBT:
         df_primeraHoja = df_primeraHoja.sort_index()
         df_primeraHoja.columns = ['Fecha','CBA_Adulto','CBT_Adulto']
 
+        # Limpieza específica del valor incorrecto
+        df_primeraHoja['CBA_Adulto'] = df_primeraHoja['CBA_Adulto'].astype(str).str.replace(',', '', regex=True)
+        df_primeraHoja['CBT_Adulto'] = df_primeraHoja['CBT_Adulto'].astype(str).str.replace(',', '', regex=True)
+
+
+        # Reemplazar el valor específico incorrecto
+        df_primeraHoja.loc[df_primeraHoja['CBA_Adulto'] == '13874431', 'CBA_Adulto'] = '138744.31'
+        df_primeraHoja.loc[df_primeraHoja['CBT_Adulto'] == '31217470', 'CBT_Adulto'] = '312174.70'
+
+        # Convertir a numérico
+        df_primeraHoja['CBA_Adulto'] = pd.to_numeric(df_primeraHoja['CBA_Adulto'], errors='coerce')
+        df_primeraHoja['CBT_Adulto'] = pd.to_numeric(df_primeraHoja['CBT_Adulto'], errors='coerce')
+
         #Datos de la primera fila
         df_segundaHoja = pd.read_excel(file_path_desagregado, sheet_name=3, usecols=[2,6], skiprows=7)
         valores_que_estan_como_columna = df_segundaHoja.columns.to_list()
@@ -76,12 +89,15 @@ class loadXLSDataCBT:
             suma_cbt = sum(df_sin_nulos['CBT_Adulto'])
             suma_cba_nea =sum(df_sin_nulos['cba_nea'])
             suma_cbt_nea = sum(df_sin_nulos['cbt_nea'])
-    
-
+            
             #Insersion al dataframe de las estimaciones
             df_con_nulos = concatenacion_df[concatenacion_df['Fecha'] > fecha_ultima_publicacion_oficial]
 
-            
+            df_con_nulos['CBA_Adulto'] = pd.to_numeric(df_con_nulos['CBA_Adulto'], errors='coerce')
+            df_con_nulos['CBT_Adulto'] = pd.to_numeric(df_con_nulos['CBT_Adulto'], errors='coerce')
+
+            print(df_con_nulos.dtypes)
+
             #Recorremos los datos nulos, calculamos sus estimaciones y finalmente los insertamos al DF definitivo
             for index,row in df_con_nulos.iterrows():
                 

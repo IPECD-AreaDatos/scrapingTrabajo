@@ -103,24 +103,31 @@ class connection_db:
         return tamanio_df,tamanio_bdd
     
     #Objetivo: almacenar en la tabla cbt_cba con los datos nuevos
-    def cargar_tabla_datalake(self,df_cargar):
+    def cargar_tabla_datalake(self, df_cargar):
+        # Validar y limpiar datos antes de la inserción
+        df_cargar['CBA_Adulto'] = pd.to_numeric(df_cargar['CBA_Adulto'], errors='coerce').round(2)
+        df_cargar['CBT_Adulto'] = pd.to_numeric(df_cargar['CBT_Adulto'], errors='coerce').round(2)
+        df_cargar['CBA_Hogar'] = pd.to_numeric(df_cargar['CBA_Hogar'], errors='coerce').round(2)
+        df_cargar['CBT_Hogar'] = pd.to_numeric(df_cargar['CBT_Hogar'], errors='coerce').round(2)
+        df_cargar['cba_nea'] = pd.to_numeric(df_cargar['cba_nea'], errors='coerce').round(2)
+        df_cargar['cbt_nea'] = pd.to_numeric(df_cargar['cbt_nea'], errors='coerce').round(2)
 
-        query_insertar_datos = "INSERT INTO cbt_cba VALUES (%s, %s, %s, %s, %s,%s, %s)"
+        query_insertar_datos = "INSERT INTO cbt_cba VALUES (%s, %s, %s, %s, %s, %s, %s)"
 
-        for index,row in df_cargar.iterrows():
-            
-            #Obtenemos los valores de cada fila del DF
-            values = (row['Fecha'],row['CBA_Adulto'],row['CBT_Adulto'],row['CBA_Hogar'],row['CBT_Hogar'],row['cba_nea'],row['cbt_nea'])
-
-
-            # Convertir valores NaN a None --> Lo hacemos porque los valores 'nan' no son reconocidos por MYSQL
+        for index, row in df_cargar.iterrows():
+            # Convertir valores NaN a None
+            values = (row['Fecha'], row['CBA_Adulto'], row['CBT_Adulto'], row['CBA_Hogar'], row['CBT_Hogar'], row['cba_nea'], row['cbt_nea'])
             values = [None if pd.isna(v) else v for v in values]
 
-            #Realizamos carga
-            self.cursor.execute(query_insertar_datos,values)
+            # Imprimir valores problemáticos (opcional)
+            print(f"Insertando: {values}")
 
-        #Cerramos conexiones
+            # Ejecutar la inserción
+            self.cursor.execute(query_insertar_datos, values)
+
+        # Cerrar conexiones
         self.close_conections()
+
 
 
 # =========================================================================================== #        
@@ -281,9 +288,9 @@ class connection_db:
         # Calcular variaciones mensuales e interanuales del IPC
         for i in range(1, len(df)):
             if pd.notna(df['ipc_valor'].iloc[i]) and pd.notna(df['ipc_valor'].iloc[i-1]):
-                df['vmensual_nea_ipc'].iloc[i] = (df['ipc_valor'].iloc[i] / df['ipc_valor'].iloc[i-1] - 1)
+                df.loc[i, 'vmensual_nea_ipc'] = (df.loc[i, 'ipc_valor'] / df.loc[i-1, 'ipc_valor'] - 1)
             if i >= 12 and pd.notna(df['ipc_valor'].iloc[i]) and pd.notna(df['ipc_valor'].iloc[i-12]):
-                df['vinter_nea_ipc'].iloc[i] = (df['ipc_valor'].iloc[i] / df['ipc_valor'].iloc[i-12] - 1)
+                df.loc[i, 'vinter_nea_ipc'] = (df.loc[i, 'ipc_valor'] / df.loc[i-12, 'ipc_valor'] - 1)
 
         return df
 
