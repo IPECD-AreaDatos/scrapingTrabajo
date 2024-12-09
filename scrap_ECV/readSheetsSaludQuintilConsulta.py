@@ -4,7 +4,8 @@ from google.oauth2 import service_account
 import os
 import pandas as pd
 from datetime import datetime
-
+from dotenv import load_dotenv
+from json import loads
 
 
 class readSheetsSaludQuintilConsulta:
@@ -13,17 +14,17 @@ class readSheetsSaludQuintilConsulta:
         # Define los alcances y la ruta al archivo JSON de credenciales
         SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
-        directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
-        ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
-        KEY = os.path.join(ruta_carpeta_files, 'key.json')
+        load_dotenv()   
+        # CARGAMOS LA KEY DE LA API y la convertimos a un JSON, ya que se almacena como str
+        key_dict = loads(os.getenv('GOOGLE_SHEETS_API_KEY'))
+
+        # Carga las credenciales desde el diccionario JSON
+        creds = service_account.Credentials.from_service_account_info(key_dict, scopes=SCOPES)
 
         # Escribe aquí el ID de tu documento:
         SPREADSHEET_ID = '1sfAdpqs9oh6JbP5kZgiirHAx99tn7ELxz7TZWIe3BrM'
 
-        # Carga las credenciales desde el archivo JSON
-        creds = service_account.Credentials.from_service_account_file(KEY, scopes=SCOPES)
-
-               # Crea una instancia de la API de Google Sheets
+        # Crea una instancia de la API de Google Sheets
         service = build('sheets', 'v4', credentials=creds)
         sheet = service.spreadsheets()
 

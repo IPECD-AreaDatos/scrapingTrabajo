@@ -4,35 +4,38 @@ from google.oauth2 import service_account
 import os
 import pandas as pd
 from datetime import datetime
-
+from dotenv import load_dotenv
+from json import loads
 
 class readSheetsTransporteUniversitarios:   
     def leer_datos_trabajo(self):
         df = []
+        load_dotenv()
+
         # Define los alcances y la ruta al archivo JSON de credenciales
         SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
-        directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
-        ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
-        KEY = os.path.join(ruta_carpeta_files, 'key.json')
+        # CARGAMOS LA KEY DE LA API y la convertimos a un JSON, ya que se almacena como str
+        key_dict = loads(os.getenv('GOOGLE_SHEETS_API_KEY'))
+
+        # Carga las credenciales desde el diccionario JSON
+        creds = service_account.Credentials.from_service_account_info(key_dict, scopes=SCOPES)
 
         # Escribe aquí el ID de tu documento:
         SPREADSHEET_ID = '1sfAdpqs9oh6JbP5kZgiirHAx99tn7ELxz7TZWIe3BrM'
 
-        # Carga las credenciales desde el archivo JSON
-        creds = service_account.Credentials.from_service_account_file(KEY, scopes=SCOPES)
 
         # Crea una instancia de la API de Google Sheets
         service = build('sheets', 'v4', credentials=creds)
         sheet = service.spreadsheets()
 
         #Realiza una llamada a la API para obtener datos desde la hoja 'Hoja 1' en el rango 'A1:A8'
-        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='Transporte_Universitarios_ECV!A:M').execute()
+        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='Transporte_Universitarios_ECV!A:N').execute()
         # Extrae los valores del resultado
         values = result.get('values', [])[1:]
         
         # Crea el DataFrame df1
-        df = pd.DataFrame(values, columns=['aglomerado', 'año', 'trimestre', 'fecha','estado_dato', 'automovil', 'motocicleta', 'bicicleta', 'caminata', 'taxi_o_remis', 'transporte_urbano', 'transporte_interurbano', 'otros'])
+        df = pd.DataFrame(values, columns=['aglomerado', 'año', 'trimestre', 'fecha','estado_dato', 'automovil', 'motocicleta', 'bicicleta', 'caminata', 'taxi_o_remis', 'transporte_urbano', 'transporte_interurbano', 'otros', 'estudia_desde_casa'])
         print(df)
 
         for i, e in enumerate(df['estado_dato']):
@@ -59,14 +62,11 @@ class readSheetsTransporteUniversitarios:
 
     def transformar_tipo_datos(self, df):
         # Seleccionar las columnas numéricas
-        columnas_numericas_porcentajes = ['automovil', 'motocicleta', 'bicicleta', 'caminata', 'taxi_o_remis', 'transporte_urbano', 'transporte_interurbano', 'otros']
+        columnas_numericas_porcentajes = ['automovil', 'motocicleta', 'bicicleta', 'caminata', 'taxi_o_remis', 'transporte_urbano', 'transporte_interurbano', 'otros', 'estudia_desde_casa']
         df[columnas_numericas_porcentajes] = df[columnas_numericas_porcentajes].replace({'%': '', ',': '.'}, regex=True).apply(pd.to_numeric)
         # Divide los valores numéricos por 100
         df[columnas_numericas_porcentajes] = df[columnas_numericas_porcentajes] / 100
         
-       # columnas_numericas=['Salario Promedio Público', 'Salario Promedio Privado', 'Salario Promedio Privado Registrado', 'Salario Promedio Privado No Registrado']
-        #df[columnas_numericas] = df[columnas_numericas].replace({' ': '', '\$': '', ',': ''}, regex=True).apply(pd.to_numeric)
-
         # Convertir la primera columna a tipo de datos de fecha
         df['fecha'] = pd.to_datetime(df['fecha'], format='%d/%m/%Y')
         df['fecha'] = df['fecha'].dt.strftime('%Y-%m-%d')  # Formatear a 'YYYY-MM-DD'

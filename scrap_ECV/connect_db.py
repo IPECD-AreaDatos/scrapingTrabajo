@@ -631,13 +631,13 @@ class connect_db:
             for index, row in df.iterrows():
 
                 # Luego, puedes usar estos valores en tu consulta SQL
-                sql_insert = f"INSERT INTO {table_name} (aglomerado, año, trimestre, fecha, automovil, motocicleta, bicicleta, caminata, taxi_o_remis, transporte_urbano, transporte_interurbano, otros) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                sql_insert = f"INSERT INTO {table_name} (aglomerado, año, trimestre, fecha, automovil, motocicleta, bicicleta, caminata, taxi_o_remis, transporte_urbano, transporte_interurbano, otros, estudia_desde_casa) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
 
                 # Rellenar los valores faltantes (NaN) con None
                 row = row.where(pd.notnull(row), None)
                 
                 # Ejecutar la sentencia SQL de inserción
-                cursor.execute(sql_insert, (row['aglomerado'], row['año'], row['trimestre'], row['fecha'],  row['automovil'], row['motocicleta'], row['bicicleta'], row['caminata'], row['taxi_o_remis'], row['transporte_urbano'], row['transporte_interurbano'], row['otros']))
+                cursor.execute(sql_insert, (row['aglomerado'], row['año'], row['trimestre'], row['fecha'],  row['automovil'], row['motocicleta'], row['bicicleta'], row['caminata'], row['taxi_o_remis'], row['transporte_urbano'], row['transporte_interurbano'], row['otros'], row['estudia_desde_casa']))
 
 
             conn.commit()
