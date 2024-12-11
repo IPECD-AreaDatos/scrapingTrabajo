@@ -33,22 +33,27 @@ class conexcionBaseDatos:
     
     #Objetivo: realizar efectivamente la carga a la BDD
     def cargaBaseDatos(self, df):
-
         print("\n*****************************************************************************")
         print(f"*************************Inicio de la seccion IPC VALORES *********************************")
         print("\n*****************************************************************************")
 
-        #Obtencion de cantidades de datos
-        tamano_bdd, tamano_df = self.verificar_carga(df)
+        # Obtén los registros únicos en la base de datos
+        select_unique_query = f"SELECT fecha, id_region FROM ipc_valores"
+        self.cursor.execute(select_unique_query)
+        registros_bdd = self.cursor.fetchall()
+        registros_bdd_set = set(registros_bdd)  # Convertir a un conjunto para búsqueda rápida
 
-        print(f" - Cantidad de datos en la base de datos: {tamano_bdd}")
-        print(f" - Cantidad de datos extraidos: {tamano_df}")
+        # Filtrar nuevos registros en el DataFrame
+        nuevos_registros = df[~df.set_index(['fecha', 'id_region']).index.isin(registros_bdd_set)]
 
-        #Si existen mas datos extraidos, se produce la carga
-        if tamano_df > tamano_bdd:
+        print(f" - Cantidad de datos en la base de datos: {len(registros_bdd)}")
+        print(f" - Cantidad de datos extraidos: {len(df)}")
+        print(f" - Nuevos registros a insertar: {len(nuevos_registros)}")
+
+        # Si hay nuevos registros, cargarlos en la base de datos
+        if not nuevos_registros.empty:
             engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
-            df_tail = df.tail(tamano_df - tamano_bdd)
-            df_tail.to_sql(name='ipc_valores', con=engine, if_exists='append', index=False)
+            nuevos_registros.to_sql(name='ipc_valores', con=engine, if_exists='append', index=False)
 
             print("*************")
             print(f" == ACTUALIZACION == Nuevos datos en la base de IPC VALORES")
@@ -59,6 +64,7 @@ class conexcionBaseDatos:
             print(f"No existen datos nuevos de IPC VALORES")
             print("*********")
             return False
+
 
     def main(self, df):
 

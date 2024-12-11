@@ -27,7 +27,7 @@ if __name__ == '__main__':
     instancia_transform = TransformRegiones(host_dbb, user_dbb,pass_dbb, dbb_datalake)
     df = instancia_transform.main()
 
-    print(df[df['fecha'] == '2024-08-01'])
+    print(df[df['fecha'] == '2024-11-01'])
 
     #Creamos instancia de BDD y realizamos verficacion de carga. Si hay carga, la bandera sera True, sino False
     instancia_bdd = conexcionBaseDatos(host_dbb, user_dbb,pass_dbb, dbb_datalake)
