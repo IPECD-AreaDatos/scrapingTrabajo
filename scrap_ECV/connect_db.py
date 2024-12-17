@@ -1,4 +1,4 @@
-import mysql.connector
+import pymysql
 import pandas as pd
 from datetime import datetime
 import calendar
@@ -8,7 +8,7 @@ import smtplib
 
 class connect_db:
     def connect_db_tasas(self, df, host, user, password, database):
-        conn = mysql.connector.connect(
+        conn = pymysql.connect(
             host=host,
             user=user,
             password=password,
@@ -50,7 +50,7 @@ class connect_db:
 
 
     def connect_db_trabajo(self, df, host, user, password, database): 
-        conn = mysql.connector.connect(
+        conn = pymysql.connect(
             host=host,
             user=user,
             password=password,
@@ -89,7 +89,7 @@ class connect_db:
         conn.close()
 
     def connect_db_trabajo_quintiles(self, df, host, user, password, database): 
-        conn = mysql.connector.connect(
+        conn = pymysql.connect(
             host=host,
             user=user,
             password=password,
@@ -134,7 +134,7 @@ class connect_db:
         conn.close()
 
     def connect_db_salud_cobertura(self, df, host, user, password, database): 
-        conn = mysql.connector.connect(
+        conn = pymysql.connect(
             host=host,
             user=user,
             password=password,
@@ -174,7 +174,7 @@ class connect_db:
         conn.close()
 
     def connect_db_salud_consulta_establecimiento(self, df, host, user, password, database): 
-        conn = mysql.connector.connect(
+        conn = pymysql.connect(
             host=host,
             user=user,
             password=password,
@@ -220,7 +220,7 @@ class connect_db:
         conn.close()
 
     def connect_db_salud_quintil_consulta(self, df, host, user, password, database): 
-        conn = mysql.connector.connect(
+        conn = pymysql.connect(
             host=host,
             user=user,
             password=password,
@@ -267,7 +267,7 @@ class connect_db:
         conn.close()
 
     def connect_db_salud_quintil_cobertura_est(self, df, host, user, password, database): 
-        conn = mysql.connector.connect(
+        conn = pymysql.connect(
             host=host,
             user=user,
             password=password,
@@ -314,7 +314,7 @@ class connect_db:
         conn.close()
 
     def connect_db_educacion(self, df, host, user, password, database): 
-        conn = mysql.connector.connect(
+        conn = pymysql.connect(
             host=host,
             user=user,
             password=password,
@@ -360,7 +360,7 @@ class connect_db:
         conn.close()
 
     def connect_db_educacion_may_25(self, df, host, user, password, database): 
-        conn = mysql.connector.connect(
+        conn = pymysql.connect(
             host=host,
             user=user,
             password=password,
@@ -406,7 +406,7 @@ class connect_db:
         conn.close()
 
     def connect_db_educacion_quintiles(self, df, host, user, password, database): 
-        conn = mysql.connector.connect(
+        conn = pymysql.connect(
             host=host,
             user=user,
             password=password,
@@ -454,7 +454,7 @@ class connect_db:
         conn.close()
 
     def connect_db_transporte_medios(self, df, host, user, password, database): 
-        conn = mysql.connector.connect(
+        conn = pymysql.connect(
             host=host,
             user=user,
             password=password,
@@ -504,7 +504,7 @@ class connect_db:
         conn.close()
 
     def connect_db_transporte_desplazamiento(self, df, host, user, password, database): 
-        conn = mysql.connector.connect(
+        conn = pymysql.connect(
             host=host,
             user=user,
             password=password,
@@ -554,7 +554,7 @@ class connect_db:
         conn.close()
         
     def connect_db_transporte_tiempo_medio(self, df, host, user, password, database): 
-        conn = mysql.connector.connect(
+        conn = pymysql.connect(
             host=host,
             user=user,
             password=password,
@@ -604,7 +604,7 @@ class connect_db:
         conn.close()
         
     def connect_db_transporte_universitarios(self, df, host, user, password, database):
-        conn = mysql.connector.connect(
+        conn = pymysql.connect(
             host=host,
             user=user,
             password=password,
