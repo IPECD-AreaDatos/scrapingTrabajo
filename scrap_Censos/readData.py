@@ -1,7 +1,7 @@
 import openpyxl
 import datetime
 import os
-import mysql.connector
+import pymysql
 from itertools import zip_longest
 import pandas as pd
 from sqlalchemy import create_engine
@@ -12,7 +12,7 @@ class homePage:
         ruta_carpeta_files = os.path.join(directorio_actual, 'files')
         file_path = os.path.join(ruta_carpeta_files, 'Estimación Modificada Censo 2022.xlsx')
         
-        db_connection = mysql.connector.connect(
+        db_connection = pymysql.connect(
             host=host,
             user=user,
             password=password,
