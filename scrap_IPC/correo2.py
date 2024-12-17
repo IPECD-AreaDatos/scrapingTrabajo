@@ -5,7 +5,7 @@ import pandas as pd
 import os
 from sqlalchemy import create_engine, text
 from datetime import datetime
-import mysql.connector
+import pymysql
 import calendar
 from ssl import create_default_context
 from sqlalchemy.orm import sessionmaker
@@ -28,7 +28,7 @@ class InformeIPC:
         self.engine = create_engine(f'mysql+pymysql://{self.user}:{self.password}@{self.host}:3306/{self.database}')
 
     def obtener_correos(self):
-        conn = mysql.connector.connect(
+        conn = pymysql.connect(
                 host = self.host,
                 user = self.user,
                 password = self.password,
