@@ -15,7 +15,7 @@ pass_dbb = (os.getenv('PASSWORD_DBB'))
 dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
 
 if __name__ == '__main__':    
-    #Extraccion().descargar_archivo()
+    Extraccion().descargar_archivo()
     instancia = Diccionario(host_dbb, user_dbb,pass_dbb, dbb_datalake)
     instancia.main()
     instancia = Transformacion(host_dbb, user_dbb,pass_dbb, dbb_datalake)

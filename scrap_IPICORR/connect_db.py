@@ -1,4 +1,4 @@
-import mysql.connector
+import pymysql
 import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
@@ -23,7 +23,7 @@ class DatabaseManager:
         self.password = password
         self.database = database
         
-        self.connection = mysql.connector.connect(
+        self.connection = pymysql.connect(
             host=self.host,
             user=self.user,
             password=self.password,
@@ -96,7 +96,7 @@ class DatabaseManager:
         return (float(str(value).replace(',', '').replace('%', '')) / 10) / 100
     
     def obtener_correos(self):
-        conn = mysql.connector.connect(
+        conn = pymysql.connect(
                 host = self.host,
                 user = self.user,
                 password = self.password,

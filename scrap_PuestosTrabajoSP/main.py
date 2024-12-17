@@ -17,7 +17,7 @@ dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
 
 if __name__ == '__main__':
     #Carga de documento de departamentos
-    #LoadCSVDataDepartamentos().loadInDataBase(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+    #LoadCSVDataDepartamentos().loadInDataBase(host_dbb,user_dbb,pass_dbb,dbb_datalake)
     home_page = HomePage()
     home_page.descargar_archivo()
     instancia = LoadCSVData(host_dbb,user_dbb,pass_dbb,dbb_datalake)

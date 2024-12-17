@@ -1,4 +1,4 @@
-import mysql.connector
+import pymysql
 import numpy as np
 import pandas as pd
 import time
@@ -9,7 +9,7 @@ class LoadCSVDataDepartamentos:
         start_time = time.time()
         
         # Establecer la conexión a la base de datos
-        conn = mysql.connector.connect(
+        conn = pymysql.connect(
             host=host, user=user, password=password, database=database
         )
         file_path="C:\\Users\\Matias\\Desktop\\scrapingTrabajo\\scrap_PuestosTrabajoSP\\files\\diccionario_cod_depto.csv"

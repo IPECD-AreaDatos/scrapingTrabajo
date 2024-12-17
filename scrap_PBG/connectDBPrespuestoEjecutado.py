@@ -1,4 +1,4 @@
-import mysql.connector
+import pymysql
 import pandas as pd
 
 class connectDBPrespuestoEjecutado:
@@ -6,7 +6,7 @@ class connectDBPrespuestoEjecutado:
         """
         Inicializa la conexión a la base de datos con las credenciales proporcionadas.
         """
-        self.connection = mysql.connector.connect(
+        self.connection = pymysql.connect(
             host=host,
             user=user,
             password=password,
