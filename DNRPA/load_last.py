@@ -17,7 +17,7 @@ class conexionBaseDatosLast:
         self.conn = None
 
     def connect_db(self):
-
+            print(f"Intentando conectar a: host={self.host}, user={self.user}, password={self.password}, database={self.database}")
             self.conn = connect(
                 host=self.host, user=self.user, password=self.password, database=self.database
             )
