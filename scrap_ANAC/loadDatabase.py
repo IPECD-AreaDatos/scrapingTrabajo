@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-import mysql.connector
+import pymysql
 import pandas as pd
 import os
 
@@ -16,14 +16,14 @@ class load_database:
         """Conectar a la base de datos MySQL si no está ya conectada."""
         if not self.conn or not self.cursor:
             try:
-                self.conn = mysql.connector.connect(
+                self.conn = pymysql.connect(
                     host=self.host,
                     user=self.user,
                     password=self.password,
                     database=self.database
                 )
                 self.cursor = self.conn.cursor()
-            except mysql.connector.Error as err:
+            except pymysql.connector.Error as err:
                 print(f"Error al conectar a la base de datos: {err}")
                 return None
         return self
@@ -82,7 +82,7 @@ class load_database:
             print(clean_values)
             return clean_values
 
-        except mysql.connector.Error as err:
+        except pymysql.connect.Error as err:
             print(f"Error al leer datos de la base de datos: {err}")
             return []
 
