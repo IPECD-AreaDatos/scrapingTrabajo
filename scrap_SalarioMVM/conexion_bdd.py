@@ -1,5 +1,4 @@
-import mysql
-import mysql.connector
+import pymysql
 import datetime
 from email.message import EmailMessage
 import ssl
@@ -26,7 +25,7 @@ class conexionBaseDatos:
             
         try:
 
-            self.conn = mysql.connector.connect(
+            self.conn = pymysql.connect(
                 host=self.host, user= self.user, password=self.password, database=self.database
             )
             self.cursor = self.conn.cursor() #--cursor para usar BDD

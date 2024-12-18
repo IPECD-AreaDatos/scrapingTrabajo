@@ -16,7 +16,7 @@ dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
 if __name__ == "__main__":
     # Descarga del archivo
     #readData().descargar_archivo()
-    #ripte_cargaHistorico().loadInDataBase(credenciales_datalake_economico.host, credenciales_datalake_economico.user, credenciales_datalake_economico.password, credenciales_datalake_economico.database)
+    #ripte_cargaHistorico().loadInDataBase(host_dbb, user_dbb, pass_dbb, dbb_datalake)
     
     # Scrip principal
     # Obtenemos el ultimo valor de RIPTE desde la pagina de inicio

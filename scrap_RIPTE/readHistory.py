@@ -1,4 +1,4 @@
-import mysql.connector
+import pymysql
 import numpy as np
 import pandas as pd
 import time
@@ -15,7 +15,7 @@ class ripte_cargaHistorico:
         start_time = time.time()
         
         # Establecer la conexión a la base de datos
-        conn = mysql.connector.connect(
+        conn = pymysql.connect(
             host=host, user=user, password=password, database=database
         )
 

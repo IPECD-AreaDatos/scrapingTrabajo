@@ -6,7 +6,7 @@ import pandas as pd
 from datetime import datetime
 from ssl import create_default_context
 import ssl
-import mysql.connector
+import pymysql
 import os
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -32,11 +32,11 @@ class InformeRipte:
 
     #Establecemos la conexion a la BDD
     def conectar_bdd(self):
-        self.conn = mysql.connector.connect(host=self.host, user=self.user, password=self.password, database=self.database)
+        self.conn = pymysql.connect(host=self.host, user=self.user, password=self.password, database=self.database)
         self.cursor = self.conn.cursor()
 
     def obtener_correos(self):
-        conn = mysql.connector.connect(
+        conn = pymysql.connect(
                 host = self.host,
                 user = self.user,
                 password = self.password,

@@ -1,7 +1,7 @@
 #Objetivo: Lograr una deflactacion de las encuentas de los supermercados, con el objetivo de comparar
 #Las encuentas de multiples provincias
 from sqlalchemy import create_engine
-import mysql.connector
+import pymysql
 import pandas as pd
 from googleapiclient.discovery import build
 import pandas as pd
@@ -30,7 +30,7 @@ class Deflactador:
     #Conexion a la base de datos
     def connect_bdd(self):
 
-        self.conn = mysql.connector.connect(
+        self.conn = pymysql.connect(
             host=self.host, user=self.user, password=self.password, database=self.database
         )
 

@@ -1,5 +1,5 @@
 import time
-import mysql.connector
+import pymysql
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from datetime import datetime, timedelta
@@ -22,7 +22,7 @@ class ripte_cargaUltimoDato:
 
     #Establecemos la conexion a la BDD
     def conectar_bdd(self):
-        self.conn = mysql.connector.connect(host=self.host, user=self.user, password=self.password, database=self.database)
+        self.conn = pymysql.connect(host=self.host, user=self.user, password=self.password, database=self.database)
         self.cursor = self.conn.cursor() #--cursor para usar BDD
 
 
