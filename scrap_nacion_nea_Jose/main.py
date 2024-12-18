@@ -38,6 +38,7 @@ if __name__ == "__main__":
     df_internet = excel.read_data_internet(ruta_excel)
     df_clima_educativo = excel.read_data_clima_educativo(ruta_excel)
     df_educativo_mayor_25 = excel.read_data_educativo_mayor_25(ruta_excel)
+    df_cobertura_salud = excel.read_data_cobertura_salud(ruta_excel)
     
     # Subir los DataFrames a la base de datos
     cargar_tabla(df_nbi, 'censo_nea_nacion_NBI', engine)
@@ -47,3 +48,4 @@ if __name__ == "__main__":
     cargar_tabla(df_internet, 'censo_nea_nacion_internet', engine)
     cargar_tabla(df_clima_educativo, 'censo_nea_nacion_clima_educativo', engine)
     cargar_tabla(df_educativo_mayor_25, 'censo_nea_nacion_nivel_educativo_mayores_25', engine)
+    cargar_tabla(df_cobertura_salud, 'censo_nea_nacion_cobertura_salud', engine)
