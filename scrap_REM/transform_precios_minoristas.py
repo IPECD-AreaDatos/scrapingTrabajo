@@ -142,7 +142,3 @@ class Transform:
 
 
         return df_seleccionado
-
-
-
-Transform().get_historico_cambio_nominal()
