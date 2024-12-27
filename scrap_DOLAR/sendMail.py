@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from sqlalchemy import create_engine
 
 class SendMail:
-    def __init__(self, user, password, host, database):
+    def __init__(self, host, user, password, database):
         locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
         self.database = create_engine(f'mysql+pymysql://{user}:{password}@{host}/{database}')
         # Obtener la ruta de la carpeta de guardado

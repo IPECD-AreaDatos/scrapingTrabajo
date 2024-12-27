@@ -4,14 +4,25 @@ from load_censo_total import load_censo_total
 from load_sipa_valores import load_sipa_valores
 from load_database import load_database
 import pandas as pd
+# Cargar las variables de entorno desde el archivo .env
+from dotenv import load_dotenv
+load_dotenv()
+
+host_dbb = (os.getenv('HOST_DBB'))
+user_dbb = (os.getenv('USER_DBB'))
+pass_dbb = (os.getenv('PASSWORD_DBB'))
+dbb_dwh = (os.getenv('NAME_DBB_DWH_ECONOMICO'))
+dbb_dtl = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
+host_dbb,user_dbb,pass_dbb,dbb_dwh
+host_dbb,user_dbb,pass_dbb,dbb_dtl
+
+
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 credenciales_dir = os.path.join(script_dir, "..", "Credenciales_folder")
 sys.path.append(credenciales_dir)
 from credenciales_bdd import Credenciales
-credenciales_dwh_economico = Credenciales("dwh_economico")
 credenciales_ipecd_economico = Credenciales("ipecd_economico")
-credenciales_datalake_economico = Credenciales("datalake_economico")
 
 #Fecha de recoleccion de dato
 star_date = (2010)
@@ -23,7 +34,7 @@ if __name__ == "__main__":
     df_censo = credenciales_censo.read_censo(star_date, end_year)
 
     print("Tabla SIPA")
-    credenciales_datalake_economico = load_sipa_valores(credenciales_datalake_economico.host, credenciales_datalake_economico.user, credenciales_datalake_economico.password, credenciales_datalake_economico.database).conectar_bdd()
+    credenciales_datalake_economico = load_sipa_valores(host_dbb,user_dbb,pass_dbb,dbb_dtl).conectar_bdd()
     df_sipa = credenciales_datalake_economico.read_sipa(star_date, end_year)
     
     # Armar el DataFrame a partir de las dos tablas
@@ -43,5 +54,5 @@ if __name__ == "__main__":
     # Visualizar el resultado
     print(combined_df)
 
-    credenciales_dwh_economico = load_database(credenciales_dwh_economico.host, credenciales_dwh_economico.user, credenciales_dwh_economico.password, credenciales_dwh_economico.database).conectar_bdd()
+    credenciales_dwh_economico = load_database(host_dbb,user_dbb,pass_dbb,dbb_dwh).conectar_bdd()
     credenciales_dwh_economico.load_data(combined_df)

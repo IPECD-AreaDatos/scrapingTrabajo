@@ -9,7 +9,7 @@ import pandas as pd
 import urllib3
 import time
 from datetime import datetime
-import mysql.connector
+import pymysql
 import numpy as np
 import pandas as pd
 import time
@@ -95,7 +95,7 @@ class dolarOficial:
         time.sleep(10)
         
     def lecturaDolarOficial(self, host, user, password, database):
-        conn = mysql.connector.connect(
+        conn = pymysql.connect(
             host=host, user=user, password=password, database=database
         )
 

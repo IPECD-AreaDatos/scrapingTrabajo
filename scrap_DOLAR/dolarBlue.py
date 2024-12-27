@@ -8,7 +8,7 @@ import pandas as pd
 import urllib3
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine, text
-import mysql.connector
+import pymysql
 from io import StringIO
 import time
 
@@ -146,7 +146,7 @@ class dolarBlue:
                     current_date = datetime.strptime(df['fecha'].iloc[0], '%Y-%m-%d')
                     return current_date > last_date
                 return True
-        except mysql.connector.Error as err:
+        except pymysql.Error as err:
             print(f"Error MySQL: {err}")
             return False
         finally:
@@ -161,7 +161,7 @@ class dolarBlue:
             df.to_sql(table_name, con=engine, if_exists='append', index=False)
             print("Se actualizaron los datos en la base de datos")
 
-        except mysql.connector.Error as err:
+        except pymysql.connect.Error as err:
             print(f"Error MySQL: {err}")
 
         finally:

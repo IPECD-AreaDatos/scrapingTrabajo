@@ -5,10 +5,10 @@ from selenium.webdriver.common.by import By
 import pymysql
 
 class readDataDolarMEP:
-    def __init__(self, user, password, host, database, table_name):
+    def __init__(self, host, user, password, database, table_name):
+        self.host = host
         self.user = user
         self.password = password
-        self.host = host
         self.database = database
         self.table_name = table_name
 

@@ -3,7 +3,17 @@ from googleapiclient.discovery import build
 from google.oauth2 import service_account
 import os
 import pandas as pd
+from json import loads
+import json
 
+# Cargar las variables de entorno desde el archivo .env
+from dotenv import load_dotenv
+load_dotenv()
+
+"""
+Este script saca los datos de la hoja de sheets: https://docs.google.com/spreadsheets/d/1sfAdpqs9oh6JbP5kZgiirHAx99tn7ELxz7TZWIe3BrM/edit?gid=0#gid=0
+De la hoja EPH
+"""
 
 class readSheets:
     def leer_datos_tasas(self):
@@ -11,15 +21,15 @@ class readSheets:
         # Define los alcances y la ruta al archivo JSON de credenciales
         SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
-        directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
-        ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
-        KEY = os.path.join(ruta_carpeta_files, 'key.json')
+        api_key_raw = os.getenv('GOOGLE_SHEETS_API_KEY')
+        print(api_key_raw) 
+        api_key = json.loads(api_key_raw) 
 
         # Escribe aquí el ID de tu documento:
         SPREADSHEET_ID = '1sfAdpqs9oh6JbP5kZgiirHAx99tn7ELxz7TZWIe3BrM'
 
         # Carga las credenciales desde el archivo JSON
-        creds = service_account.Credentials.from_service_account_file(KEY, scopes=SCOPES)
+        creds = service_account.Credentials.from_service_account_file(api_key, scopes=SCOPES)
 
         # Crea una instancia de la API de Google Sheets
         service = build('sheets', 'v4', credentials=creds)

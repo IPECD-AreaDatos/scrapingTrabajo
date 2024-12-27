@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine
-import mysql
-import mysql.connector
+import pymysql
 import pandas as pd
 
 
@@ -14,7 +13,7 @@ class load_database:
         self.cursor = None
 
     def conectar_bdd(self):
-        self.conn = mysql.connector.connect(
+        self.conn = pymysql.connect(
             host=self.host, user=self.user, password=self.password, database=self.database
         )
         self.cursor = self.conn.cursor()

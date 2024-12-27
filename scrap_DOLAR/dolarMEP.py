@@ -9,7 +9,7 @@ import time
 from datetime import datetime
 import pandas as pd
 import time
-import mysql.connector
+import pymysql
 
 nuevos_datos = []
 
@@ -82,7 +82,7 @@ class dolarMEP:
         print(df)
 
         try:
-            conn = mysql.connector.connect(
+            conn = pymysql.connect(
                 host=host, user=user, password=password, database=database
             )
             cursor = conn.cursor()
@@ -113,7 +113,7 @@ class dolarMEP:
             else:
                 print("Se realizó una verificación de la base de datos")
 
-        except mysql.connector.Error as err:
+        except pymysql.connect.Error as err:
             print(f"Error MySQL: {err}")
 
         finally:

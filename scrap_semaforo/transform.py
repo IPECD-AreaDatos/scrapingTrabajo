@@ -6,8 +6,8 @@ class Transform:
     def transform_data(self, df_semaforo):
 
         # Copia de DF para no estropear datos originales
-        df = df_semaforo.copy()
-
+        df = df_semaforo
+        
         # Obtención de fechas
         df['fecha'] = self.convertir_fecha(df['fecha'])
 

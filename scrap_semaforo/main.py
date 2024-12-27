@@ -18,8 +18,10 @@ if __name__ == '__main__':
 
     #Extraccion y Transformacion de datos semoforo INTERANUAL
     df_semaforo_interanual = ExtractSheet().extract_sheet_internual()
+    print("aca")
+    print(df_semaforo_interanual)
+    print("aca")
     df_interanual_transformado = Transform().transform_data(df_semaforo_interanual)
-    print(df_interanual_transformado)
 
     #Extraccion y Transformacion de datos semoforo INTERMENSUAL
     df_semaforo_intermensual = ExtractSheet().extract_sheet_intermensual()

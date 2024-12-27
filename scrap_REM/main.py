@@ -26,6 +26,9 @@ if __name__ == "__main__":
     df_rem_precios_minoristas = instancia_transform.get_historico_precios_minoristas()
     df_rem_cambio_nominal = instancia_transform.get_historico_cambio_nominal()
 
+    print(df_rem_cambio_nominal)
+    print(df_rem_precios_minoristas)
+
     #Carga de datos
     instancia_load = conexionBaseDatos(host_dbb,user_dbb,pass_dbb,dbb_datalake)
     instancia_load.main(df_rem_precios_minoristas,df_rem_cambio_nominal)

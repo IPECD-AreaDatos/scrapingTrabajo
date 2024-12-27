@@ -826,8 +826,11 @@ CREATE table OEDE_valores(
     valor float
 );
 
-
-
+use datalake_economico
+CREATE TABLE rem_cambio_nominal (
+	fecha date, 
+	cambio_nominal float
+);
 
 
 
