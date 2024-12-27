@@ -22,7 +22,7 @@ class readSheets:
         SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
         api_key_raw = os.getenv('GOOGLE_SHEETS_API_KEY')
-        print(api_key_raw) 
+    
         api_key = json.loads(api_key_raw) 
 
         # Escribe aquí el ID de tu documento:
