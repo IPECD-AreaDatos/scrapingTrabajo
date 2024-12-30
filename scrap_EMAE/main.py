@@ -18,7 +18,7 @@ dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
 def main():
 
     #Obtencion del archivo
-    #HomePage().descargar_archivos()
+    HomePage().descargar_archivos()
 
     #Creamos una instancia del TRANSFORMADOR y generamos DF's
     instancia_transformador = Transformer()
