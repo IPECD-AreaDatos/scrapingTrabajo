@@ -249,10 +249,12 @@ class Deflactador:
 
         delete_query ="TRUNCATE `dwh_economico`.`supermercado_deflactado`"
         self.cursor.execute(delete_query)
+        print("tdv no")
 
         #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
         engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/dwh_economico")
         df_deflactado.to_sql(name="supermercado_deflactado", con=engine, if_exists='append', index=False)
+        print("cargado")
 
     #Objetivo:main
     def main(self):
@@ -262,7 +264,7 @@ class Deflactador:
         df_ipc_region = self.get_data_ipc(fecha_min,fecha_max)
         df_datos_todas_las_provincias = self.agrupar_datos(df_supermercado,df_ipc_region)
         df_deflactado = self.calculo_deflactacion(df_datos_todas_las_provincias)
-
+        print(df_deflactado)
         self.cargar_datos(df_deflactado)
         self.save_data_sheet()
         print("sheet cargado")

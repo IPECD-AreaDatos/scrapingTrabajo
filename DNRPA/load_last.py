@@ -3,6 +3,7 @@ from pymysql import connect
 from save_data_sheet import readSheets
 import pandas as pd
 from datetime import datetime, date, timedelta
+import sys
 
 
 class conexionBaseDatosLast:
@@ -22,6 +23,7 @@ class conexionBaseDatosLast:
                 host=self.host, user=self.user, password=self.password, database=self.database
             )
             self.cursor = self.conn.cursor()
+            print("conec establecida")
 
     def close_connections(self):
         self.conn.commit()
@@ -36,7 +38,7 @@ class conexionBaseDatosLast:
     #En este caso vamos a cargar el DATALAKE ECONOMICO
 
     def cargar_datalake(self,df):    
-        
+       
         self.connect_db()
 
         # Asegúrate de que self.conn sea un motor de SQLAlchemy

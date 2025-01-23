@@ -25,6 +25,8 @@ pass_dbb = (os.getenv('PASSWORD_DBB'))
 dbb_dwh = (os.getenv('NAME_DBB_DWH_SOCIO'))
 
 if __name__ ==  "__main__":
+    df_educacion = readSheetsEducacion().leer_datos_educacion()
+    connect_db().connect_db_educacion(df_educacion, host_dbb,user_dbb,pass_dbb,dbb_dwh)
     df_tasas = readSheetsTasas().leer_datos_tasas()
     connect_db().connect_db_tasas(df_tasas, host_dbb,user_dbb,pass_dbb,dbb_dwh)
     df_trabajo = readSheetsTrabajo().leer_datos_trabajo()
@@ -39,8 +41,6 @@ if __name__ ==  "__main__":
     connect_db().connect_db_salud_quintil_consulta(df_salud_quintil_consulta, host_dbb,user_dbb,pass_dbb,dbb_dwh)
     df_salud_quintil_cob_est= readSheetsSaludQuintilCoberturaEst().leer_datos_salud_quintil_cobertura_est()
     connect_db().connect_db_salud_quintil_cobertura_est(df_salud_quintil_cob_est, host_dbb,user_dbb,pass_dbb,dbb_dwh)
-    df_educacion = readSheetsEducacion().leer_datos_educacion()
-    connect_db().connect_db_educacion(df_educacion, host_dbb,user_dbb,pass_dbb,dbb_dwh)
     df_educacion_may_25 = readSheetsEducacionMay25().leer_datos_educacionMay25()
     connect_db().connect_db_educacion_may_25(df_educacion_may_25, host_dbb,user_dbb,pass_dbb,dbb_dwh)
     df_educacion_quintiles = readSheetsEducacionQuintiles().leer_datos_educacionQuintiles()

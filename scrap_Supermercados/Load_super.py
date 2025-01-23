@@ -49,6 +49,7 @@ class conexionBaseDatos:
             Deflactador(self.host,self.user,self.password,self.database).main()
 
             print("""
+            Deflactador(self.host,self.user,self.password,self.database).main()
 
             ================================================================================
              *** SE HA PRODUCIDO UNA ACTUALIZACION EN LAS ENCUESTAS DE SUPERMERCADOS ***
@@ -57,6 +58,7 @@ class conexionBaseDatos:
             """)
 
         else:
+
             print(f"NO HAY CAMBIOS EN LOS DATOS DE {nombre_tabla}")
                 
 

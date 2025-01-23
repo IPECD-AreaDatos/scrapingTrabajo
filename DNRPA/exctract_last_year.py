@@ -66,8 +66,15 @@ class ExtractLastData:
 
         #print("Años disponibles:", anos_numeros)
 
-        ultimo_anio = max(anos_numeros)
+        #ultimo_anio = max(anos_numeros)
         #print("Último año:", ultimo_anio)
+
+        # Obtener los dos últimos años disponibles
+        ultimos_dos_anos = sorted(anos_numeros)[-2:]
+
+        # Seleccionar el penúltimo año (el año anterior)
+        anteultimo_anio = ultimos_dos_anos[0]
+
 
         # Verificamos si se busca datos de moto o auto
         if tipo_vehiculo == 1:
@@ -79,7 +86,7 @@ class ExtractLastData:
         button_datos = self.driver.find_element(By.XPATH, '/html/body/div[2]/section/article/div/div[2]/div/div/div/div/form/div/center/center/input')
 
         # Elegir solo el año más reciente (2024 en este caso)
-        valor_opcion = str(ultimo_anio)
+        valor_opcion = str(anteultimo_anio)
         try:
             opcion_seleccionada = elemento.find_element(By.XPATH, '//*[@id="seleccion"]/center/table/tbody/tr[2]/td/select/option[2]')
             opcion_seleccionada.click()
@@ -117,8 +124,14 @@ class ExtractLastData:
                 fila_datos.append(celda.text)
             datos.append(fila_datos)
 
+            
+
+        print(datos)
+
         # Crea un DataFrame de pandas con los datos extraídos de la tabla
         df_formato_original = pd.DataFrame(datos)
+
+        print(df_formato_original)
 
         # ==== TRANSFORMACION DE LA TABLA   
         # 1 - Cambio de provincias por su ID correspondientes
@@ -163,7 +176,9 @@ class ExtractLastData:
         #print(f"TABLA {nombre_vehiculo} DEL AÑO {valor_opcion}")
 
         self.df_total = pd.concat([self.df_total,df_melted])
-
+    
+        print("aca esta 1")
+        print(self.df_total)
         
     def switch_to_latest_window(self):
         windows = self.driver.window_handles
@@ -176,13 +191,26 @@ class ExtractLastData:
     def transformar_cantidad_vehiculos(self):
 
         self.df_total['cantidad'] = self.df_total['cantidad'].str.replace(".","")
+        print("aca esta 1")
+        print(self.df_total)
         self.df_total['id_provincia_indec'] = self.df_total['id_provincia_indec'].astype(int)  # Convertir a tipo entero
+        print("aca esta 2")
+        print(self.df_total)
         self.df_total['id_vehiculo'] = self.df_total['id_vehiculo'].astype(int)  # Convertir a tipo entero
+        print("aca esta 3")
+        print(self.df_total)
 
         self.df_total['cantidad'] = self.df_total['cantidad'].astype(int)  # Convertir a tipo entero
+        print("aca esta 4")
+        print(self.df_total)
 
         self.df_total['fecha'] = pd.to_datetime(self.df_total['fecha'], format='%Y-%m-%d')
-
+        print("aca esta 5")
+        print(self.df_total)
 
         self.df_total = self.df_total[self.df_total['cantidad'] > 0]
+        print("aca esta 6")
+        print(self.df_total)
+
+        
 

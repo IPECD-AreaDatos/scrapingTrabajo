@@ -13,6 +13,8 @@ class LoadCSVDataDepartamentos:
             host=host, user=user, password=password, database=database
         )
         file_path="C:\\Users\\Matias\\Desktop\\scrapingTrabajo\\scrap_PuestosTrabajoSP\\files\\diccionario_cod_depto.csv"
+        #file_path="files\diccionario_cod_depto.csv"
+
         # Nombre de la tabla en MySQL
         table_name = 'identificador_localidades'
         
