@@ -107,7 +107,7 @@ class Transformer:
         num_rows = df.shape[0]
 
         # Generar un rango de fechas que comience en FEBRERO de 2004 y avance mensualmente
-        fechas = pd.date_range(start='2004-02-01', periods=num_rows, freq='MS')
+        fechas = pd.date_range(start='2004-01-01', periods=num_rows, freq='MS')
 
         # ==== PASO 2 - Asignacion de fechas al DF
         df['fecha'] = fechas

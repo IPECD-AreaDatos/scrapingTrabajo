@@ -12,42 +12,14 @@ import subprocess
 class HomePage:
     def descargar_archivos(self):
 
-        #Desactivamos restricciones de navegador
-        #urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-        #Configuracion de SELENIUM
-        #options = webdriver.ChromeOptions()
-        #options.add_argument("--headless")
-        #options.add_argument("--no-sandbox")
-        #options.add_argument("--disable-dev-shm-usage")
-        #options.add_argument("--disable-gpu")
-        #options.add_argument("--disable-extensions")
-        #options.add_argument("--disable-software-rasterizer")
-        #options.add_argument("--remote-debugging-port=9222")
-
-
-        # Obtener la versión de Google Chrome instalada
-        #chrome_version = subprocess.check_output(['google-chrome', '--version']).decode('utf-8').strip().split()[-1]
-
-        # Descargar e instalar la versión correcta de chromedriver
-        #chromedriver_path = ChromeDriverManager(driver_version=chrome_version).install()
-    
-        # Asegurarse de que el archivo chromedriver es ejecutable
-        #os.chmod(chromedriver_path, 0o755)
-
-
-        # Descargar e instalar la versión correcta de chromedriver
-        #service = Service(ChromeDriverManager().install())
-        #driver = webdriver.Chrome(service=service, options=options)
-
         #Configuracion del navegador
         options = webdriver.ChromeOptions()
         options.add_argument('--headless')
 
         # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
         driver = webdriver.Chrome(options=options)
+        
         #=== PRIMER ARCHIVO - VALORES DE EMAE
-
         # URL de la página que deseas obtener
         url_pagina = 'https://www.indec.gob.ar/indec/web/Nivel4-Tema-3-9-48'
 
@@ -87,7 +59,6 @@ class HomePage:
             
         
         #=== SEGUNDO ARCHIVO - EMAR VARIACIONES
-
         # Encontrar el enlace al segundo archivo
         archivo_2 = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[2]/div[1]/div[2]/div[4]/div[1]/div[2]/div/div/div/div/a[1]")))
         # Obtener la URL del segundo archivo

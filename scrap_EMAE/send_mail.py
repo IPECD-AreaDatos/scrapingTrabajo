@@ -103,7 +103,8 @@ class EmailEmae:
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
         email_receptores = self.obtener_correos()
-        
+        #email_receptores =  ['matizalazar2001@gmail.com', 'manumarder@gmail.com']
+
         # ==== CREACION DEL MENSAJE DE GMAIL ==== #
 
         # Crear el objeto de mensaje MIME
