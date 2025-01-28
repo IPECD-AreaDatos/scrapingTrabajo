@@ -13,16 +13,9 @@ user_dbb = (os.getenv('USER_DBB'))
 pass_dbb = (os.getenv('PASSWORD_DBB'))
 dbb_dwh = (os.getenv('NAME_DBB_DWH_ECONOMICO'))
 dbb_dtl = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
+dbb_dtlsocio = (os.getenv('NAME_DBB_DATALAKE_SOCIO'))
 host_dbb,user_dbb,pass_dbb,dbb_dwh
 host_dbb,user_dbb,pass_dbb,dbb_dtl
-
-
-
-script_dir = os.path.dirname(os.path.abspath(__file__))
-credenciales_dir = os.path.join(script_dir, "..", "Credenciales_folder")
-sys.path.append(credenciales_dir)
-from credenciales_bdd import Credenciales
-credenciales_ipecd_economico = Credenciales("ipecd_economico")
 
 #Fecha de recoleccion de dato
 star_date = (2010)
@@ -30,7 +23,7 @@ end_year = (2024)
 
 if __name__ == "__main__":
     print("Tabla Censo")
-    credenciales_censo = load_censo_total(credenciales_ipecd_economico.host, credenciales_ipecd_economico.user, credenciales_ipecd_economico.password, credenciales_ipecd_economico.database).conectar_bdd()
+    credenciales_censo = load_censo_total(host_dbb,user_dbb,pass_dbb,dbb_dtlsocio).conectar_bdd()
     df_censo = credenciales_censo.read_censo(star_date, end_year)
 
     print("Tabla SIPA")
@@ -38,15 +31,15 @@ if __name__ == "__main__":
     df_sipa = credenciales_datalake_economico.read_sipa(star_date, end_year)
     
     # Armar el DataFrame a partir de las dos tablas
-    df_censo['Fecha'] = pd.to_datetime(df_censo['Fecha'])
+    df_censo['fecha'] = pd.to_datetime(df_censo['fecha'])
     df_sipa['fecha'] = pd.to_datetime(df_sipa['fecha'])
 
     # Asegúrate de que los ID de provincia son del mismo tipo y merge ambas tablas en una sola DataFrame
-    combined_df = pd.merge(df_censo, df_sipa, how='inner', left_on=['ID_Provincia', 'Fecha'], right_on=['id_provincia', 'fecha'])
+    combined_df = pd.merge(df_censo, df_sipa, how='inner', left_on=['id_provincia', 'fecha'], right_on=['id_provincia', 'fecha'])
     print(combined_df)
-    exit()
+    
     # Calcular la tasa de empleo por cada mil habitantes
-    combined_df['puestos_cada_mil_empleados'] = ((combined_df['cantidad_sin_estacionalidad'] * 1000) / combined_df['Poblacion']) * 1000
+    combined_df['puestos_cada_mil_empleados'] = ((combined_df['cantidad_sin_estacionalidad'] * 1000) / combined_df['poblacion']) * 1000
 
     # Seleccionar solo las columnas deseadas para el DataFrame final
     combined_df = combined_df[['fecha', 'id_provincia', 'puestos_cada_mil_empleados']]

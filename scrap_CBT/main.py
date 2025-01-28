@@ -8,18 +8,6 @@ import sys
 import requests
 import pandas as pd
 
-# Obtener la ruta al directorio actual del script
-script_dir = os.path.dirname(os.path.abspath(__file__))
-credenciales_dir = os.path.join(script_dir, '..', 'Credenciales_folder')
-# Agregar la ruta al sys.path
-sys.path.append(credenciales_dir)
-# Importar credenciales de la base de datos
-from credenciales_bdd import Credenciales
-
-# Después puedes crear una instancia de Credenciales
-credenciales_datalake_sociodemografico = Credenciales('datalake_sociodemografico')
-credenciales_ipecd_economico = Credenciales('ipecd_economico')
-
 # Cargar las variables de entorno desde el archivo .env
 from dotenv import load_dotenv
 load_dotenv()

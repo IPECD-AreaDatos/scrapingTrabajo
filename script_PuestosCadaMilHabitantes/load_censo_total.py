@@ -28,18 +28,18 @@ class load_censo_total:
         for current_date in date_list:
             # Consulta para obtener la población total de todas las provincias en la fecha actual
             query_poblacion = """
-            SELECT ID_Provincia, Poblacion
-            FROM ipecd_economico.censo_provincia
-            WHERE fecha = %s AND ID_Provincia = ID_Departamento;
+            SELECT id_provincia, poblacion
+            FROM datalake_sociodemografico.censo_estimado
+            WHERE fecha = %s AND id_provincia = id_departamento;
             """
             self.cursor.execute(query_poblacion, (current_date.strftime('%Y-%m-%d'),))
             # Fetch all results and append them to the dato_censo list
             dato_censo.extend([
-                {'ID_Provincia': row[0], 'Poblacion': row[1], 'Fecha': current_date}
+                {'id_provincia': row[0], 'poblacion': row[1], 'fecha': current_date}
                 for row in self.cursor.fetchall()
             ])
         
         # Convertir la lista de datos en un DataFrame
         df_censo = pd.DataFrame(dato_censo)
-        print(df_censo[df_censo['ID_Provincia'] == 10])
+        print(df_censo[df_censo['id_provincia'] == 10])
         return df_censo
