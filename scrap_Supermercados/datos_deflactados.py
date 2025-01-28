@@ -42,6 +42,9 @@ class Deflactador:
         #Extramos los datos del IPC solo hasta la fecha maxima solicitada
         query_ipc = f"SELECT * FROM ipc_valores WHERE fecha BETWEEN '{fecha_min}' AND '{fecha_max}';"
         df_ipc = pd.read_sql(query_ipc,self.conn)
+        print("df ipc")
+        print(df_ipc)
+        print(fecha_min)
 
         #Columnas del IPC por subdivision --> No estan todas, sino solo las que vamos a ocupar
         columnas = ['id_region_indec','general','aguasminerales_bebidas_gaseosas','bebidas_alcholicas','pan_cereales','leche_productos_lacteos_huevos','carnes_derivados','verduras_tuberculos_legumbres',
@@ -57,6 +60,10 @@ class Deflactador:
         #Regiones por ID
         regiones = [2,3,4,5,6,7]
 
+        print("Dimensiones de df_ipc:", df_ipc.shape)
+        print("Dimensiones de df_datopor_region:", df_datopor_region.shape)
+        print("Dimensiones de df_total_ipc:", df_total_ipc.shape)
+
         for region in regiones:
 
             df_datopor_region['general'] = list(df_ipc['valor'][(df_ipc['id_subdivision'] == 1) & (df_ipc['id_region'] == region)])
@@ -67,11 +74,15 @@ class Deflactador:
             df_datopor_region['carnes_derivados'] = list(df_ipc['valor'][(df_ipc['id_subdivision'] == 5) & (df_ipc['id_region'] == region)])
             df_datopor_region['verduras_tuberculos_legumbres'] = list(df_ipc['valor'][(df_ipc['id_subdivision'] == 9) & (df_ipc['id_region'] == region)])
             df_datopor_region['alimentos'] = list(df_ipc['valor'][(df_ipc['id_subdivision'] == 3) & (df_ipc['id_region'] == region)])
-            df_datopor_region['restaurantes_comida_fueradelhogar'] = list(df_ipc['valor'][(df_ipc['id_subdivision'] == 43) & (df_ipc['id_region'] == region)])
+            print(f"Procesando región: {region}")
+            general_values = df_ipc['valor'][(df_ipc['id_subdivision'] == 1) & (df_ipc['id_region'] == region)]
+            print(f"Valores para 'general' en región {region}: {general_values}")
             df_datopor_region['aceite_grasas_mantecas'] = list(df_ipc['valor'][(df_ipc['id_subdivision'] ==7) & (df_ipc['id_region'] == region)])
             df_datopor_region['azucar_chocalate_golosina'] = list(df_ipc['valor'][(df_ipc['id_subdivision'] ==10) & (df_ipc['id_region'] == region)])
             df_datopor_region['bienes_servicios_conservacionhogar'] = list(df_ipc['valor'][(df_ipc['id_subdivision'] ==26) & (df_ipc['id_region'] == region)])
-            df_datopor_region['cuidadopersonal'] = list(df_ipc['valor'][(df_ipc['id_subdivision'] ==45) & (df_ipc['id_region'] == region)])
+            print(f"Procesando región: {region}")
+            cuidadopersonal_values = df_ipc['valor'][(df_ipc['id_subdivision'] == 45) & (df_ipc['id_region'] == region)]
+            print(f"Valores para 'cuidadopersonal' en región {region}: {cuidadopersonal_values}")
             df_datopor_region['prendasdevestir_y_calzados'] = list(df_ipc['valor'][(df_ipc['id_subdivision'] ==17) & (df_ipc['id_region'] == region)])
 
             #Esta subdivision solo existe en GBA, entonces se replica para cada region. id de GBA = 2 y la subdivision = 38
@@ -266,6 +277,7 @@ class Deflactador:
         df_deflactado = self.calculo_deflactacion(df_datos_todas_las_provincias)
         print(df_deflactado)
         self.cargar_datos(df_deflactado)
+        print(f"Contenido de GOOGLE_SHEETS_API_KEY: {os.getenv('GOOGLE_SHEETS_API_KEY')}")
         self.save_data_sheet()
         print("sheet cargado")
 
