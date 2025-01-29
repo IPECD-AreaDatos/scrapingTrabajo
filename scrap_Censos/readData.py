@@ -1,23 +1,15 @@
 import openpyxl
 import datetime
 import os
-import pymysql
 from itertools import zip_longest
 import pandas as pd
 from sqlalchemy import create_engine
 
 class homePage:
-    def construir_df_estimaciones(self, host, user, password, database):
+    def construir_df_estimaciones(self):
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
         ruta_carpeta_files = os.path.join(directorio_actual, 'files')
         file_path = os.path.join(ruta_carpeta_files, 'Estimación Modificada Censo 2022.xlsx')
-        
-        db_connection = pymysql.connect(
-            host=host,
-            user=user,
-            password=password,
-            database=database
-        )
         
         # Cargar el archivo XLSX
         workbook = openpyxl.load_workbook(file_path)

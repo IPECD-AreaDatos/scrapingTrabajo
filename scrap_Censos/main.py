@@ -14,7 +14,7 @@ pass_dbb = (os.getenv('PASSWORD_DBB'))
 dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_SOCIO'))
 
 if __name__ == '__main__':
-    df = homePage().construir_df_estimaciones(host_dbb,user_dbb,pass_dbb,dbb_datalake)
+    df = homePage().construir_df_estimaciones()
     print(df)
     instancia_bdd = load_database(host_dbb,user_dbb,pass_dbb,dbb_datalake)
     instancia_bdd.carga_datos(df)
