@@ -78,11 +78,23 @@ class Transform:
 
         #Ahora tendriamos los datos de la ultima fecha, y el unico dato que nos interesa es la segunda fila, que representa
         #la prediccion de la inflacion al sig. mes del actual. Buscamos el dato y lo concatenamos
-        data_next_month = last_data.iloc[[1]]
-        data_next_month['fecha'] = pd.to_datetime(f'{fecha_max.year}-{fecha_max.month + 1}-01') #Le damos la fecha correcta del prox mes.
+        #data_next_month = last_data.iloc[[1]]
+        #data_next_month['fecha'] = pd.to_datetime(f'{fecha_max.year}-{fecha_max.month + 1}-01') #Le damos la fecha correcta del prox mes.
+
+        # Manejar cambio de mes y año
+        next_month = fecha_max.month + 1 if fecha_max.month < 12 else 1
+        next_year = fecha_max.year if fecha_max.month < 12 else fecha_max.year + 1
+
+        if len(last_data) > 1:
+            data_next_month = last_data.iloc[[1]].copy()
+            data_next_month.loc[:, 'fecha'] = pd.to_datetime(f'{next_year}-{next_month}-01')
+        else:
+            data_next_month = pd.DataFrame(columns=['fecha', 'var_mensual'])
+
 
         #Concatenamos al DF ORIGINAL
-        df_seleccionado_filtrado = pd.concat([df_seleccionado_filtrado,data_next_month])
+        df_seleccionado_filtrado = pd.concat([df_seleccionado_filtrado, data_next_month])
+        df_seleccionado_filtrado = df_seleccionado_filtrado.sort_values(by='fecha').tail(12)
 
         # Resetear el índice || SIRVE PARA LA CARGA
         df_seleccionado_filtrado = df_seleccionado_filtrado.reset_index(drop=True)
@@ -131,11 +143,23 @@ class Transform:
 
         #Ahora tendriamos los datos de la ultima fecha, y el unico dato que nos interesa es la segunda fila, que representa
         #la prediccion de la inflacion al sig. mes del actual. Buscamos el dato y lo concatenamos
-        data_next_month = last_data.iloc[[1]]
-        data_next_month['fecha'] = pd.to_datetime(f'{fecha_max.year}-{fecha_max.month + 1}-01') #Le damos la fecha correcta del prox mes.
+        #data_next_month = last_data.iloc[[1]]
+        #data_next_month['fecha'] = pd.to_datetime(f'{fecha_max.year}-{fecha_max.month + 1}-01') #Le damos la fecha correcta del prox mes.
+        
+        # Manejar cambio de mes y año
+        next_month = fecha_max.month + 1 if fecha_max.month < 12 else 1
+        next_year = fecha_max.year if fecha_max.month < 12 else fecha_max.year + 1
+
+        if len(last_data) > 1:
+            data_next_month = last_data.iloc[[1]].copy()
+            data_next_month.loc[:, 'fecha'] = pd.to_datetime(f'{next_year}-{next_month}-01')
+        else:
+            data_next_month = pd.DataFrame(columns=['fecha', 'cambio_nominal'])
 
         #Concatenamos al DF ORIGINAL
-        df_seleccionado_filtrado = pd.concat([df_seleccionado_filtrado,data_next_month])
+        df_seleccionado_filtrado = pd.concat([df_seleccionado_filtrado, data_next_month])
+        df_seleccionado_filtrado = df_seleccionado_filtrado.sort_values(by='fecha').tail(12)
+
 
         # Resetear el índice || SIRVE PARA LA CARGA
         df_seleccionado_filtrado = df_seleccionado_filtrado.reset_index(drop=True)
