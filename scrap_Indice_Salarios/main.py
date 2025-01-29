@@ -24,3 +24,5 @@ if __name__ == '__main__':
 
     #Almacenamiento de datos
     Database(host_dbb,user_dbb,pass_dbb,dbb_datalake).load_data(df)
+
+
