@@ -53,30 +53,39 @@ class Transform:
     #Objetivo: tomar los valores de la serie original (hoja = "CUADRO 2")
     def construir_df_valores(self):
 
-        #Nombre de columnas
-        nombre_cols = ['ipi_manufacturero','alimentos','textil','maderas','sustancias','min_no_metalicos','metales']
+        # Nombre de columnas
+        nombre_cols = ['ipi_manufacturero', 'alimentos', 'textil', 'maderas', 'sustancias', 'min_no_metalicos', 'min_metales']
 
-        # Crear el dataframe - especificamos, HOJA - QUE COLUMNAS USAMOS - LOS NOMBRES DE LAS COLUMNAS -LA FILA DONDE ARRANCA
-        self.df_valores = pd.read_excel(self.path_excel,sheet_name=2,usecols='D,E,V,AE,AO,BB,BM',names=nombre_cols,skiprows=5)
-        self.df_valores = self.df_valores.dropna()
+        # Crear el dataframe desde el Excel con los valores especificados
+        df_ipi_manufacturero = pd.read_excel(
+            self.path_excel, 
+            sheet_name=1, 
+            usecols='H', 
+            skiprows=8,  # Fila 9 es índice 8 en programación
+            names=['ipi_manufacturero']
+        )
 
-        #AGREGAMOS VARIACIONES MENSUALES
-        self.df_valores['var_mensual_ipi_manufacturero'] = self.df_valores['ipi_manufacturero'].pct_change()
-        self.df_valores['var_mensual_alimentos'] = self.df_valores['alimentos'].pct_change()
-        self.df_valores['var_mensual_textil'] = self.df_valores['textil'].pct_change()
-        self.df_valores['var_mensual_maderas'] = self.df_valores['maderas'].pct_change()
-        self.df_valores['var_mensual_sustancias'] = self.df_valores['sustancias'].pct_change()
-        self.df_valores['var_mensual_min_no_metalicos'] = self.df_valores['min_no_metalicos'].pct_change()
-        self.df_valores['var_mensual_min_metales'] = self.df_valores['metales'].pct_change()
-       
+        df_otros = pd.read_excel(
+            self.path_excel,
+            sheet_name=2,
+            usecols='E,V,AE,AO,BB,BM',
+            names=nombre_cols[1:],  # Excluir 'ipi_manufacturero'
+            skiprows=5
+        )
 
-        #Agregamos las fechas
-        fecha_inicio = date(2016, 1,1)
-        num_meses = len(self.df_valores)  # Restar 2 para compensar las filas de encabezados
+        # Unimos los dos DataFrames por índice
+        self.df_valores = pd.concat([df_ipi_manufacturero, df_otros], axis=1).dropna()
 
-        #Generamos una lista de fechas, teniendo en cuenta 'fecha_inicio'
+        # Agregamos variaciones mensuales
+        for col in nombre_cols:
+            self.df_valores[f'var_mensual_{col}'] = self.df_valores[col].pct_change()
+
+        # Agregar las fechas
+        fecha_inicio = date(2016, 1, 1)
+        num_meses = len(self.df_valores)
+
+        # Generamos una lista de fechas a partir de 'fecha_inicio'
         lista_fechas = [fecha_inicio + relativedelta(months=i) for i in range(num_meses)]
-
         self.df_valores['fecha'] = lista_fechas
 
         # Reordenar las columnas para que 'fecha' sea la primera

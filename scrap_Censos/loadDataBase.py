@@ -24,3 +24,19 @@ class load_database:
         engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
         df.to_sql(name="censo_estimado", con=engine, if_exists='replace', index=False)
         print("Base actualizada")
+
+    def prepareFinalDataFrame(df_anual, df_trimestral):
+        # Ordenar columnas de Anual y Trimestral para que tengan la misma estructura
+        df_trimestral = df_trimestral[['Año', 'Trimestre', 'Frecuencia', 'Variable', 'Actividad', 'Valor']]
+        df_anual = df_anual[['Año', 'Frecuencia', 'Variable', 'Actividad', 'Valor']]
+        
+        # Añadir columna Trimestre en df_anual para mantener compatibilidad
+        df_anual['Trimestre'] = None
+
+        # Unir los DataFrames
+        df_final = pd.concat([df_anual, df_trimestral], axis=0, ignore_index=True)
+        
+        # Ordenar por Año y Trimestre
+        df_final = df_final.sort_values(by=['Año', 'Trimestre'], ignore_index=True)
+        
+        return df_final
