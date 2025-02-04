@@ -38,26 +38,14 @@ class conectDataBase:
         self.conn = None
         self.cursor = None
 
-    def load_data_pbg_anual(self, df):
+    def load_data_diccionario(self, df):
         """Cargar el DataFrame a la base de datos, reemplazando los datos existentes."""
         try:
             # Crear el motor de conexión a la base de datos
             engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:3306/{self.database}")
             with engine.connect() as connection:
                 # Sobrescribir los datos en la tabla
-                df.to_sql(name="pbg_valor_anual", con=connection, if_exists='replace', index=False)
-            print("Datos cargados exitosamente en la base de datos.")
-        except Exception as e:
-            print(f"Error al cargar datos a la base de datos: {e}")
-
-    def load_data_pbg_trimestral(self, df):
-        """Cargar el DataFrame a la base de datos, reemplazando los datos existentes."""
-        try:
-            # Crear el motor de conexión a la base de datos
-            engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:3306/{self.database}")
-            with engine.connect() as connection:
-                # Sobrescribir los datos en la tabla
-                df.to_sql(name="pbg_valor_trimestral", con=connection, if_exists='replace', index=False)
+                df.to_sql(name="diccionario_clae", con=connection, if_exists='replace', index=False)
             print("Datos cargados exitosamente en la base de datos.")
         except Exception as e:
             print(f"Error al cargar datos a la base de datos: {e}")
