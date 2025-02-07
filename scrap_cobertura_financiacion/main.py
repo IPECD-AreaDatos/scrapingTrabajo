@@ -22,9 +22,9 @@ if __name__ == "__main__":
 
     print(df.dtypes)
 
-    #f_negativos = df[
-    #   (df["CANT_PERSONAS_TRABAJ_UP"] < 0) | (df["REMUNERACION"]  < 0) ]
-    #rint(df_negativos)
+    df_negativos = df[
+       (df["cant_personas_trabaj_up"] < 0) | (df["remuneracion"]  < 0) ]
+    print(df_negativos)
 
     #Carga de datos
     instancia_load = ConexionBase(host_dbb, user_dbb, pass_dbb, dbb_datalake)
