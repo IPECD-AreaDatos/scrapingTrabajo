@@ -2,12 +2,6 @@ import pandas as pd
 
 class transformData:
     def processData(self, df):
-        """
-        Procesa el DataFrame completo:
-        1. Corrige valores numéricos en la columna 'Valor'.
-        2. Separa en DataFrames anuales y trimestrales.
-        3. Filtra columnas relevantes para ambos DataFrames.
-        """
         # Corregir valores numéricos
         df = self.correctValor(df)
         
@@ -39,3 +33,12 @@ class transformData:
         df_anual['Año'] = df_anual['Periodo'].astype(str)
 
         return df_anual, df_trimestral
+
+    def calcular_variacion_anual(self, df):
+        # Ordenar por año para asegurar el cálculo correcto
+        df = df.sort_values(by='Año').reset_index(drop=True)
+
+        # Calcular la variación interanual
+        df['Variacion (%)'] = ((df['Valor'] / df['Valor'].shift(1)) - 1) * 100
+
+        return df
