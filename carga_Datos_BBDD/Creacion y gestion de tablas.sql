@@ -832,9 +832,16 @@ CREATE TABLE rem_cambio_nominal (
 	cambio_nominal float
 );
 
-
-
-
+CREATE TABLE cobertura_financiacion (
+    periodo date,                 
+	jurisdiccion_desc char(200),                 
+	seccion char(200),                           
+	grupo float,                            
+	ciiu char(200),                              
+	cant_personas_trabaj_up int,             
+	remuneracion float,                    
+	salario float                         
+);
 
 CREATE TABLE correos (
     id SERIAL PRIMARY KEY,  

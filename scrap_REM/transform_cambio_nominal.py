@@ -13,7 +13,7 @@ class Transform2:
 
     def crear_df_cambio_nominal(self):
         df = pd.read_excel(file_path_desagregado, skiprows=50)
-        df = self.columnass(df)
+        #df = self.columnass(df)
         print(df.columns)
         print(df.dtypes)
 
