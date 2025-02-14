@@ -21,12 +21,14 @@ class loadXLSDataCBT:
         file_path_estimaciones_nea = os.path.join(ruta_carpeta_files, 'historico_estimaciones_nea.xlsx')
 
         # Datos de la primera hoja
-        df_primeraHoja = pd.read_excel(file_path_desagregado, sheet_name=0, usecols=[0, 1, 3], skiprows=7)
-        valores_que_estan_como_columna = df_primeraHoja.columns.to_list()
-        df_primeraHoja.loc[-1] = valores_que_estan_como_columna
-        df_primeraHoja.index = df_primeraHoja.index + 1
-        df_primeraHoja = df_primeraHoja.sort_index()
+        df_primeraHoja = pd.read_excel(file_path_desagregado, sheet_name=0, usecols=[0, 1, 3], skiprows=6, skipfooter=1)
         df_primeraHoja.columns = ['Fecha','CBA_Adulto','CBT_Adulto']
+        print(df_primeraHoja)
+        
+       #valores_que_estan_como_columna = df_primeraHoja.columns.to_list()
+       #df_primeraHoja.loc[-1] = valores_que_estan_como_columna
+       #df_primeraHoja.index = df_primeraHoja.index + 1
+        df_primeraHoja = df_primeraHoja.sort_index()
 
         # Limpieza específica del valor incorrecto
         df_primeraHoja['CBA_Adulto'] = df_primeraHoja['CBA_Adulto'].astype(str).str.replace(',', '', regex=True)
@@ -42,19 +44,24 @@ class loadXLSDataCBT:
         df_primeraHoja['CBT_Adulto'] = pd.to_numeric(df_primeraHoja['CBT_Adulto'], errors='coerce')
 
         #Datos de la primera fila
-        df_segundaHoja = pd.read_excel(file_path_desagregado, sheet_name=3, usecols=[2,6], skiprows=7)
-        valores_que_estan_como_columna = df_segundaHoja.columns.to_list()
-        df_segundaHoja.loc[-1] = valores_que_estan_como_columna
-        df_segundaHoja.index = df_segundaHoja.index + 1
-        df_segundaHoja = df_segundaHoja.sort_index()
+        df_segundaHoja = pd.read_excel(file_path_desagregado, sheet_name=3, usecols=[2,6], skiprows=6, skipfooter=1)
         df_segundaHoja.columns = ['CBA_Hogar','CBT_Hogar']
+        print(df_segundaHoja)
+        
+       #valores_que_estan_como_columna = df_segundaHoja.columns.to_list()
+       #df_segundaHoja.loc[-1] = valores_que_estan_como_columna
+       #df_segundaHoja.index = df_segundaHoja.index + 1
+        df_segundaHoja = df_segundaHoja.sort_index()
 
-        # Encuentra la fila en blanco y elimina las filas posteriores
-        indice_fila_en_blanco = df_primeraHoja.index[df_primeraHoja.isnull().all(axis=1)].tolist()[0]
-        df_primeraHoja = df_primeraHoja.iloc[:indice_fila_en_blanco]
+        # Eliminar filas completamente vacías (más seguro)
+        df_primeraHoja = df_primeraHoja.dropna(how="all").reset_index(drop=True)
+        df_segundaHoja = df_segundaHoja.dropna(how="all").reset_index(drop=True)
 
-        indice_fila_en_blanco = df_segundaHoja.index[df_segundaHoja.isnull().all(axis=1)].tolist()[0]
-        df_segundaHoja = df_segundaHoja.iloc[:indice_fila_en_blanco]
+        print("df1 ")
+        print(df_primeraHoja)
+
+        print("df2 ")
+        print(df_segundaHoja)
 
         #Datos oficiales de CBA y CBT del NEA
         concatenacion_df = pd.read_excel(file_path_estimaciones_nea)
