@@ -1,5 +1,7 @@
 from pymysql import connect
 from sqlalchemy import create_engine
+import pandas as pd
+import os
 
 class ConexionBase:
     
@@ -31,6 +33,29 @@ class ConexionBase:
         df.to_sql(name='cobertura_financiacion', con=engine, if_exists='replace', index=False)
     
         print(f" == ACTUALIZACION == Nuevos datos en la base de cobertura y financiacion")
+
+        # Escribir la consulta SQL
+        query = """
+        SELECT * 
+        FROM cobertura_financiacion 
+        WHERE seccion = 'C' 
+        AND periodo >= '2023-11-01';
+        """
+
+        # Leer los datos y guardarlos en un DataFrame
+        df_iv = pd.read_sql(query, engine)
+
+        # Mostrar las primeras filas del DataFrame
+        print(df_iv.head())
+        print(df_iv)
+
+        # Definir la ruta donde se guardará el archivo
+        ruta_archivo = os.path.join("files", "cobertura_financiacion.csv")
+
+        # Guardar el DataFrame en formato CSV
+        df_iv.to_csv(ruta_archivo, index=False, encoding="utf-8")
+
+        print(f"Archivo guardado en: {ruta_archivo}")
 
     def main(self, df):
 

@@ -18,7 +18,7 @@ dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
 if __name__ == "__main__":
 
     #Extract de data
-    #HomePage_IPI().descargar_archivo()
+    HomePage_IPI().descargar_archivo()
 
     #Obtencion de DF con formato adecuado
     df_valores,df_variaciones,df_var_inter_acum = Transform().main()

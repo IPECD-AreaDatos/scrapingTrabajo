@@ -56,7 +56,8 @@ class Correo_ipi_nacion:
     def construccion_correo(self):
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores = self.obtener_correos()
+        #email_receptores = self.obtener_correos()
+        email_receptores =  [ 'matizalazar2001@gmail.com', 'manumarder@gmail.com']
         print(email_receptores)
         
         #Valores de IPI Numeros Indices
@@ -225,7 +226,7 @@ class Correo_ipi_nacion:
                         <span style="color: #ffffff;">
                         <strong>Productos de Metal</strong>
                         <hr style="border: 1px solid #465c49;">
-                        Indice: <strong>{df_numeros_indices["metales"].iloc[-1]:,.1f}</strong>
+                        Indice: <strong>{df_numeros_indices["min_metales"].iloc[-1]:,.1f}</strong>
                         <hr style="border: 0px solid #f1d0d0;">
                         Variacion Interanual: <strong>{df_variacion_interanual["var_interanual_metales"].iloc[-1]:,.2f}%</strong>
                         <hr style="border: 0px solid #f1d0d0;">
