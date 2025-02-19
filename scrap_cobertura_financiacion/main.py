@@ -3,6 +3,7 @@ import os
 import pandas as pd
 from transform import Transform
 from load import ConexionBase
+from dicc import Diccionario
 
 # Cargar las variables de entorno desde el archivo .env
 from dotenv import load_dotenv
@@ -13,6 +14,8 @@ pass_dbb = (os.getenv('PASSWORD_DBB'))
 dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
 
 if __name__ == "__main__":
+
+    dicc_seccion, dicc_grupo, dicc_ciiu = Diccionario().construir_dicc()
 
     # creacion del df final
     df = Transform().procesar_archivos()
@@ -27,6 +30,6 @@ if __name__ == "__main__":
 
     #Carga de datos
     instancia_load = ConexionBase(host_dbb, user_dbb, pass_dbb, dbb_datalake)
-    instancia_load.main(df)
+    instancia_load.main(df, dicc_seccion, dicc_grupo, dicc_ciiu)
 
 
