@@ -58,11 +58,10 @@ class ConexionBase:
     def main(self, df, dicc_seccion, dicc_grupo, dicc_ciiu):
 
         self.conectar_bdd()
-        self.carga_bdd(df, 'cobertura_financiacion')
-        self.carga_bdd(dicc_seccion, 'cob_fin_secc')
-        self.carga_bdd(dicc_grupo, 'cob_fin_grupo')
-        self.carga_bdd(dicc_ciiu, 'cob_fin_ciiu')
-
+        self.carga_bdd(df, 'srt')
+        self.carga_bdd(dicc_seccion, 'srt_seccion')
+        self.carga_bdd(dicc_grupo, 'srt_grupo')
+        self.carga_bdd(dicc_ciiu, 'srt_ciiu')
  
         # cerramos conexiones
         self.conn.commit()

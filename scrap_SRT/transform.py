@@ -99,6 +99,8 @@ class Transform:
         df_agrupado['salario'] = df_agrupado['remuneracion'] / df_agrupado['cant_personas_trabaj_up']
         df_agrupado['salario'] = df_agrupado['salario'].fillna(0)  
 
+        df_agrupado = self.provincias(df_agrupado)
+
         return df_agrupado
     
     # realizar modificaciones en las columnas del df
@@ -120,5 +122,46 @@ class Transform:
         # convertimos a numerico las columnas
         df['remuneracion'] = pd.to_numeric(df['remuneracion'], errors='coerce')
         df['cant_personas_trabaj_up'] = pd.to_numeric(df['cant_personas_trabaj_up'], errors='coerce')
+
+        return df
+    
+    # reemplazamos el nombre de la provincia por su id
+    def provincias(self, df):
+
+        # Diccionario para reemplazar provincias por sus códigos numéricos
+        dict_provincias = {
+            'C.A.B.A.': 2,
+            'Buenos Aires': 6,
+            'Catamarca': 10,
+            'Chaco': 22,
+            'Chubut': 26,
+            'Cordoba': 14,
+            'Corrientes': 18,
+            'Entre Rios': 30,
+            'Formosa': 34,
+            'Jujuy': 38,
+            'La Pampa': 42,
+            'La Rioja': 46,
+            'Mendoza': 50,
+            'Misiones': 54,
+            'Neuquen': 58,
+            'Rio Negro': 62,
+            'Salta': 66,
+            'San Juan': 70,
+            'San Luis': 74,
+            'Santa Cruz': 78,
+            'Santa Fe': 82,
+            'Santiago del Estero': 86,
+            'Sin datos': 0,
+            'Tierra del Fuego': 94,
+            'Tucuman': 90,
+        }
+
+        # Reemplazar los nombres de provincias por sus códigos numéricos
+        df['jurisdiccion_desc'] = df['jurisdiccion_desc'].replace(dict_provincias)
+
+        df = df.rename(columns={'jurisdiccion_desc': 'id_jurisdiccion'})
+        
+        df['id_jurisdiccion'] = pd.to_numeric(df['id_jurisdiccion'], errors='coerce')
 
         return df
