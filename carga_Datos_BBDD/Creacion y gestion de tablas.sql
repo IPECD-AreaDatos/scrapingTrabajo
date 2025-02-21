@@ -843,11 +843,24 @@ CREATE TABLE cobertura_financiacion (
 	salario float                         
 );
 
+CREATE TABLE cobertura_financiacion_dicc (
+    seccion char(300),
+	desc_seccion char(300),
+	grupo float,
+	desc_grupo har(300),
+	ciiu int,
+	desc_ciiu char(300),
+	concatenado char(300)                        
+);
+
+
 CREATE TABLE correos (
     id SERIAL PRIMARY KEY,  
     email VARCHAR(255) NOT NULL,
     prueba INT DEFAULT 0  
 );
+
+
 
 INSERT INTO correos (email, prueba) VALUES
 ('cynthiacontre09@gmail.com', 0),
