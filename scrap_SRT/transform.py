@@ -92,8 +92,12 @@ class Transform:
 
         # filtramos el df y generamos sumas
         df_agrupado = df.groupby(['periodo', 'jurisdiccion_desc', 'seccion', 'grupo', 'ciiu'], as_index=False).agg({
+            'cant_personas_trabaj_cp': 'sum', 
             'cant_personas_trabaj_up': 'sum',
             'remuneracion': 'sum'})
+        
+        df_agrupado['cant_personas_trabaj_up'] = df_agrupado['cant_personas_trabaj_up'] + df_agrupado['cant_personas_trabaj_cp']
+        df_agrupado.drop(columns=['cant_personas_trabaj_cp'], inplace=True)
     
         # creamos una nueva columna resultado de dividir dos valores existentes
         df_agrupado['salario'] = df_agrupado['remuneracion'] / df_agrupado['cant_personas_trabaj_up']
@@ -110,7 +114,7 @@ class Transform:
         df.columns = df.columns.str.lower()
 
         # reordenamos las columnas
-        columnas = ['periodo', 'jurisdiccion_desc', 'seccion', 'grupo', 'ciiu', 'cant_personas_trabaj_up', 'remuneracion']
+        columnas = ['periodo', 'jurisdiccion_desc', 'seccion', 'grupo', 'ciiu', 'cant_personas_trabaj_cp', 'cant_personas_trabaj_up', 'remuneracion']
 
         # hacemos una copia del df
         df = df[columnas].copy()
@@ -122,6 +126,10 @@ class Transform:
         # convertimos a numerico las columnas
         df['remuneracion'] = pd.to_numeric(df['remuneracion'], errors='coerce')
         df['cant_personas_trabaj_up'] = pd.to_numeric(df['cant_personas_trabaj_up'], errors='coerce')
+        df['cant_personas_trabaj_cp'] = pd.to_numeric(df['cant_personas_trabaj_cp'], errors='coerce')
+
+        print("estamos en columnassss")
+        print(df)
 
         return df
     
