@@ -25,6 +25,10 @@ dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
 
 
 if __name__=='__main__':
+    #df_tota = ExtractHistoricalDnrpa().extraer_tablas()
+    #conexionBaseDatos(host_dbb,user_dbb,pass_dbb,dbb_datalake).cargar_datalake(df_tota)
+    #exit()
+    
     #Extraccion y TRANSFORMACION de datos
     df = ExtractLastData().extraer_tablas()
     print(df)

@@ -64,16 +64,16 @@ class ExtractLastData:
             except ValueError:
                 continue  
 
-        #print("Años disponibles:", anos_numeros)
+        print("Años disponibles:", anos_numeros)
 
-        #ultimo_anio = max(anos_numeros)
-        #print("Último año:", ultimo_anio)
+        ultimo_anio = max(anos_numeros)
+        print("Último año:", ultimo_anio)
 
         # Obtener los dos últimos años disponibles
-        ultimos_dos_anos = sorted(anos_numeros)[-2:]
+        #ultimos_dos_anos = sorted(anos_numeros)[-2:]
 
         # Seleccionar el penúltimo año (el año anterior)
-        anteultimo_anio = ultimos_dos_anos[0]
+        #anteultimo_anio = ultimos_dos_anos[0]
 
 
         # Verificamos si se busca datos de moto o auto
@@ -86,7 +86,7 @@ class ExtractLastData:
         button_datos = self.driver.find_element(By.XPATH, '/html/body/div[2]/section/article/div/div[2]/div/div/div/div/form/div/center/center/input')
 
         # Elegir solo el año más reciente (2024 en este caso)
-        valor_opcion = str(anteultimo_anio)
+        valor_opcion = str(ultimo_anio)
         try:
             opcion_seleccionada = elemento.find_element(By.XPATH, '//*[@id="seleccion"]/center/table/tbody/tr[2]/td/select/option[2]')
             opcion_seleccionada.click()
