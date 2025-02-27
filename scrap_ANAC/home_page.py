@@ -45,7 +45,7 @@ class HomePage:
                 os.makedirs(carpeta_guardado)
                 
             # Esperar hasta que aparezca el enlace al primer archivo
-            archivo_anac = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/main/section[2]/div/div[2]/div[11]/a")))
+            archivo_anac = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/main/section[2]/div/div[2]/div[12]/a")))
 
             # Obtener la URL del primer archivo
             url_archivo_anac = archivo_anac.get_attribute('href')
