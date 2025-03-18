@@ -37,6 +37,7 @@ class ripte_cargaUltimoDato:
             
         # Obtener la última fecha y el último valor de ripte de la base de datos
         cursor = self.conn.cursor()
+
         cursor.execute(f"SELECT fecha, valor FROM {table_name} ORDER BY fecha DESC LIMIT 1")
         ultima_fecha, ultimo_ripte = cursor.fetchone()
 

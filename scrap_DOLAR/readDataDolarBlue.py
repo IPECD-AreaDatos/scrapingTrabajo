@@ -25,8 +25,8 @@ class readDataDolarBlue:
             self.driver.get(self.url)
             self.driver.implicitly_wait(10)
             # Tomar los datos del xpath
-            dolar_blue_venta = self.driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div[2]/div[3]/ul/li[3]/div/div[2]/div[3]/div/div[1]/div/div[2]/div[2]/p').text
-            dolar_blue_compra = self.driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div[2]/div[3]/ul/li[3]/div/div[2]/div[3]/div/div[2]/div/div[2]/div[2]/p').text
+            dolar_blue_venta = self.driver.find_element(By.XPATH, '/html/body/div[2]/div[2]/div[3]/ul/li[3]/div/div[2]/div[3]/div/div[1]/div/div[2]/div[2]/p').text
+            dolar_blue_compra = self.driver.find_element(By.XPATH, '/html/body/div[2]/div[2]/div[3]/ul/li[3]/div/div[2]/div[3]/div/div[2]/div/div[2]/div[2]/p').text
             fecha_actual = datetime.now().strftime("%d/%m/%Y")
 
             # Dataframe correspondiente a los datos del dólar

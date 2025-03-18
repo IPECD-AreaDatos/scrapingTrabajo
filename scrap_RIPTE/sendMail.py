@@ -91,7 +91,8 @@ class InformeRipte:
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
 
-        email_receptores = self.obtener_correos()
+        email_receptores = ['manumarder@gmail.com']
+        #email_receptores = self.obtener_correos() 'boscojfrancisco@gmail.com'
 
         em = MIMEMultipart()
         asunto = f'Modificación en la base de datos - Remuneración Imponible Promedio de los Trabajadores Estables (RIPTE) - Fecha {fecha_cadena}'
@@ -101,7 +102,7 @@ class InformeRipte:
                 <style>
                     .
                     .box h4 {{
-                        font-size: 20px;
+                        font-size: 15px;
                         color: white;
                         margin-bottom: 10px;
                         text-transform: uppercase;
@@ -109,7 +110,7 @@ class InformeRipte:
 
                     }}
                     .box p {{
-                        font-size: 24px;
+                        font-size: 18px;
                         color: white;
                         font-weight: bold;
                     }}
@@ -117,33 +118,33 @@ class InformeRipte:
                 </head>
                 <body>
                 <div class="container" style= "background-color: #ffffff; background-image: url('cid:fondo'); background-repeat: no-repeat; background-position: center center; background-size: cover;">
-                    <h2 style="font-size: 24px; color: #444; text-align: center;"><strong>DATOS NUEVOS DE REMUNERACION IMPONIBLE PROMEDIO DE LOS TRABAJADORES ESTABLES (RIPTE) A {fecha_cadena.upper()}</strong></h2>
-                    <h3 style="font-size: 15px; color: #666; font-weight: 100; text-align: center;">RIPTE es un importante indicador salarial de naturaleza previsional, elaborado por la Subsecretaría de Seguridad Social. Este índice mide la remuneración promedio sujeta 
+                    <h2 style="font-size: 18px; color: #444; text-align: center;"><strong>DATOS NUEVOS DE REMUNERACION IMPONIBLE PROMEDIO DE LOS TRABAJADORES ESTABLES (RIPTE) A {fecha_cadena.upper()}</strong></h2>
+                    <h3 style="font-size: 10px; color: #666; font-weight: 100; text-align: center;">RIPTE es un importante indicador salarial de naturaleza previsional, elaborado por la Subsecretaría de Seguridad Social. Este índice mide la remuneración promedio sujeta 
                     a aportes al Sistema Integrado Previsional Argentino (SIPA) de los trabajadores en relación de dependencia, tanto del sector público como privado.</h3>  
-                    <div class="container-valores" style="font-size: 36px;font-weight: bold;color: #333;margin: 10px 0; text-align: center;">
-                        <img src="cid:icono_ripte" alt="Icono" style="width: 200px; height: 190px;pointer-events: none; user-select: none;">
+                    <div class="container-valores" style="font-size: 22px;font-weight: bold;color: #333;margin: 10px 0; text-align: center;">
+                        <img src="cid:icono_ripte" alt="Icono" style="width: 100px; height: 90px;pointer-events: none; user-select: none;">
                         <br>
                         AR${nuevo_valor_formateado}
                         <br> 
                         US${valor_dolarizado_formateado}*
-                        <span class="leyenda" style="font-size: 14px; font-weight: 100;color: #666; display: block;">*Valor calculado en base al dólar blue cotización al {dia_actual} de {fecha_cadena}</span>
+                        <span class="leyenda" style="font-size: 8px; font-weight: 100;color: #666; display: block;">*Valor calculado en base al dólar blue cotización al {dia_actual} de {fecha_cadena}</span>
                     </div>
-                    <div class="container-variaciones" style="width: 100%; display: flex; justify-content: center; align-items: center; flex-wrap: wrap;">
-                        <div class="box" style="background-color: #e86900; border-radius: 10px; padding: 10px; margin: 5px; text-align: center; flex: 1 1 100%; max-width: 300px;">
-                            <h4 style="font-size: 20px; color: white; margin-bottom: 10px;">Variación Mensual</h4>
-                            <p style="font-size: 24px; color: white;">{variacion_mensual:.1f}%</p>
+                    <div class="container-variaciones" style="width: 90%; display: flex; justify-content: center; margin-left: 8px; align-items: center; flex-wrap: wrap;">
+                        <div class="box" style="background-color: #e86900; max-height: 120px; border-radius: 10px; padding: 10px; margin: 5px; text-align: center; flex: 1 1 100%; max-width: 300px;">
+                            <h4 style="font-size: 15px; color: white; margin-bottom: 10px;">Variación Mensual</h4>
+                            <p style="font-size: 18px; color: white;">{variacion_mensual:.1f}%</p>
                         </div>
-                        <div class="box" style="background-color: #e86900; border-radius: 10px; padding: 10px; margin: 5px; text-align: center; flex: 1 1 100%; max-width: 300px;">
-                            <h4 style="font-size: 20px; color: white; margin-bottom: 10px;">Variación Interanual</h4>
-                            <p style="font-size: 24px; color: white;">{variacion_interanual:.1f}%</p>
+                        <div class="box" style="background-color: #e86900; max-height: 120px; border-radius: 10px; padding: 10px; margin: 5px; text-align: center; flex: 1 1 100%; max-width: 300px;">
+                            <h4 style="font-size: 15px; color: white; margin-bottom: 10px;">Variación Interanual</h4>
+                            <p style="font-size: 18px; color: white;">{variacion_interanual:.1f}%</p>
                         </div>
-                        <div class="box" style="background-color: #e86900; border-radius: 10px; padding: 10px; margin: 5px; text-align: center; flex: 1 1 100%; max-width: 300px;">
-                            <h4 style="font-size: 20px; color: white; margin-bottom: 10px;">Variación Acumulada</h4>
-                            <p style="font-size: 24px; color: white;">{variacion_acumulada:.1f}%</p>
+                        <div class="box" style="background-color: #e86900; max-height: 120px; border-radius: 10px; padding: 10px; margin: 5px; text-align: center; flex: 1 1 100%; max-width: 300px;">
+                            <h4 style="font-size: 15px; color: white; margin-bottom: 10px;">Variación Acumulada</h4>
+                            <p style="font-size: 18px; color: white;">{variacion_acumulada:.1f}%</p>
                         </div>
                     </div>
-                    <div class="footer" style="font-size: 15px; color: #888; text-align: center" >
-                        <img src="cid:ipecd" alt="IPI Image" style="margin-right: 20px; max-width: 250px; height: auto; pointer-events: none; user-select: none;" >
+                    <div class="footer" style="font-size: 10px; color: #888; text-align: center" >
+                        <img src="cid:ipecd" alt="IPI Image" style="margin-right: 20px; max-width: 110px; height: auto; pointer-events: none; user-select: none;" >
                     </div>
                 </div>
             </body>    

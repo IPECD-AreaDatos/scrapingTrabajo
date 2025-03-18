@@ -20,9 +20,9 @@ class Transform:
 
         print(archivos)
 
-        for archivo in archivos:
-            file_path = os.path.join(ruta_carpeta_files, archivo)
-            self.normalizar_csv(file_path)
+        #for archivo in archivos:
+        #    file_path = os.path.join(ruta_carpeta_files, archivo)
+        #    self.normalizar_csv(file_path)
 
         # recorremos la lista de archivos .csv
         for archivo in archivos:
@@ -123,8 +123,11 @@ class Transform:
         columnas_str = ['periodo', 'jurisdiccion_desc', 'seccion', 'ciiu']
         df.loc[:, columnas_str] = df[columnas_str].astype(str)
 
-        # convertimos a numerico las columnas
-        df['remuneracion'] = pd.to_numeric(df['remuneracion'], errors='coerce')
+        df['remuneracion'] = df['remuneracion'].astype(str)  # Convierte todo a str
+        df['remuneracion'] = df['remuneracion'].str.replace(',', '', regex=True)  # Elimina comas
+        df['remuneracion'] = df['remuneracion'].str.strip()  # Elimina espacios
+        df['remuneracion'] = df['remuneracion'].replace('', None)  # Reemplaza valores vacíos con NaN
+        df['remuneracion'] = pd.to_numeric(df['remuneracion'], errors='coerce')  # Convierte a número
         df['cant_personas_trabaj_up'] = pd.to_numeric(df['cant_personas_trabaj_up'], errors='coerce')
         df['cant_personas_trabaj_cp'] = pd.to_numeric(df['cant_personas_trabaj_cp'], errors='coerce')
 

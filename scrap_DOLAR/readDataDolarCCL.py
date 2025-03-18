@@ -25,7 +25,7 @@ class readDataDolarCCL:
             self.driver.get(self.url)
             self.driver.implicitly_wait(10)
             # Tomar los datos del xpath
-            dolar_mep_valor = self.driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div[2]/div[3]/ul/li[9]/div/div[2]/div[3]/div/div/div/div[2]/div[2]/p').text
+            dolar_mep_valor = self.driver.find_element(By.XPATH, '/html/body/div[2]/div[2]/div[3]/ul/li[8]/div/div[2]/div[3]/div/div/div/div[2]/div[2]/p').text
             fecha_actual = datetime.now().strftime("%d/%m/%Y")
 
             # Dataframe correspondiente a los datos del dólar

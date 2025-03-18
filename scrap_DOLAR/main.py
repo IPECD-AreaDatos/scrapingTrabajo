@@ -64,9 +64,9 @@ if __name__ == '__main__':
     dolarCCL_reader.insertDataFrameInDataBase(df_dolarCCL)
 
     #Envio de correos
-    send_mail= SendMail(host_dbb,user_dbb,pass_dbb,dbb_datalake)
-    df_dolarOficial, df_dolarBlue, df_dolarMEP, df_dolarCCL = send_mail.extract_data()
-    send_mail.send_mail(df_dolarOficial, df_dolarBlue, df_dolarMEP, df_dolarCCL)
+    #send_mail= SendMail(host_dbb,user_dbb,pass_dbb,dbb_datalake)
+    #df_dolarOficial, df_dolarBlue, df_dolarMEP, df_dolarCCL = send_mail.extract_data()
+    #send_mail.send_mail(df_dolarOficial, df_dolarBlue, df_dolarMEP, df_dolarCCL)
 
     """Carga directa desde el Excel(CAMBIAR NOMBRE DE LA TABLA)"""
     #dolarBlueHistorico(credenciales.user, credenciales.password, credenciales.host, credenciales.database, 'dolar_ccl').load_xlsx_to_mysql()

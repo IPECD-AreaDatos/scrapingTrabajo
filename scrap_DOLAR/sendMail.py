@@ -82,7 +82,7 @@ class SendMail:
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
         #email_receptores =  ['samaniego18@gmail.com','manumarder@gmail.com','benitezeliogaston@gmail.com', 'matizalazar2001@gmail.com','rigonattofranco1@gmail.com','boscojfrancisco@gmail.com','joseignaciobaibiene@gmail.com','ivanfedericorodriguez@gmail.com','agusssalinas3@gmail.com', 'rociobertonem@gmail.com','lic.leandrogarcia@gmail.com','pintosdana1@gmail.com', 'paulasalvay@gmail.com', 'samaniego18@gmail.com', 'guillermobenasulin@gmail.com', 'leclerc.mauricio@gmail.com']
-        email_receptores =  [ 'matizalazar2001@gmail.com', 'manumarder@gmail.com']
+        email_receptores =  'manumarder@gmail.com'
 
         # Calcular la variación respecto al día anterior
         df_oficial = self.calcular_variacion(df_oficial, 'compra')

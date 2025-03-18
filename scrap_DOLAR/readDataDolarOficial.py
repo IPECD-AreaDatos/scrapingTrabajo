@@ -25,13 +25,15 @@ class readDataDolarOficial:
             # Cargar la página web
             self.driver.get(self.url)
             self.driver.implicitly_wait(10)
-            # Tomar los datos del xpath
-            dolar_oficial_venta = self.driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div[2]/div[3]/ul/li[1]/div/div[2]/div[3]/div/div[1]/div/div[2]/div[2]/p').text
-            dolar_oficial_compra = self.driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div[2]/div[3]/ul/li[1]/div/div[2]/div[3]/div/div[2]/div/div[2]/div[2]/p').text
+            # Tomar los datos del xpath                              
+            dolar_oficial_venta = self.driver.find_element(By.XPATH, '/html/body/div[2]/div[2]/div[3]/ul/li[1]/div/div[2]/div[3]/div/div[1]/div/div[2]/div[2]/p').text
+            dolar_oficial_compra = self.driver.find_element(By.XPATH, '/html/body/div[2]/div[2]/div[3]/ul/li[1]/div/div[2]/div[3]/div/div[2]/div/div[2]/div[2]/p').text
             fecha_actual = datetime.now().strftime("%d/%m/%Y")
 
             # Dataframe correspondiente a los datos del dólar
             dataframe_dolar = pd.DataFrame(columns=['fecha', 'compra', 'venta'])
+            print(dataframe_dolar)
+
             dataframe_dolar.loc[0] = [fecha_actual, dolar_oficial_venta, dolar_oficial_compra]
 
             # Conversión de datos
