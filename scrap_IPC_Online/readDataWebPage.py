@@ -12,14 +12,20 @@ class readDataWebPage:
 
     def extract_data(self):
         self._setup_driver()
-        self.driver.get('https://ipconlinebb.wordpress.com/')
+        self.url_pagina = 'https://ipconlinebb.wordpress.com/'
+        self.driver.set_page_load_timeout(30)  # segundos
+        self.driver.get(self.url_pagina)
         data = self._extract_recent_data()
         self.driver.quit()  # Close browser after extraction
         return data
 
     def _setup_driver(self):
         options = webdriver.ChromeOptions()
-        options.add_argument('--headless')  # Optional: Run Chrome headless
+        #options.add_argument('--headless')  # Ejecutar sin interfaz gráfica
+        options.add_argument('--disable-gpu')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+
         self.driver = webdriver.Chrome(options=options)
         self.original_window = self.driver.current_window_handle
 

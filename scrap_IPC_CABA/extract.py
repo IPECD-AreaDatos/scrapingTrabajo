@@ -14,15 +14,15 @@ class HomePage:
     
     def __init__(self):
 
-        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        #urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
         #Opciones de encabezado
-        options = webdriver.ChromeOptions()
-        options.add_argument('--headless')
+        #options = webdriver.ChromeOptions()
+        #options.add_argument('--headless')
 
         #Instancia de navegador - Usamos Google Chrome
-        self.driver = webdriver.Chrome(options=options)
+        self.driver = webdriver.Chrome()
 
         # URL de la fuente de datos
         self.url_pagina = 'https://www.estadisticaciudad.gob.ar/eyc/?p=128827'
@@ -48,7 +48,7 @@ class HomePage:
             os.makedirs(carpeta_guardado)
             
         #Esperar hasta que aparezca el link de descarga del archivo -- Boton con leyenda: "Ver archivo"
-        archivo_ipc_caba = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div/div[2]/div/div/div[1]/main/article/div/a")))
+        archivo_ipc_caba = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div[2]/div/div/div[1]/main/article/div/a")))
 
         #Rescatamos el atributo "href" para luego descargar el archivo
         atributo_href = archivo_ipc_caba.get_attribute("href")
