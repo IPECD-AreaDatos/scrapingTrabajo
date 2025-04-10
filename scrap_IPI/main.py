@@ -23,7 +23,9 @@ if __name__ == "__main__":
     #Obtencion de DF con formato adecuado
     df_valores,df_variaciones,df_var_inter_acum = Transform().main()
 
-
+    print(df_valores)
+    print(df_valores.dtypes)
+    print(list(df_valores.columns))
     #Carga en la BDD - Datalake economico
     instancia_bdd = Database_ipi(host_dbb,user_dbb,pass_dbb,dbb_datalake)
     bandera = instancia_bdd.main(df_valores,df_variaciones,df_var_inter_acum)
