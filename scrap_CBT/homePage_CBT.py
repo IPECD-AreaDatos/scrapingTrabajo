@@ -11,56 +11,47 @@ import time
 class HomePageCBT:
     def __init__(self):
         options = webdriver.ChromeOptions()
-        options.add_argument('--headless')
+        options.add_argument('--disable-gpu')
+        options.add_argument('--no-sandbox')
 
-        self.driver =webdriver.Chrome(options=options) 
-
+        self.driver = webdriver.Chrome(options=options)
         self.url_pagina = 'https://www.indec.gob.ar/indec/web/Nivel4-Tema-4-43-149'
-    
+
     def descargar_archivo(self):
-        # Desactivar advertencias de solicitud no segura
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-        # Cargar la página web
+
         self.driver.get(self.url_pagina)
+        wait = WebDriverWait(self.driver, 15)
 
-        wait = WebDriverWait(self.driver, 10)
-        
-        time.sleep(10)
-        
-        # Obtener la ruta del directorio actual (donde se encuentra el script)
-        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        # Esperar a que el botón "Canasta básica" sea clickeable y hacer clic
+        boton = wait.until(EC.element_to_be_clickable((
+            By.XPATH, "//div[contains(text(), 'Canasta básica')]"
+        )))
+        boton.click()
 
-        # Construir la ruta de la carpeta "files" dentro del directorio actual
-        carpeta_guardado = os.path.join(directorio_actual, 'files')
+        # Esperar a que el div con id=1 se haga visible
+        wait.until(EC.visibility_of_element_located((By.ID, "1")))
 
-        # Crear la carpeta "files" si no existe
-        if not os.path.exists(carpeta_guardado):
-            os.makedirs(carpeta_guardado)
-            
-        # Encontrar el enlace al archivo
-        archivo = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div/div[2]/div/div[2]/div/div[2]/div/div/a")))
-        
-        # Obtener la URL del archivo
+        # Ahora encontrar el enlace al archivo .xls
+        archivo = wait.until(EC.presence_of_element_located(
+            (By.XPATH, "//a[contains(@href, 'serie_cba_cbt.xls')]")
+        ))
+
         url_archivo = archivo.get_attribute('href')
-        # Imprimir la URL del archivo
-        print(url_archivo)
-        
-        # Ruta de la carpeta donde guardar el archivo
+        print(f"URL del archivo: {url_archivo}")
+
+        # Crear carpeta de guardado si no existe
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
-
-        # Construir la ruta de la carpeta "files" dentro del directorio actual
         carpeta_guardado = os.path.join(directorio_actual, 'files')
-
-        # Nombre del archivo
-        nombre_archivo = 'CBT.xls'
+        os.makedirs(carpeta_guardado, exist_ok=True)
 
         # Descargar el archivo
-        response = requests.get(url_archivo)
-
-        # Guardar el archivo en la carpeta especificada
+        nombre_archivo = 'CBT.xls'
         ruta_guardado = os.path.join(carpeta_guardado, nombre_archivo)
+
+        response = requests.get(url_archivo)
         with open(ruta_guardado, 'wb') as file:
             file.write(response.content)
 
-        # Cerrar el navegador
+        print(f"Archivo guardado en: {ruta_guardado}")
         self.driver.quit()

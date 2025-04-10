@@ -9,114 +9,89 @@ class Transformer:
 
     #Objetivo: construir el DF correspondiente a los valores del EMAE
     def construir_df_emae_valores(self):
-        
-        #Creamos direcciones para acceder al archivo
+
+        # Ruta del archivo
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
         ruta_carpeta_files = os.path.join(directorio_actual, 'files')
-
-        # Construir las rutas de los archivos
         file_path = os.path.join(ruta_carpeta_files, 'emae.xls')
 
-        #Leemos archivos
+        # Leer archivo
         df = pd.read_excel(file_path, sheet_name=0, skiprows=4)
-        df = df.drop(df.index[-1])  # Eliminar la última fila que contiene "Fuente: INDEC"
-        
-        """
-        El archivo consiste en varias columnas, cada columna representa un valor en una fecha.
-        Para la BDD el formato ideal es (FECHA,TIPO DE CATEGORIA[ID],VALOR).
-        Por ende los pasos a ejecutar son:
-        
-        1 - Crear las fechas hasta el ultimo valor conocido
-        2 - Recorrer columna por columna y generar esas series de valores (FECHA,TIPO DE CATEGORIA[ID],VALOR)
-        3 - Ir concatenando cada conjunto de datos construido (los del paso anterior)
-    
-        """
-        #PASO 1 - Creamos las fechas. La fecha inicial es ENERO DEL 2004
-        num_rows = df.shape[0]
 
-        # Generar un rango de fechas que comience en enero de 2004 y avance mensualmente
-        fechas = pd.date_range(start='2004-01-01', periods=num_rows, freq='MS')
+        # Eliminar última fila si contiene "Fuente"
+        if 'Fuente' in str(df.iloc[-1, 0]):
+            df = df.drop(df.index[-1])
 
-        # ========= #
+        # Mapear meses en español a número
+        meses = {
+            'Enero': '01', 'Febrero': '02', 'Marzo': '03', 'Abril': '04',
+            'Mayo': '05', 'Junio': '06', 'Julio': '07', 'Agosto': '08',
+            'Septiembre': '09', 'Octubre': '10', 'Noviembre': '11', 'Diciembre': '12'
+        }
 
-        #PASO 2 - Generar las tuplas de valores (FECHA,TIPO DE CATEGORIA[ID],VALOR)
+        # Construir columna de fechas
+        df['anio'] = df.iloc[:, 0].astype(str)
+        df['mes'] = df.iloc[:, 1].map(meses)
+        df['fecha'] = pd.to_datetime(df['anio'] + '-' + df['mes'], format='%Y-%m', errors='coerce')
 
-        # Eliminar las primeras dos columnas usando iloc - La primera Erepresenta la columna donde dice el año, y la segunda el mes.
-        df = df.iloc[:, 2:]
-        
-        #Generamos un DATAFRAME acumulador - Contendra los datos que iremos concatenando
-        df_acum = pd.DataFrame()
+        # Eliminar filas con fechas inválidas
+        df = df[df['fecha'].notna()]
 
-        #Lista de columnas que usaremos para recorrer el df
-        list_columns = df.columns
+        # Eliminar columnas de año y mes originales
+        df = df.drop(columns=[df.columns[0], df.columns[1], 'anio', 'mes'])
 
-        # Encuentra la última fila con datos válidos (no NaN) en el DataFrame
-        last_valid_index = df.apply(pd.Series.last_valid_index).min()
+        # Reordenar columnas para tener fecha al inicio
+        df = df[['fecha'] + [col for col in df.columns if col != 'fecha']]
 
-        # Ajusta el número de filas en base al último índice válido encontrado
-        fechas = fechas[:last_valid_index + 1]
+        # Transformar a formato largo
+        df_melted = df.melt(id_vars='fecha', var_name='sector', value_name='valor')
 
-        #En este for el INDEX representara el ID de la categoria al que pertenece el valor del EMAE.
-        for index,column in enumerate(list_columns):
-            
-            #DF auxiliar que usamos para ordenar los datos
-            df_aux = pd.DataFrame()
-            
-            df_aux['fecha'] = fechas #--> Asignamos las fechas
-            df_aux['sector_productivo'] = index + 1 #--> Sumamos 1, ya que el index arranca de 0, y nuestros ID arrancan en 1.
-            df_aux['valor'] = df[column]
-            
-            #PASO 3 - IR concatenando los DATAFRAME 
-            df_acum = pd.concat([df_acum,df_aux])
+        # Asignar ID de sector numérico
+        sector_map = {name: i+1 for i, name in enumerate(df.columns[1:])}
+        df_melted['sector_productivo'] = df_melted['sector'].map(sector_map)
 
-        #Finalmente reorganizamos el dataframe con fines de manipularlo mejor en la carga
-        df_acum = df_acum.sort_values(['fecha','sector_productivo'])
+        # Eliminar valores nulos
+        df_melted = df_melted.dropna(subset=['valor'])
 
-        #Retornamos el DF acum que contiene los datos ordenados.
-        return df_acum
+        # Reordenar y formatear fecha como texto si lo querés explícitamente:
+        df_melted['fecha'] = df_melted['fecha'].dt.strftime('%Y-%m-%d')
+
+        df_final = df_melted[['fecha', 'sector_productivo', 'valor']].sort_values(['fecha', 'sector_productivo'])
+
+        print(df_final)
+        return df_final
 
     #Objetivo: Construir el DF de las variaciones del EMAE
     def construir_df_emae_variaciones(self):
-        
-        #Creamos direcciones para acceder al archivo
+        # Ruta del archivo
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
         ruta_carpeta_files = os.path.join(directorio_actual, 'files')
-
-        # Construir las rutas de los archivos
         file_path = os.path.join(ruta_carpeta_files, 'emaevar.xls')
 
-        # Leer el archivo Excel en un DataFrame de pandas
-        df = pd.read_excel(file_path, sheet_name=0, skiprows=4, usecols="D,F")  # Leer el archivo XLSX y crear el DataFrame
-        df = df.fillna(0) #--> Eliminamos todas las filas con valores vacios. Los que tengan 0 los dejamos.
+        # Leer el archivo
+        df = pd.read_excel(file_path, sheet_name=0, skiprows=4, usecols="D,F")
 
-        #Eliminar las ultimas 2 filas, porque contienen valores 0.
-        df = df.drop(df.index[-1])
-        df = df.drop(df.index[-1])
+        # Renombrar columnas
+        df.columns = ['variacion_interanual', 'variacion_mensual']
 
-        """
-        La lectura de este excel consiste en:
-        1 - Cambiar nombres de columnas del DF
-        2 - Generar fechas, teniendo como base FEBRERO DEL 2004.
-        3 - Asignar las fechas al DF
-        """
+        # Reemplazar NaN por 0 (o podrías eliminarlos si preferís)
+        df = df.fillna(0)
 
-        # ==== PASO 1 - Cambiar nombres de columnas del DF
-        df.columns = ['variacion_interanual','variacion_mensual']
+        # Eliminar filas totalmente vacías (por si hay más de 2)
+        df = df[(df != 0).any(axis=1)]
 
-        # ==== PASO 2 - GENERACION DE FECHAS
+        # Generar fechas comenzando en febrero de 2004
         num_rows = df.shape[0]
-
-        # Generar un rango de fechas que comience en FEBRERO de 2004 y avance mensualmente
-        fechas = pd.date_range(start='2004-01-01', periods=num_rows, freq='MS')
-
-        # ==== PASO 2 - Asignacion de fechas al DF
+        fechas = pd.date_range(start='2004-02-01', periods=num_rows, freq='MS')
         df['fecha'] = fechas
-        
-        #Reorganizamos el DF
-        # Mover la columna 'fechas' al principio
-        columns = ['fecha'] + [col for col in df.columns if col != 'fecha']
-        df = df[columns]
 
-        #Retornamos el DF de las variaciones.
+        # Reorganizar columnas
+        df = df[['fecha', 'variacion_interanual', 'variacion_mensual']]
+
+        print(df)
+        # ✅ Opcional: convertir a formato largo (como el otro)
+        # df = df.melt(id_vars='fecha', var_name='tipo_variacion', value_name='valor')
+
         return df
+
 

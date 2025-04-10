@@ -14,7 +14,6 @@ class HomePage:
 
         #Configuracion del navegador
         options = webdriver.ChromeOptions()
-        options.add_argument('--headless')
 
         # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
         driver = webdriver.Chrome(options=options)

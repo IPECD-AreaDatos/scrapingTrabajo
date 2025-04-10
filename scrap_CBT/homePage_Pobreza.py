@@ -12,7 +12,6 @@ class HomePagePobreza:
     def __init__(self):
         # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
         options = webdriver.ChromeOptions()
-        options.add_argument('--headless')
 
         # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
         self.driver =webdriver.Chrome(options=options)  # Reemplaza con la ubicación de tu ChromeDriver

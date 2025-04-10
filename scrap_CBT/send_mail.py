@@ -211,6 +211,7 @@ class MailCBTCBA:
         email_contrasenia = 'cmxddbshnjqfehka'
 
         email_receptores = self.obtener_correos()
+        #email_receptores = 'matizalazar2001@gmail.com'
 
         #==== Zona de envio de correo
         em = EmailMessage()

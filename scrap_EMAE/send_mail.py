@@ -102,8 +102,8 @@ class EmailEmae:
         # datos del correo
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores = self.obtener_correos()
-        #email_receptores =  ['matizalazar2001@gmail.com', 'manumarder@gmail.com']
+        #email_receptores = self.obtener_correos()
+        email_receptores =  ['matizalazar2001@gmail.com', 'manumarder@gmail.com']
 
         # ==== CREACION DEL MENSAJE DE GMAIL ==== #
 
@@ -151,91 +151,85 @@ class EmailEmae:
         
 
     def variaciones_mensual_interanual_acumulada(self):
-        
-        #Buscamos los datos de la tabla emae, y lo transformamos a un dataframe
-        nombre_tabla = 'emae'
-        query_select = f'SELECT * from {nombre_tabla}' 
-        df_bdd = pd.read_sql(query_select,self.conn)
-        df_bdd['fecha'] = pd.to_datetime(df_bdd['fecha'])#--> Cambiamos formato de la fecha para su manipulacion
-        
-        #Buscamos los datos de las categorias del emae, para lograr un for con cada indice, y para organizar la tabla por |INDICE|VALOR
-        nombre_tabla = 'emae_categoria'
-        query_select = f'SELECT * from {nombre_tabla}' 
-        df_categorias = pd.read_sql(query_select,self.conn)
 
-        #OBTENCION DEL GRUPO DE LA FECHA MAXIMA 
-        fecha_maxima = max(df_bdd['fecha'])
+        # Usar SQLAlchemy engine para evitar warnings y tener compatibilidad completa
+        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:3306/{self.database}")
+        
+        # Obtener datos principales
+        df_bdd = pd.read_sql("SELECT * FROM emae", engine)
+        df_categorias = pd.read_sql("SELECT * FROM emae_categoria", engine)
 
-        #LISTAS que acumulan consecutivamente los indices y las variaciones
+        if df_bdd.empty or df_categorias.empty:
+            print("❌ No hay datos en la tabla EMAE o en emae_categoria.")
+            return pd.DataFrame(), None
+
+        df_bdd['fecha'] = pd.to_datetime(df_bdd['fecha'])
+
+        # Validación global de mínimo de registros por serie
+        if len(df_bdd) < 13:
+            print("⚠️ No hay suficientes datos históricos para calcular variaciones anuales.")
+            return pd.DataFrame(), None
+
+        fecha_maxima = df_bdd['fecha'].max()
+
         lista_indices = []
         lista_var_mensual = []
         lista_var_interanual = []
         lista_var_acumulada = []
 
-        for indice,descripcion_categoria in zip(df_categorias['id_categoria'],df_categorias['categoria_descripcion']):
+        for indice, descripcion_categoria in zip(df_categorias['id_categoria'], df_categorias['categoria_descripcion']):
+            serie = df_bdd[df_bdd['sector_productivo'] == indice].sort_values('fecha')
 
-            #Obtenemos el ultimo valor, de el ID especificado por el valor de variable "indice" --> SE USA EL MISMO VALOR PARA CADA VARIACION
-            valor_actual = df_bdd['valor'][df_bdd['sector_productivo'] == indice].values[-1]
+            if len(serie) < 13:
+                print(f"⚠️ Sector {indice} ({descripcion_categoria}) no tiene 13 meses. Se salta.")
+                continue
 
-            # === CALCULO VARIACION MENSUAL
+            valor_actual = serie['valor'].iloc[-1]
+            valor_mes_anterior = serie['valor'].iloc[-2]
+            valor_ano_anterior = serie['valor'].iloc[-13]
 
-            valor_mes_anterior = df_bdd['valor'][(df_bdd['sector_productivo'] == indice)].values[-2]
+            # Buscar diciembre del año anterior
+            anio_actual = fecha_maxima.year
+            filtro_dic = (serie['fecha'].dt.year == anio_actual - 1) & (serie['fecha'].dt.month == 12)
+            diciembre_anterior = serie[filtro_dic]
 
-            #Calculo final
-            var_mensual = ((valor_actual / valor_mes_anterior) - 1) * 100
+            if not diciembre_anterior.empty and diciembre_anterior['valor'].iloc[0] != 0:
+                valor_diciembre_anterior = diciembre_anterior['valor'].iloc[0]
+            else:
+                valor_diciembre_anterior = np.nan
 
-            # === CALCULO VARIACION INTERANUAL
-            
-            valor_ano_anterior = df_bdd['valor'][df_bdd['sector_productivo'] == indice].values[-13]
+            # Calcular variaciones
+            var_mensual = ((valor_actual / valor_mes_anterior) - 1) * 100 if valor_mes_anterior != 0 else 0
+            var_intearnual = ((valor_actual / valor_ano_anterior) - 1) * 100 if valor_ano_anterior != 0 else 0
+            var_acumulada = ((valor_actual / valor_diciembre_anterior) - 1) * 100 if pd.notna(valor_diciembre_anterior) else 0
 
-            #Calculo final
-            var_intearnual = ((valor_actual / valor_ano_anterior) - 1) * 100
-
-            # === CALCULO VARIACION ACUMULADA    
-            valor_diciembre_ano_anterior = df_bdd['valor'][ (df_bdd['fecha'].dt.year == max(df_bdd['fecha'].dt.year) - 1 ) #--> EL maximo año menos 1 para agarrar el anterior
-                                                & (df_bdd['fecha'].dt.month == 12) #--> Mes 12 que corresponde a diciembre
-                                                & (df_bdd['sector_productivo'] == indice)].values[0]
-
-            #Calculo final
-            var_acumulada = ((valor_actual / valor_diciembre_ano_anterior) - 1) * 100
-
-            #Agregamos cada valor a su correspondiente lista
             lista_indices.append(descripcion_categoria)
             lista_var_mensual.append(var_mensual)
             lista_var_interanual.append(var_intearnual)
             lista_var_acumulada.append(var_acumulada)
-            
-        #Creacion de DATAFRAME que contiene cada una de las variaciones
+
+        # Construcción final del DataFrame
         data = {
-                'nombre_indices':lista_indices,
-                'var_mensual': lista_var_mensual,
-                'var_interanual':lista_var_interanual,
-                'var_acumulada':lista_var_acumulada
+            'nombre_indices': lista_indices,
+            'var_mensual': lista_var_mensual,
+            'var_interanual': lista_var_interanual,
+            'var_acumulada': lista_var_acumulada
         }
 
-        #Convertimos a DF para manipular
         df = pd.DataFrame(data)
-        
-         # Ordenar por cada tipo de variación
+
         df_var_mensual = df.sort_values(by='var_mensual', ascending=False).reset_index(drop=True)
         df_var_interanual = df.sort_values(by='var_interanual', ascending=False).reset_index(drop=True)
         df_var_acumulada = df.sort_values(by='var_acumulada', ascending=False).reset_index(drop=True)
 
-
-        # Crear un nuevo DataFrame con las categorías y variaciones ordenadas
         df_resultado = pd.DataFrame({
             'categoria_mensual': df_var_mensual['nombre_indices'],
-            'var_mensual': df_var_mensual['var_mensual'],
+            'var_mensual': df_var_mensual['var_mensual'].apply(self.truncar_decimal),
             'categoria_interanual': df_var_interanual['nombre_indices'],
-            'var_interanual': df_var_interanual['var_interanual'],
+            'var_interanual': df_var_interanual['var_interanual'].apply(self.truncar_decimal),
             'categoria_acumulada': df_var_acumulada['nombre_indices'],
-            'var_acumulada':df_var_acumulada['var_acumulada']
+            'var_acumulada': df_var_acumulada['var_acumulada'].apply(self.truncar_decimal)
         })
-
-        # Aplicar truncamiento al DataFrame en las columnas numéricas
-        df_resultado[['var_mensual', 'var_interanual', 'var_acumulada']] = df_resultado[
-            ['var_mensual', 'var_interanual', 'var_acumulada']
-        ].applymap(self.truncar_decimal)
 
         return df_resultado, fecha_maxima
 
