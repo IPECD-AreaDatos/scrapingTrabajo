@@ -19,14 +19,14 @@ class HomePage_IPI:
         #=== CONFIGURACION DEL NAVEGADOR
 
         #Desactivamos advertencias 
-        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        #urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
         #Agregamos opcion de "sin vista"
-        options = webdriver.ChromeOptions()
-        options.add_argument('--headless')
+        #options = webdriver.ChromeOptions()
+        #options.add_argument('--headless')
     
         # Configuración del navegador
-        driver = webdriver.Chrome(options=options)
+        driver = webdriver.Chrome()
 
         #=== OBTENCION DEL ARCHIVO
 

@@ -4,6 +4,7 @@ al IPI NACIONAL.
 """
 from pymysql import connect #--> Se usa para hacer consultas a la bdd
 from sqlalchemy import create_engine #--> Se usa para cargar la bdd
+import pandas as pd
 
 class Database_ipi:
 
@@ -90,6 +91,7 @@ class Database_ipi:
         
         #Conectamos a la bdd
         self.conectar_bdd()
+
 
         #Verificamos carga - Obtenemos una bandera para ver si mandamos o no un correo || VALORES
         bandera_valores = self.cargar_datos(df_valores,'ipi_valores')
