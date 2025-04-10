@@ -62,6 +62,7 @@ class ConexionBaseDatos:
         print("*********************Inicio de la sección venta Combustible**********************")
         print("\n*****************************************************************************")
         
+        print(df)
         # Verificar si existen datos nuevos
         df_nuevos = self.verificar_nuevos_datos(df)
 

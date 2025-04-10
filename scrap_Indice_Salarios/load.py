@@ -72,7 +72,7 @@ class Database:
             #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
             engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
             df.to_sql(name="indicadores_salarios", con=engine, if_exists='append', index=False)
-
+            print("carga realizada")
             #Guardamos cambios 
             self.conn.commit()
             self.close_connections()

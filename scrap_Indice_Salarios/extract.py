@@ -10,13 +10,13 @@ class HomePage:
     
     def __init__(self):
         #Desactivamos protecciones 
-        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        #urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-        options = webdriver.ChromeOptions()
-        options.add_argument('--headless')
+        #options = webdriver.ChromeOptions()
+        #options.add_argument('--headless')
     
         # Configuración del navegador
-        self.driver = webdriver.Chrome(options=options)
+        self.driver = webdriver.Chrome()
 
         # URL de la página que deseas obtener
         self.url_pagina = 'https://www.indec.gob.ar/indec/web/Nivel4-Tema-4-31-61'
