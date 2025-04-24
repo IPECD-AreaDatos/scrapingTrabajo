@@ -1,48 +1,29 @@
-from pymysql import connect
+from sqlalchemy import create_engine
 import pandas as pd
-from datetime import datetime
-import calendar
-from email.message import EmailMessage
-import ssl
-import smtplib
-from pandas import isna
 
 class connect_db:
-    def connect(self, df, host, user, password, database):
-        conn = connect(
-            host=host,
-            user=user,
-            password=password,
-            database=database
-        )
-        cursor = conn.cursor()
+    def __init__(self, host, user, password, database):
+        self.host = host
+        self.user = user
+        self.password = password
+        self.database = database
+        self.engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:3306/{self.database}")
 
-        table_name= 'eph_tasas'
-        delete_query = f"TRUNCATE {database}.{table_name}"
-        query_cantidad_datos = f'SELECT COUNT(*) FROM {table_name}'
-        query_insertar_datos = f"INSERT INTO {table_name} VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
-        
-        #Obtencion de tamaño del DF sacado del EXCEL
-        cant_filas_df = len(df)
-        #Obtencion de cantidad de filas de 
-        cursor.execute(query_cantidad_datos)
-        row_count_before = cursor.fetchone()[0]
-
-        if (cant_filas_df > row_count_before):
-            #Eliminamos tabla
-            cursor.execute(delete_query)
-
-            #Iteramos el dataframe, y vamos cargando fila por fila
-            for index,valor in df.iterrows():
-                values = (valor['Region'], valor['Aglomerado'], valor['Año'], valor['Fecha'], valor['Trimestre'], valor['Tasa de Actividad'], valor['Tasa de Empleo'], valor['Tasa de desocupación'])
-                # Convertir valores NaN a None --> Lo hacemos porque los valores 'nan' no son reconocidos por MYSQL
-                values = [None if isna(v) else v for v in values]
-                
-                #Insercion de dato fila por fila
-                cursor.execute(query_insertar_datos,values)
-            conn.commit()
-            cursor.close()
-            conn.close()
+    # ✅ Actualizar tabla eph_trabajo_tasas
+    def actualizar_eph_trabajo_tasas(self, df):
+        # Verificar cantidad de registros actuales
+        df_bdd = pd.read_sql("SELECT * FROM eph_trabajo_tasas", con=self.engine)
+        if len(df) > len(df_bdd):
+            df.to_sql(name='eph_trabajo_tasas', con=self.engine, if_exists='replace', index=False)
+            print("✅ Tabla eph_trabajo_tasas actualizada.")
         else:
-            print(f"NO HAY CAMBIOS EN LOS DATOS DE {table_name}")
+            print("ℹ️ No hay cambios en los datos de eph_trabajo_tasas.")
 
+    # ✅ Actualizar tabla eph_pobreza_tasas
+    def actualizar_eph_pobreza(self, df):
+        df_bdd = pd.read_sql("SELECT * FROM eph_pobreza_tasas", con=self.engine)
+        if len(df) > len(df_bdd):
+            df.to_sql(name='eph_pobreza_tasas', con=self.engine, if_exists='replace', index=False)
+            print("✅ Tabla eph_pobreza_tasas actualizada.")
+        else:
+            print("ℹ️ No hay cambios en los datos de eph_pobreza_tasas.")

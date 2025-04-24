@@ -30,12 +30,12 @@ class readSheetsEducacion:
         sheet = service.spreadsheets()
 
         #Realiza una llamada a la API para obtener datos desde la hoja 'Hoja 1' en el rango 'A1:A8'
-        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='Educacion_ECV!A:Z').execute()
+        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='Educacion_ECV!A:AA').execute()
         # Extrae los valores del resultado
         values = result.get('values', [])[1:]
         
         # Crea el DataFrame df1
-        df = pd.DataFrame(values, columns=['Aglomerado', 'Año', 'Trimestre', 'Fecha', 'Nivel Educativo', 'Estado del dato', 'Asiste', 'No asiste pero asistió', 'Nunca asistió', 'Institución Pública', 'Institución Privada', 'Edad promedio abandono', 'Sobreedad', 'Acceso a internet fijo', 'Calidad de vivienda suficiente', 'Calidad de vivienda parcialmente insuficiente', 'Calidad de vivienda insuficiente', 'Vivienda cercana a un basural', 'Vivienda en villa emergencia',  'Automóvil', 'Motocicleta', 'Bicicleta', 'Caminata', 'Taxi/Remis', 'Transporte Urbano', 'Otros'])
+        df = pd.DataFrame(values, columns=['Aglomerado', 'Año', 'Trimestre', 'Fecha', 'Nivel Educativo', 'Estado del dato', 'Asiste', 'No asiste pero asistió', 'Nunca asistió', 'Institución Pública', 'Institución Privada', 'Edad promedio abandono', 'Sobreedad', 'Acceso a internet fijo', 'Calidad de vivienda suficiente', 'Calidad de vivienda parcialmente insuficiente', 'Calidad de vivienda insuficiente', 'Vivienda cercana a un basural', 'Vivienda en villa emergencia',  'Automóvil', 'Motocicleta', 'Bicicleta', 'Caminata', 'Taxi/Remis', 'Transporte Urbano', 'Otros', 'estudia_desde_casa'])
         for e in df['Estado del dato']:
             if e != 'FINALIZADO':
                 e=' '
@@ -58,7 +58,7 @@ class readSheetsEducacion:
 
     def transformar_tipo_datos(self, df):
         # Seleccionar las columnas numéricas
-        columnas_numericas = ['Asiste', 'No asiste pero asistió', 'Nunca asistió', 'Institución Pública', 'Institución Privada', 'Sobreedad', 'Acceso a internet fijo', 'Calidad de vivienda suficiente', 'Calidad de vivienda parcialmente insuficiente', 'Calidad de vivienda insuficiente', 'Vivienda cercana a un basural', 'Vivienda en villa emergencia','Automóvil', 'Motocicleta', 'Bicicleta', 'Caminata', 'Taxi/Remis', 'Transporte Urbano', 'Otros']
+        columnas_numericas = ['Asiste', 'No asiste pero asistió', 'Nunca asistió', 'Institución Pública', 'Institución Privada', 'Sobreedad', 'Acceso a internet fijo', 'Calidad de vivienda suficiente', 'Calidad de vivienda parcialmente insuficiente', 'Calidad de vivienda insuficiente', 'Vivienda cercana a un basural', 'Vivienda en villa emergencia','Automóvil', 'Motocicleta', 'Bicicleta', 'Caminata', 'Taxi/Remis', 'Transporte Urbano', 'Otros','estudia_desde_casa']
         # Convertir las columnas numéricas a tipos numéricos
         # Elimina el símbolo "%" y las comas, y luego convierte las columnas en valores numéricos
         for columna in columnas_numericas:
