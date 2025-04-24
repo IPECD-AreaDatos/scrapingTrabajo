@@ -24,52 +24,23 @@ class Load():
     # ===================== ZONA DEL EMAE VALORES =====================#
 
     #Objetivo: verificar si existen mas datos en el DF que en la base de datos
-    def verificar_emae_valores(self,df):
+    def verificar_emae_valores(self, df):
+        df_bdd = pd.read_sql("SELECT fecha FROM emae", self.conn)
+        fechas_existentes = set(df_bdd["fecha"])
+        df_nuevos = df[~df["fecha"].isin(fechas_existentes)]
+        return df_nuevos
 
-        #Buscamos los datos de los valores de EMAE ya almacenados
-        df_bdd = pd.read_sql("SELECT * FROM emae",self.conn)
-        tamanio_bdd = len(df_bdd) #--> Tamano de la tabla del emae valores
-
-        tamanio_df = len(df) #Tamano del df extraido.
-
-        return tamanio_df , tamanio_bdd
-
-    #Objetivo: Realizar la carga de EMAE VALORES
-    def load_emae_valores(self,df):
-
-        #Buscamos los tamanos
-        tamanio_df , tamanio_bdd = self.verificar_emae_valores(df)
-
-        #Si es verdadero, realizar la carga de la diferencia
-        if tamanio_df > tamanio_bdd:
-            
-            """
-            Para esta carga, la verificacion se hace por diferencia de tamanos.
-            Es importante saber que el tail solo es posible ya que ordenamos anteriormente el DF,
-            especificamente en el transform.py. Al ordenarlo por fecha y sector_productivo
-            podemos usar el tail para que busque unicamente los datos restantes.
-
-            """
-            df_tail = df.tail(tamanio_df - tamanio_bdd)
-
-            #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
+    def load_emae_valores(self, df):
+        df_nuevos = self.verificar_emae_valores(df)
+        if not df_nuevos.empty:
             engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
-            df_tail.to_sql(name="emae", con=engine, if_exists='append', index=False)
-
-            print("*************")
-            print(" == ACTUALIZACION == ")
-            print(" -- Se ha actualizado la base de datos de EMAE VALORES.")
-            print("*************")
-
-            return True #Se actualizo la tabla, la bandera es positiva
-            
-        #Si es falso, descartar la carga
+            df_nuevos.to_sql(name="emae", con=engine, if_exists='append', index=False)
+            print("✅ EMAE VALORES actualizado con", len(df_nuevos), "registros nuevos.")
+            return True
         else:
-            print("*********")
-            print("No existen datos nuevos para cargar de los -- VALORES DE EMAE --")
-            print("*********")
+            print("ℹ️ No hay datos nuevos para EMAE VALORES.")
+            return False
 
-            return False #NO actualizo la tabla, la bandera es NEGATIVA
 
         # ===================== ZONA DEL EMAE VARIACIONES =====================#
 
@@ -123,7 +94,7 @@ class Load():
     def main_load(self,df_emae_valores,df_emae_variaciones):
 
         self.conectar_bdd()
-
+    
         #Carga de los valores - Aca guardamos los valores de las banderas
         bandera_valores = self.load_emae_valores(df_emae_valores)
         bandera_variaciones = self.load_emae_variaciones(df_emae_variaciones)

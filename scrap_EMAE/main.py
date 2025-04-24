@@ -27,8 +27,8 @@ dbb_datalake = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
 def main():
     try:
         # Obtención del archivo
-        logging.info("Descargando archivos...")
-        HomePage().descargar_archivos()
+        #logging.info("Descargando archivos...")
+        #HomePage().descargar_archivos()
 
         # Creación de instancia del transformador y generación de DataFrames
         logging.info("Transformando datos...")

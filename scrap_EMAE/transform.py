@@ -22,6 +22,12 @@ class Transformer:
         if 'Fuente' in str(df.iloc[-1, 0]):
             df = df.drop(df.index[-1])
 
+        # Rellenar los años hacia abajo
+        df.iloc[:, 0] = df.iloc[:, 0].ffill()
+
+        # Guardar nombres de sectores antes de eliminar columnas
+        sectores = df.columns[2:].tolist()
+
         # Mapear meses en español a número
         meses = {
             'Enero': '01', 'Febrero': '02', 'Marzo': '03', 'Abril': '04',
@@ -37,29 +43,29 @@ class Transformer:
         # Eliminar filas con fechas inválidas
         df = df[df['fecha'].notna()]
 
-        # Eliminar columnas de año y mes originales
+        # Eliminar columnas originales
         df = df.drop(columns=[df.columns[0], df.columns[1], 'anio', 'mes'])
 
-        # Reordenar columnas para tener fecha al inicio
+        # Reordenar columnas
         df = df[['fecha'] + [col for col in df.columns if col != 'fecha']]
 
         # Transformar a formato largo
         df_melted = df.melt(id_vars='fecha', var_name='sector', value_name='valor')
 
         # Asignar ID de sector numérico
-        sector_map = {name: i+1 for i, name in enumerate(df.columns[1:])}
+        sector_map = {name: i+1 for i, name in enumerate(sectores)}
         df_melted['sector_productivo'] = df_melted['sector'].map(sector_map)
 
         # Eliminar valores nulos
         df_melted = df_melted.dropna(subset=['valor'])
 
-        # Reordenar y formatear fecha como texto si lo querés explícitamente:
-        df_melted['fecha'] = df_melted['fecha'].dt.strftime('%Y-%m-%d')
-
+        # Formatear y ordenar
+        df_melted['fecha'] = pd.to_datetime(df_melted['fecha']).dt.strftime('%Y-%m-%d')
         df_final = df_melted[['fecha', 'sector_productivo', 'valor']].sort_values(['fecha', 'sector_productivo'])
 
-        print(df_final)
         return df_final
+
+
 
     #Objetivo: Construir el DF de las variaciones del EMAE
     def construir_df_emae_variaciones(self):
@@ -88,7 +94,7 @@ class Transformer:
         # Reorganizar columnas
         df = df[['fecha', 'variacion_interanual', 'variacion_mensual']]
 
-        print(df)
+        #print(df)
         # ✅ Opcional: convertir a formato largo (como el otro)
         # df = df.melt(id_vars='fecha', var_name='tipo_variacion', value_name='valor')
 
