@@ -13,7 +13,7 @@ from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 
 class DatabaseManager:
-    def __init__(self, host, user, password, database):
+    def _init_(self, host, user, password, database):
         """
         Inicializa la conexión a la base de datos con las credenciales proporcionadas.
         """
@@ -31,7 +31,7 @@ class DatabaseManager:
         )
         self.cursor = self.connection.cursor()
 
-    def __del__(self):
+    def _del_(self):
         """
         Asegura que el cursor y la conexión se cierren cuando la instancia se destruye.
         """
@@ -58,7 +58,7 @@ class DatabaseManager:
             print("Nuevos datos para insertar:", df_datos_nuevos)
 
             # Preparar y ejecutar las sentencias INSERT de manera eficiente
-            insert_query = f"INSERT INTO {table_name} (Fecha, var_interanual_ipicorr, var_interanual_alimentos, var_interanual_textil, var_interanual_maderas, var_interanual_minnoMetalicos, var_interanual_metales) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+            insert_query = f"INSERT INTO {table_name} (Fecha, Var_ia_Nivel_General, Vim_Nivel_General, Vim_Alimentos, Vim_Textil, Vim_Maderas, Vim_min_nometalicos, Vim_metales, Var_ia_Alimentos, Var_ia_Textil, Var_ia_Maderas, Var_ia_min_nometalicos, Var_ia_metales) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
             
             # Lista para almacenar los datos a insertar
             data_to_insert = []
@@ -66,17 +66,23 @@ class DatabaseManager:
             for index, row in df_datos_nuevos.iterrows():
                 data_to_insert.append((
                     row['Fecha'],
-                    self.format_value(row['Var_Interanual_IPICORR']),
-                    self.format_value(row['Var_Interanual_Alimentos']),
-                    self.format_value(row['Var_Interanual_Textil']),
-                    self.format_value(row['Var_Interanual_Maderas']),
-                    self.format_value(row['Var_Interanual_MinNoMetalicos']),
-                    self.format_value(row['Var_Interanual_Metales'])
-                ))
+                    self.format_value(row['Var_ia_Nivel_General']),
+                    self.format_value(row['Vim_Nivel_General']),
+                    self.format_value(row['Vim_Alimentos']),
+                    self.format_value(row['Vim_Textil']),
+                    self.format_value(row['Vim_Maderas']),
+                    self.format_value(row['Vim_min_nometalicos']),
+                    self.format_value(row['Vim_metales']),
+                    self.format_value(row['Var_ia_Alimentos']),
+                    self.format_value(row['Var_ia_Textil']),
+                    self.format_value(row['Var_ia_Maderas']),
+                    self.format_value(row['Var_ia_min_nometalicos']),
+                    self.format_value(row['Var_ia_metales'])
+                )) 
 
             self.cursor.executemany(insert_query, data_to_insert)
             self.connection.commit()
-            ruta_archivo_grafico = self.generar_y_guardar_grafico(df)
+            #ruta_archivo_grafico = self.generar_y_guardar_grafico(df)
             print(f"{len(data_to_insert)} nuevos registros insertados.")
             df_datos_nuevos['Fecha'] = pd.to_datetime(df_datos_nuevos['Fecha'], format='%Y-%m-%d')
             #self.envio_correo(df_datos_nuevos, ruta_archivo_grafico)
@@ -119,7 +125,9 @@ class DatabaseManager:
     def envio_correo(self, df_datos_nuevos, ruta_archivo_grafico): 
         email_emisor = 'departamientoactualizaciondato@gmail.com'
         email_contraseña = 'cmxddbshnjqfehka'
-        email_receptores = self.obtener_correos()
+        #email_receptores = self.obtener_correos()
+        email_receptores = 'manumarder@gmail.com'
+
 
         # Definir 'em' antes de su uso
         em = MIMEMultipart()
@@ -130,17 +138,17 @@ class DatabaseManager:
             <html>
             <body>
             <h2 style="font-size: 24px;"><strong> DATOS NUEVOS EN LA TABLA DE INDICE DE PRODUCCION INDUSTRIAL DE CORRIENTES (IPICORR) A {fecha_arreglada.upper()}. </strong></h2>
-            <p>* Variacion Interanual IPICORR: <span style="font-size: 17px;"><b>{df_datos_nuevos["Var_Interanual_IPICORR"].iloc[-1]}</b></span></p>
+            <p>* Variacion Interanual Nivel General: <span style="font-size: 17px;"><b>{df_datos_nuevos["Var_ia_Nivel_General"].iloc[-1]}</b></span></p>
             <hr>
-            <p>* Variacion Interanual Alimentos: <span style="font-size: 17px;"><b>{df_datos_nuevos["Var_Interanual_Alimentos"].iloc[-1]}</b></span></p>
+            <p>* Variacion Interanual Alimentos: <span style="font-size: 17px;"><b>{df_datos_nuevos["Var_ia_Alimentos"].iloc[-1]}</b></span></p>
             <hr>
-            <p>* Variacion Interanual Textil: <span style="font-size: 17px;"><b>{df_datos_nuevos["Var_Interanual_Textil"].iloc[-1]}</b></span></p>
+            <p>* Variacion Interanual Textil: <span style="font-size: 17px;"><b>{df_datos_nuevos["Var_ia_Textil"].iloc[-1]}</b></span></p>
             <hr>
-            <p>* Variacion Interanual Maderas: <span style="font-size: 17px;"><b>{df_datos_nuevos["Var_Interanual_Maderas"].iloc[-1]}</b></span></p>
+            <p>* Variacion Interanual Maderas: <span style="font-size: 17px;"><b>{df_datos_nuevos["Var_ia_Maderas"].iloc[-1]}</b></span></p>
             <hr>
-            <p>* Variacion Interanual min. No Metalicos: <span style="font-size: 17px;"><b>{df_datos_nuevos["Var_Interanual_MinNoMetalicos"].iloc[-1]}</b></span></p>
+            <p>* Variacion Interanual min. No Metalicos: <span style="font-size: 17px;"><b>{df_datos_nuevos["Var_ia_min_nometalicos"].iloc[-1]}</b></span></p>
             <hr>
-            <p>* Variacion Interanual Metales: <span style="font-size: 17px;"><b>{df_datos_nuevos["Var_Interanual_Metales"].iloc[-1]}</b></span></p>
+            <p>* Variacion Interanual Metales: <span style="font-size: 17px;"><b>{df_datos_nuevos["Var_ia_metales"].iloc[-1]}</b></span></p>
             <hr>
             <p> Instituto Provincial de Estadistica y Ciencia de Datos de Corrientes<br>
             Dirección: Tucumán 1164 - Corrientes Capital<br>
@@ -195,7 +203,7 @@ class DatabaseManager:
 
         return f"{nombre_mes_espanol} del {fecha_ultimo_registro.year}"
     
-    def generar_y_guardar_grafico(self, df, columna_fecha='Fecha', columna_valor='Var_Interanual_IPICORR', nombre_archivo='variacion_interanual_ipicorr.png'):
+    def generar_y_guardar_grafico(self, df, columna_fecha='Fecha', columna_valor='Var_ia_Nivel_General', nombre_archivo='variacion_interanual_ipicorr.png'):
         """
         Genera un gráfico de línea a partir de un DataFrame y guarda el resultado en un archivo PNG dentro de la carpeta 'files'.
 
@@ -225,7 +233,7 @@ class DatabaseManager:
         plt.grid(True)
 
         # Obtener la ruta del directorio actual (donde se encuentra el script)
-        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        directorio_actual = os.path.dirname(os.path.abspath(_file_))
 
         # Construir la ruta de la carpeta "files" dentro del directorio actual
         carpeta_guardado = os.path.join(directorio_actual, 'files')

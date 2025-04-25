@@ -21,14 +21,14 @@ class readGoogleSheets:
         creds = service_account.Credentials.from_service_account_info(key_dict, scopes=SCOPES)
 
         # ID del documento:
-        SPREADSHEET_ID = '1NGcF5fXO7RCXIRGJ2UQO98x_T_tZtwHTnvD-RmTdV0E'
+        SPREADSHEET_ID = '19rIG_9MBTq3QxCWArnRYnx8O8BYt4uqJTsISYHC02Pg'
 
         # Crea una instancia de la API de Google Sheets
         service = build('sheets', 'v4', credentials=creds)
         sheet = service.spreadsheets()
 
         # Realiza una llamada a la API para obtener datos desde de la hoja
-        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='Datos para tablero').execute()
+        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='3. Datos para tablero').execute()
 
         # Extrae los valores del resultado
         values = result.get('values', [])
@@ -37,12 +37,12 @@ class readGoogleSheets:
 
         # Imprime los valores y filtra las filas con 8 elementos
         for row in values:
-            if len(row) == 8:  # Si tiene el Finalizado se agrega al df
+            if len(row) == 14:  # Si tiene el Finalizado se agrega al df
                 print(row)
                 df.append(row)
         
         # Crea el Data Frame
-        df = pd.DataFrame(df, columns=['Fecha', 'Var_Interanual_IPICORR', 'Var_Interanual_Alimentos', 'Var_Interanual_Textil', 'Var_Interanual_Maderas', 'Var_Interanual_MinNoMetalicos', 'Var_Interanual_Metales', 'Estado'])
+        df = pd.DataFrame(df, columns=['Fecha', 'Var_ia_Nivel_General', 'Vim_Nivel_General', 'Vim_Alimentos', 'Vim_Textil', 'Vim_Maderas', 'Vim_min_nometalicos', 'Vim_metales', 'Var_ia_Alimentos', 'Var_ia_Textil', 'Var_ia_Maderas', 'Var_ia_min_nometalicos', 'Var_ia_metales', 'Estatus'])
         df['Fecha'] = df['Fecha'].apply(convertir_fecha)  # Transforma el formato de fecha de 'sept-2022' a '2022-09-01'
        
         # Imprime el DataFrame antes de eliminar la última columna
@@ -50,7 +50,8 @@ class readGoogleSheets:
         print(df)
 
         # Elimina la última columna
-        df = df.drop('Estado', axis=1)
+        df = df.drop('Estatus', axis=1)
+        df = df.iloc[11:].reset_index(drop=True)
 
         # Imprime el DataFrame después de eliminar la última columna
         print("\nDespués de eliminar la última columna:")
