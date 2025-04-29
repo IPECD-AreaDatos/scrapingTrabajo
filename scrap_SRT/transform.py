@@ -29,6 +29,9 @@ class Transform:
             file_path = os.path.join(ruta_carpeta_files, archivo)
             print(f"Procesando: {archivo}")
 
+            # Normalizar el archivo primero
+            self.normalizar_csv(file_path)
+
             # creamos el df del archivo
             df = self.crear_df(file_path)
 
@@ -169,7 +172,7 @@ class Transform:
         }
 
         # Reemplazar los nombres de provincias por sus códigos numéricos
-        df['jurisdiccion_desc'] = df['jurisdiccion_desc'].replace(dict_provincias)
+        df['jurisdiccion_desc'] = df['jurisdiccion_desc'].replace(dict_provincias).infer_objects(copy=False)
 
         df = df.rename(columns={'jurisdiccion_desc': 'id_jurisdiccion'})
         
