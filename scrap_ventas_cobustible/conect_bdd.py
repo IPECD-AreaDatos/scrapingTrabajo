@@ -1,10 +1,10 @@
 from pymysql import connect
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
 import pandas as pd
 import logging
 
 class ConexionBaseDatos:
-    def __init__(self, host, user, password, database):
+    def _init_(self, host, user, password, database):
         self.host = host
         self.user = user
         self.password = password
@@ -15,7 +15,7 @@ class ConexionBaseDatos:
         
         # Configurar logging
         logging.basicConfig(level=logging.INFO)
-        self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger(_name_)
 
     def conectar_bdd(self):
         try:
@@ -58,35 +58,51 @@ class ConexionBaseDatos:
         return df_nuevos
 
     def cargaBaseDatos(self, df):
-        print("\n*****************************************************************************")
-        print("*********************Inicio de la sección venta Combustible**********************")
-        print("\n*****************************************************************************")
+        print("\n***************************")
+        print("********Inicio de la sección venta Combustible*******")
+        print("\n***************************")
         
-        print(df)
-        # Verificar si existen datos nuevos
-        df_nuevos = self.verificar_nuevos_datos(df)
+        try:
+            
+            ultima_fecha = df['fecha'].max()
+            print(f"Ultimo dato de: {ultima_fecha}")
 
-        if not df_nuevos.empty:
-            engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
-            
-            # Imprimir los datos nuevos (los que se van a cargar)
-            print("************************ Datos nuevos que se van a cargar *************************")
-            print(df_nuevos)
-            print("*****************************************************************************")
-            
-            try:
-                df_nuevos.to_sql(name='combustible', con=engine, if_exists='append', index=False)
-                print("*************")
+            # Verificar si existen datos nuevos
+            df_nuevos = self.verificar_nuevos_datos(df)
+
+            if not df_nuevos.empty:
+                engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+                # Crear el inspector
+                inspector = inspect(engine)
+                
+                # Imprimir los datos nuevos (los que se van a cargar)
+                print("******** Datos nuevos que se van a cargar *********")
+                print(df_nuevos)
+                print("***************************")
+                # Revisar si la tabla 'combustible' existe
+                if 'combustible' not in inspector.get_table_names():
+                    print("La tabla no existe. Se creará.")
+                    # Crear la tabla con to_sql
+                    df_nuevos.to_sql("combustible", con=engine, if_exists="replace", index=False)
+                else:
+                    print("La tabla ya existe. Se agregan datos.")
+                    # Solo agregar datos
+                    df_nuevos.to_sql("combustible", con=engine, if_exists="append", index=False)
+                print("*****")
                 print(f" == ACTUALIZACIÓN == Nuevos datos en la base de combustibles")
-                print("*************")
+                print("*****")
                 return True
-            except Exception as e:
-                print("Error durante la carga de datos:", e)
+            else:
+                print("***")
+                print("No existen datos nuevos de combustible")
+                print("***")
                 return False
-        else:
-            print("*********")
-            print("No existen datos nuevos de combustible")
-            print("*********")
+
+        except Exception as e:
+            self.logger.error(f"Error durante la carga de datos: {e}")
+            if self.conn:
+                self.conn.rollback()
+                self.logger.warning("Rollback ejecutado debido a error.")
             return False
 
     def main(self, df):
@@ -104,9 +120,11 @@ class ConexionBaseDatos:
             return bandera
         except Exception as e:
             self.logger.error(f"Error en el proceso principal: {e}")
+            if self.conn:
+                self.conn.rollback()
+                self.logger.warning("Rollback ejecutado en el bloque main.")
             return False
         finally:
-            # Cerrar la conexión y el cursor
             self.cerrar_conexion()
 
     def cerrar_conexion(self):

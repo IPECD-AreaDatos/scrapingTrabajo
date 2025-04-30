@@ -31,14 +31,14 @@ def realizar_extraccion_datos():
 def transformar_datos():
     """Realiza la transformación de los datos y genera el DataFrame de combustible."""
     print("Transformando los datos...")
-    df_combustible = Transformacion().crear_df(ano_filtrado=2024, mes_filtrado=10)
+    df_combustible = Transformacion().crear_df()
     print("Transformación completa.")
     return df_combustible
 
 def calcular_suma_por_fecha():
     """Calcula la suma de los datos para una fecha específica."""
-    print("Calculando la suma de combustible para la fecha 01-09-2024...")
-    suma_mensual = Transformacion().suma_por_fecha('2024-10-01')
+    print("Calculando la suma de combustible para la ultima fecha...")
+    suma_mensual = Transformacion().suma_por_fecha()
     print(f"Suma calculada: {suma_mensual}")
     return suma_mensual
 
@@ -63,9 +63,9 @@ def actualizar_hoja_google(carga_exitosa, suma_mensual, host_dbb, user_dbb, pass
         conexion_excel.cargar_datos(suma_mensual)
         print("Hoja de cálculo actualizada exitosamente.")
     else:
-        print(" ** NO SE CONSIDERA NECESARIO ACTUALIZAR GOOGLE SHEET ** ")
+        print(" * NO SE CONSIDERA NECESARIO ACTUALIZAR GOOGLE SHEET * ")
 
-if __name__ == "__main__":
+if _name_ == "_main_":
     try:
         # 1. Cargar las variables de entorno
         host_dbb, user_dbb, pass_dbb, dbb_datalake = cargar_variables_entorno()
@@ -75,10 +75,11 @@ if __name__ == "__main__":
 
         # 3. Transformar los datos
         df_combustible = transformar_datos()
+        print(df_combustible)
+        print(df_combustible.dtypes)
 
         # 4. Calcular la suma para la fecha 01-09-2024
         suma_mensual = calcular_suma_por_fecha()
-
         # 5. Cargar los datos en la base de datos
         carga_exitosa = cargar_datos_base_datos(df_combustible, host_dbb, user_dbb, pass_dbb, dbb_datalake)
 
