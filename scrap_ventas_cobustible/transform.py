@@ -4,16 +4,16 @@ import os
 
 # Obtener ruta del archivo CSV de manera más flexible
 def obtener_ruta_archivo(nombre_archivo):
-    directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
+    directorio_desagregado = os.path.dirname(os.path.abspath(_file_))
     ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
     return os.path.join(ruta_carpeta_files, nombre_archivo)
 
 class Transformacion:
-    def __init__(self, archivo='ventas_combustible.csv'):
+    def _init_(self, archivo='ventas_combustible.csv'):
         # Ruta al archivo CSV
         self.file_path = obtener_ruta_archivo(archivo)
 
-    def crear_df(self, provincia_filtrada=False, ano_filtrado=2024, mes_filtrado=10):
+    def crear_df(self, provincia_filtrada=False):
         pd.set_option('mode.chained_assignment', None)
 
         # Leer el archivo CSV con control de errores
@@ -27,8 +27,8 @@ class Transformacion:
             raise ValueError("Hubo un error al parsear el archivo CSV.")
         
         # Filtrar por año (solo 2024 en este caso)
-        df = df[df['anio'] == ano_filtrado]
-        df = df[df['mes'] == mes_filtrado]
+        #df = df[df['anio'] == ano_filtrado]
+        #df = df[df['mes'] == mes_filtrado]
 
         # Aplicar transformaciones
         df = self.transformar_columnas(df)
@@ -101,12 +101,16 @@ class Transformacion:
         df_corrientes = df[df['provincia'] == 18]
 
         return df_corrientes
-    def suma_por_fecha(self, fecha='2024-09-01'):
+    
+    def suma_por_fecha(self):
         # Crear el DataFrame con los datos filtrados por el año
         df = self.crear_df()
 
+        # Obtener la última fecha disponible
+        ultima_fecha = df['fecha'].max()
+
         # Filtrar el DataFrame por la fecha proporcionada
-        df_fecha = df[df['fecha'] == fecha]
+        df_fecha = df[df['fecha'] == ultima_fecha]
 
         # Sumar las columnas numéricas
         suma = df_fecha['cantidad'].sum()  # Solo sumamos la columna 'cantidad'
