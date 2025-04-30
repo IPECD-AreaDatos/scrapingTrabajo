@@ -25,6 +25,8 @@ if __name__ == '__main__':
 
     #Extraccion y Transformacion de datos semoforo INTERMENSUAL
     df_semaforo_intermensual = ExtractSheet().extract_sheet_intermensual()
+    print(df_semaforo_intermensual)
+    print("aca")
     df_intermensual_transformado = Transform().transform_data(df_semaforo_intermensual)
     print(df_intermensual_transformado)
 
