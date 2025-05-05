@@ -65,13 +65,13 @@ def actualizar_hoja_google(carga_exitosa, suma_mensual, host_dbb, user_dbb, pass
     else:
         print(" * NO SE CONSIDERA NECESARIO ACTUALIZAR GOOGLE SHEET * ")
 
-if _name_ == "_main_":
+if __name__ == '__main__':
     try:
         # 1. Cargar las variables de entorno
         host_dbb, user_dbb, pass_dbb, dbb_datalake = cargar_variables_entorno()
 
         # 2. Realizar la extracción de datos
-        realizar_extraccion_datos()
+        #realizar_extraccion_datos()
 
         # 3. Transformar los datos
         df_combustible = transformar_datos()
