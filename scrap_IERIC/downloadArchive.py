@@ -9,58 +9,79 @@ import urllib3
 
 class downloadArchive:
     def __init__(self):
-
         options = webdriver.ChromeOptions()
         options.add_argument('--headless')
+        self.driver = webdriver.Chrome(options=options)
 
-        # Configuración del navegador (en este ejemplo, se utiliza ChromeDriver)
-        self.driver = webdriver.Chrome(options=options)  # Reemplaza con la ubicación de tu ChromeDriver
+        self.base_urls = {
+            "buenos_aires": "https://www.ieric.org.ar/series_estadisticas/buenos-aires/",
+            "catamarca": "https://www.ieric.org.ar/series_estadisticas/catamarca/",
+            "chaco": "https://www.ieric.org.ar/series_estadisticas/chaco/",
+            "chubut": "https://www.ieric.org.ar/series_estadisticas/chubut/",
+            "cordoba": "https://www.ieric.org.ar/series_estadisticas/cordoba/",
+            "corrientes": "https://www.ieric.org.ar/series_estadisticas/corrientes/",
+            "entre_rios": "https://www.ieric.org.ar/series_estadisticas/entre-rios/",
+            "formosa": "https://www.ieric.org.ar/series_estadisticas/formosa/",
+            "jujuy": "https://www.ieric.org.ar/series_estadisticas/jujuy/",
+            "la_pampa": "https://www.ieric.org.ar/series_estadisticas/la-pampa/",
+            "la_rioja": "https://www.ieric.org.ar/series_estadisticas/la-rioja/",
+            "mendoza": "https://www.ieric.org.ar/series_estadisticas/mendoza/",
+            "misiones": "https://www.ieric.org.ar/series_estadisticas/misiones/",
+            "neuquen": "https://www.ieric.org.ar/series_estadisticas/neuquen/",
+            "rio_negro": "https://www.ieric.org.ar/series_estadisticas/rio-negro/",
+            "salta": "https://www.ieric.org.ar/series_estadisticas/salta/",
+            "san_juan": "https://www.ieric.org.ar/series_estadisticas/san-juan/",
+            "san_luis": "https://www.ieric.org.ar/series_estadisticas/san-luis/",
+            "santa_cruz": "https://www.ieric.org.ar/series_estadisticas/santa-cruz/",
+            "santa_fe": "https://www.ieric.org.ar/series_estadisticas/santa-fe/",
+            "santiago_del_estero": "https://www.ieric.org.ar/series_estadisticas/santiago-del-estero/",
+            "tierra_del_fuego": "https://www.ieric.org.ar/series_estadisticas/tierra-del-fuego/",
+            "tucuman": "https://www.ieric.org.ar/series_estadisticas/tucuman/",
+        }
 
-        # URL de la página que deseas obtener
-        self.url_pagina = 'https://www.ieric.org.ar/series_estadisticas/corrientes/'
 
     def descargar_archivo(self):
-
-        # Desactivar advertencias de solicitud no segura
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-        # Cargar la página web
-        self.driver.get(self.url_pagina)
+        base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'files')
+        os.makedirs(base_path, exist_ok=True)
 
-        wait = WebDriverWait(self.driver, 10)
-        
-        # Obtener la ruta del directorio actual (donde se encuentra el script)
-        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        for provincia, url in self.base_urls.items():
+            print(f"Descargando archivos de {provincia}...")
+            self.driver.get(url)
+            wait = WebDriverWait(self.driver, 10)
 
-        # Construir la ruta de la carpeta "files" dentro del directorio actual
-        carpeta_guardado = os.path.join(directorio_actual, 'files')
+            # Crear carpeta por provincia
+            path_provincia = os.path.join(base_path, provincia)
+            os.makedirs(path_provincia, exist_ok=True)
 
-        # Crear la carpeta "files" si no existe
-        if not os.path.exists(carpeta_guardado):
-            os.makedirs(carpeta_guardado)
+            try:
+                archivo1 = wait.until(EC.presence_of_element_located((By.XPATH, "//div[3]/div[2]/div[1]/div[1]/a")))
+                url_archivo1 = archivo1.get_attribute('href')
+                response1 = requests.get(url_archivo1, verify=False)
+                with open(os.path.join(path_provincia, 'empresas_en_actividad.xls'), 'wb') as f:
+                    f.write(response1.content)
+            except Exception as e:
+                print(f"❌ Error descargando archivo 1 para {provincia}: {e}")
 
+            try:
+                archivo2 = wait.until(EC.presence_of_element_located((By.XPATH, "//div[3]/div[2]/div[2]/div[1]/a")))
+                url_archivo2 = archivo2.get_attribute('href')
+                response2 = requests.get(url_archivo2, verify=False)
+                with open(os.path.join(path_provincia, 'puestos_de_trabajo_registrados.xls'), 'wb') as f:
+                    f.write(response2.content)
+            except Exception as e:
+                print(f"❌ Error descargando archivo 2 para {provincia}: {e}")
 
-        #archivo actividad
-        # Esperar hasta que aparezca el enlace al primer archivo
-        archivo = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div/div[2]/div/div[1]/div[3]/div[2]/div[1]/div[1]/a")))
+            try:
+                archivo3 = wait.until(EC.presence_of_element_located(
+                    (By.XPATH, "//a[contains(@href, 'Salario-Promedio')]")
+                ))
+                url_archivo3 = archivo3.get_attribute('href')
+                response3 = requests.get(url_archivo3, verify=False)
 
-        # Obtener la URL del primer archivo
-        url_archivo = archivo.get_attribute('href')
+                with open(os.path.join(path_provincia, 'salario_promedio_construccion.xls'), 'wb') as f:
+                    f.write(response3.content)
+            except Exception as e:
+                print(f"❌ Error descargando archivo 3 (Salario Promedio) para {provincia}: {e}")
 
-        # Descargar el primer archivo desactivando la verificación del certificado SSL
-        response = requests.get(url_archivo, verify=False)
-        ruta_guardado = os.path.join(carpeta_guardado, 'Empresas en actividad.xls')
-        with open(ruta_guardado, 'wb') as file:
-            file.write(response.content)
-
-        #archivo ocupacion
-        # Esperar hasta que aparezca el enlace al primer archivo
-        archivo2 = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/div/div[2]/div/div[1]/div[3]/div[2]/div[2]/div[1]/a")))
-        # Obtener la URL del primer archivo
-        url_archivo2 = archivo2.get_attribute('href')
-
-        # Descargar el primer archivo desactivando la verificación del certificado SSL
-        response2 = requests.get(url_archivo2, verify=False)
-        ruta_guardado2 = os.path.join(carpeta_guardado, 'Puestos de trabajo registrados.xls')
-        with open(ruta_guardado2, 'wb') as file:
-            file.write(response2.content)
