@@ -13,7 +13,7 @@ from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 
 class DatabaseManager:
-    def _init_(self, host, user, password, database):
+    def __init__(self, host, user, password, database):
         """
         Inicializa la conexión a la base de datos con las credenciales proporcionadas.
         """
@@ -31,7 +31,7 @@ class DatabaseManager:
         )
         self.cursor = self.connection.cursor()
 
-    def _del_(self):
+    def __del__(self):
         """
         Asegura que el cursor y la conexión se cierren cuando la instancia se destruye.
         """
