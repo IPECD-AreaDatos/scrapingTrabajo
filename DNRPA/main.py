@@ -31,8 +31,6 @@ if __name__=='__main__':
     
     #Extraccion y TRANSFORMACION de datos
     df = ExtractLastData().extraer_tablas()
-    print(df)
-    exit()
     #Cargamos al datalake economico
     instancia_bdd = conexionBaseDatosLast(host_dbb,user_dbb,pass_dbb,dbb_datalake)
     instancia_bdd.cargar_datalake(df)

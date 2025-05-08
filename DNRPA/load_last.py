@@ -89,6 +89,7 @@ class conexionBaseDatosLast:
 
             #Carga de datos en google sheets
             readSheets(self.host, self.user, self.password, self.database).main()
+            print("Sheets actualizado!")
 
 
         self.close_connections()
