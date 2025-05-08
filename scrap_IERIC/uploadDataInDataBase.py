@@ -1,48 +1,22 @@
 from sqlalchemy import create_engine
-import pymysql
-import pandas as pd
+import os
+from dotenv import load_dotenv
 
-class uploadDataInDataBase:
-    def __init__(self, host, user, password, database):
-        self.host = host
-        self.user = user
-        self.password = password
-        self.database = database
-        self.conn = None
-        self.cursor = None
+# Cargar variables de entorno
+load_dotenv()
 
-    def conectar_bdd(self):
-        self.conn = pymysql.connect(
-            host=self.host, user=self.user, password=self.password, database=self.database
-        )
-        self.cursor = self.conn.cursor()
-        return self
-    
-    def load_data(self, df):
-        print("\n*****************************************************************************")
-        print("***********************Inicio de la seccion Ieric Empresas actividad***********************")
-        print("\n*****************************************************************************")
-        print(df)
+host = os.getenv("HOST_DBB")
+user = os.getenv("USER_DBB")
+password = os.getenv("PASSWORD_DBB")
+dbname = os.getenv("NAME_DBB_DATALAKE_ECONOMICO")
 
-        #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
-        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
-        df.to_sql(name="ieric_actividad", con=engine, if_exists='replace', index=False)
-        print("Se realizo la carga a la base de datos ieric_actividad en datalake_economico")
-        
-    def cargaBaseDatos(self, df):
-        print("\n*****************************************************************************")
-        print("***********************Inicio de la seccion Ieric Trabajo Registrado************************")
-        print("\n*****************************************************************************")
-        # Suponiendo que 'df' es tu DataFram
-        print(df)
+# Crear conexión con SQLAlchemy
+engine = create_engine(f"mysql+pymysql://{user}:{password}@{host}/{dbname}")
 
-        #Cargamos los datos usando una query y el conector. Ejecutamos las consultas
-        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
-        df.to_sql(name="ieric_ocupacion", con=engine, if_exists='replace', index=False)
-
-        
-        # Confirmar los cambios en la base de datos
-        self.conn.commit()
-        # Cerrar el cursor y la conexión
-        self.cursor.close()
-        self.conn.close()
+# Subida de DataFrames
+def subir_dataframe(df, tabla):
+    try:
+        df.to_sql(name=tabla, con=engine, if_exists='append', index=False)
+        print(f"✅ Cargado correctamente en: {tabla}")
+    except Exception as e:
+        print(f"❌ Error al cargar en {tabla}: {e}")

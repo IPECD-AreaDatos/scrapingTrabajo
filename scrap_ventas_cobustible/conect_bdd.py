@@ -4,7 +4,7 @@ import pandas as pd
 import logging
 
 class ConexionBaseDatos:
-    def _init_(self, host, user, password, database):
+    def __init__(self, host, user, password, database):
         self.host = host
         self.user = user
         self.password = password
@@ -15,7 +15,7 @@ class ConexionBaseDatos:
         
         # Configurar logging
         logging.basicConfig(level=logging.INFO)
-        self.logger = logging.getLogger(_name_)
+        self.logger = logging.getLogger(__name__)
 
     def conectar_bdd(self):
         try:

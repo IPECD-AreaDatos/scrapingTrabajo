@@ -33,12 +33,12 @@ class readSheetsPobrezaEPH:
         sheet = service.spreadsheets()
 
         # Realiza una llamada a la API para obtener datos desde la hoja 'Hoja 1' en el rango 'A1:A8'
-        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='Pobreza_EPH!A:I').execute()
+        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='Pobreza_EPH!A:K').execute()
         # Extrae los valores del resultado
         values = result.get('values', [])[1:]
 
         # Crea el DataFrame df1
-        df = pd.DataFrame(values, columns=['region', 'año', 'semestre', 'pobreza', 'indigencia', 'varsem_pobreza', 'varsem_indigencia', 'varanual_pobreza', 'varanual_indigencia'])
+        df = pd.DataFrame(values, columns=['region', 'aglomerado', 'año', 'fecha', 'semestre', 'pobreza', 'indigencia', 'varsem_pobreza', 'varsem_indigencia', 'varanual_pobreza', 'varanual_indigencia'])
         df.replace({" ": pd.NA, "": pd.NA}, inplace=True)
         df = df.where(pd.notnull(df), None)
         print(df)
@@ -60,4 +60,4 @@ class readSheetsPobrezaEPH:
         df[columnas_numericas] = df[columnas_numericas] / 100
         # Convertir la segunda columna a tipo de datos entero
         df['año'] = df['año'].astype(int)
-        
+        df['fecha'] = pd.to_datetime(df['fecha'])

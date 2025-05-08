@@ -4,12 +4,12 @@ import os
 
 # Obtener ruta del archivo CSV de manera más flexible
 def obtener_ruta_archivo(nombre_archivo):
-    directorio_desagregado = os.path.dirname(os.path.abspath(_file_))
+    directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
     ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
     return os.path.join(ruta_carpeta_files, nombre_archivo)
 
 class Transformacion:
-    def _init_(self, archivo='ventas_combustible.csv'):
+    def __init__(self, archivo='ventas_combustible.csv'):
         # Ruta al archivo CSV
         self.file_path = obtener_ruta_archivo(archivo)
 
