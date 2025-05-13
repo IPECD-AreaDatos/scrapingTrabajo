@@ -14,6 +14,7 @@ class load_database:
 
     def conectar_bdd(self):
         """Conectar a la base de datos MySQL si no está ya conectada."""
+        print(f"Intentando conectar a: host={self.host}, user={self.user}, password={self.password}, database={self.database}")
         if not self.conn or not self.cursor:
             try:
                 self.conn = pymysql.connect(
@@ -23,6 +24,7 @@ class load_database:
                     database=self.database
                 )
                 self.cursor = self.conn.cursor()
+                print("conec establecida")
             except pymysql.connector.Error as err:
                 print(f"Error al conectar a la base de datos: {err}")
                 return None
@@ -40,12 +42,17 @@ class load_database:
     def load_data(self, df):
         """Cargar el DataFrame a la base de datos, reemplazando los datos existentes."""
         try:
+            df = df.sort_values(by='fecha', ascending=True)
+            ultima_fila = df.iloc[-1]
+            ultima_fecha = ultima_fila['fecha']
             # Crear el motor de conexión a la base de datos
             engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:3306/{self.database}")
             with engine.connect() as connection:
                 # Sobrescribir los datos en la tabla
                 df.to_sql(name="anac", con=connection, if_exists='replace', index=False)
-            print("Datos cargados exitosamente en la base de datos.")
+            print("*****************************************")
+            print(f" SE HA PRODUCIDO UNA CARGA DE DATOS DE ANAC PARA {ultima_fecha} ")
+            print("*****************************************")
         except Exception as e:
             print(f"Error al cargar datos a la base de datos: {e}")
 
@@ -64,9 +71,6 @@ class load_database:
             self.cursor.execute(select_row_count_query)
             values = self.cursor.fetchall()
             
-            print("Datos obtenidos de la base de datos:")
-            print(values)
-            
             # Limpiar los valores y convertir a float
             clean_values = list(
                 filter(
@@ -77,9 +81,6 @@ class load_database:
                     )
                 )
             )
-            
-            print("Valores limpios:")
-            print(clean_values)
             return clean_values
 
         except pymysql.connect.Error as err:

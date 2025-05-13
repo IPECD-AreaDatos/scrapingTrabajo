@@ -46,11 +46,10 @@ class conexionBaseDatosLast:
 
         df = df.sort_values(by='fecha', ascending=True)
 
-        ultima_fila = df.iloc[0]
+        ultima_fila = df.iloc[-1]
 
         ultimo_anio = ultima_fila['fecha'].year
-
-        #print(f"Año de la última fila agregada: {ultimo_anio}")        
+        ultima_fecha = ultima_fila['fecha']
 
         query_count = f'SELECT COUNT(*) FROM datalake_economico.dnrpa WHERE YEAR(fecha) = {ultimo_anio}'
         self.cursor.execute(query_count)
@@ -59,13 +58,13 @@ class conexionBaseDatosLast:
         # Obtener la cantidad de filas en el DataFrame df para el año 2024
         cantidad_df = len(df[df['fecha'].dt.year == ultimo_anio])
 
-        print(f"Cantidad de filas en la tabla dnrpa para 2024: {cantidad_tabla}")
-        print(f"Cantidad de filas en el DataFrame df para 2024: {cantidad_df}")
+        print(f"Cantidad de filas en la tabla dnrpa para {ultimo_anio}: {cantidad_tabla}")
+        print(f"Cantidad de filas en el DataFrame df para {ultimo_anio}: {cantidad_df}")
+        print(f"Ultimo dato: {ultima_fecha}")
 
         if cantidad_tabla == cantidad_df:
             print("*****************************************")
-            print(" Se realizó una verificación de la base de datos ")
-            print(f" No existen datos nuevos de DNRPA para {ultimo_anio} ")
+            print(f"  Se realizó una verificación de la base de datos, no hay nuevos datos de DNRPA")
             print("*****************************************")
         else:
             print("*****************************************")
@@ -77,13 +76,11 @@ class conexionBaseDatosLast:
             self.conn.commit() #Confirmamos DELETE de datos
 
             # Cargar los datos del DataFrame df para el año 2024 a la tabla dnrpa
-            df_2024 = df[df['fecha'].dt.year == ultimo_anio]
-            print("datos a cargar")
-            print(df_2024)
-            df_2024.to_sql(name="dnrpa", con=engine, if_exists='append', index=False)
+            df_nuevo = df[df['fecha'].dt.year == ultimo_anio]
+            df_nuevo.to_sql(name="dnrpa", con=engine, if_exists='append', index=False)
 
             print("*****************************************")
-            print(f" SE HA PRODUCIDO UNA CARGA DE DATOS DE DNRPA para {ultimo_anio} ")
+            print(f" SE HA PRODUCIDO UNA CARGA DE DATOS DE DNRPA PARA {ultimo_anio} ")
             print("*****************************************")
 
 

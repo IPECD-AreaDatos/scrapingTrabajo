@@ -43,9 +43,7 @@ if __name__ == "__main__":
         credenciales_datalake_economico.load_data(df)
 
         # Leer los datos cargados y procesarlos
-        values = credenciales_datalake_economico.read_data_excel()
-        print("Valores desde la base de datos:")
-        print(values)
+        values = credenciales_datalake_economico.read_data_excel()        
 
         # Escribir los valores en Google Sheets
         readSheets().escribir_fila(values)
