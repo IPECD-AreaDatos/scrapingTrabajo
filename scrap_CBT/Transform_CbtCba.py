@@ -23,7 +23,6 @@ class loadXLSDataCBT:
         # Datos de la primera hoja
         df_primeraHoja = pd.read_excel(file_path_desagregado, sheet_name=0, usecols=[0, 1, 3], skiprows=6, skipfooter=1)
         df_primeraHoja.columns = ['Fecha','CBA_Adulto','CBT_Adulto']
-        print(df_primeraHoja)
         
        #valores_que_estan_como_columna = df_primeraHoja.columns.to_list()
        #df_primeraHoja.loc[-1] = valores_que_estan_como_columna
@@ -33,7 +32,6 @@ class loadXLSDataCBT:
         # Limpieza específica del valor incorrecto
         df_primeraHoja['CBA_Adulto'] = df_primeraHoja['CBA_Adulto'].astype(str).str.replace(',', '', regex=True)
         df_primeraHoja['CBT_Adulto'] = df_primeraHoja['CBT_Adulto'].astype(str).str.replace(',', '', regex=True)
-
 
         # Reemplazar el valor específico incorrecto
         df_primeraHoja.loc[df_primeraHoja['CBA_Adulto'] == '13874431', 'CBA_Adulto'] = '138744.31'
@@ -46,7 +44,6 @@ class loadXLSDataCBT:
         #Datos de la primera fila
         df_segundaHoja = pd.read_excel(file_path_desagregado, sheet_name=3, usecols=[2,6], skiprows=6, skipfooter=1)
         df_segundaHoja.columns = ['CBA_Hogar','CBT_Hogar']
-        print(df_segundaHoja)
         
        #valores_que_estan_como_columna = df_segundaHoja.columns.to_list()
        #df_segundaHoja.loc[-1] = valores_que_estan_como_columna
@@ -56,12 +53,6 @@ class loadXLSDataCBT:
         # Eliminar filas completamente vacías (más seguro)
         df_primeraHoja = df_primeraHoja.dropna(how="all").reset_index(drop=True)
         df_segundaHoja = df_segundaHoja.dropna(how="all").reset_index(drop=True)
-
-        print("df1 ")
-        print(df_primeraHoja)
-
-        print("df2 ")
-        print(df_segundaHoja)
 
         #Datos oficiales de CBA y CBT del NEA
         concatenacion_df = pd.read_excel(file_path_estimaciones_nea)
@@ -78,7 +69,6 @@ class loadXLSDataCBT:
 
     def estimaciones_nea(self,concatenacion_df):
 
-    
         #Establecemos la fecha del ultimo periodo valido (recodar que para estimaciones se usa los ultimos 6 valores oficiales del NEA)
         fecha_ultima_publicacion_oficial = pd.to_datetime("2024-06-01")
 
@@ -103,8 +93,6 @@ class loadXLSDataCBT:
             df_con_nulos['CBA_Adulto'] = pd.to_numeric(df_con_nulos['CBA_Adulto'], errors='coerce')
             df_con_nulos['CBT_Adulto'] = pd.to_numeric(df_con_nulos['CBT_Adulto'], errors='coerce')
 
-            print(df_con_nulos.dtypes)
-
             #Recorremos los datos nulos, calculamos sus estimaciones y finalmente los insertamos al DF definitivo
             for index,row in df_con_nulos.iterrows():
                 
@@ -114,7 +102,6 @@ class loadXLSDataCBT:
 
                 concatenacion_df.loc[index, 'cba_nea'] = estimacion_cba
                 concatenacion_df.loc[index, 'cbt_nea'] = estimacion_cbt
-
 
             return concatenacion_df
         

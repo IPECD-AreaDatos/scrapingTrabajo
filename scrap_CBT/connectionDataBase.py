@@ -23,38 +23,31 @@ class connection_db:
 
         self.database = new_name
 
-
     # =========================================================================================== #
             # ==== SECCION CORRESPONDIENTE A LAS CONEXIONES ==== #
-    # =========================================================================================== #
-        
+    # =========================================================================================== #  
 
     #Conexion a la BDD
     def connect_db(self):
-
-            self.conn = pymysql.connect(
+        print(f"Intentando conectar a: host={self.mysql_host}, user={self.mysql_user}, password={self.mysql_password}, database={self.database}")
+        self.conn = pymysql.connect(
                 host = self.mysql_host,
                 user = self.mysql_user,
                 password = self.mysql_password,
                 database = self.database
-            )
-
-            self.cursor = self.conn.cursor()
+        )
+        self.cursor = self.conn.cursor()
+        print("conec establecida")
 
     def close_conections(self):
-
         # Confirmar los cambios en la base de datos y cerramos conexiones
         self.conn.commit()
         self.cursor.close()
         self.conn.close()
 
-
-
 # =========================================================================================== #
                 # ==== SECCION CORRESPONDIENTE AL DATALAKE ==== #
 # =========================================================================================== #
-        
-
 
     #Objetivo: Almacenar los datos de CBA y CBT sin procesar en el datalake. Datos sin procesar
     def load_datalake(self,df):
@@ -64,18 +57,21 @@ class connection_db:
         df_cba_ipc = self.verificar_null_dwh_cbt_ipc()
         df_cba_ipc = df_cba_ipc.iloc[-1]
 
+        df = df.sort_values(by='Fecha', ascending=True)
+
+        ultima_fila = df.iloc[-1]
+        ultima_fecha = ultima_fila['Fecha']
+
         if tamanio_df > tamanio_bdd or pd.isna(df_cba_ipc['vmensual_nea_ipc']): #Si el DF es mayor que lo almacenado, cargar los datos nuevos
             
             #Es necesario el borrado ya que posteriormente las estimaciones tendremos que recalcularlas
             delete_query_datalake = 'TRUNCATE cbt_cba'
             self.cursor.execute(delete_query_datalake)
 
-
             self.cargar_tabla_datalake(df) 
-            print("==== SE CARGARON DATOS NUEVOS CORRESPONDIENTES A CBT Y CBA DEL DATALAKE ====")
+            print(f"==== SE CARGARON DATOS NUEVOS CORRESPONDIENTES A CBT Y CBA PARA {ultima_fecha} ====")
 
             #Nos vamos a reconectar al DWH de sociodemografico para enviar el correo
-            print("Base de datos actual",self.database)
             self.table_a1()
 
             #Bandera que usaremos en main para enviar correo
@@ -83,7 +79,7 @@ class connection_db:
             
         else: #Si no hay datos nuevos AVISAR
             
-            print("==== NO HAY DATOS NUEVOS CORRESPONDIENTES A CBT Y CBA DEL DATALAKE ====")   
+            print(f"==== NO HAY DATOS NUEVOS CORRESPONDIENTES A CBT Y CBA, ULTIMO DATO: {ultima_fecha} ====")   
             #Bandera que usaremos en main para enviar correo
             return False  
 
@@ -127,7 +123,6 @@ class connection_db:
 
         # Cerrar conexiones
         self.close_conections()
-
 
 
 # =========================================================================================== #        
