@@ -41,5 +41,4 @@ class load_censo_total:
         
         # Convertir la lista de datos en un DataFrame
         df_censo = pd.DataFrame(dato_censo)
-        print(df_censo[df_censo['id_provincia'] == 10])
         return df_censo
