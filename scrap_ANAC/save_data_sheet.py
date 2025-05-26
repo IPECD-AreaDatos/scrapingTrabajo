@@ -34,4 +34,4 @@ class readSheets:
             body=body
         ).execute()
         
-        print(f"{request.get('updatedCells')} celdas actualizadas. Fecha del ultimo valor {request.get('updatedRange')}.")
+        print(f"{request.get('updatedCells')} celdas actualizadas en el sheets!")

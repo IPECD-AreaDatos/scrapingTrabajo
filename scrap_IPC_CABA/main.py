@@ -20,8 +20,7 @@ if __name__ == "__main__":
 
     #Transformamos los datos
     df = Transform().extract_data_sheet()
-    print(df)
-    print("\n")
+    
     
     #Cargamos en el datalake
     Load(host_dbb,user_dbb,pass_dbb,dbb_datalake).load_datalake(df)

@@ -15,8 +15,8 @@ pass_dbb = os.getenv('PASSWORD_DBB')
 dbb_datalake = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
 
 if __name__ == '__main__':
-    #print("🔽 Descargando archivos...")
-    #downloadArchive().descargar_archivo()
+    print("🔽 Descargando archivos...")
+    downloadArchive().descargar_archivo()
 
     print("📄 Leyendo archivos de actividad...")
     df_actividad = readFileActividad().read_file()

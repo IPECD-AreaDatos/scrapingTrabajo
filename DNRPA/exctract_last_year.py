@@ -37,8 +37,6 @@ class ExtractLastData:
 
         #Pasamos de STR a INT los numeros
         self.transformar_cantidad_vehiculos()
-        print(self.df_total.dtypes)
-
         return self.df_total
 
 
@@ -64,10 +62,10 @@ class ExtractLastData:
             except ValueError:
                 continue  
 
-        print("Años disponibles:", anos_numeros)
+        #print("Años disponibles:", anos_numeros)
 
         ultimo_anio = max(anos_numeros)
-        print("Último año:", ultimo_anio)
+        #print("Último año:", ultimo_anio)
 
         # Obtener los dos últimos años disponibles
         #ultimos_dos_anos = sorted(anos_numeros)[-2:]
@@ -124,14 +122,10 @@ class ExtractLastData:
                 fila_datos.append(celda.text)
             datos.append(fila_datos)
 
-            
-
-        print(datos)
+        #print(datos)
 
         # Crea un DataFrame de pandas con los datos extraídos de la tabla
         df_formato_original = pd.DataFrame(datos)
-
-        print(df_formato_original)
 
         # ==== TRANSFORMACION DE LA TABLA   
         # 1 - Cambio de provincias por su ID correspondientes
@@ -154,8 +148,6 @@ class ExtractLastData:
             fecha_formateada = fecha.strftime("%Y-%m-%d")
             # Agregar la fecha formateada a la lista
             fechas.append(fecha_formateada)
-
-
     
         #Vamos a crear una lista que sea las nuevas columnas, y esta debe ser [ID_PROV,MES1,MES2,...,MES12]
         nuevos_nombres_columnas = ['id_provincia_indec'] + fechas
@@ -177,8 +169,7 @@ class ExtractLastData:
 
         self.df_total = pd.concat([self.df_total,df_melted])
     
-        print("aca esta 1")
-        print(self.df_total)
+        #print(self.df_total)
         
     def switch_to_latest_window(self):
         windows = self.driver.window_handles
@@ -187,30 +178,19 @@ class ExtractLastData:
     def close_current_window(self):
         self.driver.close()   
 
-
     def transformar_cantidad_vehiculos(self):
 
         self.df_total['cantidad'] = self.df_total['cantidad'].str.replace(".","")
-        print("aca esta 1")
-        print(self.df_total)
+
         self.df_total['id_provincia_indec'] = self.df_total['id_provincia_indec'].astype(int)  # Convertir a tipo entero
-        print("aca esta 2")
-        print(self.df_total)
+    
         self.df_total['id_vehiculo'] = self.df_total['id_vehiculo'].astype(int)  # Convertir a tipo entero
-        print("aca esta 3")
-        print(self.df_total)
 
         self.df_total['cantidad'] = self.df_total['cantidad'].astype(int)  # Convertir a tipo entero
-        print("aca esta 4")
-        print(self.df_total)
 
         self.df_total['fecha'] = pd.to_datetime(self.df_total['fecha'], format='%Y-%m-%d')
-        print("aca esta 5")
-        print(self.df_total)
 
         self.df_total = self.df_total[self.df_total['cantidad'] > 0]
-        print("aca esta 6")
-        print(self.df_total)
 
         
 

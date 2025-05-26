@@ -36,7 +36,6 @@ if __name__ == "__main__":
 
     # Asegúrate de que los ID de provincia son del mismo tipo y merge ambas tablas en una sola DataFrame
     combined_df = pd.merge(df_censo, df_sipa, how='inner', left_on=['id_provincia', 'fecha'], right_on=['id_provincia', 'fecha'])
-    print(combined_df)
     
     # Calcular la tasa de empleo por cada mil habitantes
     combined_df['puestos_cada_mil_empleados'] = ((combined_df['cantidad_sin_estacionalidad'] * 1000) / combined_df['poblacion']) * 1000
@@ -45,7 +44,6 @@ if __name__ == "__main__":
     combined_df = combined_df[['fecha', 'id_provincia', 'puestos_cada_mil_empleados']]
 
     # Visualizar el resultado
-    print(combined_df)
 
     credenciales_dwh_economico = load_database(host_dbb,user_dbb,pass_dbb,dbb_dwh).conectar_bdd()
     credenciales_dwh_economico.load_data(combined_df)
