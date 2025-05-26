@@ -130,3 +130,10 @@ class connect_db:
             self._replace_table(df, table_name)
         else:
             print("ℹ️ No hay cambios en los datos de ecv_planes_impacto.")
+
+    def connect_db_q_planes(self, df):
+        table_name = 'ecv_q_planes'
+        if self._should_update(df, table_name):
+            self._replace_table(df, table_name)
+        else:
+            print("ℹ️ No hay cambios en los datos de ecv_q_planes.")

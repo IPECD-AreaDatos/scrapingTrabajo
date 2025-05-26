@@ -19,6 +19,7 @@ from readSheetsTransporteTiempoMedio import readSheetsTransporteTiempoMedio
 from readSheetsTransporteUniversitarios import readSheetsTransporteUniversitarios
 from readSheetsPobrezaImpacto import readSheetsPobrezaImpacto
 from readSheetsPlanesImpacto import readSheetsPlanesImpacto
+from readSheetsQPlanes import readSheetsQPlanes
 
 # Cargar .env
 load_dotenv()
@@ -48,6 +49,7 @@ opciones = {
     "transporte_universitarios": lambda: db.connect_db_transporte_universitarios(readSheetsTransporteUniversitarios().leer_datos_trabajo()),
     "pobreza_impacto": lambda: db.connect_db_pobreza_impacto(readSheetsPobrezaImpacto().leer_datos_pobreza_impacto()),
     "planes_impacto": lambda: db.connect_db_planes_impacto(readSheetsPlanesImpacto().leer_datos_planes_impacto()),
+    "q_planes": lambda: db.connect_db_q_planes(readSheetsQPlanes().leer_datos_q_planes()),
 }
 
 def mostrar_menu():

@@ -89,7 +89,5 @@ class readSheetsEducacion:
         # Edad promedio de abandono
         df['edad_promedio_abandono'] = pd.to_numeric(df['edad_promedio_abandono'], errors='coerce')
 
-        # Opcional: formatear fecha a string
-        df['fecha'] = df['fecha'].dt.strftime('%Y-%m-%d')
 
 

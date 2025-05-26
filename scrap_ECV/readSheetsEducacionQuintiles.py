@@ -69,7 +69,7 @@ class readSheetsEducacionQuintiles:
         # Convertir la primera columna a tipo de datos de fecha
         df['Año'] = df['Año'].astype(int)
         df['Fecha'] = pd.to_datetime(df['Fecha'], format='%d/%m/%Y')
-        df['Fecha'] = df['Fecha'].dt.strftime('%Y-%m-%d')  # Formatear a 'YYYY-MM-DD'
+
         # Convertir la segunda columna a tipo de datos entero
         df['Trimestre'] = df['Trimestre'].astype(str)
         df['Aglomerado'] = df['Aglomerado'].astype(str)

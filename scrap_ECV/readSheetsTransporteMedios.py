@@ -76,7 +76,6 @@ class readSheetsTransporteMedios:
         
         # Convertir la columna de fecha a tipo datetime
         df['fecha'] = pd.to_datetime(df['fecha'], format='%d/%m/%Y', errors='coerce')
-        df['fecha'] = df['fecha'].dt.strftime('%Y-%m-%d')  # Formatear a 'YYYY-MM-DD'
 
         # Convertir las columnas a sus tipos adecuados
         df['año'] = pd.to_numeric(df['año'], errors='coerce').astype('Int64')

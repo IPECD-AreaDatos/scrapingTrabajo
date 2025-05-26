@@ -70,7 +70,6 @@ class readSheetsTransporteTiempoMedio:
 
         # Convertir la primera columna a tipo de datos de fecha
         df['fecha'] = pd.to_datetime(df['fecha'], format='%d/%m/%Y')
-        df['fecha'] = df['fecha'].dt.strftime('%Y-%m-%d')  # Formatear a 'YYYY-MM-DD'
 
         df['año'] = df['año'].astype(int)
         # Convertir la segunda columna a tipo de datos entero
