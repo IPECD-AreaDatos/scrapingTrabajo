@@ -9,3 +9,4 @@ __pycache__/
 
 #Archivo de variables de entorno - NUNCA SUBIR AL GIT
 .env
+*env_scrapping
