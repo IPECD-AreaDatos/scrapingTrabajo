@@ -71,9 +71,9 @@ class readData:
         driver.get('https://www.argentina.gob.ar/trabajo/seguridadsocial/ripte')
 
         # Buscamos la tabla que contiene los datos
-        try:
-            elemento = WebDriverWait(driver, 20).until(
-                EC.presence_of_element_located((By.XPATH, '/html/body/main/div[2]/div/section/article/div/div[9]/div/div/div/div/div[2]/div/h3'))
+        try:                                                   
+            elemento = WebDriverWait(driver, 20).until(    
+                EC.presence_of_element_located((By.XPATH, '/html/body/main/div[2]/div/section/article/div/div[9]/div/div/div/div/div[2]/div/div/span'))
             )
             contenido_texto = elemento.text
             contenido_numerico = contenido_texto.replace('$', '').replace('.', '').replace(',', '.')
