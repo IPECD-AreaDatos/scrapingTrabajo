@@ -17,41 +17,55 @@ De la hoja EPH
 class readSheetsTrabajoEPH:
     def leer_datos_tasas(self):
         load_dotenv()
-        df = []
-        # Define los alcances y la ruta al archivo JSON de credenciales
+        # Setup
         SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-
         key_dict = loads(os.getenv('GOOGLE_SHEETS_API_KEY'))
-
         creds = service_account.Credentials.from_service_account_info(key_dict, scopes=SCOPES)
-
-        # Escribe aquí el ID de tu documento:
         SPREADSHEET_ID = '1sfAdpqs9oh6JbP5kZgiirHAx99tn7ELxz7TZWIe3BrM'
+        RANGE = 'Trabajo_EPH!A1:I1000'  # Ampliamos el rango por seguridad
 
-        # Crea una instancia de la API de Google Sheets
+        # API call
         service = build('sheets', 'v4', credentials=creds)
         sheet = service.spreadsheets()
+        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=RANGE).execute()
+        values = result.get('values', [])
 
-        # Realiza una llamada a la API para obtener datos desde la hoja 'Hoja 1' en el rango 'A1:A8'
-        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='Trabajo_EPH!A:I').execute()
-        # Extrae los valores del resultado
-        values = result.get('values', [])[1:]
+        print(f"🔎 Filas obtenidas crudas (incluyendo encabezado): {len(values)}")
 
-        # Crea el DataFrame df1
-        df = pd.DataFrame(values, columns=['Region','Aglomerado', 'Año', 'Fecha', 'Trimestre', 'Estado del dato', 'Tasa de Actividad', 'Tasa de Empleo', 'Tasa de desocupación']) 
-        for e in df['Estado del dato']:
-            if e != 'FINALIZADO':
-               df.replace({e:pd.NA}, inplace=True)
-        df.replace({" ": pd.NA, "": pd.NA}, inplace=True)
-        df.dropna(subset=['Estado del dato'], inplace=True)    
-        df = df.where(pd.notnull(df), None)
-        print(df)
-        df.drop(['Estado del dato'], axis=1, inplace=True)   
+        if len(values) <= 1:
+            print("⚠️ No se encontraron datos suficientes (solo encabezado o vacío).")
+            return pd.DataFrame()
+
+        # Crear DataFrame
+        df = pd.DataFrame(values[1:], columns=[
+            'Region', 'Aglomerado', 'Año', 'Fecha', 'Trimestre',
+            'Estado del dato', 'Tasa de Actividad', 'Tasa de Empleo', 'Tasa de desocupación'
+        ])
+
+        # Limpieza inicial
+        df = df.applymap(lambda x: x.strip() if isinstance(x, str) else x)  # Limpia espacios
+        df.replace({"": pd.NA, " ": pd.NA}, inplace=True)
+
+        # Eliminar filas no finalizadas
+        df = df[df['Estado del dato'] == 'FINALIZADO']
+        df.drop(['Estado del dato'], axis=1, inplace=True)
+
+        # Convertir tipos
         self.transformar_tipo_datos(df)
-        print(df.dtypes)
-        print(df)
-        print(df.columns)
+
+        # Prints de control
+        print(f"✅ Filas luego de limpieza y filtro 'FINALIZADO': {len(df)}")
+        print("📌 Columnas del DataFrame:", df.columns.tolist())
+        print("📄 Tipos de datos:\n", df.dtypes)
+        print("🧾 Últimas filas:\n", df.tail())
+
         return df
+
+    def transformar_tipo_datos(self, df):
+        df['Año'] = pd.to_numeric(df['Año'], errors='coerce')
+        df['Tasa de Actividad'] = pd.to_numeric(df['Tasa de Actividad'], errors='coerce')
+        df['Tasa de Empleo'] = pd.to_numeric(df['Tasa de Empleo'], errors='coerce')
+        df['Tasa de desocupación'] = pd.to_numeric(df['Tasa de desocupación'], errors='coerce')
         
 
     def transformar_tipo_datos(self, df):
