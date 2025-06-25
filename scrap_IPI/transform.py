@@ -32,8 +32,9 @@ class Transform:
 
         # Crear el dataframe - especificamos, HOJA - QUE COLUMNAS USAMOS - LOS NOMBRES DE LAS COLUMNAS -LA FILA DONDE ARRANCA
         self.df_variaciones = pd.read_excel(self.path_excel,sheet_name='Cuadro 3',usecols='D,E,V,AE,AO,BB,BM',names=nombre_cols,skiprows=16)
-        self.df_variaciones = self.df_variaciones.dropna()
         
+        self.df_variaciones = self.df_variaciones.dropna()
+ 
         #Dividimos por 100 para obtener la variacion en terminos NO PORCENTUALES
         self.df_variaciones = self.df_variaciones / 100
 
@@ -48,7 +49,6 @@ class Transform:
 
         # Reordenar las columnas para que 'fecha' sea la primera
         self.df_variaciones = self.df_variaciones[['fecha'] + [col for col in self.df_variaciones.columns if col != 'fecha']]
-
     
     #Objetivo: tomar los valores de la serie original (hoja = "CUADRO 2")
     def construir_df_valores(self):
@@ -59,9 +59,9 @@ class Transform:
         # Crear el dataframe desde el Excel con los valores especificados
         df_ipi_manufacturero = pd.read_excel(
             self.path_excel, 
-            sheet_name=1, 
+            sheet_name=1, # cuadro 1
             usecols='H', 
-            skiprows=8,  # Fila 9 es índice 8 en programación
+            skiprows=7,  # Fila 9 es índice 8 en programación
             names=['ipi_manufacturero']
         )
 
@@ -121,6 +121,6 @@ class Transform:
         self.construir_df_variaciones()
         self.construir_df_acum_interanual()
 
-        return self.df_valores,self.df_variaciones,self.df_var_inter_acum
-    
+        print(self.df_valores)
 
+        return self.df_valores,self.df_variaciones,self.df_var_inter_acum
