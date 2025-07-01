@@ -9,7 +9,7 @@ directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
 ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
 
 class Transform:
-    def _init_(self):
+    def __init__(self):
         # creamos el df final vacio
         self.df_final = pd.DataFrame()
 
@@ -95,7 +95,8 @@ class Transform:
         date = pd.Timestamp(year=año, month=mes, day=1).date()
         df['periodo'] = date
         df['periodo'] = pd.to_datetime(df['periodo'])
-
+        
+        print(df.head(80))
         # filtramos el df y generamos sumas
         df_agrupado = df.groupby(['periodo', 'jurisdiccion_desc', 'seccion', 'grupo', 'ciiu'], as_index=False).agg({
             'cant_personas_trabaj_cp': 'sum', 
@@ -104,6 +105,8 @@ class Transform:
         
         df_agrupado['cant_personas_trabaj_up'] = df_agrupado['cant_personas_trabaj_up'] + df_agrupado['cant_personas_trabaj_cp']
         df_agrupado.drop(columns=['cant_personas_trabaj_cp'], inplace=True)
+
+        print(df_agrupado.head(80))
     
         # creamos una nueva columna resultado de dividir dos valores existentes
         df_agrupado['salario'] = df_agrupado['remuneracion'] / df_agrupado['cant_personas_trabaj_up']
@@ -113,6 +116,8 @@ class Transform:
         
         float_cols = df_agrupado.select_dtypes(include='float').columns
         df_agrupado.loc[:, float_cols] = df_agrupado[float_cols].round(2)
+        print(df_agrupado)
+
 
         return df_agrupado
     
@@ -133,8 +138,15 @@ class Transform:
         df.loc[:, columnas_str] = df[columnas_str].astype(str)
 
         df['remuneracion'] = df['remuneracion'].astype(str)  # Convierte todo a str
-        df['remuneracion'] = df['remuneracion'].str.replace('.', '', regex=False)  # Elimina puntos (separador de miles)
-        df['remuneracion'] = df['remuneracion'].str.replace(',', '.', regex=False)  # Reemplaza coma decimal por punto        df['remuneracion'] = df['remuneracion'].str.strip()  # Elimina espacios
+
+        # Obtener el primer periodo (asumiendo que todos los valores de 'periodo' son iguales)
+        primer_periodo = int(df['periodo'].iloc[0])
+
+        # Aplicar reemplazos solo si el periodo es hasta enero 2025 inclusive
+        if primer_periodo <= 202501:
+            df['remuneracion'] = df['remuneracion'].str.replace('.', '', regex=False)
+            df['remuneracion'] = df['remuneracion'].str.replace(',', '.', regex=False)
+
         df['remuneracion'] = df['remuneracion'].replace('', None)  # Reemplaza valores vacíos con NaN
         df['remuneracion'] = pd.to_numeric(df['remuneracion'], errors='coerce')  # Convierte a número
         df['cant_personas_trabaj_up'] = pd.to_numeric(df['cant_personas_trabaj_up'], errors='coerce')
