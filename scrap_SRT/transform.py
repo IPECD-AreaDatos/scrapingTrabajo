@@ -9,7 +9,7 @@ directorio_desagregado = os.path.dirname(os.path.abspath(__file__))
 ruta_carpeta_files = os.path.join(directorio_desagregado, 'files')
 
 class Transform:
-    def __init__(self):
+    def _init_(self):
         # creamos el df final vacio
         self.df_final = pd.DataFrame()
 
@@ -81,9 +81,12 @@ class Transform:
             
         # Eliminar espacios en los nombres de las columnas
         df.columns = df.columns.str.strip()
-        
-        # editamos las columnas
+ 
+         # editamos las columnas
         df = self.columnass(df)
+
+        float_cols = df.select_dtypes(include='float').columns
+        df.loc[:, float_cols] = df[float_cols].round(2)
 
         # obtenemos la primer fecha y la pasamos al formato yy-mm-dd
         fecha = df.loc[5, 'periodo']
@@ -107,6 +110,9 @@ class Transform:
         df_agrupado['salario'] = df_agrupado['salario'].fillna(0)  
 
         df_agrupado = self.provincias(df_agrupado)
+        
+        float_cols = df_agrupado.select_dtypes(include='float').columns
+        df_agrupado.loc[:, float_cols] = df_agrupado[float_cols].round(2)
 
         return df_agrupado
     
@@ -127,8 +133,8 @@ class Transform:
         df.loc[:, columnas_str] = df[columnas_str].astype(str)
 
         df['remuneracion'] = df['remuneracion'].astype(str)  # Convierte todo a str
-        df['remuneracion'] = df['remuneracion'].str.replace(',', '', regex=True)  # Elimina comas
-        df['remuneracion'] = df['remuneracion'].str.strip()  # Elimina espacios
+        df['remuneracion'] = df['remuneracion'].str.replace('.', '', regex=False)  # Elimina puntos (separador de miles)
+        df['remuneracion'] = df['remuneracion'].str.replace(',', '.', regex=False)  # Reemplaza coma decimal por punto        df['remuneracion'] = df['remuneracion'].str.strip()  # Elimina espacios
         df['remuneracion'] = df['remuneracion'].replace('', None)  # Reemplaza valores vacíos con NaN
         df['remuneracion'] = pd.to_numeric(df['remuneracion'], errors='coerce')  # Convierte a número
         df['cant_personas_trabaj_up'] = pd.to_numeric(df['cant_personas_trabaj_up'], errors='coerce')
