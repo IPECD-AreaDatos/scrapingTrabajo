@@ -1,12 +1,78 @@
-*.pyc
-*.csv
+# Entorno virtual
+venv/
+.venv/
+
+# Cache de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Archivos temporales del sistema
+.DS_Store
+Thumbs.db
+
+# Logs y datos temporales
+logs/
+*.log
+
+# Archivos de configuración local y credenciales
+.env
+.env.*
+*.ini
+*.cfg
+
+# Archivos de bases de datos locales o dumps
+*.sqlite3
+*.db
+*.sql
+*.bak
+
+# Archivos Excel y CSV de trabajo
 *.xlsx
 *.xls
-*.pdf
-*.venv
-entorno_trabajo/
-__pycache__/
+*.csv
 
-#Archivo de variables de entorno - NUNCA SUBIR AL GIT
-.env
-*env_scrapping
+# Archivos de salida temporales
+*.tmp
+*.swp
+
+# Archivos de test coverage
+htmlcov/
+.tox/
+.coverage
+.cache
+.pytest_cache/
+
+# Archivos de profiling
+*.prof
+
+# Documentación generada
+/build/
+/dist/
+/docs/_build/
+/*.egg-info/
+
+# Paquetes distribuidos
+*.egg
+*.whl
+
+# Archivos de editor
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Archivos de compilación Cython
+*.c
+*.so
+
+# Archivos de seguridad
+*.pem
+*.key
+
+# Archivos de backup de editores
+*~
+*.orig
+
+# Archivos específicos de tu proyecto que no quieres subir
+output/
