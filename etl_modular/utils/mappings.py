@@ -29,6 +29,33 @@ provincias = {
     "TIERRA DEL FUEGO": 94,
 }
 
+provinciass = {
+            'Estado Nacional': 1,
+            'Capital Federal': 2,
+            'Buenos Aires': 6,
+            'Catamarca': 10,
+            'Chaco': 22,
+            'Chubut': 26,
+            'Córdoba': 14,
+            'Corrientes': 18,
+            'Entre Rios': 30,
+            'Formosa': 34,
+            'Jujuy': 38,
+            'La Pampa': 42,
+            'La Rioja': 46,
+            'Mendoza': 50,
+            'Misiones': 54,
+            'Neuquén': 58,
+            'Rio Negro': 62,
+            'Salta': 66,
+            'San Juan': 70,
+            'San Luis': 74,
+            'Santa Cruz': 78,
+            'Santa Fe': 82,
+            'Santiago del Estero': 86,
+            'Tierra del Fuego': 94,
+            'Tucuman': 90,
+}
 
 categorias_nacion_sipa = {
     "Empleo asalariado en el sector privado": 2,
