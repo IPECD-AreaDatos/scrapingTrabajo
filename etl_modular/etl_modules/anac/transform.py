@@ -45,6 +45,13 @@ def transform_anac_data(file_path, target_value="TABLA 11"):
     # Limpiar
     df_largo = df_largo.dropna(subset=['cantidad'])
 
+    # Asegurar tipos de datos
+    df_largo['fecha'] = pd.to_datetime(df_largo['fecha']).dt.date
+    df_largo['aeropuerto'] = df_largo['aeropuerto'].astype(str)
+    df_largo['cantidad'] = pd.to_numeric(df_largo['cantidad'], errors='coerce')
+
+    print(df_largo.dtypes)
+
     print("✅ Transformación completada")
     return df_largo.sort_values(by=['fecha', 'aeropuerto'])
 

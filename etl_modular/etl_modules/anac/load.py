@@ -23,7 +23,7 @@ def load_anac_data(df):
     conexion.close_connections()
 
     if exito:
-        print("✅ Datos nuevos cargados correctamente en sipa_valores y DWH.")
+        print("✅ Datos nuevos cargados correctamente en la tabla anac.")
     else:
         print("⚠️ No se detectaron datos más recientes. No se cargó nada.")
 

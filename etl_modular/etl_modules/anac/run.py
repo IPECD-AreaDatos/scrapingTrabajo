@@ -14,7 +14,9 @@ def run_anac():
     password = os.getenv('PASSWORD_DBB')
     database = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
 
-    ruta = extract_anac_data()
+    #uta = extract_anac_data()
+    ruta = "etl_modular/data/raw/ANAC.xlsx"
     df = transform_anac_data(ruta)
+    print(df)
     datos_nuevos = load_anac_data(df)
     print(datos_nuevos)
