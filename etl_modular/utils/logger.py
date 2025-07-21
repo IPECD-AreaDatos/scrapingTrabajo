@@ -8,3 +8,5 @@ def setup_logger(name="etl"):
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s"
     )
+    logger = logging.getLogger(name="etl")
+    return logger

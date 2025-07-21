@@ -71,5 +71,6 @@ def suma_por_fecha(file_path):
 
     # Sumar las columnas numéricas
     suma = df_fecha['cantidad'].sum()  # Solo sumamos la columna 'cantidad'
+    print(ultima_fecha)
 
     return suma  # Ahora retorna un valor numérico, no una Serie

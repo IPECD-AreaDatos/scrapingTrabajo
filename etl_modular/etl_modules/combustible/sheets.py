@@ -1,16 +1,26 @@
-from googleapiclient.discovery import build
-from google.oauth2 import service_account
+import logging
 import os
-import pandas as pd
-from pymysql import connect
-from dotenv import load_dotenv
-from json import loads
+from etl_modular.utils.sheets import ConexionGoogleSheets
 
-load_dotenv()
+def load_combustible_sheets_data(datos_nuevos, suma_mensual):
+    logger = logging.getLogger("combustible")
+    logger.info("💾 Iniciando carga al Google Sheets...")
 
-host = os.getenv("HOST_DBB")
-user = os.getenv("USER_DBB")
-password = os.getenv("PASSWORD_DBB")
-database = os.getenv("NAME_DBB_DATALAKE_ECONOMICO")
+    if not datos_nuevos:
+        logger.info("⚠️ No hay datos nuevos para cargar al Sheets.")
+        print("⛔ datos_nuevos es False")
+        return
+    
+    print("✅ datos_nuevos es True, creando objeto ConexionGoogleSheets")
+    SPREADSHEET_ID = '1L_EzJNED7MdmXw_rarjhhX8DpL7HtaKpJoRwyxhxHGI'
 
-def sheet_combustible_data():
+    print(repr(os.getenv('GOOGLE_SHEETS_API_KEY')))
+    try:
+        sheets = ConexionGoogleSheets(SPREADSHEET_ID)
+        print("📄 Objeto sheets creado")
+        sheets.escribir_valor_en_columna_siguiente(fila=6, valor=suma_mensual)
+        print("📤 Valor escrito en columna")
+        logger.info("✅ Carga a Google Sheets completada.")
+    except Exception as e:
+        print(f"❌ Excepción: {e}")
+        logger.error(f"❌ Error durante la carga a Google Sheets: {e}")
