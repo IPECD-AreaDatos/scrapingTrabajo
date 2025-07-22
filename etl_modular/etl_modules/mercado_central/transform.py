@@ -34,7 +34,6 @@ def procesar_archivos_csv(base_path, patron_nombre, rubro=None):
                 .str.strip()
             )
 
-            print(f"🔍 {archivo.name} - PROC únicos:", df["PROC"].unique())
 
             df = df[df["PROC"].isin(["CTES", "CORRIENTES"])]
             if df.empty:
@@ -101,5 +100,33 @@ def transform_mercado_central_completo():
 
     df_frutas = df_frutas[[col for col in columnas_finales_frutas if col in df_frutas.columns]]
     df_hortalizas = df_hortalizas[[col for col in columnas_finales_hortalizas if col in df_hortalizas.columns]]
+    print("🍎 Columnas en df_frutas ANTES:")
+    print(df_frutas.columns.tolist())
+
+    print("\n🥕 Columnas en df_hortalizas ANTES:")
+    print(df_hortalizas.columns.tolist())
+
+    # ✅ Renombrar columnas y pasar a minúsculas
+    df_frutas = renombrar_columnas(df_frutas)
+    df_hortalizas = renombrar_columnas(df_hortalizas)
+
+    print("🍎 Columnas en df_frutas DPS:")
+    print(df_frutas.columns.tolist())
+
+    print("\n🥕 Columnas en df_hortalizas DPS:")
+    print(df_hortalizas.columns.tolist())
 
     return df_frutas, df_hortalizas
+
+def renombrar_columnas(df):
+    nuevos_nombres = {}
+    for col in df.columns:
+        if col.startswith("MA") and not col.endswith("PK"):
+            nuevos_nombres[col] = "maximo"
+        elif col.startswith("MO") and not col.endswith("PK"):
+            nuevos_nombres[col] = "moda"
+        elif col.startswith("MI") and not col.endswith("PK"):
+            nuevos_nombres[col] = "minimo"
+    df = df.rename(columns=nuevos_nombres)
+    df.columns = df.columns.str.lower()  # pasar todas a minúsculas
+    return df

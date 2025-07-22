@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from etl_modular.utils.logger import setup_logger
 from .extract import extract_mercado_central_data
 from .transform import transform_mercado_central_completo
+from pathlib import Path
 
 def run_mercado_central():
     logger = setup_logger("mercado_central")
@@ -38,6 +39,12 @@ def run_mercado_central():
         # TODO: Aquí podrías insertar df_frutas y df_hortalizas en sus respectivas tablas
         # insert_to_db(df_frutas, "tabla_frutas")
         # insert_to_db(df_hortalizas, "tabla_hortalizas")
+
+        
+        ruta_guardado = "/home/usuario/Escritorio/prueba"
+
+        df_frutas.to_csv(f"{ruta_guardado}/df_frutas.csv", index=False)
+        df_hortalizas.to_csv(f"{ruta_guardado}/df_hortalizas.csv", index=False)
 
     except Exception as e:
         logger.error(f"❌ Error durante la ejecución: {e}")
