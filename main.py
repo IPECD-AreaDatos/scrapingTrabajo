@@ -10,9 +10,9 @@ load_dotenv()
 def main():
     #print("🚀 Ejecutando ETL de SIPA")
     #run_sipa()
-    run_combustible()
+    #run_combustible()
     #un_anac()
-    #run_mercado_central()
+    run_mercado_central()
 
 if __name__ == '__main__':
     main()

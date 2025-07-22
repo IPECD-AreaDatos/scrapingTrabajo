@@ -6,11 +6,14 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import urllib3
 from pathlib import Path
-
 import zipfile
+import pandas as pd
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def extract_mercado_central_data():
-    print("📥 Iniciando descarga del archivo mercado central..")
+    print("📥 Iniciando descarga del archivo mercado central...")
+
     # === FRUTAS 2024 ZIP único ===
     ruta_frutas2024 = extraer_archivos(
         descripcion="Frutas 2024",
@@ -18,12 +21,8 @@ def extract_mercado_central_data():
         carpeta_salida="frutas2024",
         nombre_zip="frutas2024"
     )
-
-    # Descomprimir los ZIPs internos dentro de frutas2024
-    descomprimir_todos_los_zips(
-        carpeta_origen=ruta_frutas2024,
-        carpeta_destino=ruta_frutas2024
-    )
+    descomprimir_todos_los_zips(ruta_frutas2024, ruta_frutas2024)
+    convertir_xls_a_csv(ruta_frutas2024)
 
     # === FRUTAS 2025 múltiples ZIPs mensuales ===
     descargar_lote_zips(
@@ -31,6 +30,7 @@ def extract_mercado_central_data():
         xpath_base="/html/body/section/div/div/div[2]/div[3]/div/span[position() > 1]/a",
         carpeta_destino="frutas2025"
     )
+    convertir_xls_a_csv(Path(ruta_frutas2024).parent / "frutas2025")
 
     # === HORTALIZAS 2024 ZIP único ===
     ruta_hortalizas2024 = extraer_archivos(
@@ -39,12 +39,8 @@ def extract_mercado_central_data():
         carpeta_salida="hortalizas2024",
         nombre_zip="hortalizas2024"
     )
-
-    # Descomprimir los ZIPs internos dentro de hortalizas2024
-    descomprimir_todos_los_zips(
-        carpeta_origen=ruta_hortalizas2024,
-        carpeta_destino=ruta_hortalizas2024
-    )
+    descomprimir_todos_los_zips(ruta_hortalizas2024, ruta_hortalizas2024)
+    convertir_xls_a_csv(ruta_hortalizas2024)
 
     # === HORTALIZAS 2025 múltiples ZIPs mensuales ===
     descargar_lote_zips(
@@ -52,8 +48,9 @@ def extract_mercado_central_data():
         xpath_base="/html/body/section/div/div/div[2]/div[4]/div/span[position() > 1]/a",
         carpeta_destino="hortalizas2025"
     )
+    convertir_xls_a_csv(Path(ruta_hortalizas2024).parent / "hortalizas2025")
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+# ========== Funciones auxiliares ==========
 
 def setup_driver():
     options = webdriver.ChromeOptions()
@@ -73,6 +70,8 @@ def descomprimir_zip(ruta_zip, carpeta_destino):
     with zipfile.ZipFile(ruta_zip, 'r') as zip_ref:
         zip_ref.extractall(carpeta_destino)
     print(f"📂 Archivos extraídos en: {carpeta_destino}")
+    os.remove(ruta_zip)
+    print(f"🗑️ ZIP eliminado: {ruta_zip}")
 
 def descomprimir_todos_los_zips(carpeta_origen, carpeta_destino):
     carpeta_origen = Path(carpeta_origen)
@@ -118,7 +117,6 @@ def descargar_lote_zips(descripcion, xpath_base, carpeta_destino):
     driver.get('https://mercadocentral.gob.ar/informaci%C3%B3n/precios-mayoristas')
     wait = WebDriverWait(driver, 10)
 
-    # Selecciona todos los enlaces del bloque
     elementos = wait.until(EC.presence_of_all_elements_located((By.XPATH, xpath_base)))
 
     for elemento in elementos:
@@ -129,5 +127,19 @@ def descargar_lote_zips(descripcion, xpath_base, carpeta_destino):
 
     driver.quit()
 
-    # Descomprimir todos los ZIPs descargados
     descomprimir_todos_los_zips(carpeta_files, carpeta_files)
+
+# ========== Nueva función de conversión ==========
+
+def convertir_xls_a_csv(directorio):
+    directorio = Path(directorio)
+    for archivo in directorio.rglob("*.XLS"):
+        try:
+            df = pd.read_excel(archivo, engine="xlrd")
+            csv_path = archivo.with_suffix(".csv")
+            df.to_csv(csv_path, index=False)
+            print(f"✅ Convertido a CSV: {csv_path.name}")
+            archivo.unlink()  # Elimina el archivo .XLS
+            print(f"🗑️ XLS eliminado: {archivo.name}")
+        except Exception as e:
+            print(f"❌ Error al convertir {archivo.name}: {e}")
