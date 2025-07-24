@@ -3,6 +3,7 @@
 provincias = {
     "NACION": 1,
     "CIUDAD AUTONOMA DE BUENOS AIRES": 2,
+    "C.AUTONOMA DE BS.AS": 2,
     "CABA": 2,
     "BUENOS AIRES": 6,
     "CATAMARCA": 10,
@@ -25,8 +26,10 @@ provincias = {
     "SANTA CRUZ": 78,
     "SANTA FE": 82,
     "SANTIAGO DEL ESTERO": 86,
+    "SGO.DEL ESTERO": 86,
     "TUCUMAN": 90,
     "TIERRA DEL FUEGO": 94,
+    "T.DEL FUEGO": 94,
 }
 
 provinciass = {
