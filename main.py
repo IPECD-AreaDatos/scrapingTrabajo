@@ -16,5 +16,6 @@ def main():
     #run_mercado_central()
     run_dnrpa()
 
+
 if __name__ == '__main__':
     main()
