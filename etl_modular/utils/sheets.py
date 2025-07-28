@@ -32,7 +32,29 @@ class ConexionGoogleSheets():
             self.logger.info("✅ Google Sheets API inicializado correctamente.")
         except Exception as e:
             raise ValueError(f"Error al procesar las credenciales de Google Sheets: {e}")
+        
+    def update_sheet_range(self, spreadsheet_id: str, sheet_range: str, values: list):
+        print(f"Actualizando rango: {sheet_range} con valores: {values}")
+        body = {"values": values}
+        result = self.service.values().update(
+            spreadsheetId=spreadsheet_id,
+            range=sheet_range,
+            valueInputOption="USER_ENTERED",
+            body=body
+        ).execute()
+        print("Resultado:", result)
 
+    def escribir_rango(self, sheet_range: str, values: list):
+        print(f"Actualizando rango: {sheet_range} con valores: {values}")
+        body = {"values": values}
+        result = self.service.values().update(
+            spreadsheetId=self.spreadsheet_id,
+            range=sheet_range,
+            valueInputOption="USER_ENTERED",
+            body=body
+        ).execute()
+        print("Resultado:", result)
+    
     def leer_df(self, rango: str, header: bool = True) -> pd.DataFrame:
         result = self.service.values().get(spreadsheetId=self.spreadsheet_id, range=rango).execute()
         values = result.get('values', [])
@@ -68,29 +90,24 @@ class ConexionGoogleSheets():
         ).execute()
         self.logger.info(f"📎 Datos agregados en {rango}: {response.get('updates', {}).get('updatedCells')} celdas")
 
-    def get_last_col_letter(self, fila: int = 1) -> str:
-        # Obtener la última columna realmente ocupada (con datos no vacíos)
+   
+    def get_last_col_letter(self, fila: int, sheet_name: str = "Sheet1") -> str:
+        rango = f"{sheet_name}!A{fila}:ZZ{fila}"
         result = self.service.values().get(
             spreadsheetId=self.spreadsheet_id,
-            range=f'{fila}:{fila}'
+            range=rango
         ).execute()
-        values = result.get('values', [])
-        
-        last_col_index = 0
-        if values and values[0]:
-            for i, cell in enumerate(values[0]):
-                if str(cell).strip() != "":
-                    last_col_index = i + 1  # índice 1-based
-        
-        if last_col_index == 0:
-            last_col_index = 1  # Si no hay datos, usar la columna A
-        
-        next_col_letter = self.num_to_col(last_col_index + 1)  # Columna siguiente vacía
-        return next_col_letter
 
-    def escribir_valor_en_columna_siguiente(self, fila: int, valor):
-        col_letter = self.get_last_col_letter(fila)
-        rango = f'{col_letter}{fila}'
+        valores = result.get('values', [])
+        cantidad_columnas = len(valores[0]) if valores else 0
+        col_index = cantidad_columnas + 1  # siguiente columna vacía
+
+        letra_columna = self.numero_a_letra(col_index)
+        return letra_columna
+
+    def escribir_valor_en_columna_siguiente(self, fila: int, valor, sheet_name: str = "Sheet1"):
+        col_letter = self.get_last_col_letter(fila, sheet_name)
+        rango = f'{sheet_name}!{col_letter}{fila}'
         response = self.service.values().update(
             spreadsheetId=self.spreadsheet_id,
             range=rango,
@@ -98,15 +115,14 @@ class ConexionGoogleSheets():
             body={'values': [[valor]]}
         ).execute()
         self.logger.info(f"✅ Valor {valor} escrito en {rango}: {response.get('updatedCells')} celdas")
-        
+
     @staticmethod
-    def num_to_col(n: int) -> str:
-        """Convierte índice 1-based a letra de columna (ej: 1 -> A, 27 -> AA)"""
+    def numero_a_letra(n):
+        """Convierte un número de columna (1-indexed) a letra (por ejemplo, 1 → A, 27 → AA)."""
         result = ""
-        n -= 1  # ajustar a 0-based
-        while n >= 0:
-            result = chr(n % 26 + 65) + result
-            n = n // 26 - 1
+        while n:
+            n, rem = divmod(n - 1, 26)
+            result = chr(65 + rem) + result
         return result
 
     def transformar_numericos(self, df: pd.DataFrame, columnas: list):
@@ -115,3 +131,5 @@ class ConexionGoogleSheets():
             df[col] = df[col].replace({'%': '', ',': '.', r'[^\d.]':''}, regex=True)
             df[col] = pd.to_numeric(df[col], errors='coerce')
         return df
+    
+   

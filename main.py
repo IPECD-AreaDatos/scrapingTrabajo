@@ -12,9 +12,9 @@ def main():
     #print("🚀 Ejecutando ETL de SIPA")
     #run_sipa()
     #run_combustible()
-    #run_anac()
+    run_anac()
     #run_mercado_central()
-    run_dnrpa()
+    #run_dnrpa()
 
 
 if __name__ == '__main__':

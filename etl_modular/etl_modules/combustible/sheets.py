@@ -18,7 +18,7 @@ def load_combustible_sheets_data(datos_nuevos, suma_mensual):
     try:
         sheets = ConexionGoogleSheets(SPREADSHEET_ID)
         print("📄 Objeto sheets creado")
-        sheets.escribir_valor_en_columna_siguiente(fila=6, valor=suma_mensual)
+        sheets.escribir_valor_en_columna_siguiente(fila=6, valor=suma_mensual, sheet_name="Datos")
         print("📤 Valor escrito en columna")
         logger.info("✅ Carga a Google Sheets completada.")
     except Exception as e:
