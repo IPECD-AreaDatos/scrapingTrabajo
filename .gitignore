@@ -79,4 +79,4 @@ htmlcov/
 output/
 
 # Ignorar todos los archivos dentro de la carpeta data/processed/mercado_central
-data/processed/mercado_central/
+data/raw/mercado_central/
