@@ -31,6 +31,7 @@ logs/
 *.xlsx
 *.xls
 *.csv
+*.zip
 
 # Archivos de salida temporales
 *.tmp
@@ -76,3 +77,6 @@ htmlcov/
 
 # Archivos específicos de tu proyecto que no quieres subir
 output/
+
+# Ignorar todos los archivos dentro de la carpeta data/processed/mercado_central
+data/processed/mercado_central/
