@@ -31,9 +31,12 @@ class ConexionBaseDatos:
             raise RuntimeError(f"❌ Error de conexión: {e}")
 
     def close_connections(self):
-        self.conn.commit()
-        self.cursor.close()
-        self.conn.close()
+        if self.conn is not None:
+            self.conn.commit()
+        if self.cursor is not None:
+            self.cursor.close()
+        if self.conn is not None:
+            self.conn.close()
 
     @property
     def engine(self):
