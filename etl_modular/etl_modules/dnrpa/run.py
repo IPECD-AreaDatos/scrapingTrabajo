@@ -8,7 +8,10 @@ from etl_modular.etl_modules.dnrpa.sheets import load_dnrpa_sheets_data
 from etl_modular.utils.db import ConexionBaseDatos
 
 def run_dnrpa(mode='last'):
-    setup_logger("dnrpa")
+    logger = setup_logger("dnrpa")
+    logger.info("=" * 80)
+    logger.info("Iniciando el proceso de ETL para DNRPA.")
+    logger.info("=" * 80)
 
     load_dotenv()
     host = os.getenv('HOST_DBB')
@@ -25,33 +28,34 @@ def run_dnrpa(mode='last'):
         conexion_db.connect_db()
 
         if mode == 'historical':
-            print("\n--- INICIANDO CARGA HISTÓRICA ---")
+            logger.info("📥 Iniciando carga *histórica* de DNRPA...")
             raw_data_historical = extract_dnrpa_data(mode='historical')
             if raw_data_historical:
                 df_transformed_historical = transform_dnrpa_data(raw_data_historical)
                 load_dnrpa_data(df_transformed_historical, conexion_db) 
-                print("✅ Carga histórica de DNRPA finalizada.")
+                logger.info("✅ Carga histórica de DNRPA finalizada.")
             else:
-                print("⚠️ No se extrajeron datos históricos, omitiendo la carga histórica.")
+                logger.warning("⚠️ No se extrajeron datos históricos, omitiendo la carga histórica.")
         
         elif mode == 'last':
-            print("\n--- INICIANDO CARGA DEL ÚLTIMO AÑO ---")
+            logger.info("📥 Iniciando carga del *último año* de DNRPA...")
             raw_data_last = extract_dnrpa_data(mode='last')
             if raw_data_last:
                 df_transformed_last = transform_dnrpa_data(raw_data_last)
                 if not df_transformed_last.empty:
                     datos_nuevos_loaded = load_dnrpa_data(df_transformed_last, conexion_db) 
-                    print("✅ Carga del último año de DNRPA finalizada.")
+                    logger.info("✅ Carga del último año de DNRPA finalizada.")
                     load_dnrpa_sheets_data(datos_nuevos_loaded, df_transformed_last)
                 else:
-                    print("⚠️ Datos transformados vacíos, omitiendo carga a DB.")
+                    logger.warning("⚠️ Datos transformados vacíos, omitiendo carga a DB.")
             else:
-                print("⚠️ No se extrajeron datos del último año.")
+                logger.warning("⚠️ No se extrajeron datos del último año.")
         else:
-            print(f"⚠️ Modo '{mode}' no reconocido. Use 'last' o 'historical'.")
+            logger.warning(f"⚠️ Modo '{mode}' no reconocido. Use 'last' o 'historical'.")
 
     except Exception as e:
-        print(f"❌ Error en el proceso ETL de DNRPA: {e}")
+        logger.error(f"❌ Error en el proceso ETL de DNRPA: {e}")
     finally:
         if conexion_db:
             conexion_db.close_connections()
+            logger.info("🔌 Conexión a base cerrada.")

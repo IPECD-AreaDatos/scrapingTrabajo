@@ -4,6 +4,8 @@ from etl_modular.etl_modules.combustible.run import run_combustible
 from etl_modular.etl_modules.mercado_central.run import run_mercado_central
 from etl_modular.etl_modules.dnrpa.run import run_dnrpa
 from etl_modular.etl_modules.ripte.run import run_ripte
+from etl_modular.etl_modules.ipicorr.run import run_ipicorr
+from etl_modular.etl_modules.emae.run import run_emae
 
 import os
 from dotenv import load_dotenv
@@ -17,6 +19,8 @@ def main():
     #run_mercado_central()
     #run_dnrpa()
     run_ripte()
+    #run_ipicorr()
+    #run_emae()
 
 if __name__ == '__main__':
     main()

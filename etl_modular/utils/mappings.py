@@ -135,3 +135,8 @@ meses_esp = {
     'Mayo': '05', 'Junio': '06', 'Julio': '07', 'Agosto': '08',
     'Septiembre': '09', 'Octubre': '10', 'Noviembre': '11', 'Diciembre': '12'
 }
+
+meses_abbr = {
+    'ene': '01', 'feb': '02', 'mar': '03', 'abr': '04', 'may': '05', 'jun': '06',
+    'jul': '07', 'ago': '08', 'sep': '09', 'oct': '10', 'nov': '11', 'dic': '12'
+}

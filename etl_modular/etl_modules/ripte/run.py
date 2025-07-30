@@ -6,8 +6,10 @@ from .transform import transform_ripte_data
 from .load import load_ripte_data, load_latest_ripte_value
 from etl_modular.utils.db import ConexionBaseDatos
 
+logger = setup_logger("ripte")
+
 def run_ripte(mode='last'):
-    setup_logger("ripte")
+
     load_dotenv()
 
     host = os.getenv('HOST_DBB')
@@ -22,31 +24,32 @@ def run_ripte(mode='last'):
         conexion_db.connect_db()
 
         if mode == 'historical':
-            print("\n--- INICIANDO CARGA HISTÓRICA DE RIPTE ---")
+            logger.info("📥 Iniciando carga *histórica* de RIPTE...")
             ruta = extract_ripte_data()
             df = transform_ripte_data(ruta)
 
             if df is not None and not df.empty:
                 datos_cargados = load_ripte_data(df, host, user, password, database)
-                print("✅ Carga histórica de RIPTE finalizada.")
+                logger.info("✅ Carga histórica de RIPTE finalizada.")
             else:
-                print("⚠️ Archivo vacío o falló la transformación, omitiendo carga histórica.")
+                logger.warning("⚠️ Archivo vacío o falló la transformación. Se omite la carga.")
 
         elif mode == 'last':
-            print("\n--- INICIANDO CARGA DEL ÚLTIMO VALOR DE RIPTE ---")
+            logger.info("📥 Iniciando carga del *último valor* de RIPTE...")
             ultimo_valor = extract_latest_ripte_value()
             load_latest_ripte_value(ultimo_valor, host, user, password, database)
-            print("✅ Proceso de carga del último dato de RIPTE finalizado.")
+            logger.info("✅ Proceso de carga del último dato de RIPTE finalizado.")
 
         else:
-            print(f"⚠️ Modo '{mode}' no reconocido. Use 'last' o 'historical'.")
+            logger.warning(f"⚠️ Modo '{mode}' no reconocido. Use 'last' o 'historical'.")
 
     except Exception as e:
-        print(f"❌ Error en el proceso ETL de RIPTE: {e}")
+        logger.error(f"❌ Error en el proceso ETL de RIPTE: {e}")
 
     finally:
         if conexion_db:
             conexion_db.close_connections()
+            logger.info("🔌 Conexión a base cerrada.")
             
             
             
