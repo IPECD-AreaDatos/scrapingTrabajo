@@ -14,7 +14,6 @@ def load_combustible_sheets_data(datos_nuevos, suma_mensual):
     print("✅ datos_nuevos es True, creando objeto ConexionGoogleSheets")
     SPREADSHEET_ID = '1L_EzJNED7MdmXw_rarjhhX8DpL7HtaKpJoRwyxhxHGI'
 
-    print(repr(os.getenv('GOOGLE_SHEETS_API_KEY')))
     try:
         sheets = ConexionGoogleSheets(SPREADSHEET_ID)
         print("📄 Objeto sheets creado")

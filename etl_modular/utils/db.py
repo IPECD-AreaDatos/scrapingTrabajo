@@ -31,16 +31,17 @@ class ConexionBaseDatos:
             raise RuntimeError(f"❌ Error de conexión: {e}")
 
     def close_connections(self):
-        if self.conn is not None:
-            self.conn.commit()
-        if self.cursor is not None:
-            self.cursor.close()
-        if self.conn is not None:
-            self.conn.close()
+        self.conn.commit()
+        self.cursor.close()
+        self.conn.close()
 
     @property
     def engine(self):
         return create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:3306/{self.database}")
+
+    def read_sql(self, query):
+        """Lee un SELECT y devuelve un DataFrame."""
+        return pd.read_sql(query, self.engine)
 
     def truncate_table(self, table_name):
         """Vacía completamente la tabla."""

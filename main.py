@@ -3,7 +3,7 @@ from etl_modular.etl_modules.anac.run import run_anac
 from etl_modular.etl_modules.combustible.run import run_combustible
 from etl_modular.etl_modules.mercado_central.run import run_mercado_central
 from etl_modular.etl_modules.dnrpa.run import run_dnrpa
-from etl_modular.etl_modules.emae.run import run_emae
+from etl_modular.etl_modules.ripte.run import run_ripte
 
 import os
 from dotenv import load_dotenv
@@ -16,7 +16,7 @@ def main():
     #run_anac()
     #run_mercado_central()
     #run_dnrpa()
-    run_emae()
+    run_ripte()
 
 if __name__ == '__main__':
     main()
