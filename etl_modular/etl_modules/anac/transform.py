@@ -7,7 +7,7 @@ def transform_anac_data(file_path, target_value="TABLA 11"):
     print("🔄 Transformando archivo ANAC.xlsx...")
 
     try:
-        df = pd.read_excel(file_path, sheet_name=0)
+        df = pd.read_excel(file_path, sheet_name=0, engine='openpyxl')
     except Exception as e:
         print(f"❌ Error al leer el archivo: {e}")
         return None

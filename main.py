@@ -6,6 +6,7 @@ from etl_modular.etl_modules.dnrpa.run import run_dnrpa
 from etl_modular.etl_modules.ripte.run import run_ripte
 from etl_modular.etl_modules.ipicorr.run import run_ipicorr
 from etl_modular.etl_modules.emae.run import run_emae
+from etl_modular.etl_modules.semaforo.run import run_semaforo
 
 import os
 from dotenv import load_dotenv
@@ -18,9 +19,10 @@ def main():
     #run_anac()
     #run_mercado_central()
     #run_dnrpa()
-    run_ripte()
+    #run_ripte()
     #run_ipicorr()
     #run_emae()
+    run_semaforo()
 
 if __name__ == '__main__':
     main()
