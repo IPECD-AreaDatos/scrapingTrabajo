@@ -12,7 +12,9 @@ from dotenv import load_dotenv
 logger = setup_logger("combustible")
 
 def run_combustible():
-    logger.info("📥 Iniciando proceso COMBUSTIBLE...")
+    logger.info("=" * 80)
+    logger.info("Iniciando el proceso de ETL para COMBUSTIBLE.")
+    logger.info("=" * 80)
 
     try:
         load_dotenv()

@@ -16,13 +16,13 @@ def main():
     #print("🚀 Ejecutando ETL de SIPA")
     #run_sipa()
     #run_combustible()
-    #run_anac()
+    run_anac()
     #run_mercado_central()
     #run_dnrpa()
     #run_ripte()
     #run_ipicorr()
     #run_emae()
-    run_semaforo()
+    #run_semaforo()
 
 if __name__ == '__main__':
     main()

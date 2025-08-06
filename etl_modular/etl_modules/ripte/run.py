@@ -9,6 +9,9 @@ from etl_modular.utils.db import ConexionBaseDatos
 logger = setup_logger("ripte")
 
 def run_ripte(mode='last'):
+    logger.info("=" * 80)
+    logger.info("Iniciando el proceso de ETL para RIPTE.")
+    logger.info("=" * 80)
 
     load_dotenv()
 

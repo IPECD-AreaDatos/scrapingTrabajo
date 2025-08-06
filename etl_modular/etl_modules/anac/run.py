@@ -24,6 +24,7 @@ def run_anac():
 
         logger.info("🔁 Transformando datos...")
         df = transform_anac_data(ruta)
+        print(df)
         logger.info("✅ Transformación completada.")
 
         logger.info("📤 Cargando datos a la base...")
