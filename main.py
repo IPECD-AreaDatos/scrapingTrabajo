@@ -7,6 +7,7 @@ from etl_modular.etl_modules.ripte.run import run_ripte
 from etl_modular.etl_modules.ipicorr.run import run_ipicorr
 from etl_modular.etl_modules.emae.run import run_emae
 from etl_modular.etl_modules.semaforo.run import run_semaforo
+from etl_modular.etl_modules.supermercado.run import run_supermercado
 
 import os
 from dotenv import load_dotenv
@@ -14,7 +15,7 @@ load_dotenv()
 
 def main():
     #print("🚀 Ejecutando ETL de SIPA")
-    run_sipa()
+    #run_sipa()
     #run_combustible()
     #run_anac()
     #run_mercado_central()
@@ -23,6 +24,7 @@ def main():
     #run_ipicorr()
     #run_emae()
     #run_semaforo()
-
+    run_supermercado()
+    
 if __name__ == '__main__':
     main()

@@ -5,7 +5,6 @@ import numpy as np
 
 
 def transform_sipa_data(file_path):
-    print("🔄 Transformando archivo SIPA.xlsx...")
 
     def leer_excel(path, sheet, skip):
         df = pd.read_excel(path, sheet_name=sheet, skiprows=skip)
@@ -19,7 +18,6 @@ def transform_sipa_data(file_path):
     df_ne_prov = leer_excel(file_path, sheet=15, skip=1) #Hoja A.5.2 personas con empleo asalariado registado en el sector privado segun provincia. SIN ESTACIONALIDAD
     df_e_nac = leer_excel(file_path, sheet=3, skip=1) #Hoja T.2.1 personas con trabajo registrado con estacionalidad total pais
     df_ne_nac = leer_excel(file_path, sheet=4, skip=1) #Hoja T.2.2 personas con trabajo registrado sin estacionalidad total pais
-
 
     
     df_e_prov["Período"] = pd.date_range(
@@ -90,5 +88,4 @@ def transform_sipa_data(file_path):
             )
 
     df_final = pd.DataFrame(registros)
-    print("✅ Transformación completada")
     return df_final.sort_values(by=["fecha", "id_provincia", "id_tipo_registro"])

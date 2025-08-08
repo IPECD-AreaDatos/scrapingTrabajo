@@ -1,4 +1,6 @@
 import re
+import pandas as pd
+
 def normalizar_texto(texto):
     if not isinstance(texto, str):
         return ''
@@ -9,7 +11,6 @@ def normalizar_texto(texto):
         .replace('.', '').replace('\n', ' ').replace('  ', ' ')
         .strip()
     )
-
 
 def limpiar_nombre(nombre):
     nombre = normalizar_texto(nombre)
@@ -24,3 +25,19 @@ def limpiar_nombre(nombre):
     nombre = nombre.replace(".", "")
     nombre = re.sub(r"\s+", " ", nombre)
     return nombre.strip()
+
+def limpiar_nombree(valor):
+    """Convierte a string y limpia espacios extras."""
+    if pd.isna(valor):
+        return None
+    return str(valor).strip()
+
+def contar_meses_validos(lista_fechas):
+    """Cuenta meses hasta el primer NaN."""
+    lista_cadenas = [str(el) for el in lista_fechas]
+    count = 0
+    for valor in lista_cadenas:
+        if valor == 'nan':
+            break
+        count += 1
+    return count

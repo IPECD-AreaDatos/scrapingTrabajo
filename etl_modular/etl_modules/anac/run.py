@@ -9,7 +9,9 @@ from .sheets import load_anac_sheets_data
 logger = setup_logger("anac")
 
 def run_anac():
-    logger.info("📥 Iniciando proceso ANAC...")
+    logger.info("=" * 80)
+    logger.info("Iniciando el proceso de ETL para ANAC.")
+    logger.info("=" * 80)
 
     try:
         load_dotenv()

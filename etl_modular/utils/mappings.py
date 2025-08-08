@@ -60,6 +60,35 @@ provinciass = {
             'Tucuman': 90,
 }
 
+provincias_superm = [
+    ['Total', 1, 1],
+    ['Ciudad Autónoma de Buenos Aires', 2, 2],
+    ['24 partidos del Gran Buenos Aires ', 6, 2],  # espacio al final necesario
+    ['Resto de Buenos Aires', 6, 3],
+    ['Catamarca', 10, 4],
+    ['Chaco', 22, 5],
+    ['Chubut', 26, 7],
+    ['Córdoba', 14, 3],
+    ['Corrientes', 18, 5],
+    ['Entre Ríos', 30, 3],
+    ['Formosa', 34, 5],
+    ['Jujuy', 38, 4],
+    ['La Pampa', 42, 3],
+    ['La Rioja', 46, 4],
+    ['Mendoza', 50, 6],
+    ['Misiones', 54, 5],
+    ['Neuquén', 58, 7],
+    ['Río Negro', 62, 7],
+    ['Salta', 66, 4],
+    ['San Juan', 70, 6],
+    ['San Luis', 74, 6],
+    ['Santa Cruz', 78, 7],
+    ['Santa Fe', 82, 3],
+    ['Santiago del Estero', 86, 4],
+    ['Tierra del Fuego', 94, 7],
+    ['Tucumán', 90, 4],
+]
+
 categorias_nacion_sipa = {
     "Empleo asalariado en el sector privado": 2,
     "Empleo asalariado en el sector público": 3,
