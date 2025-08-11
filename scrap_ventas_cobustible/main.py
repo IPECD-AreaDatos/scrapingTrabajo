@@ -71,7 +71,7 @@ if __name__ == '__main__':
         host_dbb, user_dbb, pass_dbb, dbb_datalake = cargar_variables_entorno()
 
         # 2. Realizar la extracción de datos
-        #realizar_extraccion_datos()
+        realizar_extraccion_datos()
 
         # 3. Transformar los datos
         df_combustible = transformar_datos()
