@@ -13,7 +13,6 @@ echo ------------------------------------
 echo ------------------------------------
 echo EMAE
 echo ------------------------------------
-python C:\Users\Usuario\Desktop\scrapingTrabajo\scrap_EMAE\main.py
 echo ------------------------------------
 echo Termino EMAE
 echo ------------------------------------
