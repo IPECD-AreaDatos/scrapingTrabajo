@@ -1,6 +1,9 @@
 from .extract import extract_supermercado_data
 from .transform import transform_supermercado_data
 from .load import load_supermercado_data
+from .sheets import deflactador_supermercado_data
+from .sheets import load_supermercado_deflactado_data
+from .sheets import load_supermercado_sheets_data
 from etl_modular.utils.logger import setup_logger
 from etl_modular.utils.db import ConexionBaseDatos
 import sys
@@ -18,8 +21,13 @@ def run_supermercado():
     user = os.getenv('USER_DBB')
     password = os.getenv('PASSWORD_DBB')
     database = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
+    database2 = os.getenv('NAME_DBB_DWH_ECONOMICO')
+
     db = ConexionBaseDatos(host, user, password, database)
     db.connect_db()
+
+    db2 = ConexionBaseDatos(host, user, password, database2)
+    db2.connect_db()
 
     try: 
         logger.info("Extrayendo datos SUPERMERCADO...")
@@ -32,13 +40,31 @@ def run_supermercado():
 
         logger.info("Iniciando carga de valores de SUPERMERCADO.") 
         datos_nuevos = load_supermercado_data(df, db)
-        print(datos_nuevos)
         logger.info("Carga de valores SUPERMERCADO finalizada.")
 
-        #if datos_nuevos:
-        #    logger.info("Se insertaron nuevos datos en la tabla de SUPERMERCADO.")
-        #else:
-        #    logger.info("No hubo nuevos datos para insertar.")
+        if datos_nuevos:
+            logger.info("Se insertaron nuevos datos en la tabla de SUPERMERCADO.")
+        else:
+            logger.info("No hubo nuevos datos para insertar.")
+
+        logger.info("Iniciando deflactacion de SUPERMERCADO.") 
+        df_deflactado = deflactador_supermercado_data(df, db)
+        print("deflactadoooooo")
+        print(df_deflactado)
+        logger.info("Deflactacion de SUPERMERCADO finalizada.")
+
+        logger.info("Iniciando carga de valores de SUPERMERCADO deflactado.") 
+        datos_nuevos2 = load_supermercado_deflactado_data(df_deflactado, db2)
+        logger.info("Carga de valores SUPERMERCADO deflactado finalizada.")
+
+        if datos_nuevos2:
+            logger.info("Se insertaron nuevos datos en la tabla de SUPERMERCADO deflactado.")
+        else:
+            logger.info("No hubo nuevos datos para insertar.")
+
+        logger.info("Iniciando carga de valores deflactados al sheets de SUPERMERCADO.") 
+        datos_nuevos = load_supermercado_sheets_data(df_deflactado, datos_nuevos2)
+        logger.info("Carga al sheets SUPERMERCADO finalizada.")
 
     except Exception as e:
         logger.info(f"Error en el proceso principal: {e}")

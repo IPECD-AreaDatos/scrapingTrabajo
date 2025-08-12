@@ -4,6 +4,7 @@ from dateutil.relativedelta import relativedelta
 import pandas as pd
 import numpy as np
 from datetime import date
+from decimal import Decimal
 
 def transform_supermercado_data(file_path):
     """
@@ -56,22 +57,29 @@ def transform_supermercado_data(file_path):
         df_final = pd.concat([df_final, df_prov])
 
     # === Paso 5: limpieza final
-    columnas_float = [
-        'alimentos_preparados_rostiseria',
-        'indumentaria_calzado_textiles_hogar',
-        'electronica_hogar', 
-        'total_facturacion'
+    columnas_numericas = [
+        'total_facturacion', 'bebidas', 'almacen', 'panaderia', 'lacteos',
+        'carnes', 'verduleria_fruteria', 'alimentos_preparados_rostiseria',
+        'articulos_limpieza_perfumeria',
+        'indumentaria_calzado_textiles_hogar', 'electronica_hogar', 'otros'
     ]
-    df_final[columnas_float] = df_final[columnas_float].replace('s', np.nan)
+
+    # Convertir strings a Decimal preservando exactitud
+    for col in columnas_numericas:
+        df_final[col] = (
+            df_final[col]
+            .replace('s', np.nan)  # limpiar valores erróneos
+            .apply(lambda x: Decimal(str(x).replace(',', '.')) if pd.notnull(x) else None)
+        )
+
     df_final['id_provincia_indec'] = df_final['id_provincia_indec'].astype(int)
     df_final['id_region_indec'] = df_final['id_region_indec'].astype(int)
-    df_final[columnas_float] = df_final[columnas_float].astype(float)
-    columnas_ordenadas = ['fecha', 'id_region_indec', 'id_provincia_indec'] + \
-        [col for col in df_final.columns if col not in ['fecha', 'id_region_indec', 'id_provincia_indec']]
 
-    # Reordenar las columnas
+    # === Paso 6: reordenar columnas
+    columnas_ordenadas = [
+        'fecha', 'id_region_indec', 'id_provincia_indec'
+    ] + [col for col in df_final.columns if col not in ['fecha', 'id_region_indec', 'id_provincia_indec']]
+
     df_final = df_final[columnas_ordenadas]
-    print(df_final)
-    print(df_final.columns)
-    print(df_final.dtypes)
+
     return df_final.reset_index(drop=True)

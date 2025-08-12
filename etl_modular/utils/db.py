@@ -37,6 +37,8 @@ class ConexionBaseDatos:
         if self.cursor is not None:
             self.cursor.close()
 
+    
+
     @property
     def engine(self):
         return create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:3306/{self.database}")
@@ -106,3 +108,21 @@ class ConexionBaseDatos:
         Ideal si querés garantizar que nunca quede duplicado.
         """
         self.replace_by_key(table_name, df, keys=key_columns)
+
+    def read_sql_between_dates(self, table_name, fecha_min, fecha_max, date_column='fecha'):
+        """
+        Lee registros de una tabla entre dos fechas inclusive, usando la columna de fecha indicada.
+        Devuelve un DataFrame.
+        """
+        # Formatear las fechas a string YYYY-MM-DD si vienen como datetime
+        if hasattr(fecha_min, 'strftime'):
+            fecha_min = fecha_min.strftime('%Y-%m-%d')
+        if hasattr(fecha_max, 'strftime'):
+            fecha_max = fecha_max.strftime('%Y-%m-%d')
+
+        query = (
+            f"SELECT * FROM {table_name} "
+            f"WHERE {date_column} BETWEEN '{fecha_min}' AND '{fecha_max}';"
+        )
+        logging.info(f"Ejecutando consulta entre fechas: {fecha_min} - {fecha_max} sobre {table_name}")
+        return pd.read_sql(query, self.engine)
