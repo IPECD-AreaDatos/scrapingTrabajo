@@ -8,6 +8,7 @@ from etl_modular.etl_modules.ipicorr.run import run_ipicorr
 from etl_modular.etl_modules.emae.run import run_emae
 from etl_modular.etl_modules.semaforo.run import run_semaforo
 from etl_modular.etl_modules.supermercado.run import run_supermercado
+from etl_modular.etl_modules.canasta_basica.run import run_canasta_basica
 
 import os
 from dotenv import load_dotenv
@@ -24,7 +25,8 @@ def main():
     #run_ipicorr()
     #run_emae()
     #run_semaforo()
-    run_supermercado()
+    #run_supermercado()
+    run_canasta_basica()
     
 if __name__ == '__main__':
     main()
