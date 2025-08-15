@@ -26,11 +26,15 @@ def run_canasta_basica():
 
         links = [
             "https://www.carrefour.com.ar/harina-de-trigo-morixe-000-1-kg/p",
+            "https://www.carrefour.com.ar/mayonesa-cada-dia-liviana-500-g-554825/p"        
         ]
         supermercado = "carrefour"
 
         logger.info("Extrayendo datos CANASTA BASICA de Carrefour...")
         df = extract_products_data(links, supermercado)
+        print(df)
+        print(df.to_string(index=False))
+
     
 
     except Exception as e:

@@ -45,33 +45,35 @@ def extract_products_data(links, supermercado):
                 nombre = nombre_elem.text.strip()
                 print(f"✅ Nombre encontrado: {nombre}")
 
-                # Precio del producto
-                print("⏳ Buscando precio...")
-                precio_elem = WebDriverWait(driver, 10).until(     
-                    EC.presence_of_element_located((By.CSS_SELECTOR, "span.valtech-carrefourar-product-price-0-x-currencyContainer"))
-                )
-                precio = precio_elem.text.strip()
-                print(f"✅ Precio encontrado: {precio}")
-
-                # Intentar encontrar EAN
-                print("⏳ Buscando EAN...")
+                 # Precio con descuento (precio final)
+                print("⏳ Buscando precio con descuento...")
                 try:
-                    ean_elem = WebDriverWait(driver, 10).until(
-                        EC.presence_of_element_located((By.CSS_SELECTOR, "//td[@data-specification='EAN']/div"))
+                    precio_desc_elem = driver.find_element(
+                        By.CSS_SELECTOR, "span.valtech-carrefourar-product-price-0-x-currencyContainer"
                     )
-                    ean = ean_elem.text.strip()
-                    print(f"✅ EAN encontrado: {ean}")
+                    precio_desc = precio_desc_elem.text.strip()
                 except:
-                    ean = None
-                    print("⚠️ No se encontró EAN")
+                    precio_desc = "0"
+                print(f"✅ Precio con descuento: {precio_desc}")
+
+                # Precio normal (tachado)
+                print("⏳ Buscando precio normal...")
+                try:
+                    precio_normal_elem = driver.find_element(
+                        By.CSS_SELECTOR, "span.valtech-carrefourar-product-price-0-x-listPriceValue"
+                    )
+                    precio_normal = precio_normal_elem.text.strip()
+                except:
+                    precio_normal = precio_desc
+                print(f"✅ Precio normal: {precio_normal}")
 
                 # Agregar a la lista
                 productos.append({
                     "nombre": nombre,
-                    "precio": precio,
+                    "precio_normal": precio_normal,
+                    "precio_descuento": precio_desc,
                     "fecha": datetime.today().strftime("%Y-%m-%d"),
                     "supermercado": supermercado,
-                    "codigo_ean": ean,
                     "url": url
                 })
 
