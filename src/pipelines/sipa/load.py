@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
-from etl_modular.utils.db import ConexionBaseDatos
-from etl_modular.etl_modules.sipa.db_analytics import SipaAnalytics
+from src.shared.db import ConexionBaseDatos
+from src.pipelines.sipa.db_analytics import SipaAnalytics
 
 load_dotenv()
 

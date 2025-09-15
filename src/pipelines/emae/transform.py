@@ -3,7 +3,7 @@ import pandas as pd
 
 import logging
 logger = logging.getLogger("emae") # Obtiene el logger ya configurado por run_emae
-from etl_modular.utils.mappings import meses_esp
+from src.shared.mappings import meses_esp
 
 
 def transform_emae_valores():

@@ -1,13 +1,13 @@
 import os 
 import sys
 from dotenv import load_dotenv
-from etl_modular.utils.logger import setup_logger
+from src.shared.logger import setup_logger
 
 # Archivos de ejecucion
-from etl_modular.etl_modules.emae.extract import extract_emae_data
-from etl_modular.etl_modules.emae.transform import transform_emae_valores, transform_emae_variaciones
-from etl_modular.etl_modules.emae.load import load_emae_valores, load_emae_variaciones
-from etl_modular.utils.db import ConexionBaseDatos
+from src.pipelines.emae.extract import extract_emae_data
+from src.pipelines.emae.transform import transform_emae_valores, transform_emae_variaciones
+from src.pipelines.emae.load import load_emae_valores, load_emae_variaciones
+from src.shared.db import ConexionBaseDatos
 
 def run_emae():
     logger = setup_logger("emae")

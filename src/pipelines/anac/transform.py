@@ -1,7 +1,7 @@
 import pandas as pd
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-from etl_modular.utils.mappings import aeropuertos
+from src.shared.mappings import aeropuertos
 
 def transform_anac_data(file_path, target_value="TABLA 11"):
     print("🔄 Transformando archivo ANAC.xlsx...")

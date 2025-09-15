@@ -1,6 +1,6 @@
-from etl_modular.utils.sheets import ConexionGoogleSheets
+from src.shared.sheets import ConexionGoogleSheets
 import pandas as pd
-from etl_modular.utils.logger import setup_logger
+from src.shared.logger import setup_logger
 from dotenv import load_dotenv
 
 logger = setup_logger("ipicorr")

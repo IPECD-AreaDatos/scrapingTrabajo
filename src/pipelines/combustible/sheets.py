@@ -1,6 +1,6 @@
 import logging
 import os
-from etl_modular.utils.sheets import ConexionGoogleSheets
+from src.shared.sheets import ConexionGoogleSheets
 
 def load_combustible_sheets_data(datos_nuevos, suma_mensual):
     logger = logging.getLogger("combustible")

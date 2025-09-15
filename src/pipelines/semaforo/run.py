@@ -1,11 +1,11 @@
 import os
 import sys
 from dotenv import load_dotenv
-from etl_modular.utils.db import ConexionBaseDatos
-from etl_modular.utils.logger import setup_logger
-from etl_modular.etl_modules.semaforo.extract import extract_semaforo
-from etl_modular.etl_modules.semaforo.transform import transform_semaforo
-from etl_modular.etl_modules.semaforo.load import load_semaforo
+from src.shared.db import ConexionBaseDatos
+from src.shared.logger import setup_logger
+from src.pipelines.semaforo.extract import extract_semaforo
+from src.pipelines.semaforo.transform import transform_semaforo
+from src.pipelines.semaforo.load import load_semaforo
 
 logger = setup_logger("semaforo")
 

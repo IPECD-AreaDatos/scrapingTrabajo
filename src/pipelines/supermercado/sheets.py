@@ -3,8 +3,8 @@ import os
 import pandas as pd
 import decimal
 import numpy as np
-from etl_modular.utils.sheets import ConexionGoogleSheets
-from etl_modular.utils.db import ConexionBaseDatos
+from src.shared.sheets import ConexionGoogleSheets
+from src.shared.db import ConexionBaseDatos
 from dotenv import load_dotenv
 
 def load_supermercado_sheets_data(df_deflactado, datos_nuevos):

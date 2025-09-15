@@ -1,9 +1,9 @@
-from .extract import extract_sipa_data
-from .transform import transform_sipa_data
-from .load import load_sipa_data
-from .send_mail import MailSipa
-from etl_modular.utils.logger import setup_logger
-from etl_modular.utils.db import ConexionBaseDatos
+from src.pipelines.sipa.extract import extract_sipa_data
+from src.pipelines.sipa.transform import transform_sipa_data
+from src.pipelines.sipa.load import load_sipa_data
+from src.pipelines.sipa.send_mail import MailSipa
+from src.shared.logger import setup_logger
+from src.shared.db import ConexionBaseDatos
 import sys
 
 import os

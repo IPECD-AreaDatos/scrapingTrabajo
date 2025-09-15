@@ -1,11 +1,11 @@
 import os
 from dotenv import load_dotenv
-from etl_modular.utils.logger import setup_logger
-from etl_modular.etl_modules.dnrpa.extract import extract_dnrpa_data
-from etl_modular.etl_modules.dnrpa.transform import transform_dnrpa_data
-from etl_modular.etl_modules.dnrpa.load import load_dnrpa_data
-from etl_modular.etl_modules.dnrpa.sheets import load_dnrpa_sheets_data
-from etl_modular.utils.db import ConexionBaseDatos
+from src.shared.logger import setup_logger
+from src.pipelines.dnrpa.extract import extract_dnrpa_data
+from src.pipelines.dnrpa.transform import transform_dnrpa_data
+from src.pipelines.dnrpa.load import load_dnrpa_data
+from src.pipelines.dnrpa.sheets import load_dnrpa_sheets_data
+from src.shared.db import ConexionBaseDatos
 
 def run_dnrpa(mode='last'):
     logger = setup_logger("dnrpa")

@@ -1,5 +1,5 @@
-from etl_modular.utils.helpers import limpiar_nombre
-from etl_modular.utils.mappings import provincias, categorias_nacion_sipa
+from src.shared.helpers import limpiar_nombree, contar_meses_validos
+from src.shared.mappings import provincias_superm
 import pandas as pd
 import numpy as np
 

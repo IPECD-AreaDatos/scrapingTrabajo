@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from etl_modular.utils.logger import setup_logger
+from src.shared.logger import setup_logger
 from .extract import extract_anac_data
 from .transform import transform_anac_data
 from .load import load_anac_data

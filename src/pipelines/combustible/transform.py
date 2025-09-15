@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import os
-from etl_modular.utils.mappings import provinciass
+from src.shared.mappings import provinciass
 
 def transform_combustible_data(file_path, provincia_filtrada=False):
     print("🔄 Transformando archivo venta_combustible.csv...")

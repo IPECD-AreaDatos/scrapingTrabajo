@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from etl_modular.utils.db import ConexionBaseDatos
+from src.shared.db import ConexionBaseDatos
 
 load_dotenv()
 

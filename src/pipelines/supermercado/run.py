@@ -1,11 +1,11 @@
-from .extract import extract_supermercado_data
-from .transform import transform_supermercado_data
-from .load import load_supermercado_data
-from .sheets import deflactador_supermercado_data
-from .sheets import load_supermercado_deflactado_data
-from .sheets import load_supermercado_sheets_data
-from etl_modular.utils.logger import setup_logger
-from etl_modular.utils.db import ConexionBaseDatos
+from src.pipelines.supermercado.extract import extract_supermercado_data
+from src.pipelines.supermercado.transform import transform_supermercado_data
+from src.pipelines.supermercado.load import load_supermercado_data
+from src.pipelines.supermercado.sheets import deflactador_supermercado_data
+from src.pipelines.supermercado.sheets import load_supermercado_deflactado_data
+from src.pipelines.supermercado.sheets import load_supermercado_sheets_data
+from src.shared.logger import setup_logger
+from src.shared.db import ConexionBaseDatos
 import sys
 import os
 from dotenv import load_dotenv
@@ -71,5 +71,6 @@ def run_supermercado():
         sys.exit(1)
     finally:
         db.close_connections()
+        db2.close_connections()
 
     logger.info("Proceso SUPERMERCADO de ETL finalizado con exito.")

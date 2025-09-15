@@ -1,6 +1,6 @@
 import pandas as pd
 from datetime import datetime
-from etl_modular.utils.mappings import provincias
+from src.shared.mappings import provincias
 
 def transform_dnrpa_data(raw_data):
     if not raw_data:

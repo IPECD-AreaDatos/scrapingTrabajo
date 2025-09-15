@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import calendar
-from etl_modular.utils.db import ConexionBaseDatos
+from src.shared.db import ConexionBaseDatos
 #from .informe import InformeRipte
 from datetime import date
 

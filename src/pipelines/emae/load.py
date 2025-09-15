@@ -1,4 +1,4 @@
-from etl_modular.utils.db import ConexionBaseDatos
+from src.shared.db import ConexionBaseDatos
 import logging
 logger = logging.getLogger("emae") # Obtiene el logger ya configurado por run_emae
 

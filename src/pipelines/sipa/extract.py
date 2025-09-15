@@ -23,11 +23,11 @@ def extract_sipa_data():
     archivo = wait.until(EC.presence_of_element_located((By.XPATH, "/html/body/main/div[2]/div/section[2]/div/div[9]/div/div/table/tbody/tr[1]/td[4]/a")))
     url_archivo = archivo.get_attribute('href')
 
-    # Ruta donde guardar el archivo
-    base_path = os.path.dirname(os.path.abspath(__file__))
-    carpeta_files = os.path.abspath(os.path.join(base_path, '../../data/raw'))
+    # Ruta donde guardar el archivo (siempre en data/raw/ fuera de src)
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+    carpeta_files = os.path.join(project_root, 'data', 'raw')
     os.makedirs(carpeta_files, exist_ok=True)
-    ruta_archivo = os.path.join(carpeta_files, 'SIPA.xlsx')
+    ruta_archivo = os.path.join(carpeta_files, 'encuesta_supermercado.xls')
 
     response = requests.get(url_archivo)
     with open(ruta_archivo, 'wb') as f:

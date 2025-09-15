@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from etl_modular.utils.logger import setup_logger
+from src.shared.logger import setup_logger
 from .extract import extract_mercado_central_data
 from .transform import transform_mercado_central_completo
 from pathlib import Path

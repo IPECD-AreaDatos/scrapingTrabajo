@@ -1,7 +1,7 @@
 import logging
 import os
 import pandas as pd
-from etl_modular.utils.sheets import ConexionGoogleSheets
+from src.shared.sheets import ConexionGoogleSheets
 
 def load_anac_sheets_data(datos_nuevos, df):
 

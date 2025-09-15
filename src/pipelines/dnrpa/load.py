@@ -1,4 +1,4 @@
-from etl_modular.utils.db import ConexionBaseDatos
+from src.shared.db import ConexionBaseDatos
 
 def load_dnrpa_data(df, conexion):
     print("💾 Iniciando carga a la base de datos...")

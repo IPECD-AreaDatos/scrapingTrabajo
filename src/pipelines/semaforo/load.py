@@ -1,5 +1,5 @@
-from etl_modular.utils.logger import setup_logger
-from etl_modular.utils.db import ConexionBaseDatos
+from src.shared.logger import setup_logger
+from src.shared.db import ConexionBaseDatos
 import pandas as pd
 
 logger = setup_logger("semaforo")

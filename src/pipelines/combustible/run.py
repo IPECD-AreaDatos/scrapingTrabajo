@@ -4,7 +4,7 @@ from .transform import transform_combustible_data
 from .transform import suma_por_fecha
 from .load import load_combustible_data
 from .sheets import load_combustible_sheets_data
-from etl_modular.utils.logger import setup_logger
+from src.shared.logger import setup_logger
 
 import os 
 from dotenv import load_dotenv

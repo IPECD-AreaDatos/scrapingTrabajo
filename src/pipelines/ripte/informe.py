@@ -9,7 +9,7 @@ import locale
 import matplotlib.pyplot as plt
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from etl_modular.utils.db import ConexionBaseDatos
+from src.shared.db import ConexionBaseDatos
 from email.mime.multipart import MIMEMultipart
 import os
 from email.mime.text import MIMEText

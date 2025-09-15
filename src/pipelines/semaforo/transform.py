@@ -1,7 +1,7 @@
 import pandas as pd
 import datetime
-from etl_modular.utils.logger import setup_logger
-from etl_modular.utils.mappings import meses_abbr
+from src.shared.logger import setup_logger
+from src.shared.mappings import meses_abbr
 
 logger = setup_logger("semaforo")
 

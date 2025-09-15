@@ -1,5 +1,5 @@
-from etl_modular.utils.sheets import ConexionGoogleSheets
-from etl_modular.utils.logger import setup_logger
+from src.shared.sheets import ConexionGoogleSheets
+from src.shared.logger import setup_logger
 
 logger = setup_logger("semaforo")
 

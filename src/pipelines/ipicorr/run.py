@@ -1,11 +1,11 @@
 import os
 import sys
 from dotenv import load_dotenv
-from etl_modular.utils.db import ConexionBaseDatos
-from etl_modular.utils.logger import setup_logger
-from etl_modular.etl_modules.ipicorr.extract import extract_ipicorr
-from etl_modular.etl_modules.ipicorr.transform import transform_ipicorr
-from etl_modular.etl_modules.ipicorr.load import load_ipicorr
+from src.shared.db import ConexionBaseDatos
+from src.shared.logger import setup_logger
+from src.pipelines.ipicorr.extract import extract_ipicorr
+from src.pipelines.ipicorr.transform import transform_ipicorr
+from src.pipelines.ipicorr.load import load_ipicorr
 
 def run_ipicorr():
     logger = setup_logger("ipicorr")

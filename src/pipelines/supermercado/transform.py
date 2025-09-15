@@ -1,5 +1,5 @@
-from etl_modular.utils.helpers import limpiar_nombree, contar_meses_validos
-from etl_modular.utils.mappings import provincias_superm
+from src.shared.helpers import limpiar_nombree, contar_meses_validos
+from src.shared.mappings import provincias_superm
 from dateutil.relativedelta import relativedelta
 import pandas as pd
 import numpy as np

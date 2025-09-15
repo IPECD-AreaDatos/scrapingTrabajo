@@ -1,10 +1,10 @@
 import os
 from dotenv import load_dotenv
-from etl_modular.utils.logger import setup_logger
+from src.shared.logger import setup_logger
 from .extract import extract_ripte_data, extract_latest_ripte_value
 from .transform import transform_ripte_data
 from .load import load_ripte_data, load_latest_ripte_value
-from etl_modular.utils.db import ConexionBaseDatos
+from src.shared.db import ConexionBaseDatos
 
 logger = setup_logger("ripte")
 
