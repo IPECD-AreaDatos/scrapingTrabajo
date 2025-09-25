@@ -1,6 +1,9 @@
 import pandas as pd
 import os
 
+# Configurar pandas para evitar advertencias de deprecación
+pd.set_option('future.no_silent_downcasting', True)
+
 class Transformer:
 
     #Definicion de atributos - Momentaneamente no es necesario
@@ -15,17 +18,21 @@ class Transformer:
         ruta_carpeta_files = os.path.join(directorio_actual, 'files')
         file_path = os.path.join(ruta_carpeta_files, 'emae.xls')
 
-        # Leer archivo
-        df = pd.read_excel(file_path, sheet_name=0, skiprows=4)
+        # Leer archivo con skiprows=2 para obtener los headers correctos
+        df = pd.read_excel(file_path, sheet_name=0, skiprows=2)
+        
+        # Eliminar filas que contengan "Fuente" en cualquier columna
+        mask_fuente = df.astype(str).apply(lambda x: x.str.contains('Fuente', na=False)).any(axis=1)
+        df = df[~mask_fuente]
 
-        # Eliminar última fila si contiene "Fuente"
-        if 'Fuente' in str(df.iloc[-1, 0]):
-            df = df.drop(df.index[-1])
+        # La primera columna contiene los años, la segunda los meses
+        year_col = df.columns[0]  # 'Período'
+        month_col = df.columns[1]  # 'Unnamed: 1' (que contiene los meses)
 
         # Rellenar los años hacia abajo
-        df.iloc[:, 0] = df.iloc[:, 0].ffill()
+        df[year_col] = df[year_col].ffill()
 
-        # Guardar nombres de sectores antes de eliminar columnas
+        # Obtener los nombres de los sectores (columnas desde la 2 en adelante)
         sectores = df.columns[2:].tolist()
 
         # Mapear meses en español a número
@@ -36,18 +43,29 @@ class Transformer:
         }
 
         # Construir columna de fechas
-        df['anio'] = df.iloc[:, 0].astype(str)
-        df['mes'] = df.iloc[:, 1].map(meses)
-        df['fecha'] = pd.to_datetime(df['anio'] + '-' + df['mes'], format='%Y-%m', errors='coerce')
+        # Convertir años a enteros para eliminar el .0, luego a string
+        df['anio_str'] = df[year_col].fillna(0).astype(int).astype(str).replace('0', '')
+        df['mes_num'] = df[month_col].map(meses)
+        
+        # Crear fechas solo para las filas que tienen año y mes válidos
+        mask_valid = (
+            df[year_col].notna() & 
+            df[month_col].notna() & 
+            df['mes_num'].notna() &
+            (df['anio_str'] != '')  # Reemplazar la verificación de dígitos
+        )
+        
+        df.loc[mask_valid, 'fecha'] = pd.to_datetime(
+            df.loc[mask_valid, 'anio_str'] + '-' + df.loc[mask_valid, 'mes_num'], 
+            format='%Y-%m', errors='coerce'
+        )
 
-        # Eliminar filas con fechas inválidas
-        df = df[df['fecha'].notna()]
+        # Filtrar solo las filas con fechas válidas
+        df = df[df['fecha'].notna()].copy()
 
-        # Eliminar columnas originales
-        df = df.drop(columns=[df.columns[0], df.columns[1], 'anio', 'mes'])
-
-        # Reordenar columnas
-        df = df[['fecha'] + [col for col in df.columns if col != 'fecha']]
+        # Seleccionar solo las columnas necesarias (fecha + sectores)
+        columnas_finales = ['fecha'] + sectores
+        df = df[columnas_finales]
 
         # Transformar a formato largo
         df_melted = df.melt(id_vars='fecha', var_name='sector', value_name='valor')
@@ -56,14 +74,14 @@ class Transformer:
         sector_map = {name: i+1 for i, name in enumerate(sectores)}
         df_melted['sector_productivo'] = df_melted['sector'].map(sector_map)
 
-        # Eliminar valores nulos
+        # Eliminar valores nulos en la columna valor
         df_melted = df_melted.dropna(subset=['valor'])
 
-        # Formatear y ordenar
+        # Formatear fechas y ordenar
         df_melted['fecha'] = pd.to_datetime(df_melted['fecha']).dt.strftime('%Y-%m-%d')
         df_final = df_melted[['fecha', 'sector_productivo', 'valor']].sort_values(['fecha', 'sector_productivo'])
 
-        return df_final
+        return df_final.reset_index(drop=True)
 
 
 
@@ -93,10 +111,6 @@ class Transformer:
 
         # Reorganizar columnas
         df = df[['fecha', 'variacion_interanual', 'variacion_mensual']]
-
-        #print(df)
-        # ✅ Opcional: convertir a formato largo (como el otro)
-        # df = df.melt(id_vars='fecha', var_name='tipo_variacion', value_name='valor')
 
         return df
 

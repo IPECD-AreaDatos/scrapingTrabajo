@@ -27,15 +27,22 @@ dbb_datalake = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
 def main():
     try:
         # Obtención del archivo
-        #logging.info("Descargando archivos...")
-        #HomePage().descargar_archivos()
+        logging.info("Descargando archivos...")
+        HomePage().descargar_archivos()
 
         # Creación de instancia del transformador y generación de DataFrames
         logging.info("Transformando datos...")
         instancia_transformador = Transformer()
         df_emae_valores = instancia_transformador.construir_df_emae_valores()
         df_emae_variaciones = instancia_transformador.construir_df_emae_variaciones()
-
+        
+        # Mostrar información sobre los DataFrames generados
+        print(f"\n📊 EMAE Valores generado: {len(df_emae_valores):,} filas")
+        print(f"📈 EMAE Variaciones generado: {len(df_emae_variaciones):,} filas")
+        print("Muestra de datos EMAE Valores:")
+        print(df_emae_valores.head())
+        print("\nMuestra de datos EMAE Variaciones:")
+        print(df_emae_variaciones.head())
         # Carga de los DataFrames
         logging.info("Cargando datos en la base de datos...")
         instancia_load = Load(host=host_dbb, user=user_dbb, password=pass_dbb, database=dbb_datalake)
