@@ -14,7 +14,6 @@ class load_database:
 
     def conectar_bdd(self):
         """Conectar a la base de datos MySQL si no está ya conectada."""
-        print(f"Intentando conectar a: host={self.host}, user={self.user}, password={self.password}, database={self.database}")
         if not self.conn or not self.cursor:
             try:
                 self.conn = pymysql.connect(
@@ -24,9 +23,9 @@ class load_database:
                     database=self.database
                 )
                 self.cursor = self.conn.cursor()
-                print("conec establecida")
+                print("✓ Conexión a BD establecida")
             except pymysql.connector.Error as err:
-                print(f"Error al conectar a la base de datos: {err}")
+                print(f"❌ Error al conectar a la base de datos: {err}")
                 return None
         return self
 
