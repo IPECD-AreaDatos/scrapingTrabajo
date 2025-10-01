@@ -55,36 +55,106 @@ class load_database:
         except Exception as e:
             print(f"Error al cargar datos a la base de datos: {e}")
 
+    def obtener_ultima_fecha_bd(self):
+        """Obtener la fecha más reciente en la base de datos."""
+        self.conectar_bdd()
+        
+        if not self.conn or not self.cursor:
+            print("No se pudo establecer conexión con la base de datos.")
+            return None
+
+        try:
+            # Verificar si la tabla existe
+            check_table_query = """
+            SELECT COUNT(*) 
+            FROM information_schema.tables 
+            WHERE table_schema = %s AND table_name = 'anac'
+            """
+            self.cursor.execute(check_table_query, (self.database,))
+            table_exists = self.cursor.fetchone()[0] > 0
+            
+            if not table_exists:
+                print("La tabla 'anac' no existe. Primera carga.")
+                return None
+            
+            # Obtener la última fecha
+            select_max_date_query = "SELECT MAX(fecha) FROM anac"
+            self.cursor.execute(select_max_date_query)
+            result = self.cursor.fetchone()
+            
+            if result and result[0]:
+                print(f"Última fecha en BD: {result[0]}")
+                return result[0]
+            else:
+                print("No hay datos en la tabla.")
+                return None
+
+        except Exception as e:
+            print(f"Error al consultar última fecha: {e}")
+            return None
+
+        finally:
+            self.cerrar_conexion()
+
+    def hay_datos_nuevos(self, df):
+        """Verificar si el DataFrame contiene datos más recientes que la BD."""
+        ultima_fecha_bd = self.obtener_ultima_fecha_bd()
+        
+        if ultima_fecha_bd is None:
+            print("✓ Primera carga o tabla vacía. Proceder con carga completa.")
+            return True
+        
+        # Obtener la fecha más reciente del DataFrame
+        df_sorted = df.sort_values(by='fecha', ascending=True)
+        ultima_fecha_df = df_sorted.iloc[-1]['fecha']
+        
+        print(f"Comparando fechas - BD: {ultima_fecha_bd} vs Excel: {ultima_fecha_df}")
+        
+        # Convertir a datetime si es necesario para comparar
+        if isinstance(ultima_fecha_df, str):
+            from datetime import datetime
+            ultima_fecha_df = datetime.strptime(ultima_fecha_df, "%Y-%m-%d").date()
+        
+        if isinstance(ultima_fecha_bd, str):
+            from datetime import datetime
+            ultima_fecha_bd = datetime.strptime(ultima_fecha_bd, "%Y-%m-%d").date()
+        
+        if ultima_fecha_df > ultima_fecha_bd:
+            print(f"✓ Datos nuevos encontrados. Última fecha Excel ({ultima_fecha_df}) > BD ({ultima_fecha_bd})")
+            return True
+        else:
+            print(f"⚠ No hay datos nuevos. Última fecha Excel ({ultima_fecha_df}) <= BD ({ultima_fecha_bd})")
+            return False
+
     def read_data_excel(self):
-        """Leer datos desde la base de datos y limpiar los valores de la columna 'corrientes'."""
+        """Leer el último valor y fecha de la columna 'corrientes' desde la base de datos."""
         # Conectar a la base de datos
         self.conectar_bdd()
         
         if not self.conn or not self.cursor:
             print("No se pudo establecer conexión con la base de datos.")
-            return []
+            return None, None
 
         try:
             table_name = 'anac'
-            select_row_count_query = f"SELECT corrientes FROM {table_name}"
-            self.cursor.execute(select_row_count_query)
-            values = self.cursor.fetchall()
+            # Obtener el último registro (más reciente) con fecha y valor de corrientes
+            select_last_query = f"SELECT corrientes, fecha FROM {table_name} ORDER BY fecha DESC LIMIT 1"
+            self.cursor.execute(select_last_query)
+            result = self.cursor.fetchone()
             
-            # Limpiar los valores y convertir a float
-            clean_values = list(
-                filter(
-                    lambda x: x is not None,
-                    map(
-                        lambda value: self._convertir_a_float(value[0]),
-                        values
-                    )
-                )
-            )
-            return clean_values
+            if result:
+                # Limpiar y convertir el último valor
+                ultimo_valor = self._convertir_a_float(result[0])
+                ultima_fecha = result[1]
+                print(f"Último valor de Corrientes: {ultimo_valor} para fecha: {ultima_fecha}")
+                return ultimo_valor, ultima_fecha
+            else:
+                print("No se encontraron datos en la tabla.")
+                return None, None
 
         except pymysql.connect.Error as err:
             print(f"Error al leer datos de la base de datos: {err}")
-            return []
+            return None, None
 
         finally:
             # Cerrar la conexión

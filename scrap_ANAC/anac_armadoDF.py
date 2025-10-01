@@ -44,8 +44,8 @@ class armadoDF:
         df.columns = df.iloc[0]
         df = df.drop(df.index[0])
         
-        # Crear la nueva columna con las fechas
-        fecha_inicio = datetime.strptime("2019-01-01", "%Y-%m-%d").date()
+        # Crear la nueva columna con las fechas (iniciando desde enero 2023)
+        fecha_inicio = datetime.strptime("2023-01-01", "%Y-%m-%d").date()
         fechas = [fecha_inicio + relativedelta(months=i) for i in range(len(df))]
         df.insert(0, 'fecha', fechas)
         

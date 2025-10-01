@@ -41,9 +41,31 @@ class HomePage:
             nombre_archivo_final = 'anac.xlsx'
             ruta_excel_final = os.path.join(carpeta_guardado, nombre_archivo_final)
 
-            # Descargar el archivo ZIP
+            # Verificar espacio libre antes de descargar (crítico para EC2)
+            self._verificar_espacio_disco(carpeta_guardado)
+            
+            # Verificar si el archivo Excel ya existe y es reciente (menos de 1 hora)
+            if os.path.exists(ruta_excel_final):
+                import time
+                tiempo_archivo = os.path.getmtime(ruta_excel_final)
+                tiempo_actual = time.time()
+                if (tiempo_actual - tiempo_archivo) < 3600:  # 1 hora = 3600 segundos
+                    print(f"✓ Usando archivo Excel existente (descargado hace menos de 1 hora)")
+                    return
+
+            # Descargar el archivo ZIP con reintentos
             print(f"Descargando archivo comprimido desde: {url_archivo_zip}")
-            response = requests.get(url_archivo_zip, verify=False, timeout=60)
+            max_intentos = 3
+            for intento in range(max_intentos):
+                try:
+                    response = requests.get(url_archivo_zip, verify=False, timeout=60)
+                    break
+                except requests.exceptions.RequestException as e:
+                    if intento < max_intentos - 1:
+                        print(f"Intento {intento + 1} falló: {e}. Reintentando...")
+                        continue
+                    else:
+                        raise Exception(f"Error después de {max_intentos} intentos: {e}")
 
             # Verificar que la descarga fue exitosa
             if response.status_code == 200:
@@ -95,15 +117,8 @@ class HomePage:
                             
                             print(f"✓ Archivo Excel extraído exitosamente: {ruta_excel_final}")
                             
-                            # Limpiar archivo ZIP temporal
-                            try:
-                                if os.path.exists(ruta_zip):
-                                    os.remove(ruta_zip)
-                                    print("Archivo ZIP temporal eliminado")
-                            except PermissionError:
-                                print("No se pudo eliminar el archivo ZIP temporal (archivo en uso)")
-                            except Exception as e:
-                                print(f"Advertencia: No se pudo eliminar archivo temporal: {e}")
+                            # Limpiar archivos temporales
+                            self._limpiar_archivos_temporales(carpeta_guardado, ruta_zip)
                                 
                         else:
                             raise Exception("No se encontró ningún archivo Excel en el ZIP")
@@ -128,3 +143,59 @@ class HomePage:
         finally:
             # No necesitamos cerrar driver aquí ya que no lo usamos
             pass
+    
+    def _limpiar_archivos_temporales(self, carpeta_guardado, ruta_zip):
+        """Limpia archivos temporales y directorios extraídos (optimizado para EC2)"""
+        archivos_eliminados = 0
+        espacio_liberado = 0
+        
+        try:
+            # Eliminar ZIP temporal
+            if os.path.exists(ruta_zip):
+                size = os.path.getsize(ruta_zip)
+                os.remove(ruta_zip)
+                espacio_liberado += size
+                archivos_eliminados += 1
+                print(f"✓ ZIP temporal eliminado ({size/1024/1024:.1f}MB)")
+            
+            # Eliminar directorio de extracción temporal si existe
+            directorio_temporal = os.path.join(carpeta_guardado, "tablas de movimientos y pasajeros")
+            if os.path.exists(directorio_temporal):
+                # Calcular tamaño antes de eliminar
+                for root, dirs, files in os.walk(directorio_temporal):
+                    for file in files:
+                        filepath = os.path.join(root, file)
+                        if os.path.exists(filepath):
+                            espacio_liberado += os.path.getsize(filepath)
+                            archivos_eliminados += 1
+                
+                shutil.rmtree(directorio_temporal)
+                print(f"✓ Directorio temporal eliminado")
+            
+            # Verificar espacio libre en disco (crítico para EC2)
+            self._verificar_espacio_disco(carpeta_guardado)
+            
+            if archivos_eliminados > 0:
+                print(f"✓ Limpieza completada: {archivos_eliminados} archivos, {espacio_liberado/1024/1024:.1f}MB liberados")
+                
+        except PermissionError:
+            print("⚠ No se pudieron eliminar algunos archivos temporales (en uso)")
+        except Exception as e:
+            print(f"⚠ Advertencia limpiando temporales: {e}")
+    
+    def _verificar_espacio_disco(self, carpeta_guardado):
+        """Verifica espacio libre en disco (crítico para EC2)"""
+        try:
+            stat = shutil.disk_usage(carpeta_guardado)
+            espacio_libre_gb = stat.free / (1024**3)
+            espacio_total_gb = stat.total / (1024**3)
+            porcentaje_libre = (stat.free / stat.total) * 100
+            
+            print(f"💾 Espacio libre: {espacio_libre_gb:.1f}GB de {espacio_total_gb:.1f}GB ({porcentaje_libre:.1f}%)")
+            
+            # Alerta si queda menos de 1GB o menos del 10%
+            if espacio_libre_gb < 1.0 or porcentaje_libre < 10:
+                print(f"⚠️  ADVERTENCIA: Poco espacio en disco ({espacio_libre_gb:.1f}GB libre)")
+                
+        except Exception as e:
+            print(f"⚠ No se pudo verificar espacio en disco: {e}")

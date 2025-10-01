@@ -6,6 +6,7 @@
 *.venv
 entorno_trabajo/
 __pycache__/
+*.zip
 
 #Archivo de variables de entorno - NUNCA SUBIR AL GIT
 .env
