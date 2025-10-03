@@ -330,61 +330,198 @@ class ExtractorCarrefour:
             return False
         
     def hacer_clic_ingresar_con_mail(self):
-        """Hacer clic con debugging"""
+        """Hacer clic específicamente en el botón 'ingresar con mail y contraseña'"""
         try:
-            logger.info("Buscando botón email...")
+            logger.info("🔍 Buscando botón 'ingresar con mail y contraseña'...")
             time.sleep(3)
             
-            # Estrategia principal: buscar en modal
+            # ESTRATEGIA 1: Búsqueda exacta por texto completo
+            try:
+                boton_exacto = self.driver.find_element(
+                    By.XPATH, 
+                    "//button[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'ingresar con mail y contraseña')]"
+                )
+                if boton_exacto.is_displayed() and boton_exacto.is_enabled():
+                    logger.info("🎯 Botón EXACTO encontrado: 'ingresar con mail y contraseña'")
+                    
+                    # Scroll para asegurar visibilidad
+                    self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", boton_exacto)
+                    time.sleep(1)
+                    
+                    # Intentar clic normal
+                    try:
+                        boton_exacto.click()
+                        logger.info("✅ Clic exitoso en botón exacto")
+                        time.sleep(5)
+                        return True
+                    except Exception as click_error:
+                        logger.warning(f"⚠️ Clic normal falló: {click_error}")
+                        
+                        # Intentar clic JavaScript
+                        try:
+                            self.driver.execute_script("arguments[0].click();", boton_exacto)
+                            logger.info("✅ Clic JS exitoso en botón exacto")
+                            time.sleep(5)
+                            return True
+                        except Exception as js_error:
+                            logger.error(f"💥 Clic JS también falló: {js_error}")
+                            
+            except Exception as e:
+                logger.debug(f"Búsqueda exacta falló: {e}")
+            
+            # ESTRATEGIA 2: Búsqueda por partes del texto (más flexible)
+            textos_parciales = [
+                "ingresar con mail y contraseña",
+                "ingresar con mail",
+                "mail y contraseña",
+                "ingresar con email y contraseña",
+                "ingresar con email"
+            ]
+            
+            for texto in textos_parciales:
+                try:
+                    boton = self.driver.find_element(
+                        By.XPATH, 
+                        f"//button[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '{texto.lower()}')]"
+                    )
+                    if boton.is_displayed() and boton.is_enabled():
+                        logger.info(f"🎯 Botón encontrado (parcial): '{texto}'")
+                        
+                        # Scroll para asegurar visibilidad
+                        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", boton)
+                        time.sleep(1)
+                        
+                        # Intentar clic normal
+                        try:
+                            boton.click()
+                            logger.info(f"✅ Clic exitoso en: '{texto}'")
+                            time.sleep(5)
+                            return True
+                        except Exception as click_error:
+                            logger.warning(f"⚠️ Clic normal falló en '{texto}': {click_error}")
+                            
+                            # Intentar clic JavaScript
+                            try:
+                                self.driver.execute_script("arguments[0].click();", boton)
+                                logger.info(f"✅ Clic JS exitoso en: '{texto}'")
+                                time.sleep(5)
+                                return True
+                            except Exception as js_error:
+                                logger.error(f"💥 Clic JS falló en '{texto}': {js_error}")
+                                
+                except Exception as e:
+                    logger.debug(f"Texto parcial '{texto}' no encontrado: {e}")
+            
+            # ESTRATEGIA 3: Buscar en modales específicos
             try:
                 modal = self.driver.find_element(By.XPATH, "//div[contains(@class, 'vtex-login')]")
                 botones = modal.find_elements(By.TAG_NAME, "button")
                 
-                logger.info(f"Botones encontrados: {len(botones)}")
+                logger.info(f"🔍 Buscando en modal - Botones encontrados: {len(botones)}")
+                
                 for i, boton in enumerate(botones):
                     texto = boton.text.strip().lower()
                     is_enabled = boton.is_enabled()
                     is_displayed = boton.is_displayed()
+                    
                     logger.info(f"Botón {i}: '{texto}' | Habilitado: {is_enabled} | Visible: {is_displayed}")
                     
-                    if ('mail' in texto or 'email' in texto):
+                    # Buscar específicamente el texto completo o parcial
+                    if ('ingresar con mail y contraseña' in texto or 
+                        'mail y contraseña' in texto or
+                        'ingresar con mail' in texto):
+                        
                         if is_enabled and is_displayed:
-                            logger.info(f"🎯 Intentando clic en: '{texto}'")
+                            logger.info(f"🎯 Botón modal encontrado: '{texto}'")
+                            
+                            # Scroll para asegurar visibilidad
+                            self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", boton)
+                            time.sleep(1)
+                            
+                            # Intentar clic normal
                             try:
                                 boton.click()
-                                logger.info(f"✅ Clic exitoso en botón: '{texto}'")
-                                time.sleep(5)  # Más tiempo para cargar formulario
+                                logger.info(f"✅ Clic exitoso en botón modal: '{texto}'")
+                                time.sleep(5)
                                 return True
                             except Exception as click_error:
-                                logger.error(f"💥 Error en clic: {click_error}")
-                                # Intentar JavaScript click como alternativa
+                                logger.warning(f"⚠️ Clic modal falló: {click_error}")
+                                
+                                # Intentar clic JavaScript
                                 try:
                                     self.driver.execute_script("arguments[0].click();", boton)
-                                    logger.info(f"✅ Clic JS exitoso en botón: '{texto}'")
-                                    time.sleep(5)  # Más tiempo para cargar formulario
+                                    logger.info(f"✅ Clic JS exitoso en botón modal: '{texto}'")
+                                    time.sleep(5)
                                     return True
                                 except Exception as js_error:
-                                    logger.error(f"💥 Error en clic JS: {js_error}")
+                                    logger.error(f"💥 Clic JS modal falló: {js_error}")
                         else:
-                            logger.warning(f"⚠️ Botón encontrado pero no habilitado/visible: '{texto}'")
+                            logger.warning(f"⚠️ Botón modal encontrado pero no usable: '{texto}'")
+                            
             except Exception as e:
-                logger.debug(f"Modal falló: {e}")
+                logger.debug(f"Búsqueda en modal falló: {e}")
             
-            # Estrategia secundaria
+            # ESTRATEGIA 4: Búsqueda por atributos específicos
             try:
-                boton = self.driver.find_element(By.XPATH, "//button[contains(., 'mail')]")
-                boton.click()
-                logger.info("✅ Clic en botón mail (XPath)")
-                time.sleep(3)
-                return True
-            except:
-                pass
+                selectores_especiales = [
+                    "button[data-testid*='email']",
+                    "button[data-testid*='mail']",
+                    "button[aria-label*='mail']",
+                    "button[aria-label*='email']",
+                    "button[class*='email']",
+                    "button[class*='mail']"
+                ]
+                
+                for selector in selectores_especiales:
+                    try:
+                        boton = self.driver.find_element(By.CSS_SELECTOR, selector)
+                        if boton.is_displayed() and boton.is_enabled():
+                            logger.info(f"🎯 Botón por selector especial: {selector}")
+                            
+                            # Verificar que el texto contenga lo que buscamos
+                            texto_boton = boton.text.strip().lower()
+                            if any(palabra in texto_boton for palabra in ['mail', 'email', 'ingresar']):
+                                
+                                # Scroll para asegurar visibilidad
+                                self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", boton)
+                                time.sleep(1)
+                                
+                                # Intentar clic JavaScript directamente (más confiable)
+                                self.driver.execute_script("arguments[0].click();", boton)
+                                logger.info(f"✅ Clic JS en botón especial: {selector} - Texto: '{texto_boton}'")
+                                time.sleep(5)
+                                return True
+                                
+                    except Exception as e:
+                        logger.debug(f"Selector especial {selector} falló: {e}")
+                        
+            except Exception as e:
+                logger.debug(f"Búsqueda por atributos falló: {e}")
             
-            logger.error("❌ No se pudo encontrar botón email")
+            # ESTRATEGIA 5: Debugging - Mostrar TODOS los botones de la página
+            logger.info("🔍 HACIENDO INVENTARIO DE TODOS LOS BOTONES...")
+            try:
+                todos_los_botones = self.driver.find_elements(By.TAG_NAME, "button")
+                logger.info(f"📋 TOTAL de botones en página: {len(todos_los_botones)}")
+                
+                for i, boton in enumerate(todos_los_botones):
+                    try:
+                        texto = boton.text.strip()
+                        if texto:  # Solo mostrar botones con texto
+                            estado = "HABILITADO" if boton.is_enabled() else "DESHABILITADO"
+                            visible = "VISIBLE" if boton.is_displayed() else "OCULTO"
+                            logger.info(f"Botón {i}: '{texto}' | {estado} | {visible}")
+                    except:
+                        pass
+                        
+            except Exception as e:
+                logger.error(f"Error en inventario de botones: {e}")
+            
+            logger.error("❌ No se pudo encontrar el botón 'ingresar con mail y contraseña'")
             return False
             
         except Exception as e:
-            logger.error(f"Error en clic email: {e}")
+            logger.error(f"❌ Error general en búsqueda de botón: {e}")
             return False
         
     def ingresar_credenciales_con_debug(self):
@@ -575,18 +712,6 @@ class ExtractorCarrefour:
                 except:
                     continue
             
-            # Intentar acceder a página de cuenta
-            try:
-                self.driver.get("https://www.carrefour.com.ar/minha-conta")
-                time.sleep(2)
-                if 'login' not in self.driver.current_url.lower():
-                    logger.info("✅ Sesión activa - Acceso a cuenta permitido")
-                    return True
-                else:
-                    logger.error("❌ Redirigido a login al acceder a cuenta")
-            except:
-                pass
-            
             logger.error("❌ No se encontraron indicadores de sesión activa")
             return False
             
@@ -721,3 +846,411 @@ class ExtractorCarrefour:
                 logger.info("Driver de Selenium cerrado correctamente")
         except Exception as e:
             logger.error(f"Error cerrando driver: {e}")
+
+    #VERIFICACION DE LINKS
+    def validar_links_productos(self, urls):
+        """
+        Valida todos los links antes de la extracción completa
+        Retorna: dict con información de validación por producto
+        """
+        logger.info("🔍 INICIANDO VALIDACIÓN DE LINKS")
+        
+        # VERIFICAR QUE LO QUE RECIBIMOS SON URLs VÁLIDAS
+        logger.info(f"📦 Datos recibidos para validación: {len(urls)} elementos")
+        
+        # Filtrar solo URLs válidas
+        urls_validas = []
+        for item in urls:
+            if isinstance(item, str) and item.startswith(('http://', 'https://')):
+                urls_validas.append(item)
+            else:
+                logger.warning(f"⚠️ Elemento no es URL válida: {item}")
+        
+        logger.info(f"🔗 URLs válidas encontradas: {len(urls_validas)}/{len(urls)}")
+        
+        if not urls_validas:
+            logger.error("❌ No hay URLs válidas para validar")
+            return {}
+        
+        # Asegurar sesión activa
+        if not self.asegurar_sesion_activa():
+            logger.error("No se pudo establecer sesión para validación")
+            return {}
+        
+        resultados_validacion = {}
+        
+        for i, url in enumerate(urls, 1):
+            logger.info(f"📋 Validando link {i}/{len(urls)}: {url}")
+            
+            resultado = self._validar_link_individual(url, i)
+            resultados_validacion[url] = resultado
+            
+            # Pequeña pausa entre validaciones
+            time.sleep(1)
+        
+        # Mostrar resumen de validación
+        self._mostrar_resumen_validacion(resultados_validacion)
+        
+        return resultados_validacion
+    
+    def _validar_link_individual(self, url, numero_link):
+        """
+        Valida un link individual y retorna información detallada
+        """
+        try:
+            # VERIFICAR QUE LA URL ES VÁLIDA ANTES DE NAVEGAR
+            if not url.startswith(('http://', 'https://')):
+                return {
+                    "valido": False,
+                    "estado": "URL_INVALIDA",
+                    "mensaje": f"URL no válida: {url}",
+                    "titulo_pagina": "N/A",
+                    "url_final": "N/A"
+                }
+            
+            # Intentar cargar la página con manejo de timeout
+            try:
+                self.driver.set_page_load_timeout(30)
+                self.driver.get(url)
+                time.sleep(3)  # Dar más tiempo para cargar
+            except Exception as load_error:
+                return {
+                    "valido": False,
+                    "estado": "ERROR_CARGA",
+                    "mensaje": f"No se pudo cargar la página: {str(load_error)}",
+                    "titulo_pagina": "N/A",
+                    "url_final": "N/A"
+                }
+            
+            # DEBUG: Tomar screenshot para análisis
+            self.driver.save_screenshot(f'debug_producto_{numero_link}.png')
+            logger.info(f"Screenshot guardado: debug_producto_{numero_link}.png")
+            
+            # Verificar si la página cargó correctamente
+            current_url = self.driver.current_url
+            titulo_pagina = self.driver.title
+            
+            logger.info(f"Página cargada - Título: {titulo_pagina}")
+            logger.info(f"URL final: {current_url}")
+            
+            if "carrefour.com.ar" not in current_url:
+                return {
+                    "valido": False,
+                    "estado": "ERROR_CARGA",
+                    "mensaje": "No se pudo cargar la página de Carrefour",
+                    "titulo_pagina": titulo_pagina,
+                    "url_final": current_url
+                }
+            
+            # ESTRATEGIA 1: Verificar si es página de error "¡Ups! Página no encontrada"
+            if self._es_pagina_error_ups():
+                return {
+                    "valido": False,
+                    "estado": "PAGINA_NO_ENCONTRADA",
+                    "mensaje": "Página no encontrada (Error 404)",
+                    "titulo_pagina": titulo_pagina,
+                    "url_final": current_url
+                }
+            
+            # ESTRATEGIA 2: Verificar si el producto NO está disponible
+            if self._producto_no_disponible():
+                return {
+                    "valido": False,
+                    "estado": "NO_DISPONIBLE",
+                    "mensaje": "Producto no disponible o sin stock",
+                    "titulo_pagina": titulo_pagina,
+                    "url_final": current_url
+                }
+            
+            # ESTRATEGIA 3: Verificar si el producto SÍ está disponible (tiene botón Agregar)
+            if self._producto_disponible():
+                # Verificar si podemos extraer información básica
+                nombre = self._extraer_nombre(self.wait)
+                logger.info(f"Nombre extraído: {nombre}")
+                
+                if not nombre:
+                    return {
+                        "valido": False,
+                        "estado": "SIN_NOMBRE",
+                        "mensaje": "No se puede extraer el nombre del producto",
+                        "titulo_pagina": titulo_pagina,
+                        "url_final": current_url
+                    }
+                
+                # Verificar si hay precios
+                precio_desc = self._extraer_precio_descuento(self.driver)
+                logger.info(f"Precio extraído: {precio_desc}")
+                
+                if precio_desc == "0":
+                    return {
+                        "valido": False,
+                        "estado": "SIN_PRECIO",
+                        "mensaje": "No se puede extraer precio del producto",
+                        "titulo_pagina": titulo_pagina,
+                        "nombre_producto": nombre,
+                        "url_final": current_url
+                    }
+                
+                # Si llegamos aquí, el link es válido
+                return {
+                    "valido": True,
+                    "estado": "OK",
+                    "mensaje": "Link válido - Producto disponible y extraíble",
+                    "titulo_pagina": titulo_pagina,
+                    "nombre_producto": nombre,
+                    "precio_descuento": precio_desc,
+                    "url_final": current_url
+                }
+            
+            # Si no cumple ninguna de las condiciones anteriores, es inválido
+            return {
+                "valido": False,
+                "estado": "DESCONOCIDO",
+                "mensaje": "No se pudo determinar el estado del producto",
+                "titulo_pagina": titulo_pagina,
+                "url_final": current_url
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ Error validando link {numero_link}: {str(e)}")
+            return {
+                "valido": False,
+                "estado": "ERROR_EXCEPCION",
+                "mensaje": f"Error inesperado: {str(e)}",
+                "titulo_pagina": self.driver.title if self.driver else "No disponible",
+                "url_final": self.driver.current_url if self.driver else "No disponible"
+            }
+        
+    def _es_pagina_error_ups(self):
+        """
+        Verifica si la página muestra el error "¡Ups! Página no encontrada"
+        """
+        try:
+            # Buscar el texto exacto del error
+            textos_error = [
+                "¡Ups!",
+                "Página no encontrada",
+                "página no existe",
+                "no encontrada"
+            ]
+            
+            # Verificar en todo el contenido de la página
+            page_text = self.driver.page_source
+            page_lower = page_text.lower()
+            
+            for texto in textos_error:
+                if texto.lower() in page_lower:
+                    logger.info(f"❌ Página de error detectada: '{texto}'")
+                    return True
+            
+            # Buscar elementos específicos del error
+            selectores_error = [
+                "//*[contains(text(), '¡Ups!')]",
+                "//*[contains(text(), 'Página no encontrada')]",
+                ".error-page",
+                ".not-found",
+                "[class*='error']",
+                "[class*='not-found']"
+            ]
+            
+            for selector in selectores_error:
+                try:
+                    if selector.startswith("//"):
+                        elemento = self.driver.find_element(By.XPATH, selector)
+                    else:
+                        elemento = self.driver.find_element(By.CSS_SELECTOR, selector)
+                    
+                    if elemento.is_displayed():
+                        logger.info(f"❌ Elemento de error encontrado: {selector}")
+                        return True
+                except:
+                    continue
+                    
+            return False
+            
+        except Exception as e:
+            logger.debug(f"Error verificando página de error: {e}")
+            return False
+        
+    def _es_pagina_producto(self):
+        """
+        Verifica si la página actual es una página de producto individual
+        """
+        try:
+            # Verificar por elementos específicos de página de producto
+            indicadores_producto = [
+                "//div[contains(@class, 'product-page')]",
+                "//div[contains(@class, 'product-details')]",
+                "//div[contains(@class, 'vtex-store-components-3-x-productNameContainer')]",
+                "//h1[contains(@class, 'product-brand')]",
+                "//div[contains(@class, 'valtech-carrefourar-product-price-0-x-sellingPriceValue')]"
+            ]
+            
+            for indicador in indicadores_producto:
+                try:
+                    elemento = self.driver.find_element(By.XPATH, indicador)
+                    if elemento.is_displayed():
+                        return True
+                except:
+                    continue
+            
+            # Verificar por URL pattern de producto
+            if '/p?' in self.driver.current_url or '/producto/' in self.driver.current_url:
+                return True
+                
+            return False
+            
+        except Exception as e:
+            logger.debug(f"Error verificando página producto: {e}")
+            return False
+    
+    def _producto_no_disponible(self):
+        """
+        Verifica si el producto NO está disponible (tiene botón de no disponible)
+        """
+        try:
+            # Buscar botones o mensajes de no disponibilidad
+            textos_no_disponible = [
+                "no disponible",
+                "sin stock", 
+                "producto agotado",
+                "no disponible online",
+                "fuera de stock",
+                "stock agotado"
+            ]
+            
+            # Buscar en botones
+            selectores_boton_no_disponible = [
+                "//button[contains(., 'No disponible')]",
+                "//button[contains(., 'Sin stock')]",
+                "//button[contains(., 'Agotado')]",
+                "//button[@disabled]",
+                "button[disabled]",
+                ".out-of-stock",
+                ".unavailable",
+                ".no-stock"
+            ]
+            
+            # Verificar texto en la página
+            page_text = self.driver.page_source.lower()
+            for texto in textos_no_disponible:
+                if texto in page_text:
+                    logger.info(f"❌ Producto no disponible - Texto: '{texto}'")
+                    return True
+            
+            # Verificar botones de no disponible
+            for selector in selectores_boton_no_disponible:
+                try:
+                    if selector.startswith("//"):
+                        boton = self.driver.find_element(By.XPATH, selector)
+                    else:
+                        boton = self.driver.find_element(By.CSS_SELECTOR, selector)
+                    
+                    if boton.is_displayed():
+                        logger.info(f"❌ Botón no disponible encontrado: {selector}")
+                        return True
+                except:
+                    continue
+                    
+            return False
+            
+        except Exception as e:
+            logger.debug(f"Error verificando no disponibilidad: {e}")
+            return False
+
+    def _producto_disponible(self):
+        """
+        Verifica si el producto SÍ está disponible (tiene botón Agregar)
+        """
+        try:
+            # Buscar botones de agregar al carrito
+            textos_agregar = [
+                "Agregar",
+                "Agregar al carrito", 
+                "Comprar",
+                "Add to cart",
+                "Añadir al carrito"
+            ]
+            
+            selectores_boton_agregar = [
+                "//button[contains(., 'Agregar')]",
+                "//button[contains(., 'Comprar')]",
+                "button[data-testid='buy-button']",
+                "button.add-to-cart",
+                "button.buy-button",
+                ".add-to-cart-button",
+                "[class*='add-to-cart']"
+            ]
+            
+            # Verificar botones de agregar
+            for texto in textos_agregar:
+                try:
+                    boton = self.driver.find_element(By.XPATH, f"//button[contains(., '{texto}')]")
+                    if boton.is_displayed() and boton.is_enabled():
+                        logger.info(f"✅ Botón disponible encontrado: '{texto}'")
+                        return True
+                except:
+                    continue
+            
+            # Verificar por selectores CSS
+            for selector in selectores_boton_agregar:
+                try:
+                    boton = self.driver.find_element(By.CSS_SELECTOR, selector)
+                    if boton.is_displayed() and boton.is_enabled():
+                        logger.info(f"✅ Botón disponible encontrado: {selector}")
+                        return True
+                except:
+                    continue
+            
+            # Si no encontramos botón de agregar, verificar si al menos es página de producto
+            # con elementos básicos (nombre y precio)
+            try:
+                nombre = self._extraer_nombre(self.wait)
+                precio = self._extraer_precio_descuento(self.driver)
+                
+                if nombre and precio != "0":
+                    logger.info("✅ Producto disponible (tiene nombre y precio)")
+                    return True
+            except:
+                pass
+                
+            return False
+            
+        except Exception as e:
+            logger.debug(f"Error verificando disponibilidad: {e}")
+            return False
+    
+    def _mostrar_resumen_validacion(self, resultados):
+        """
+        Muestra un resumen detallado de la validación
+        """
+        logger.info("📊 ========== RESUMEN DE VALIDACIÓN ==========")
+        
+        total_links = len(resultados)
+        links_validos = sum(1 for r in resultados.values() if r.get('valido', False))
+        links_invalidos = total_links - links_validos
+        
+        logger.info(f"📈 Total links procesados: {total_links}")
+        logger.info(f"✅ Links válidos: {links_validos}")
+        logger.info(f"❌ Links inválidos: {links_invalidos}")
+        
+        # Detalle por estado
+        estados = {}
+        for resultado in resultados.values():
+            estado = resultado.get('estado', 'DESCONOCIDO')
+            estados[estado] = estados.get(estado, 0) + 1
+        
+        logger.info("📋 Detalle por estado:")
+        for estado, cantidad in estados.items():
+            logger.info(f"   - {estado}: {cantidad} links")
+        
+        # Mostrar links inválidos específicos
+        if links_invalidos > 0:
+            logger.info("🔍 Links inválidos detectados:")
+            for url, resultado in resultados.items():
+                if not resultado.get('valido', False):
+                    logger.info(f"   ❌ {url}")
+                    logger.info(f"      Estado: {resultado.get('estado', 'N/A')}")
+                    logger.info(f"      Mensaje: {resultado.get('mensaje', 'N/A')}")
+        
+        logger.info("==============================================")

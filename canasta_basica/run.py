@@ -1,7 +1,7 @@
-from carrefour_extractor import ExtractorCarrefour
-from load import load_canasta_basica_data
-from utils_db import ConexionBaseDatos
-from utils_sheets import ConexionGoogleSheets
+from .carrefour_extractor import ExtractorCarrefour
+from .load import load_canasta_basica_data
+from .utils_db import ConexionBaseDatos
+from .utils_sheets import ConexionGoogleSheets
 import pandas as pd
 from datetime import datetime
 from dotenv import load_dotenv
@@ -38,8 +38,9 @@ class GestorCanastaBasica:
         
         SHEET_ID = '13vz5WzXnXLdp61YVHkKO17C4OBEXVJcC5cP38N--8XA'
         # Rango configurable desde variables de entorno
-        RANGO = os.getenv('SHEETS_RANGE', 'Hoja 1!A2:K35')
-        
+        #RANGO = os.getenv('SHEETS_RANGE', 'Hoja 1!A2:K60')
+        RANGO = os.getenv('SHEETS_RANGE', 'Hoja 1!A2:K2')
+
         gs = ConexionGoogleSheets(SHEET_ID)
         df_links = gs.leer_df(RANGO, header=False)
         
@@ -236,11 +237,32 @@ class GestorCanastaBasica:
             if not productos_links:
                 logger.error("No se encontraron productos en Google Sheets")
                 return
-            
+                        
             logger.info(f"Se encontraron {len(productos_links)} productos para procesar")
             
             # 2. INICIALIZAR SESIONES UNA SOLA VEZ AL INICIO
             self.inicializar_sesiones()
+
+            # 1. EXTRAER TODAS LAS URLs EN UNA LISTA PLANA
+            todas_las_urls = []
+            for producto, urls in productos_links.items():
+                todas_las_urls.extend(urls)
+                logger.info(f"Producto: {producto} - {len(urls)} links")
+            
+            logger.info(f"Total de URLs a validar: {len(todas_las_urls)}")
+
+            # 2. VALIDAR LINKS PRIMERO
+            logger.info("=== FASE 1: VALIDACIÓN DE LINKS ===")
+            extractor = ExtractorCarrefour()
+            resultados_validacion = extractor.validar_links_productos(todas_las_urls)
+            
+            # 3. Mostrar resultados y preguntar si continuar
+            links_validos = sum(1 for r in resultados_validacion.values() if r.get('valido', False))
+            links_totales = len(todas_las_urls)
+            
+            print(f"\n📊 RESULTADO VALIDACIÓN: {links_validos}/{links_totales} links válidos")
+
+            exit()
             
             # 3. PROCESAR CADA SUPERMERCADO
             todos_links_problematicos = []

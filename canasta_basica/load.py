@@ -17,8 +17,7 @@ password = os.getenv("PASSWORD_DBB")
 database = os.getenv("NAME_DBB_DATALAKE_ECONOMICO")
 
 # Importar la implementación local
-from utils_db import ConexionBaseDatos
-
+from .utils_db import ConexionBaseDatos
 def load_canasta_basica_data(df):
     print("Iniciando carga a base de datos ( reemplazando los datos existentes)...")
     conexion = ConexionBaseDatos(host, user, password, database)

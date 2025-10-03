@@ -22,7 +22,7 @@ class ConexionGoogleSheets:
         """Configura el servicio de Google Sheets"""
         try:
             # Intentar cargar credenciales desde variable de entorno JSON directo
-            credentials_json = os.getenv('GOOGLE_SHEETS_CREDENTIALS')
+            credentials_json = os.getenv('GOOGLE_SHEETS_API_KEY')
             
             # O desde GOOGLE_SHEETS_CREDENTIALS_FILE que también puede contener JSON
             if not credentials_json:
