@@ -1,7 +1,7 @@
-from .carrefour_extractor import ExtractorCarrefour
-from .load import load_canasta_basica_data
-from .utils_db import ConexionBaseDatos
-from .utils_sheets import ConexionGoogleSheets
+from carrefour_extractor import ExtractorCarrefour
+from load import load_canasta_basica_data
+from utils_db import ConexionBaseDatos
+from utils_sheets import ConexionGoogleSheets
 import pandas as pd
 from datetime import datetime
 from dotenv import load_dotenv
@@ -38,8 +38,8 @@ class GestorCanastaBasica:
         
         SHEET_ID = '13vz5WzXnXLdp61YVHkKO17C4OBEXVJcC5cP38N--8XA'
         # Rango configurable desde variables de entorno
-        #RANGO = os.getenv('SHEETS_RANGE', 'Hoja 1!A2:K60')
-        RANGO = os.getenv('SHEETS_RANGE', 'Hoja 1!A2:K2')
+        RANGO = os.getenv('SHEETS_RANGE', 'Hoja 1!A2:K60')
+        #RANGO = os.getenv('SHEETS_RANGE', 'Hoja 1!A2:K13')
 
         gs = ConexionGoogleSheets(SHEET_ID)
         df_links = gs.leer_df(RANGO, header=False)

@@ -848,7 +848,7 @@ class ExtractorCarrefour:
             logger.error(f"Error cerrando driver: {e}")
 
     #VERIFICACION DE LINKS
-    def validar_links_productos(self, urls):
+    def validar_links_productos(self, urls, nombre_arch_inv = "links_invalidos.csv"):
         """
         Valida todos los links antes de la extracción completa
         Retorna: dict con información de validación por producto
@@ -878,15 +878,36 @@ class ExtractorCarrefour:
             return {}
         
         resultados_validacion = {}
+        links_invalidos_data = []
         
-        for i, url in enumerate(urls, 1):
-            logger.info(f"📋 Validando link {i}/{len(urls)}: {url}")
+        # CORRECCIÓN: Iterar sobre urls_validas en lugar de urls
+        for i, url in enumerate(urls_validas, 1):
+            logger.info(f"📋 Validando link {i}/{len(urls_validas)}: {url}")
             
             resultado = self._validar_link_individual(url, i)
             resultados_validacion[url] = resultado
             
+            # Si es inválido, guardar para el CSV
+            if not resultado.get('valido', False):
+                # Extraer nombre del producto de la URL o del resultado
+                nombre_producto = self._extraer_nombre(url)
+                if resultado.get('nombre_producto'):
+                    nombre_producto = resultado.get('nombre_producto')
+                
+                links_invalidos_data.append({
+                    'producto': nombre_producto,
+                    'link': url,
+                    'fecha': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    'motivo': resultado.get('estado', 'DESCONOCIDO'),
+                    'mensaje': resultado.get('mensaje', '')
+                })
+            
             # Pequeña pausa entre validaciones
             time.sleep(1)
+        
+        # Guardar CSV con links inválidos
+        if links_invalidos_data:
+            self._guardar_links_invalidos_csv(links_invalidos_data, nombre_arch_inv)
         
         # Mostrar resumen de validación
         self._mostrar_resumen_validacion(resultados_validacion)
@@ -908,11 +929,13 @@ class ExtractorCarrefour:
                     "url_final": "N/A"
                 }
             
+            # Configurar timeout más corto para páginas de error
+            self.driver.set_page_load_timeout(15)  # Reducir de 30 a 15 segundos
+            
             # Intentar cargar la página con manejo de timeout
             try:
-                self.driver.set_page_load_timeout(30)
                 self.driver.get(url)
-                time.sleep(3)  # Dar más tiempo para cargar
+                time.sleep(2)  # Dar más tiempo para cargar
             except Exception as load_error:
                 return {
                     "valido": False,
@@ -922,16 +945,12 @@ class ExtractorCarrefour:
                     "url_final": "N/A"
                 }
             
-            # DEBUG: Tomar screenshot para análisis
-            self.driver.save_screenshot(f'debug_producto_{numero_link}.png')
-            logger.info(f"Screenshot guardado: debug_producto_{numero_link}.png")
-            
             # Verificar si la página cargó correctamente
             current_url = self.driver.current_url
             titulo_pagina = self.driver.title
             
-            logger.info(f"Página cargada - Título: {titulo_pagina}")
-            logger.info(f"URL final: {current_url}")
+            logger.info(f"📄 Página cargada - Título: {titulo_pagina}")
+            logger.info(f"🔗 URL final: {current_url}")
             
             if "carrefour.com.ar" not in current_url:
                 return {
@@ -942,31 +961,43 @@ class ExtractorCarrefour:
                     "url_final": current_url
                 }
             
-            # ESTRATEGIA 1: Verificar si es página de error "¡Ups! Página no encontrada"
-            if self._es_pagina_error_ups():
+            # DEBUG: Analizar qué está detectando exactamente
+            logger.info("🔍 ANALIZANDO ESTADO DEL PRODUCTO...")
+            
+            # USAR LOS MÉTODOS QUE YA FUNCIONABAN
+            es_error = self._es_pagina_error_ups()  # ✅ Método original que funciona
+            logger.info(f"   ¿Es página de error '¡Ups!'? {es_error}")
+            
+            # VERIFICAR DISPONIBILIDAD - LÓGICA ORIGINAL QUE FUNCIONABA
+            no_disponible = self._producto_no_disponible()  # ✅ Método original que funciona
+            logger.info(f"   ¿No disponible? {no_disponible}")
+            
+            disponible = self._producto_disponible()  # ✅ Método original que funciona
+            logger.info(f"   ¿Disponible? {disponible}")
+            
+            # DECISIÓN BASADA EN LOS RESULTADOS (LÓGICA ORIGINAL MEJORADA)
+            if es_error:
                 return {
                     "valido": False,
                     "estado": "PAGINA_NO_ENCONTRADA",
-                    "mensaje": "Página no encontrada (Error 404)",
+                    "mensaje": "Página no encontrada (Error 404 - ¡Ups!)",
                     "titulo_pagina": titulo_pagina,
                     "url_final": current_url
                 }
             
-            # ESTRATEGIA 2: Verificar si el producto NO está disponible
-            if self._producto_no_disponible():
+            if no_disponible:
                 return {
                     "valido": False,
                     "estado": "NO_DISPONIBLE",
-                    "mensaje": "Producto no disponible o sin stock",
+                    "mensaje": "Producto sin stock - Botón 'No Disponible' detectado",
                     "titulo_pagina": titulo_pagina,
                     "url_final": current_url
                 }
             
-            # ESTRATEGIA 3: Verificar si el producto SÍ está disponible (tiene botón Agregar)
-            if self._producto_disponible():
+            if disponible:
                 # Verificar si podemos extraer información básica
                 nombre = self._extraer_nombre(self.wait)
-                logger.info(f"Nombre extraído: {nombre}")
+                logger.info(f"🔍 Nombre extraído: {nombre}")
                 
                 if not nombre:
                     return {
@@ -977,15 +1008,16 @@ class ExtractorCarrefour:
                         "url_final": current_url
                     }
                 
-                # Verificar si hay precios
+                # Verificar si hay precios - CRITERIO PRINCIPAL CORREGIDO
                 precio_desc = self._extraer_precio_descuento(self.driver)
-                logger.info(f"Precio extraído: {precio_desc}")
+                logger.info(f"🔍 Precio extraído: {precio_desc}")
                 
-                if precio_desc == "0":
+                # ✅ CRITERIO MEJORADO: Si no hay precio o precio es 0 = NO DISPONIBLE
+                if not precio_desc or precio_desc == "0":
                     return {
                         "valido": False,
-                        "estado": "SIN_PRECIO",
-                        "mensaje": "No se puede extraer precio del producto",
+                        "estado": "NO_DISPONIBLE",
+                        "mensaje": "Producto sin precio - No disponible",
                         "titulo_pagina": titulo_pagina,
                         "nombre_producto": nombre,
                         "url_final": current_url
@@ -1002,7 +1034,38 @@ class ExtractorCarrefour:
                     "url_final": current_url
                 }
             
-            # Si no cumple ninguna de las condiciones anteriores, es inválido
+            # Si no cumple ninguna de las condiciones anteriores, verificar por datos
+            logger.info("❓ No se pudo determinar por botones - Verificando por datos...")
+            nombre = self._extraer_nombre(self.wait)
+            precio_desc = self._extraer_precio_descuento(self.driver)
+            
+            logger.info(f"🔍 Verificación por datos - Nombre: {nombre}, Precio: {precio_desc}")
+            
+            # ✅ CRITERIO MEJORADO: Si tiene nombre pero NO tiene precio = NO DISPONIBLE
+            if nombre and (not precio_desc or precio_desc == "0"):
+                return {
+                    "valido": False,
+                    "estado": "NO_DISPONIBLE",
+                    "mensaje": "Producto con nombre pero sin precio - No disponible",
+                    "titulo_pagina": titulo_pagina,
+                    "nombre_producto": nombre,
+                    "url_final": current_url
+                }
+            
+            # Si tiene nombre y precio, considerar como disponible
+            if nombre and precio_desc and precio_desc != "0":
+                return {
+                    "valido": True,
+                    "estado": "OK",
+                    "mensaje": "Link válido - Producto con datos extraíbles",
+                    "titulo_pagina": titulo_pagina,
+                    "nombre_producto": nombre,
+                    "precio_descuento": precio_desc,
+                    "url_final": current_url
+                }
+            
+            # Si llegamos aquí, es inválido
+            logger.info("❌ No se pudo determinar el estado - Marcando como DESCONOCIDO")
             return {
                 "valido": False,
                 "estado": "DESCONOCIDO",
@@ -1010,7 +1073,7 @@ class ExtractorCarrefour:
                 "titulo_pagina": titulo_pagina,
                 "url_final": current_url
             }
-            
+                
         except Exception as e:
             logger.error(f"❌ Error validando link {numero_link}: {str(e)}")
             return {
@@ -1024,47 +1087,43 @@ class ExtractorCarrefour:
     def _es_pagina_error_ups(self):
         """
         Verifica si la página muestra el error "¡Ups! Página no encontrada"
+        CON SELECTORES ESPECÍFICOS DE LAS FOTOS
         """
         try:
-            # Buscar el texto exacto del error
-            textos_error = [
-                "¡Ups!",
-                "Página no encontrada",
-                "página no existe",
-                "no encontrada"
+            # SELECTORES ESPECÍFICOS de la foto que me enviaste
+            selectores_error_especificos = [
+                # Selector del texto "¡Ups!"
+                "//p[contains(@class, 'vtex-rich-text-0-x-paragraph--notFoundTitle') and contains(., 'Ups!')]",
+                "//div[contains(@class, 'vtex-rich-text-0-x-container--notFoundTitle')]//*[contains(., 'Ups!')]",
+                "//div[contains(@class, 'vtex-flex-layout-0-x-flexCol--notFoundCol2')]//*[contains(., 'Ups!')]",
+                
+                # Selectores de la estructura del error
+                ".vtex-rich-text-0-x-container--notFoundTitle",
+                ".vtex-flex-layout-0-x-flexCol--notFoundCol2",
+                "[class*='notFoundTitle']",
+                "[class*='notFoundCol2']"
             ]
             
-            # Verificar en todo el contenido de la página
-            page_text = self.driver.page_source
-            page_lower = page_text.lower()
-            
-            for texto in textos_error:
-                if texto.lower() in page_lower:
-                    logger.info(f"❌ Página de error detectada: '{texto}'")
-                    return True
-            
-            # Buscar elementos específicos del error
-            selectores_error = [
-                "//*[contains(text(), '¡Ups!')]",
-                "//*[contains(text(), 'Página no encontrada')]",
-                ".error-page",
-                ".not-found",
-                "[class*='error']",
-                "[class*='not-found']"
-            ]
-            
-            for selector in selectores_error:
+            # Verificar con selectores específicos
+            for selector in selectores_error_especificos:
                 try:
                     if selector.startswith("//"):
-                        elemento = self.driver.find_element(By.XPATH, selector)
+                        elementos = self.driver.find_elements(By.XPATH, selector)
                     else:
-                        elemento = self.driver.find_element(By.CSS_SELECTOR, selector)
+                        elementos = self.driver.find_elements(By.CSS_SELECTOR, selector)
                     
-                    if elemento.is_displayed():
-                        logger.info(f"❌ Elemento de error encontrado: {selector}")
-                        return True
+                    for elemento in elementos:
+                        if elemento.is_displayed():
+                            logger.info(f"❌ Página de error detectada con selector: {selector}")
+                            return True
                 except:
                     continue
+            
+            # También verificar por texto en la página (backup)
+            page_text = self.driver.page_source
+            if "¡Ups!" in page_text and "Página no encontrada" in page_text:
+                logger.info("❌ Página de error detectada por texto '¡Ups!'")
+                return True
                     
             return False
             
@@ -1072,154 +1131,133 @@ class ExtractorCarrefour:
             logger.debug(f"Error verificando página de error: {e}")
             return False
         
-    def _es_pagina_producto(self):
-        """
-        Verifica si la página actual es una página de producto individual
-        """
-        try:
-            # Verificar por elementos específicos de página de producto
-            indicadores_producto = [
-                "//div[contains(@class, 'product-page')]",
-                "//div[contains(@class, 'product-details')]",
-                "//div[contains(@class, 'vtex-store-components-3-x-productNameContainer')]",
-                "//h1[contains(@class, 'product-brand')]",
-                "//div[contains(@class, 'valtech-carrefourar-product-price-0-x-sellingPriceValue')]"
-            ]
-            
-            for indicador in indicadores_producto:
-                try:
-                    elemento = self.driver.find_element(By.XPATH, indicador)
-                    if elemento.is_displayed():
-                        return True
-                except:
-                    continue
-            
-            # Verificar por URL pattern de producto
-            if '/p?' in self.driver.current_url or '/producto/' in self.driver.current_url:
-                return True
-                
-            return False
-            
-        except Exception as e:
-            logger.debug(f"Error verificando página producto: {e}")
-            return False
-    
-    def _producto_no_disponible(self):
-        """
-        Verifica si el producto NO está disponible (tiene botón de no disponible)
-        """
-        try:
-            # Buscar botones o mensajes de no disponibilidad
-            textos_no_disponible = [
-                "no disponible",
-                "sin stock", 
-                "producto agotado",
-                "no disponible online",
-                "fuera de stock",
-                "stock agotado"
-            ]
-            
-            # Buscar en botones
-            selectores_boton_no_disponible = [
-                "//button[contains(., 'No disponible')]",
-                "//button[contains(., 'Sin stock')]",
-                "//button[contains(., 'Agotado')]",
-                "//button[@disabled]",
-                "button[disabled]",
-                ".out-of-stock",
-                ".unavailable",
-                ".no-stock"
-            ]
-            
-            # Verificar texto en la página
-            page_text = self.driver.page_source.lower()
-            for texto in textos_no_disponible:
-                if texto in page_text:
-                    logger.info(f"❌ Producto no disponible - Texto: '{texto}'")
-                    return True
-            
-            # Verificar botones de no disponible
-            for selector in selectores_boton_no_disponible:
-                try:
-                    if selector.startswith("//"):
-                        boton = self.driver.find_element(By.XPATH, selector)
-                    else:
-                        boton = self.driver.find_element(By.CSS_SELECTOR, selector)
-                    
-                    if boton.is_displayed():
-                        logger.info(f"❌ Botón no disponible encontrado: {selector}")
-                        return True
-                except:
-                    continue
-                    
-            return False
-            
-        except Exception as e:
-            logger.debug(f"Error verificando no disponibilidad: {e}")
-            return False
-
     def _producto_disponible(self):
         """
-        Verifica si el producto SÍ está disponible (tiene botón Agregar)
+        VERIFICACIÓN MEJORADA - Detecta disponibilidad con más precisión
         """
         try:
-            # Buscar botones de agregar al carrito
-            textos_agregar = [
-                "Agregar",
-                "Agregar al carrito", 
-                "Comprar",
-                "Add to cart",
-                "Añadir al carrito"
-            ]
+            # ESTRATEGIA 1: Buscar botones de "Agregar" HABILITADOS y VISIBLES
+            textos_agregar = ["Agregar", "Agregar al carrito", "Comprar"]
             
-            selectores_boton_agregar = [
-                "//button[contains(., 'Agregar')]",
-                "//button[contains(., 'Comprar')]",
-                "button[data-testid='buy-button']",
-                "button.add-to-cart",
-                "button.buy-button",
-                ".add-to-cart-button",
-                "[class*='add-to-cart']"
-            ]
-            
-            # Verificar botones de agregar
             for texto in textos_agregar:
                 try:
-                    boton = self.driver.find_element(By.XPATH, f"//button[contains(., '{texto}')]")
-                    if boton.is_displayed() and boton.is_enabled():
-                        logger.info(f"✅ Botón disponible encontrado: '{texto}'")
-                        return True
-                except:
+                    xpath = f"//button[contains(., '{texto}') and not(@disabled) and not(contains(@class, 'disabled'))]"
+                    botones = self.driver.find_elements(By.XPATH, xpath)
+                    
+                    for boton in botones:
+                        if boton.is_displayed() and boton.is_enabled():
+                            # VERIFICAR que NO contenga texto "No Disponible"
+                            texto_boton = boton.text.strip()
+                            if "No Disponible" not in texto_boton:
+                                logger.info(f"✅ Botón '{texto}' HABILITADO encontrado: {texto_boton}")
+                                return True
+                except Exception as e:
+                    logger.debug(f"Error buscando botón '{texto}': {e}")
                     continue
             
-            # Verificar por selectores CSS
-            for selector in selectores_boton_agregar:
+            # ESTRATEGIA 2: Buscar la estructura específica de Carrefour para productos disponibles
+            # Basado en el HTML que me mostraste
+            selectores_disponibilidad = [
+                "//button[contains(@class, 'bg-action-primary') and not(@disabled)]",
+                "//button[contains(@class, 'vtex-button') and not(contains(@class, 'disabled'))]",
+                "//div[contains(@class, 'isAvailable')]",
+                "//button[.//div[contains(@class, 'vtex-button__label')] and not(@disabled)]"
+            ]
+            
+            for selector in selectores_disponibilidad:
                 try:
-                    boton = self.driver.find_element(By.CSS_SELECTOR, selector)
-                    if boton.is_displayed() and boton.is_enabled():
-                        logger.info(f"✅ Botón disponible encontrado: {selector}")
-                        return True
+                    if selector.startswith("//"):
+                        elementos = self.driver.find_elements(By.XPATH, selector)
+                    else:
+                        elementos = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                    
+                    for elemento in elementos:
+                        if elemento.is_displayed() and elemento.is_enabled():
+                            # Verificar que no sea un falso positivo
+                            texto = elemento.text.strip()
+                            if texto and "No Disponible" not in texto:
+                                logger.info(f"✅ Elemento disponible encontrado: {selector} - Texto: '{texto}'")
+                                return True
                 except:
                     continue
             
-            # Si no encontramos botón de agregar, verificar si al menos es página de producto
-            # con elementos básicos (nombre y precio)
+            # ESTRATEGIA 3: Verificar si podemos extraer información del producto exitosamente
             try:
                 nombre = self._extraer_nombre(self.wait)
                 precio = self._extraer_precio_descuento(self.driver)
                 
-                if nombre and precio != "0":
-                    logger.info("✅ Producto disponible (tiene nombre y precio)")
-                    return True
-            except:
-                pass
+                logger.info(f"🔍 Verificación por datos - Nombre: '{nombre}', Precio: '{precio}'")
                 
+                if nombre and precio != "0":
+                    # Si tenemos nombre y precio, y NO hay indicadores claros de no disponibilidad
+                    if not self._producto_no_disponible_mejorado():
+                        logger.info("✅ Producto disponible (tiene datos válidos y sin indicadores de no disponibilidad)")
+                        return True
+            except Exception as e:
+                logger.debug(f"Error en verificación por datos: {e}")
+            
             return False
             
         except Exception as e:
-            logger.debug(f"Error verificando disponibilidad: {e}")
+            logger.error(f"Error en verificación mejorada de disponibilidad: {e}")
             return False
     
+    def _producto_no_disponible(self):
+        """
+        VERIFICACIÓN MEJORADA - Solo marca como no disponible si hay indicadores CLAROS
+        """
+        try:
+            # SELECTORES MÁS ESPECÍFICOS Y CONFIABLES para "No Disponible"
+            selectores_estrictos = [
+            # Botón deshabilitado con texto EXPLÍCITO "No Disponible"
+            "//button[@disabled]//span[contains(text(), 'No Disponible')]",
+            "//span[contains(text(), 'No Disponible') and contains(@class, 'isUnavailable')]",
+            # Elemento que claramente dice "No Disponible" y está visible
+            "//*[contains(text(), 'No Disponible') and not(ancestor::*[contains(@style, 'display:none')])]"
+             ]
+
+            
+            for selector in selectores_estrictos:
+                try:
+                    elementos = self.driver.find_elements(By.XPATH, selector)
+                    for elemento in elementos:
+                        if elemento.is_displayed():
+                            texto = elemento.text.strip()
+                            if "No Disponible" in texto:
+                                logger.info(f"❌ Confirmado: Producto NO disponible - {selector}")
+                                return True
+                except:
+                    continue
+            
+            # Verificación adicional: Si hay botón deshabilitado PERO sin texto claro, no asumir no disponible
+            return False
+            
+        except Exception as e:
+            logger.debug(f"Error en verificación mejorada de no disponibilidad: {e}")
+            return False
+
+
+    
+    def _guardar_links_invalidos_csv(self, datos, nombre_archivo):
+        """
+        Guarda los links inválidos en un archivo CSV
+        """
+        try:
+            df = pd.DataFrame(datos)
+            df.to_csv(nombre_archivo, index=False, encoding='utf-8')
+            logger.info(f"📄 CSV con links inválidos guardado: {nombre_archivo}")
+            logger.info(f"📊 Total de links inválidos registrados: {len(datos)}")
+            
+            # Mostrar resumen por tipo de error
+            if not df.empty:
+                resumen_errores = df['motivo'].value_counts()
+                logger.info("📋 Resumen de errores:")
+                for motivo, cantidad in resumen_errores.items():
+                    logger.info(f"   - {motivo}: {cantidad} links")
+                    
+        except Exception as e:
+            logger.error(f"❌ Error guardando CSV de links inválidos: {e}")
+
     def _mostrar_resumen_validacion(self, resultados):
         """
         Muestra un resumen detallado de la validación
@@ -1243,14 +1281,5 @@ class ExtractorCarrefour:
         logger.info("📋 Detalle por estado:")
         for estado, cantidad in estados.items():
             logger.info(f"   - {estado}: {cantidad} links")
-        
-        # Mostrar links inválidos específicos
-        if links_invalidos > 0:
-            logger.info("🔍 Links inválidos detectados:")
-            for url, resultado in resultados.items():
-                if not resultado.get('valido', False):
-                    logger.info(f"   ❌ {url}")
-                    logger.info(f"      Estado: {resultado.get('estado', 'N/A')}")
-                    logger.info(f"      Mensaje: {resultado.get('mensaje', 'N/A')}")
         
         logger.info("==============================================")
