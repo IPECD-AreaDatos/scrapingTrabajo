@@ -1,4 +1,5 @@
 from carrefour_extractor import ExtractorCarrefour
+from prueba import DelimartExtractor
 from delimart_extractor import ExtractorDelimart
 from load import load_canasta_basica_data
 from utils_db import ConexionBaseDatos
@@ -39,7 +40,7 @@ class GestorCanastaBasica:
         
         SHEET_ID = '13vz5WzXnXLdp61YVHkKO17C4OBEXVJcC5cP38N--8XA'
         # Rango configurable desde variables de entorno
-        RANGO = os.getenv('SHEETS_RANGE', 'Hoja 1!A2:K60')
+        RANGO = os.getenv('SHEETS_RANGE', 'carrefour!A2:AJ60')
         #RANGO = os.getenv('SHEETS_RANGE', 'Hoja 1!A2:K13')
 
         gs = ConexionGoogleSheets(SHEET_ID)
@@ -377,35 +378,37 @@ class GestorCanastaBasica:
         supermercado = 'delimart'
         try:
             extractor = ExtractorDelimart()
+            ext = DelimartExtractor()
             links = ["https://www.delimart.com.ar/leche_entera_sachet_larga_vida_cremigal_1_lt"]
             
             # Extraer productos con manejo de errores
             df = extractor.extraer_lista_productos(links)
+            dff = ext.extract_products(links)
                     
             # Verificar correctamente el resultado
-            if df is not None and not df.empty:
-                logger.info(f"🎉 Extracción {supermercado} completada: {len(df)} productos")
+            if dff is not None and not df.empty:
+                logger.info(f"🎉 Extracción {supermercado} completada: {len(dff)} productos")
                         
                 # GUARDAR CSV DE PRODUCTOS EXITOSOS
                 csv_file = f'productos_{supermercado}_{datetime.today().strftime("%Y%m%d_%H%M")}.csv'
-                df.to_csv(csv_file, index=False, encoding='utf-8')
-                logger.info(f"📄 Datos guardados en {csv_file}")
+                dff.to_csv(csv_file, index=False, encoding='utf-8')
+                logger.info(f"Datos guardados en {csv_file}")
             else:
                 logger.warning(f"⚠ No se pudieron extraer datos de {supermercado}")
                 # Crear DataFrame vacío para evitar errores
-                df = pd.DataFrame()
+                dff = pd.DataFrame()
                         
         except Exception as e:
             logger.error(f"❌ Error procesando {supermercado}: {str(e)}")
             # Asegurar que df existe incluso en caso de error
-            df = pd.DataFrame()
+            dff = pd.DataFrame()
 
 def run_canasta_basica():
     """Función wrapper para mantener la compatibilidad con imports existentes"""
     gestor = GestorCanastaBasica()
     
     try:
-        gestor.run_delimart()
+        gestor.run_canasta_basica()
     except Exception as e:
         logger.error(f"Error crítico en run_canasta_basica: {str(e)}")
         raise

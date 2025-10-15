@@ -9,10 +9,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import pickle
 import traceback
 import re
-
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -153,16 +151,47 @@ class ExtractorDelimart:
             try:
                 logger.debug(f"🔍 Probando selector {i+1}: {selector}")
                 elemento = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, selector)))
-                nombre = elemento.text.strip()
-                if nombre:
-                    logger.info(f"✅ Nombre encontrado con selector {i+1}: {nombre}")
-                    return nombre
+                nombre_raw = elemento.text.strip()
+                
+                if nombre_raw:
+                    logger.info(f"✅ Nombre encontrado con selector {i+1}: {nombre_raw}")
+                    
+                    # PROCESAMIENTO DEL NOMBRE - NUEVO CÓDIGO
+                    nombre_limpio = self._limpiar_nombre(nombre_raw)
+                    logger.info(f"🔄 Nombre limpio: {nombre_limpio}")
+                    
+                    return nombre_limpio
+                    
             except Exception as e:
                 logger.debug(f"❌ Selector {i+1} falló: {str(e)}")
                 continue
         
         logger.error("❌ No se pudo encontrar el nombre con ningún selector")
         return None
+
+    def _limpiar_nombre(self, nombre_raw):
+        """Limpia el nombre del producto eliminando marca y eslogan"""
+        try:
+            # Dividir por saltos de línea
+            lineas = nombre_raw.split('\n')
+            
+            # Si hay múltiples líneas, tomar la segunda (índice 1) que contiene el nombre del producto
+            if len(lineas) >= 2:
+                # Buscar la línea que contiene "Leche" (o el producto principal)
+                for linea in lineas:
+                    linea_limpia = linea.strip()
+                    if linea_limpia and ('Leche' in linea_limpia or 'LT' in linea_limpia or '1 LT' in linea_limpia):
+                        return linea_limpia
+                
+                # Si no encuentra patrones específicos, tomar la segunda línea
+                return lineas[1].strip()
+            else:
+                # Si solo hay una línea, devolverla completa
+                return nombre_raw
+                
+        except Exception as e:
+            logger.warning(f"⚠️ Error al limpiar nombre: {str(e)}, usando nombre original")
+            return nombre_raw
     
     def _extraer_precio_descuento(self, driver):
         """Extrae precio con descuento"""
