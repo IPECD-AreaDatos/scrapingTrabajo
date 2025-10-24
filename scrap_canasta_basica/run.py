@@ -68,7 +68,7 @@ class CanastaBasicaManager:
                 logger.info("Leyendo hoja: %s", sheet_name)
                 
                 # Leer datos de la hoja específica
-                range_name = f"'{sheet_name}'!A2:AI2"
+                range_name = f"'{sheet_name}'!A2:AI3"
                 df_sheet = gs.leer_df(range_name, header=False)
                 
                 # Parsear productos y links de esta hoja
@@ -108,7 +108,7 @@ class CanastaBasicaManager:
                 links = []
                 
                 # Extraer links de las columnas B-K (índices 1-10)
-                for i in range(1, min(11, len(row))):
+                for i in range(1, len(row)):
                     cell_value = row[i]
                     if (pd.notna(cell_value) and 
                         isinstance(cell_value, str) and 
@@ -140,32 +140,234 @@ class CanastaBasicaManager:
             all_links.extend(links)
         return all_links
     
-    def validate_links(self, products_links: Dict[str, List[str]]) -> bool:
-        """Valida todos los links usando CarrefourExtractor"""
+    def validate_all_links(self, all_supermarkets_data):
+        """Valida todos los links de todos los supermercados y verifica el 51% por producto"""
+        logger.info("INICIANDO VALIDACIÓN COMPLETA DE LINKS")
+        
+        validation_results = {}
+        problematic_products = []
+        
+        for supermarket, products_links in all_supermarkets_data.items():
+            logger.info("=" * 60)
+            logger.info("VALIDANDO %s", supermarket.upper())
+            logger.info("=" * 60)
+            
+            supermarket_results = self._validate_supermarket_links(supermarket, products_links)
+            validation_results[supermarket] = supermarket_results
+            
+            # Verificar productos problemáticos (menos del 51% de links válidos)
+            problematic = self._find_problematic_products(supermarket, supermarket_results)
+            problematic_products.extend(problematic)
+        
+        # Mostrar resumen general
+        self._show_validation_summary(validation_results, problematic_products)
+        
+        # Preguntar si continuar si hay productos problemáticos
+        if problematic_products:
+            return self._ask_continue_with_problems(problematic_products)
+        
+        return True
+
+    def _validate_supermarket_links(self, supermarket, products_links):
+        """Valida los links de un supermercado específico"""
         try:
-            # Extraer todas las URLs en una lista plana
-            all_urls = self._extract_all_links(products_links)
-            logger.info("Total de URLs a validar: %d", len(all_urls))
+            extractor = self.extractors[supermarket]
             
-            # Validar links usando CarrefourExtractor
-            extractor = CarrefourExtractor()
-            validation_results = extractor.validar_links_productos(all_urls)
+            # Verificar si el extractor tiene método de validación
+            if hasattr(extractor, 'validar_links_productos'):
+                logger.info("Validando links con método específico de %s", supermarket)
+                
+                # Extraer todas las URLs
+                all_urls = self._extract_all_links(products_links)
+                validation_results = extractor.validar_links_productos(all_urls)
+                
+                # Reorganizar resultados por producto
+                return self._organize_results_by_product(products_links, validation_results)
             
-            # Mostrar resultados
-            valid_links = sum(1 for r in validation_results.values() if r.get('valido', False))
-            total_links = len(all_urls)
-            
-            logger.info("Resultado validación: %d/%d links válidos", valid_links, total_links)
-            
-            # Preguntar si continuar (opcional)
-            if valid_links < total_links:
-                logger.warning("Algunos links no son válidos. Continuando con extracción...")
-            
-            return True
-            
+            else:
+                # Para supermercados sin validación específica (como Delimart)
+                logger.info("Validando links con método genérico para %s", supermarket)
+                return self._generic_link_validation(extractor, products_links)
+                
         except Exception as e:
-            logger.error("Error validando links: %s", str(e))
+            logger.error("Error validando links de %s: %s", supermarket, str(e))
+            return {}
+
+    def _generic_link_validation(self, extractor, products_links):
+        """Validación genérica para supermercados sin método específico"""
+        results = {}
+        
+        for product_name, urls in products_links.items():
+            product_results = {}
+            
+            for url in urls:
+                try:
+                    # Intentar extraer el producto para ver si funciona
+                    data = extractor.extraer_producto(url)
+                    
+                    if data and 'error_type' not in data:
+                        product_results[url] = {
+                            'valido': True,
+                            'estado': 'OK',
+                            'mensaje': 'Link válido - Producto extraíble'
+                        }
+                    else:
+                        product_results[url] = {
+                            'valido': False,
+                            'estado': data.get('error_type', 'DESCONOCIDO') if data else 'ERROR_EXTRACCION',
+                            'mensaje': data.get('titulo', 'Error en extracción') if data else 'No se pudo extraer'
+                        }
+                        
+                except Exception as e:
+                    product_results[url] = {
+                        'valido': False,
+                        'estado': 'ERROR_EXCEPCION',
+                        'mensaje': str(e)
+                    }
+            
+            results[product_name] = product_results
+        
+        return results
+
+    def _organize_results_by_product(self, products_links, validation_results):
+        """Reorganiza los resultados de validación por producto"""
+        results_by_product = {}
+        
+        for product_name, urls in products_links.items():
+            product_results = {}
+            
+            for url in urls:
+                if url in validation_results:
+                    product_results[url] = validation_results[url]
+                else:
+                    product_results[url] = {
+                        'valido': False,
+                        'estado': 'NO_VALIDADO',
+                        'mensaje': 'URL no fue validada'
+                    }
+            
+            results_by_product[product_name] = product_results
+        
+        return results_by_product
+
+    def _find_problematic_products(self, supermarket, validation_results):
+        """Encuentra productos con menos del 51% de links válidos"""
+        problematic = []
+        
+        for product_name, product_results in validation_results.items():
+            total_links = len(product_results)
+            valid_links = sum(1 for result in product_results.values() if result.get('valido', False))
+            
+            percentage = (valid_links / total_links) * 100 if total_links > 0 else 0
+            
+            if percentage < 51:
+                problematic.append({
+                    'supermercado': supermarket,
+                    'producto': product_name,
+                    'links_validos': valid_links,
+                    'links_totales': total_links,
+                    'porcentaje': percentage,
+                    'links_invalidos': [
+                        url for url, result in product_results.items() 
+                        if not result.get('valido', False)
+                    ]
+                })
+        
+        return problematic
+
+    def _show_validation_summary(self, validation_results, problematic_products):
+        """Muestra resumen completo de la validación POR PRODUCTO"""
+        logger.info("📊 ========== RESUMEN DE VALIDACIÓN COMPLETA ==========")
+        
+        for supermarket, results in validation_results.items():
+            logger.info("🏪 %s:", supermarket.upper())
+            
+            # Mostrar POR PRODUCTO
+            for product_name, product_results in results.items():
+                total_links = len(product_results)
+                valid_links = sum(1 for result in product_results.values() if result.get('valido', False))
+                percentage = (valid_links / total_links) * 100 if total_links > 0 else 0
+                
+                status_icon = "✅" if percentage >= 51 else "❌"
+                
+                logger.info("   %s %s: %d/%d links válidos (%.1f%%)", 
+                        status_icon, product_name, valid_links, total_links, percentage)
+                
+                # Mostrar links inválidos si el producto tiene problemas
+                if percentage < 51:
+                    invalid_links = [url for url, result in product_results.items() if not result.get('valido', False)]
+                    logger.info("      🔗 Links inválidos:")
+                    for url in invalid_links:
+                        logger.info("         - %s", url)
+        
+        # Mostrar productos problemáticos (menos del 51%)
+        if problematic_products:
+            logger.info("🚨 PRODUCTOS CON PROBLEMAS (menos del 51%% de links válidos):")
+            for problem in problematic_products:
+                logger.info("   ❌ %s - %s: %d/%d links válidos (%.1f%%)", 
+                        problem['supermercado'], problem['producto'],
+                        problem['links_validos'], problem['links_totales'],
+                        problem['porcentaje'])
+        else:
+            logger.info("🎉 TODOS los productos tienen más del 51%% de links válidos!")
+        
+        logger.info("======================================================")
+
+    def _ask_continue_with_problems(self, problematic_products):
+        """Pregunta al usuario si desea continuar con productos problemáticos"""
+        logger.warning("⚠️  Se encontraron %d productos con menos del 51%% de links válidos", len(problematic_products))
+        
+        # En modo automático, podemos decidir automáticamente
+        # En modo interactivo, podríamos preguntar al usuario
+        
+        response = input("¿Desea continuar con la extracción? (s/n): ").strip().lower()
+        return response in ['s', 'si', 'sí', 'y', 'yes']
+    
+    def check_links_validity_percentage(self, all_supermarkets_data, min_percentage=51):
+        """
+        Verifica que todos los productos tengan al menos el porcentaje mínimo de links válidos
+        
+        Args:
+            all_supermarkets_data: Diccionario con datos de todos los supermercados
+            min_percentage: Porcentaje mínimo requerido (default: 51%)
+        
+        Returns:
+            bool: True si todos cumplen, False si alguno no cumple
+        """
+        logger.info("=== VERIFICACIÓN DE PORCENTAJES DE LINKS VÁLIDOS ===")
+        low_percentage_products = []
+        
+        for supermarket_name, products in all_supermarkets_data.items():
+            for product in products:
+                links = product.get('links', [])
+                total_links = len(links)
+                
+                if total_links > 0:
+                    # CONTAR TODOS LOS LINKS, INCLUYENDO LOS QUE DIERON ERROR
+                    valid_links = sum(1 for link in links if link.get('is_valid', False))
+                    percentage_valid = (valid_links / total_links) * 100
+                    
+                    # Log detallado para debugging
+                    logger.info(f"🔍 {supermarket_name} - {product.get('name', 'N/A')}: {valid_links}/{total_links} links válidos ({percentage_valid:.1f}%)")
+                    
+                    if percentage_valid < min_percentage:
+                        low_percentage_products.append({
+                            'supermarket': supermarket_name,
+                            'product': product.get('name', 'N/A'),
+                            'percentage': percentage_valid,
+                            'valid': valid_links,
+                            'total': total_links
+                        })
+        
+        # Reportar resultados
+        if low_percentage_products:
+            logger.error(f"🚫 Se detectaron {len(low_percentage_products)} productos con menos del {min_percentage}% de links válidos:")
+            for item in low_percentage_products:
+                logger.error(f"   - {item['product']} en {item['supermarket']}: {item['percentage']:.1f}% ({item['valid']}/{item['total']})")
             return False
+        else:
+            logger.info(f"✅ Todos los productos tienen al menos {min_percentage}% de links válidos")
+            return True
     
     def initialize_sessions(self):
         """Inicializa las sesiones de todos los supermercados"""
@@ -368,13 +570,41 @@ class CanastaBasicaManager:
                 total_links = sum(len(links) for links in products_data.values())
                 logger.info("Supermercado %s: %d productos, %d links totales", 
                            supermarket, len(products_data), total_links)
+                
+            # 2. NUEVO: Validación completa de links
+            logger.info("=== FASE 1: VALIDACIÓN DE LINKS ===")
+            should_continue = self.validate_all_links(all_supermarkets_data)
             
-            # 2. Validar links (opcional - para Carrefour)
-            #if 'carrefour' in all_supermarkets_data:
-            #    logger.info("=== FASE 1: VALIDACIÓN DE LINKS CARREFOUR ===")
-            #    carrefour_links = all_supermarkets_data['carrefour']
-            #    self.validate_links(carrefour_links)
+            if not should_continue:
+                logger.info("⏹️  Proceso cancelado por el usuario")
+                return
+            
+            exit()
 
+            # DEBUG: Verificar estructura de datos
+            logger.info("🔍 DEBUG: Estructura de all_supermarkets_data:")
+            logger.info(f"Tipo: {type(all_supermarkets_data)}")
+            if isinstance(all_supermarkets_data, dict):
+                for key, value in all_supermarkets_data.items():
+                    logger.info(f"Clave: {key}, Tipo valor: {type(value)}")
+                    if isinstance(value, list):
+                        for i, item in enumerate(value):
+                            logger.info(f"  Ítem {i}: Tipo {type(item)}")
+                            if isinstance(item, dict):
+                                logger.info(f"    Claves: {list(item.keys())}")
+                            else:
+                                logger.info(f"    Valor: {item}")
+                    else:
+                        logger.info(f"  Valor: {value}")
+            else:
+                logger.info(f"Contenido: {all_supermarkets_data}")
+            
+            # 2.2 VERIFICACIÓN DE PORCENTAJE DE LINKS VÁLIDOS
+            logger.info("=== FASE 2: VERIFICACIÓN DE PORCENTAJES ===")
+            if not self.check_links_validity_percentage(all_supermarkets_data, min_percentage=51):
+                logger.error(" Proceso cancelado por bajo porcentaje de links válidos")
+                exit()
+            
             # 3. Inicializar sesiones
             self.initialize_sessions()
             

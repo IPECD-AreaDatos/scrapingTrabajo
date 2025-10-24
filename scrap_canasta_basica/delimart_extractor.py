@@ -428,3 +428,75 @@ class DelimartExtractor:
             self.wait = None 
             self.session_active = False
             logger.debug("Driver cerrado correctamente")
+
+    def validar_links_productos(self, urls):
+        """Validación simple de links para Delimart"""
+        logger.info("Validando links de Delimart")
+        
+        if not self.asegurar_sesion_activa():
+            logger.error("No se pudo establecer sesión para validación")
+            return {}
+        
+        resultados = {}
+        
+        for i, url in enumerate(urls, 1):
+            logger.info("Validando link %d/%d: %s", i, len(urls), url)
+            
+            try:
+                # Configurar timeout corto para validación
+                self.driver.set_page_load_timeout(15)
+                self.driver.get(url)
+                time.sleep(2)
+                
+                # Verificar si la página carga correctamente
+                titulo = self.driver.title
+                current_url = self.driver.current_url
+                
+                if "delimart.com.ar" not in current_url:
+                    resultados[url] = {
+                        'valido': False,
+                        'estado': 'ERROR_CARGA',
+                        'mensaje': 'No se pudo cargar página de Delimart',
+                        'titulo_pagina': titulo
+                    }
+                    continue
+                
+                # Verificar si es página de error
+                if any(word in titulo.lower() for word in ['error', 'not found', '404']):
+                    resultados[url] = {
+                        'valido': False,
+                        'estado': 'PAGINA_ERROR',
+                        'mensaje': 'Página de error detectada',
+                        'titulo_pagina': titulo
+                    }
+                    continue
+                
+                # Intentar extraer nombre como prueba
+                nombre = self._extract_name()
+                if nombre:
+                    resultados[url] = {
+                        'valido': True,
+                        'estado': 'OK', 
+                        'mensaje': 'Link válido',
+                        'titulo_pagina': titulo,
+                        'nombre_producto': nombre
+                    }
+                else:
+                    resultados[url] = {
+                        'valido': False,
+                        'estado': 'SIN_NOMBRE',
+                        'mensaje': 'No se pudo extraer nombre del producto',
+                        'titulo_pagina': titulo
+                    }
+                    
+            except Exception as e:
+                resultados[url] = {
+                    'valido': False,
+                    'estado': 'ERROR_EXCEPCION',
+                    'mensaje': str(e),
+                    'titulo_pagina': 'No disponible'
+                }
+            
+            time.sleep(1)  # Pausa entre validaciones
+        
+        return resultados
