@@ -1,5 +1,6 @@
 import os
 import time
+import re
 import pandas as pd
 import logging
 from dotenv import load_dotenv
@@ -88,9 +89,9 @@ class CarrefourExtractor:
             
             return {
                 "nombre": nombre,
-                "precio_normal": self._limpiar_precio(precio_normal),
-                "precio_descuento": self._limpiar_precio(precio_desc),
-                "precio_por_unidad": self._limpiar_precio(precio_completo),
+                "precio_normal": self._clean_price(precio_normal),
+                "precio_descuento": self._clean_price(precio_desc),
+                "precio_por_unidad": self._clean_price(precio_completo),
                 "unidad": unidad_text,
                 "descuentos": " | ".join(descuentos) if descuentos else "Ninguno",
                 "fecha": datetime.today().strftime("%Y-%m-%d"),
@@ -814,21 +815,30 @@ class CarrefourExtractor:
             logger.debug(f"Error verificando página de error: {e}")
             return False
     
-    def _limpiar_precio(self, precio_texto):
-        """Limpia el texto del precio eliminando caracteres no numéricos excepto punto y coma"""
-        if not precio_texto:
+    def _clean_price(self, price_text):
+        """Limpia y formatea el precio de manera consistente"""
+        if not price_text or price_text == "0":
             return "0"
         
         try:
-            # Remover todo excepto números, puntos, comas y el signo $
-            import re
-            # Mantener solo números, puntos, comas y espacios
-            precio_limpio = re.sub(r'[^\d.,\s$]', '', str(precio_texto))
-            # Remover espacios extras
-            precio_limpio = precio_limpio.strip()
-            return precio_limpio if precio_limpio else "0"
+            # Remover TODOS los caracteres no numéricos excepto punto
+            clean_price = re.sub(r'[^\d,]', '', str(price_text))
+            # Reemplazar coma por punto para decimales
+            clean_price = clean_price.replace(',', '.')
+            
+            # Convertir a float y luego a string para formato consistente
+            try:
+                price_float = float(clean_price)
+                # Formatear sin decimales si es entero, con 2 decimales si no
+                if price_float.is_integer():
+                    return str(int(price_float))
+                else:
+                    return f"{price_float:.2f}"
+            except:
+                return clean_price
+                
         except Exception as e:
-            logger.debug(f"Error limpiando precio '{precio_texto}': {e}")
+            logger.debug("Error limpiando precio %s: %s", price_text, str(e))
             return "0"
 
     def cleanup_driver(self):

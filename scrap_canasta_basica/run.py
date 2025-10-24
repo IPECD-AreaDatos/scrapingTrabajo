@@ -32,7 +32,7 @@ class CanastaBasicaManager:
     def _setup_extractors(self):
         """Configura los extractores de supermercados"""
         self.extractors = {
-            #'carrefour': CarrefourExtractor(),
+            'carrefour': CarrefourExtractor(),
             'delimart': DelimartExtractor()
         }
         logger.info("Extractores inicializados: %s", list(self.extractors.keys()))
@@ -68,7 +68,7 @@ class CanastaBasicaManager:
                 logger.info("Leyendo hoja: %s", sheet_name)
                 
                 # Leer datos de la hoja específica
-                range_name = f"'{sheet_name}'!A2:K3"
+                range_name = f"'{sheet_name}'!A2:AI2"
                 df_sheet = gs.leer_df(range_name, header=False)
                 
                 # Parsear productos y links de esta hoja
@@ -173,7 +173,13 @@ class CanastaBasicaManager:
         
         for supermarket, extractor in self.extractors.items():
             try:
-                if hasattr(extractor, 'ensure_active_session'):
+                # USAR LOS MÉTODOS CORRECTOS
+                if hasattr(extractor, 'asegurar_sesion_activa'):
+                    if extractor.asegurar_sesion_activa():
+                        logger.info("Sesión activa para %s", supermarket)
+                    else:
+                        logger.error("No se pudo establecer sesión para %s", supermarket)
+                elif hasattr(extractor, 'ensure_active_session'):
                     if extractor.ensure_active_session():
                         logger.info("Sesión activa para %s", supermarket)
                     else:
@@ -368,7 +374,7 @@ class CanastaBasicaManager:
             #    logger.info("=== FASE 1: VALIDACIÓN DE LINKS CARREFOUR ===")
             #    carrefour_links = all_supermarkets_data['carrefour']
             #    self.validate_links(carrefour_links)
-            
+
             # 3. Inicializar sesiones
             self.initialize_sessions()
             

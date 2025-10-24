@@ -39,16 +39,13 @@ class DelimartExtractor:
             "[class*='product-name']",
             "h1 .vtex-store-components-3-x-productBrand"
         ],
-        'discount_price': [
+        'price': [  # JUNTAMOS TODOS LOS PRECIOS EN UN SOLO SELECTOR
             ".product-price",
             ".price", ".precio", ".selling-price", ".current-price",
             "[class*='price']", "[class*='precio']",
-            "span[data-testid*='price']", "div[data-testid*='price']"
-        ],
-        'normal_price': [
+            "span[data-testid*='price']", "div[data-testid*='price']",
             ".original-price", ".old-price", ".list-price",
-            ".price--old", ".price-before", ".was-price",
-            "[class*='original']", "[class*='old']"
+            ".price--old", ".price-before", ".was-price"
         ],
         'unit_price': [
             ".price-per-unit", ".unit-price", ".price-by-weight",
@@ -71,6 +68,7 @@ class DelimartExtractor:
     def __init__(self):
         self.driver = None
         self.wait = None
+        self.session_active = False
     
     def setup_driver(self):
         """Configura el driver de Selenium"""
@@ -93,6 +91,51 @@ class DelimartExtractor:
         
         return self.driver, self.wait
     
+    # === MÉTODOS COMPATIBILIDAD CON run.py ===
+    
+    def extraer_producto(self, url):
+        """Wrapper para compatibilidad con run.py"""
+        return self.extract_product(url)
+    
+    def asegurar_sesion_activa(self):
+        """Asegura que haya una sesión activa"""
+        try:
+            if self.driver is None:
+                self.setup_driver()
+                self.session_active = True
+                logger.info("Sesión de Delimart inicializada")
+                return True
+            else:
+                # Verificar que el driver siga funcionando
+                try:
+                    self.driver.current_url
+                    self.session_active = True
+                    return True
+                except:
+                    # Driver está muerto, reiniciar
+                    self.cleanup_driver()
+                    self.setup_driver()
+                    self.session_active = True
+                    return True
+        except Exception as e:
+            logger.error("Error asegurando sesión activa de Delimart: %s", str(e))
+            self.session_active = False
+            return False
+    
+    def guardar_sesion(self):
+        """Guarda la sesión"""
+        try:
+            logger.debug("Sesión de Delimart - no requiere guardado especial")
+            return True
+        except Exception as e:
+            logger.error("Error guardando sesión de Delimart: %s", str(e))
+            return False
+    
+    def cerrar(self):
+        """Cierra recursos"""
+        self.cleanup_driver()
+        self.session_active = False
+    
     def extract_products(self, urls):
         """Extrae múltiples productos manteniendo la misma sesión"""
         self.setup_driver()
@@ -112,7 +155,11 @@ class DelimartExtractor:
     def extract_product(self, url):
         """Extrae datos de un producto individual"""
         try:
+            if self.driver is None:
+                self.setup_driver()
+
             logger.info(f"Navegando a: {url}")
+            self.driver.set_page_load_timeout(30)
             self.driver.get(url)
             time.sleep(2)
             logger.info(f"Pagina cargada: {self.driver.title}")
@@ -125,24 +172,21 @@ class DelimartExtractor:
             
             logger.info(f"Nombre encontrado: {name}")
             
-            discount_price = self._extract_discount_price()
-            normal_price = self._extract_normal_price(discount_price)
-            unit_price, unit_text = self._extract_unit_price()
+            price = self._extract_price()
+            if not price:
+                logger.warning("No se pudo extraer precio de %s", url)
+                return {"error_type": "no_price", "url": url, "titulo": self.driver.title}
             
-            logger.info(f"Precios - Normal: {normal_price}, Descuento: {discount_price}, Unidad: {unit_price}")
+            logger.info("Precio encontrado: %s", price)
             
             discounts = self._extract_discounts()
             logger.info(f"Descuentos encontrados: {len(discounts)}")
             
-            return self._build_product_data(
-                name, normal_price, discount_price, unit_price, 
-                unit_text, discounts, url
-            )
+            return self._build_product_data(name, price, discounts, url)
             
         except Exception as e:
-            logger.error(f"Error extrayendo {url}: {str(e)}")
-            logger.debug(traceback.format_exc())
-            return None
+            logger.error("Error extrayendo %s: %s", url, str(e))
+            return {"error_type": "exception", "url": url, "titulo": str(e)}
     
     def _extract_name(self):
         """Extrae y limpia el nombre del producto"""
@@ -186,23 +230,9 @@ class DelimartExtractor:
             logger.warning(f"Error al limpiar nombre: {str(e)}, usando nombre original")
             return raw_name
     
-    def _extract_discount_price(self):
-        """Extrae precio con descuento"""
-        return self._search_price(self.SELECTORS['discount_price'])
-    
-    def _extract_normal_price(self, discount_price):
-        """Extrae precio normal"""
-        normal_price = self._search_price(self.SELECTORS['normal_price'])
-        return normal_price if normal_price else discount_price
-    
-    def _extract_unit_price(self):
-        """Extrae precio por unidad"""
-        try:
-            unit_price = self._search_price(self.SELECTORS['unit_price'])
-            return unit_price, ""
-        except Exception as e:
-            logger.debug(f"No se pudo obtener precio por unidad: {e}")
-            return "", ""
+    def _extract_price(self):
+        """Extrae el precio principal - MÉTODO SIMPLIFICADO"""
+        return self._search_price(self.SELECTORS['price'])
     
     def _extract_discounts(self):
         """Extrae descuentos aplicables"""
@@ -353,14 +383,14 @@ class DelimartExtractor:
         except:
             return "desconocido"
     
-    def _build_product_data(self, name, normal_price, discount_price, unit_price, unit_text, discounts, url):
+    def _build_product_data(self, name, price, discounts, url):
         """Construye el diccionario de datos del producto"""
         return {
             "nombre": name,
-            "precio_normal": self._clean_price(normal_price),
-            "precio_descuento": self._clean_price(discount_price),
-            "precio_por_unidad": self._clean_price(unit_price),
-            "unidad": unit_text,
+            "precio_normal": self._clean_price(price),
+            "precio_descuento": self._clean_price(price),
+            "precio_por_unidad": "0",
+            "unidad": "",
             "descuentos": " | ".join(discounts) if discounts else "Ninguno",
             "fecha": datetime.today().strftime("%Y-%m-%d"),
             "supermercado": self.CONFIG['supermarket_name'],
@@ -395,4 +425,6 @@ class DelimartExtractor:
         if self.driver:
             self.driver.quit()
             self.driver = None
+            self.wait = None 
+            self.session_active = False
             logger.debug("Driver cerrado correctamente")
