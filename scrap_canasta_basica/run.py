@@ -68,7 +68,7 @@ class CanastaBasicaManager:
                 logger.info("Leyendo hoja: %s", sheet_name)
                 
                 # Leer datos de la hoja específica
-                range_name = f"'{sheet_name}'!A2:AI3"
+                range_name = f"'{sheet_name}'!A2:AI2"
                 df_sheet = gs.leer_df(range_name, header=False)
                 
                 # Parsear productos y links de esta hoja
@@ -141,32 +141,36 @@ class CanastaBasicaManager:
         return all_links
     
     def validate_all_links(self, all_supermarkets_data):
-        """Valida todos los links de todos los supermercados y verifica el 51% por producto"""
-        logger.info("INICIANDO VALIDACIÓN COMPLETA DE LINKS")
-        
-        validation_results = {}
-        problematic_products = []
-        
-        for supermarket, products_links in all_supermarkets_data.items():
-            logger.info("=" * 60)
-            logger.info("VALIDANDO %s", supermarket.upper())
-            logger.info("=" * 60)
+        """Valida todos los links y guarda los resultados para usarlos después"""
+        try:
+            all_validation_results = {}
+            all_problematic_products = []
             
-            supermarket_results = self._validate_supermarket_links(supermarket, products_links)
-            validation_results[supermarket] = supermarket_results
+            for supermarket, products_links in all_supermarkets_data.items():
+                logger.info("🔍 Validando links de %s...", supermarket)
+                
+                validation_results = self._validate_supermarket_links(supermarket, products_links)
+                all_validation_results[supermarket] = validation_results
+                
+                # Encontrar productos problemáticos
+                problematic = self._find_problematic_products(supermarket, validation_results)
+                all_problematic_products.extend(problematic)
             
-            # Verificar productos problemáticos (menos del 51% de links válidos)
-            problematic = self._find_problematic_products(supermarket, supermarket_results)
-            problematic_products.extend(problematic)
-        
-        # Mostrar resumen general
-        self._show_validation_summary(validation_results, problematic_products)
-        
-        # Preguntar si continuar si hay productos problemáticos
-        if problematic_products:
-            return self._ask_continue_with_problems(problematic_products)
-        
-        return True
+            # Guardar resultados para usarlos después
+            self.validation_results = all_validation_results
+            
+            # Mostrar resumen
+            self._show_validation_summary(all_validation_results, all_problematic_products)
+            
+            # Si hay productos problemáticos, preguntar si continuar
+            if all_problematic_products:
+                return self._ask_continue_with_problems(all_problematic_products)
+            else:
+                return True
+                
+        except Exception as e:
+            logger.error("Error en validación completa de links: %s", str(e))
+            return False
 
     def _validate_supermarket_links(self, supermarket, products_links):
         """Valida los links de un supermercado específico"""
@@ -326,34 +330,40 @@ class CanastaBasicaManager:
     def check_links_validity_percentage(self, all_supermarkets_data, min_percentage=51):
         """
         Verifica que todos los productos tengan al menos el porcentaje mínimo de links válidos
-        
-        Args:
-            all_supermarkets_data: Diccionario con datos de todos los supermercados
-            min_percentage: Porcentaje mínimo requerido (default: 51%)
-        
-        Returns:
-            bool: True si todos cumplen, False si alguno no cumple
+        Adaptada para la estructura real: {'supermarket': {'producto': [urls]}}
         """
         logger.info("=== VERIFICACIÓN DE PORCENTAJES DE LINKS VÁLIDOS ===")
         low_percentage_products = []
         
-        for supermarket_name, products in all_supermarkets_data.items():
-            for product in products:
-                links = product.get('links', [])
-                total_links = len(links)
+        # Primero necesitamos obtener los resultados de la validación
+        # Asumo que los tienes almacenados en self.validation_results o similar
+        validation_results = getattr(self, 'validation_results', {})
+        
+        for supermarket_name, products_dict in all_supermarkets_data.items():
+            # products_dict es {'producto': [url1, url2, ...]}
+            for product_name, url_list in products_dict.items():
+                total_links = len(url_list)
                 
                 if total_links > 0:
-                    # CONTAR TODOS LOS LINKS, INCLUYENDO LOS QUE DIERON ERROR
-                    valid_links = sum(1 for link in links if link.get('is_valid', False))
+                    # Buscar los resultados de validación para este producto
+                    valid_links = 0
+                    
+                    # Buscar en validation_results
+                    if (supermarket_name in validation_results and 
+                        product_name in validation_results[supermarket_name]):
+                        
+                        product_results = validation_results[supermarket_name][product_name]
+                        valid_links = sum(1 for result in product_results.values() 
+                                        if result.get('valido', False))
+                    
                     percentage_valid = (valid_links / total_links) * 100
                     
-                    # Log detallado para debugging
-                    logger.info(f"🔍 {supermarket_name} - {product.get('name', 'N/A')}: {valid_links}/{total_links} links válidos ({percentage_valid:.1f}%)")
+                    logger.info(f"🔍 {supermarket_name} - {product_name}: {valid_links}/{total_links} links válidos ({percentage_valid:.1f}%)")
                     
                     if percentage_valid < min_percentage:
                         low_percentage_products.append({
                             'supermarket': supermarket_name,
-                            'product': product.get('name', 'N/A'),
+                            'product': product_name,
                             'percentage': percentage_valid,
                             'valid': valid_links,
                             'total': total_links
@@ -579,31 +589,13 @@ class CanastaBasicaManager:
                 logger.info("⏹️  Proceso cancelado por el usuario")
                 return
             
-            exit()
-
-            # DEBUG: Verificar estructura de datos
-            logger.info("🔍 DEBUG: Estructura de all_supermarkets_data:")
-            logger.info(f"Tipo: {type(all_supermarkets_data)}")
-            if isinstance(all_supermarkets_data, dict):
-                for key, value in all_supermarkets_data.items():
-                    logger.info(f"Clave: {key}, Tipo valor: {type(value)}")
-                    if isinstance(value, list):
-                        for i, item in enumerate(value):
-                            logger.info(f"  Ítem {i}: Tipo {type(item)}")
-                            if isinstance(item, dict):
-                                logger.info(f"    Claves: {list(item.keys())}")
-                            else:
-                                logger.info(f"    Valor: {item}")
-                    else:
-                        logger.info(f"  Valor: {value}")
-            else:
-                logger.info(f"Contenido: {all_supermarkets_data}")
-            
             # 2.2 VERIFICACIÓN DE PORCENTAJE DE LINKS VÁLIDOS
             logger.info("=== FASE 2: VERIFICACIÓN DE PORCENTAJES ===")
             if not self.check_links_validity_percentage(all_supermarkets_data, min_percentage=51):
                 logger.error(" Proceso cancelado por bajo porcentaje de links válidos")
                 exit()
+
+            logger.info("✅ Validación exitosa - Continuando con extracción...")
             
             # 3. Inicializar sesiones
             self.initialize_sessions()
