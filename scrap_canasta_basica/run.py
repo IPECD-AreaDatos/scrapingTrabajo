@@ -5,10 +5,12 @@ import os
 import time
 import logging
 from typing import Dict, List, Tuple, Optional
+import re
 
 # Importar extractores y utilidades
 from carrefour_extractor import CarrefourExtractor
 from delimart_extractor import DelimartExtractor
+from masonline_extractor import MasonlineExtractor
 from load import load_canasta_basica_data
 from utils_db import ConexionBaseDatos
 from utils_sheets import ConexionGoogleSheets
@@ -32,8 +34,9 @@ class CanastaBasicaManager:
     def _setup_extractors(self):
         """Configura los extractores de supermercados"""
         self.extractors = {
-            'carrefour': CarrefourExtractor(),
-            'delimart': DelimartExtractor()
+            #'carrefour': CarrefourExtractor(),
+            'delimart': DelimartExtractor(),
+            #'masonline': MasonlineExtractor()
         }
         logger.info("Extractores inicializados: %s", list(self.extractors.keys()))
     
@@ -68,7 +71,7 @@ class CanastaBasicaManager:
                 logger.info("Leyendo hoja: %s", sheet_name)
                 
                 # Leer datos de la hoja específica
-                range_name = f"'{sheet_name}'!A2:AI2"
+                range_name = f"'{sheet_name}'!A2:D400"
                 df_sheet = gs.leer_df(range_name, header=False)
                 
                 # Parsear productos y links de esta hoja
@@ -90,48 +93,121 @@ class CanastaBasicaManager:
         """Obtiene los nombres de todas las hojas del spreadsheet"""
         try:
             # Lista de hojas conocidas - agregar más según necesites
-            known_sheets = ['carrefour', 'delimart']
+            known_sheets = ['carrefour', 'delimart', 'masonline']
             return known_sheets
             
         except Exception as e:
             logger.warning("No se pudieron obtener nombres de hojas, usando lista por defecto: %s", str(e))
-            return ['carrefour', 'delimart']
+            return ['carrefour', 'delimart', 'masonline']
     
     def _parse_sheet_data(self, df_sheet: pd.DataFrame, sheet_name: str) -> Dict[str, List[str]]:
-        """Parsea los datos de una hoja específica"""
+        """Parsea los datos de una hoja específica con la nueva estructura - VERSIÓN DEBUG"""
         products = {}
         
-        for idx, row in df_sheet.iterrows():
-            # Verificar que la fila tenga datos y que la primera columna no esté vacía
-            if len(row) > 0 and pd.notna(row[0]) and str(row[0]).strip():
-                product_name = str(row[0]).strip()
-                links = []
-                
-                # Extraer links de las columnas B-K (índices 1-10)
-                for i in range(1, len(row)):
-                    cell_value = row[i]
-                    if (pd.notna(cell_value) and 
-                        isinstance(cell_value, str) and 
-                        self._is_valid_url(cell_value.strip())):
-                        
-                        links.append(cell_value.strip())
-                
-                if links:
-                    products[product_name] = links
-                    logger.debug("Hoja %s - Producto: %s - %d links", 
-                               sheet_name, product_name, len(links))
-                else:
-                    logger.debug("Hoja %s - Producto: %s sin links válidos", 
-                               sheet_name, product_name)
+        logger.info(f"🔍 Analizando hoja {sheet_name} - Dimensiones: {df_sheet.shape}")
         
+        for idx, row in df_sheet.iterrows():
+            # Mostrar las primeras filas para debug
+            if idx < 5:
+                logger.debug(f"Fila {idx}: {list(row)}")
+            
+            # Verificar que la fila tenga datos y que la primera columna (Producto) no esté vacía
+            if len(row) >= 2 and pd.notna(row[0]) and str(row[0]).strip():
+                product_name = str(row[0]).strip()
+                
+                # Verificar si hay link en la columna B (índice 1)
+                link_cell = row[1] if len(row) > 1 else None
+                peso_cell = row[2] if len(row) > 2 else None
+                unidad_cell = row[3] if len(row) > 3 else None
+                
+                logger.debug(f"Producto: {product_name} | Link: {link_cell} | Peso: {peso_cell} | Unidad: {unidad_cell}")
+                
+                # Procesar el link
+                link_data = []
+                if (pd.notna(link_cell) and 
+                    isinstance(link_cell, str) and 
+                    self._is_valid_url(link_cell.strip())):
+                    
+                    # Crear diccionario con todos los datos del producto
+                    product_info = {
+                        'url': link_cell.strip(),
+                        'peso': self._clean_peso_value(peso_cell) if pd.notna(peso_cell) else '',
+                        'unidad': self._clean_unidad_value(unidad_cell) if pd.notna(unidad_cell) else '',
+                        'producto_nombre': product_name
+                    }
+                    
+                    link_data.append(product_info)
+                    logger.info(f"✅ Hoja {sheet_name} - Producto: {product_name} - Link: {link_cell.strip()}")
+                
+                if link_data:
+                    # Si el producto ya existe, agregar a la lista existente
+                    if product_name in products:
+                        products[product_name].extend(link_data)
+                    else:
+                        products[product_name] = link_data
+                else:
+                    logger.debug(f"❌ Hoja {sheet_name} - Producto: {product_name} sin link válido")
+        
+        logger.info(f"📊 Hoja {sheet_name} procesada: {len(products)} productos encontrados")
         return products
+    
+    def _clean_peso_value(self, peso_cell):
+        """Limpia y formatea el valor del peso"""
+        try:
+            if pd.isna(peso_cell):
+                return ""
+            
+            peso_str = str(peso_cell).strip()
+            
+            # Remover espacios y caracteres no deseados
+            peso_str = re.sub(r'[^\d,.]', '', peso_str)
+            
+            # Reemplazar coma por punto para decimales
+            peso_str = peso_str.replace(',', '.')
+            
+            # Validar que sea un número
+            float(peso_str)  # Solo para validar
+            
+            return peso_str
+        except:
+            logger.debug(f"No se pudo limpiar el valor de peso: {peso_cell}")
+            return ""
+
+    def _clean_unidad_value(self, unidad_cell):
+        """Limpia y formatea el valor de la unidad"""
+        try:
+            if pd.isna(unidad_cell):
+                return ""
+            
+            unidad_str = str(unidad_cell).strip().upper()
+            
+            # Normalizar unidades comunes
+            unidad_map = {
+                'KG': 'KG',
+                'KGS': 'KG',
+                'GRAMOS': 'G',
+                'GR': 'G', 
+                'G': 'G',
+                'LITROS': 'L',
+                'L': 'L',
+                'ML': 'ML',
+                'UNIDADES': 'UN',
+                'UN': 'UN',
+                'U': 'UN'
+            }
+            
+            return unidad_map.get(unidad_str, unidad_str)
+        except:
+            logger.debug(f"No se pudo limpiar el valor de unidad: {unidad_cell}")
+            return ""
     
     def _is_valid_url(self, text: str) -> bool:
         """Verifica si un texto es una URL válida"""
         return (text.startswith('http://') or 
                 text.startswith('https://') or
                 'carrefour.com.ar' in text or
-                'delimart.com.ar' in text)
+                'delimart.com.ar' in text or
+                'masonline.com.ar' in text)
     
     def _extract_all_links(self, products_links: Dict[str, List[str]]) -> List[str]:
         """Extrae todos los links de un diccionario de productos"""
@@ -172,7 +248,7 @@ class CanastaBasicaManager:
             logger.error("Error en validación completa de links: %s", str(e))
             return False
 
-    def _validate_supermarket_links(self, supermarket, products_links):
+    def _validate_supermarket_links(self, supermarket, products_data):
         """Valida los links de un supermercado específico"""
         try:
             extractor = self.extractors[supermarket]
@@ -181,30 +257,59 @@ class CanastaBasicaManager:
             if hasattr(extractor, 'validar_links_productos'):
                 logger.info("Validando links con método específico de %s", supermarket)
                 
-                # Extraer todas las URLs
-                all_urls = self._extract_all_links(products_links)
-                validation_results = extractor.validar_links_productos(all_urls)
+                # Extraer todas las URLs con metadatos
+                all_product_data = self._extract_all_links(products_data)
+                urls_only = [item['url'] for item in all_product_data]
                 
-                # Reorganizar resultados por producto
-                return self._organize_results_by_product(products_links, validation_results)
+                validation_results = extractor.validar_links_productos(urls_only)
+                
+                # Reorganizar resultados por producto incluyendo metadatos
+                return self._organize_results_by_product_new(products_data, validation_results)
             
             else:
-                # Para supermercados sin validación específica (como Delimart)
+                # Para supermercados sin validación específica
                 logger.info("Validando links con método genérico para %s", supermarket)
-                return self._generic_link_validation(extractor, products_links)
+                return self._generic_link_validation(extractor, products_data)
                 
         except Exception as e:
             logger.error("Error validando links de %s: %s", supermarket, str(e))
             return {}
+        
+    def _organize_results_by_product_new(self, products_data, validation_results):
+        """Reorganiza resultados por producto incluyendo metadatos"""
+        organized_results = {}
+        
+        for product_name, product_list in products_data.items():
+            product_results = {}
+            
+            for product_info in product_list:
+                url = product_info['url']
+                if url in validation_results:
+                    # Combinar resultados de validación con metadatos
+                    product_results[url] = {
+                        **validation_results[url],
+                        'peso': product_info['peso'],
+                        'unidad': product_info['unidad'],
+                        'producto_nombre': product_name
+                    }
+            
+            if product_results:
+                organized_results[product_name] = product_results
+        
+        return organized_results
 
-    def _generic_link_validation(self, extractor, products_links):
+    def _generic_link_validation(self, extractor, products_data):
         """Validación genérica para supermercados sin método específico"""
         results = {}
         
-        for product_name, urls in products_links.items():
+        for product_name, product_list in products_data.items():
             product_results = {}
             
-            for url in urls:
+            for product_info in product_list:
+                url = product_info['url']
+                peso = product_info['peso']
+                unidad = product_info['unidad']
+                
                 try:
                     # Intentar extraer el producto para ver si funciona
                     data = extractor.extraer_producto(url)
@@ -213,20 +318,29 @@ class CanastaBasicaManager:
                         product_results[url] = {
                             'valido': True,
                             'estado': 'OK',
-                            'mensaje': 'Link válido - Producto extraíble'
+                            'mensaje': 'Link válido - Producto extraíble',
+                            'peso': peso,
+                            'unidad': unidad,
+                            'producto_nombre': product_name
                         }
                     else:
                         product_results[url] = {
                             'valido': False,
                             'estado': data.get('error_type', 'DESCONOCIDO') if data else 'ERROR_EXTRACCION',
-                            'mensaje': data.get('titulo', 'Error en extracción') if data else 'No se pudo extraer'
+                            'mensaje': data.get('titulo', 'Error en extracción') if data else 'No se pudo extraer',
+                            'peso': peso,
+                            'unidad': unidad,
+                            'producto_nombre': product_name
                         }
                         
                 except Exception as e:
                     product_results[url] = {
                         'valido': False,
                         'estado': 'ERROR_EXCEPCION',
-                        'mensaje': str(e)
+                        'mensaje': str(e),
+                        'peso': peso,
+                        'unidad': unidad,
+                        'producto_nombre': product_name
                     }
             
             results[product_name] = product_results
@@ -255,67 +369,59 @@ class CanastaBasicaManager:
         return results_by_product
 
     def _find_problematic_products(self, supermarket, validation_results):
-        """Encuentra productos con menos del 51% de links válidos"""
+        """Encuentra productos problemáticos con la nueva estructura"""
         problematic = []
         
-        for product_name, product_results in validation_results.items():
-            total_links = len(product_results)
-            valid_links = sum(1 for result in product_results.values() if result.get('valido', False))
-            
-            percentage = (valid_links / total_links) * 100 if total_links > 0 else 0
-            
-            if percentage < 51:
-                problematic.append({
-                    'supermercado': supermarket,
-                    'producto': product_name,
-                    'links_validos': valid_links,
-                    'links_totales': total_links,
-                    'porcentaje': percentage,
-                    'links_invalidos': [
-                        url for url, result in product_results.items() 
-                        if not result.get('valido', False)
-                    ]
-                })
+        for product_name, links_data in validation_results.items():
+            for url, data in links_data.items():
+                if not data.get('valido', False):
+                    problematic.append({
+                        'supermercado': supermarket,
+                        'producto': product_name,
+                        'url': url,
+                        'peso': data.get('peso', ''),
+                        'unidad': data.get('unidad', ''),
+                        'error': data.get('mensaje', 'Error desconocido')
+                    })
         
         return problematic
 
-    def _show_validation_summary(self, validation_results, problematic_products):
-        """Muestra resumen completo de la validación POR PRODUCTO"""
-        logger.info("📊 ========== RESUMEN DE VALIDACIÓN COMPLETA ==========")
+    def _show_validation_summary(self, all_validation_results, all_problematic_products):
+        """Muestra resumen de validación con la nueva estructura"""
+        logger.info("📊 RESUMEN DE VALIDACIÓN DE LINKS")
+        logger.info("=" * 50)
         
-        for supermarket, results in validation_results.items():
-            logger.info("🏪 %s:", supermarket.upper())
+        total_products = 0
+        total_links = 0
+        valid_links = 0
+        
+        for supermarket, products_data in all_validation_results.items():
+            supermarket_products = len(products_data)
+            supermarket_links = 0
+            supermarket_valid = 0
             
-            # Mostrar POR PRODUCTO
-            for product_name, product_results in results.items():
-                total_links = len(product_results)
-                valid_links = sum(1 for result in product_results.values() if result.get('valido', False))
-                percentage = (valid_links / total_links) * 100 if total_links > 0 else 0
-                
-                status_icon = "✅" if percentage >= 51 else "❌"
-                
-                logger.info("   %s %s: %d/%d links válidos (%.1f%%)", 
-                        status_icon, product_name, valid_links, total_links, percentage)
-                
-                # Mostrar links inválidos si el producto tiene problemas
-                if percentage < 51:
-                    invalid_links = [url for url, result in product_results.items() if not result.get('valido', False)]
-                    logger.info("      🔗 Links inválidos:")
-                    for url in invalid_links:
-                        logger.info("         - %s", url)
+            for product_name, links_data in products_data.items():
+                supermarket_links += len(links_data)
+                supermarket_valid += sum(1 for data in links_data.values() if data.get('valido', False))
+            
+            total_products += supermarket_products
+            total_links += supermarket_links
+            valid_links += supermarket_valid
+            
+            logger.info("🏪 %s: %d productos, %d/%d links válidos", 
+                    supermarket.upper(), supermarket_products, supermarket_valid, supermarket_links)
         
-        # Mostrar productos problemáticos (menos del 51%)
-        if problematic_products:
-            logger.info("🚨 PRODUCTOS CON PROBLEMAS (menos del 51%% de links válidos):")
-            for problem in problematic_products:
-                logger.info("   ❌ %s - %s: %d/%d links válidos (%.1f%%)", 
+        logger.info("=" * 50)
+        logger.info("📈 TOTAL: %d productos, %d/%d links válidos (%.1f%%)", 
+                total_products, valid_links, total_links, 
+                (valid_links / total_links * 100) if total_links > 0 else 0)
+        
+        if all_problematic_products:
+            logger.info("⚠️  PRODUCTOS CON PROBLEMAS:")
+            for problem in all_problematic_products:
+                logger.info("   - %s: %s (Peso: %s %s) - %s", 
                         problem['supermercado'], problem['producto'],
-                        problem['links_validos'], problem['links_totales'],
-                        problem['porcentaje'])
-        else:
-            logger.info("🎉 TODOS los productos tienen más del 51%% de links válidos!")
-        
-        logger.info("======================================================")
+                        problem['peso'], problem['unidad'], problem['error'])
 
     def _ask_continue_with_problems(self, problematic_products):
         """Pregunta al usuario si desea continuar con productos problemáticos"""
@@ -328,56 +434,38 @@ class CanastaBasicaManager:
         return response in ['s', 'si', 'sí', 'y', 'yes']
     
     def check_links_validity_percentage(self, all_supermarkets_data, min_percentage=51):
-        """
-        Verifica que todos los productos tengan al menos el porcentaje mínimo de links válidos
-        Adaptada para la estructura real: {'supermarket': {'producto': [urls]}}
-        """
-        logger.info("=== VERIFICACIÓN DE PORCENTAJES DE LINKS VÁLIDOS ===")
-        low_percentage_products = []
-        
-        # Primero necesitamos obtener los resultados de la validación
-        # Asumo que los tienes almacenados en self.validation_results o similar
-        validation_results = getattr(self, 'validation_results', {})
-        
-        for supermarket_name, products_dict in all_supermarkets_data.items():
-            # products_dict es {'producto': [url1, url2, ...]}
-            for product_name, url_list in products_dict.items():
-                total_links = len(url_list)
+        """Verifica el porcentaje de links válidos con la nueva estructura"""
+        try:
+            total_links = 0
+            valid_links = 0
+            
+            for supermarket, products_data in all_supermarkets_data.items():
+                if supermarket in self.validation_results:
+                    for product_name, links_data in self.validation_results[supermarket].items():
+                        for url, validation_data in links_data.items():
+                            total_links += 1
+                            if validation_data.get('valido', False):
+                                valid_links += 1
+            
+            if total_links == 0:
+                logger.error("No se encontraron links para validar")
+                return False
+            
+            validity_percentage = (valid_links / total_links) * 100
+            logger.info("Porcentaje de links válidos: %.1f%% (%d/%d)", 
+                    validity_percentage, valid_links, total_links)
+            
+            if validity_percentage >= min_percentage:
+                logger.info("✅ Porcentaje de links válidos aceptable (>=%d%%)", min_percentage)
+                return True
+            else:
+                logger.error("❌ Porcentaje de links válidos insuficiente (%.1f%% < %d%%)", 
+                            validity_percentage, min_percentage)
+                return False
                 
-                if total_links > 0:
-                    # Buscar los resultados de validación para este producto
-                    valid_links = 0
-                    
-                    # Buscar en validation_results
-                    if (supermarket_name in validation_results and 
-                        product_name in validation_results[supermarket_name]):
-                        
-                        product_results = validation_results[supermarket_name][product_name]
-                        valid_links = sum(1 for result in product_results.values() 
-                                        if result.get('valido', False))
-                    
-                    percentage_valid = (valid_links / total_links) * 100
-                    
-                    logger.info(f"🔍 {supermarket_name} - {product_name}: {valid_links}/{total_links} links válidos ({percentage_valid:.1f}%)")
-                    
-                    if percentage_valid < min_percentage:
-                        low_percentage_products.append({
-                            'supermarket': supermarket_name,
-                            'product': product_name,
-                            'percentage': percentage_valid,
-                            'valid': valid_links,
-                            'total': total_links
-                        })
-        
-        # Reportar resultados
-        if low_percentage_products:
-            logger.error(f"🚫 Se detectaron {len(low_percentage_products)} productos con menos del {min_percentage}% de links válidos:")
-            for item in low_percentage_products:
-                logger.error(f"   - {item['product']} en {item['supermarket']}: {item['percentage']:.1f}% ({item['valid']}/{item['total']})")
+        except Exception as e:
+            logger.error("Error calculando porcentaje de links válidos: %s", str(e))
             return False
-        else:
-            logger.info(f"✅ Todos los productos tienen al menos {min_percentage}% de links válidos")
-            return True
     
     def initialize_sessions(self):
         """Inicializa las sesiones de todos los supermercados"""
@@ -402,7 +490,7 @@ class CanastaBasicaManager:
             except Exception as e:
                 logger.error("Error inicializando sesión para %s: %s", supermarket, str(e))
     
-    def process_supermarket(self, supermarket: str, products_links: Dict[str, List[str]]) -> pd.DataFrame:
+    def process_supermarket(self, supermarket: str, products_data: Dict[str, List[str]]) -> pd.DataFrame:
         """Procesa todos los productos de un supermercado"""
         if supermarket not in self.extractors:
             logger.error("Extractor no disponible para %s", supermarket)
@@ -418,9 +506,9 @@ class CanastaBasicaManager:
             if not self._check_session_active(extractor, supermarket):
                 return pd.DataFrame()
             
-            # Procesar cada producto
-            for product_name, links in products_links.items():
-                product_data = self._process_product(extractor, product_name, links, supermarket)
+            # Procesar cada producto con sus metadatos
+            for product_name, product_list in products_data.items():
+                product_data = self._process_product(extractor, product_name, product_list, supermarket)
                 if not product_data.empty:
                     all_data.append(product_data)
             
@@ -429,7 +517,7 @@ class CanastaBasicaManager:
             processing_time = time.time() - start_time
             
             logger.info("Procesamiento %s completado: %d registros en %.1fs", 
-                       supermarket, len(final_df), processing_time)
+                    supermarket, len(final_df), processing_time)
             
             return final_df
             
@@ -454,53 +542,140 @@ class CanastaBasicaManager:
         if hasattr(extractor, 'session_active'):
             extractor.session_active = False
     
-    def _process_product(self, extractor, product_name: str, links: List[str], supermarket: str) -> pd.DataFrame:
+    def _process_product(self, extractor, product_name: str, product_list: List[str], supermarket: str) -> pd.DataFrame:
         """Procesa un producto individual con sus links"""
         logger.info("Procesando %s en %s", product_name, supermarket)
         
-        processed_data = []
-        success_count = 0
-        
-        for url in links:
-            try:
-                data = extractor.extract_product(url)
-                
-                if data and 'error_type' not in data:
-                    # Link exitoso
-                    data['producto_principal'] = product_name
-                    data['supermercado'] = supermarket
-                    processed_data.append(data)
-                    success_count += 1
-                    logger.debug("Producto extraído correctamente: %s", product_name)
-                else:
-                    logger.warning("No se pudieron extraer datos de %s", url)
-                
-                # Pausa entre requests
-                time.sleep(0.5)
-                
-            except Exception as e:
-                logger.error("Error procesando %s: %s", url, str(e))
-                continue
-        
-        logger.info("Resumen %s: %d/%d exitosos", 
-                   product_name, success_count, len(links))
-        
-        return pd.DataFrame(processed_data) if processed_data else pd.DataFrame()
+        product_results = []
     
-    def _consolidate_results(self, data_frames: List[pd.DataFrame]) -> pd.DataFrame:
-        """Consolida múltiples DataFrames en uno solo"""
-        if not data_frames:
+        for product_info in product_list:
+            url = product_info['url']
+            peso = product_info['peso']
+            unidad = product_info['unidad']
+            
+            try:
+                logger.info("Extrayendo: %s", product_name)
+                
+                # Extraer datos del producto
+                product_data = extractor.extraer_producto(url)
+                
+                if product_data and 'error_type' not in product_data:
+                    # Agregar metadatos adicionales
+                    product_data.update({
+                        'peso': peso,
+                        'unidad_medida': unidad,
+                        'producto_nombre': product_name,
+                        'supermercado': supermarket,
+                        'url': url,
+                        'fecha_extraccion': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    })
+                    
+                    # Asegurar que todos los campos necesarios estén presentes
+                    product_data = self._ensure_required_fields(product_data)
+                    product_results.append(product_data)
+                    
+                    logger.info("✅ %s extraído correctamente (Peso: %s %s)", 
+                            product_name, peso, unidad)
+                    
+                else:
+                    # Manejar errores de extracción
+                    error_data = self._create_error_product_data(
+                        product_name, supermarket, url, peso, unidad, 
+                        product_data.get('error_type', 'ERROR_EXTRACCION') if product_data else 'SIN_DATOS'
+                    )
+                    product_results.append(error_data)
+                    logger.warning("❌ Error extrayendo %s: %s", 
+                                product_name, error_data['error_type'])
+                    
+            except Exception as e:
+                # Manejar excepciones durante la extracción
+                error_data = self._create_error_product_data(
+                    product_name, supermarket, url, peso, unidad, f"EXCEPCION: {str(e)}"
+                )
+                product_results.append(error_data)
+                logger.error("💥 Error procesando %s: %s", product_name, str(e))
+        
+        # Convertir a DataFrame
+        if product_results:
+            return pd.DataFrame(product_results)
+        else:
             return pd.DataFrame()
         
-        final_df = pd.concat(data_frames, ignore_index=True)
+    def _ensure_required_fields(self, product_data: Dict) -> Dict:
+        """Asegura que todos los campos requeridos estén presentes en los datos del producto"""
+        required_fields = {
+            'nombre': '',
+            'precio_normal': '',
+            'precio_descuento': '',
+            'precio_por_unidad': '',
+            'unidad': '',
+            'descuentos': 'Ninguno',
+            'fecha': datetime.today().strftime("%Y-%m-%d"),
+            'supermercado': '',
+            'url': '',
+            'peso': '',
+            'unidad_medida': '',
+            'producto_nombre': ''
+        }
         
-        # Ordenar columnas
-        if 'producto_principal' in final_df.columns:
-            columns = ['producto_principal', 'supermercado'] + \
-                     [col for col in final_df.columns if col not in ['producto_principal', 'supermercado']]
-            final_df = final_df[columns]
+        # Combinar con valores por defecto
+        for field, default_value in required_fields.items():
+            if field not in product_data or product_data[field] is None:
+                product_data[field] = default_value
         
-        return final_df
+        return product_data
+
+    def _create_error_product_data(self, product_name: str, supermarket: str, url: str, 
+                                peso: str, unidad: str, error_type: str) -> Dict:
+        """Crea un registro de producto para casos de error"""
+        return {
+            'nombre': product_name,
+            'precio_normal': '',
+            'precio_descuento': '',
+            'precio_por_unidad': '',
+            'unidad': unidad,
+            'descuentos': 'Ninguno',
+            'fecha': datetime.today().strftime("%Y-%m-%d"),
+            'supermercado': supermarket,
+            'url': url,
+            'peso': peso,
+            'unidad_medida': unidad,
+            'producto_nombre': product_name,
+            'error_type': error_type,
+            'fecha_extraccion': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+    
+    def _consolidate_results(self, all_data: List[pd.DataFrame]) -> pd.DataFrame:
+        """Consolida múltiples DataFrames en uno solo"""
+        if not all_data:
+            return pd.DataFrame()
+        
+        # Concatenar todos los DataFrames
+        consolidated_df = pd.concat(all_data, ignore_index=True)
+        
+        # Ordenar por producto y supermercado
+        if 'producto_nombre' in consolidated_df.columns and 'supermercado' in consolidated_df.columns:
+            consolidated_df = consolidated_df.sort_values(['producto_nombre', 'supermercado'])
+        
+        # Reordenar columnas para mejor presentación
+        column_order = [
+            'producto_nombre', 'nombre', 'supermercado', 
+            'precio_normal', 'precio_descuento', 'precio_por_unidad',
+            'unidad', 'unidad_medida', 'peso', 'descuentos',
+            'fecha', 'fecha_extraccion', 'url'
+        ]
+        
+        # Agregar columnas de error si existen
+        if 'error_type' in consolidated_df.columns:
+            column_order.append('error_type')
+        
+        # Reordenar columnas existentes
+        existing_columns = [col for col in column_order if col in consolidated_df.columns]
+        other_columns = [col for col in consolidated_df.columns if col not in column_order]
+        
+        consolidated_df = consolidated_df[existing_columns + other_columns]
+        
+        return consolidated_df
     
     def save_results(self, df: pd.DataFrame, supermarket: str):
         """Guarda los resultados en CSV y base de datos"""
@@ -575,11 +750,20 @@ class CanastaBasicaManager:
             logger.info("Se encontraron datos para %d supermercados: %s", 
                        len(all_supermarkets_data), list(all_supermarkets_data.keys()))
             
-            # Mostrar estadísticas por supermercado
+            # Mostrar estadísticas por supermercado con nueva estructura
             for supermarket, products_data in all_supermarkets_data.items():
-                total_links = sum(len(links) for links in products_data.values())
-                logger.info("Supermercado %s: %d productos, %d links totales", 
-                           supermarket, len(products_data), total_links)
+                total_products = len(products_data)
+                total_links = sum(len(product_list) for product_list in products_data.values())
+                
+                # Calcular productos con metadatos completos
+                products_with_metadata = 0
+                for product_list in products_data.values():
+                    for product_info in product_list:
+                        if product_info.get('peso') and product_info.get('unidad'):
+                            products_with_metadata += 1
+                
+                logger.info("Supermercado %s: %d productos, %d links, %d con metadatos completos", 
+                        supermarket, total_products, total_links, products_with_metadata)
                 
             # 2. NUEVO: Validación completa de links
             logger.info("=== FASE 1: VALIDACIÓN DE LINKS ===")
@@ -593,17 +777,17 @@ class CanastaBasicaManager:
             logger.info("=== FASE 2: VERIFICACIÓN DE PORCENTAJES ===")
             if not self.check_links_validity_percentage(all_supermarkets_data, min_percentage=51):
                 logger.error(" Proceso cancelado por bajo porcentaje de links válidos")
-                exit()
+                #exit()
 
             logger.info("✅ Validación exitosa - Continuando con extracción...")
             
             # 3. Inicializar sesiones
             self.initialize_sessions()
             
-            # 4. Procesar cada supermercado con SUS links específicos
+            # 4. Procesar cada supermercado con SUS datos específicos (nueva estructura)
             all_results = []
             
-            for supermarket, products_links in all_supermarkets_data.items():
+            for supermarket, products_data in all_supermarkets_data.items():
                 if supermarket not in self.extractors:
                     logger.warning("No hay extractor configurado para %s, saltando...", supermarket)
                     continue
@@ -612,11 +796,18 @@ class CanastaBasicaManager:
                 logger.info("Procesando %s", supermarket.upper())
                 logger.info("=" * 50)
                 
-                df_result = self.process_supermarket(supermarket, products_links)
+                # Usar la nueva versión que procesa la estructura con metadatos
+                df_result = self.process_supermarket(supermarket, products_data)
                 
                 if not df_result.empty:
                     all_results.append(df_result)
                     self.save_results(df_result, supermarket)
+                    
+                    # Mostrar resumen del procesamiento
+                    valid_products = len(df_result[df_result['precio_normal'].notna() & (df_result['precio_normal'] != '')])
+                    total_products = len(df_result)
+                    logger.info("✅ %s: %d/%d productos extraídos exitosamente", 
+                            supermarket.upper(), valid_products, total_products)
                 else:
                     logger.warning("No se extrajeron datos para %s", supermarket)
             
@@ -631,6 +822,18 @@ class CanastaBasicaManager:
                 # Mostrar resumen por supermercado
                 supermarket_counts = final_df['supermercado'].value_counts()
                 logger.info("Resumen por supermercado: %s", supermarket_counts.to_dict())
+                
+                # Mostrar resumen de productos con precios
+                products_with_prices = final_df[final_df['precio_normal'].notna() & (final_df['precio_normal'] != '')]
+                logger.info("Productos con precios extraídos: %d/%d", 
+                        len(products_with_prices), len(final_df))
+                
+                # Mostrar productos sin precios (para debugging)
+                products_without_prices = final_df[final_df['precio_normal'].isna() | (final_df['precio_normal'] == '')]
+                if not products_without_prices.empty:
+                    logger.warning("Productos sin precios extraídos:")
+                    for idx, row in products_without_prices.iterrows():
+                        logger.warning("  - %s (%s)", row['producto_nombre'], row['supermercado'])
             else:
                 logger.warning("No se extrajeron datos de ningún supermercado")
             

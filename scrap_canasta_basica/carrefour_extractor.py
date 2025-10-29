@@ -853,6 +853,8 @@ class CarrefourExtractor:
         except Exception as e:
             logger.error(f"Error cerrando driver: {e}")
 
+
+
     #VERIFICACION DE LINKS
     def validar_links_productos(self, urls, nombre_arch_inv = "links_invalidos.csv"):
         """
