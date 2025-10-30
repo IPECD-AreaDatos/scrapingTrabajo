@@ -34,7 +34,7 @@ class CanastaBasicaManager:
     def _setup_extractors(self):
         """Configura los extractores de supermercados"""
         self.extractors = {
-            #'carrefour': CarrefourExtractor(),
+            'carrefour': CarrefourExtractor(),
             'delimart': DelimartExtractor(),
             #'masonline': MasonlineExtractor()
         }
@@ -71,7 +71,7 @@ class CanastaBasicaManager:
                 logger.info("Leyendo hoja: %s", sheet_name)
                 
                 # Leer datos de la hoja específica
-                range_name = f"'{sheet_name}'!A2:D400"
+                range_name = f"'{sheet_name}'!A4:D5"
                 df_sheet = gs.leer_df(range_name, header=False)
                 
                 # Parsear productos y links de esta hoja
@@ -104,7 +104,7 @@ class CanastaBasicaManager:
         """Parsea los datos de una hoja específica con la nueva estructura - VERSIÓN DEBUG"""
         products = {}
         
-        logger.info(f"🔍 Analizando hoja {sheet_name} - Dimensiones: {df_sheet.shape}")
+        logger.info(f" Analizando hoja {sheet_name} - Dimensiones: {df_sheet.shape}")
         
         for idx, row in df_sheet.iterrows():
             # Mostrar las primeras filas para debug
@@ -137,7 +137,7 @@ class CanastaBasicaManager:
                     }
                     
                     link_data.append(product_info)
-                    logger.info(f"✅ Hoja {sheet_name} - Producto: {product_name} - Link: {link_cell.strip()}")
+                    logger.info(f" Hoja {sheet_name} - Producto: {product_name} - Link: {link_cell.strip()}")
                 
                 if link_data:
                     # Si el producto ya existe, agregar a la lista existente
@@ -146,9 +146,9 @@ class CanastaBasicaManager:
                     else:
                         products[product_name] = link_data
                 else:
-                    logger.debug(f"❌ Hoja {sheet_name} - Producto: {product_name} sin link válido")
+                    logger.debug(f" Hoja {sheet_name} - Producto: {product_name} sin link válido")
         
-        logger.info(f"📊 Hoja {sheet_name} procesada: {len(products)} productos encontrados")
+        logger.info(f" Hoja {sheet_name} procesada: {len(products)} productos encontrados")
         return products
     
     def _clean_peso_value(self, peso_cell):
@@ -388,7 +388,7 @@ class CanastaBasicaManager:
 
     def _show_validation_summary(self, all_validation_results, all_problematic_products):
         """Muestra resumen de validación con la nueva estructura"""
-        logger.info("📊 RESUMEN DE VALIDACIÓN DE LINKS")
+        logger.info(" RESUMEN DE VALIDACIÓN DE LINKS")
         logger.info("=" * 50)
         
         total_products = 0
@@ -408,16 +408,16 @@ class CanastaBasicaManager:
             total_links += supermarket_links
             valid_links += supermarket_valid
             
-            logger.info("🏪 %s: %d productos, %d/%d links válidos", 
+            logger.info(" %s: %d productos, %d/%d links válidos", 
                     supermarket.upper(), supermarket_products, supermarket_valid, supermarket_links)
         
         logger.info("=" * 50)
-        logger.info("📈 TOTAL: %d productos, %d/%d links válidos (%.1f%%)", 
+        logger.info(" TOTAL: %d productos, %d/%d links válidos (%.1f%%)", 
                 total_products, valid_links, total_links, 
                 (valid_links / total_links * 100) if total_links > 0 else 0)
         
         if all_problematic_products:
-            logger.info("⚠️  PRODUCTOS CON PROBLEMAS:")
+            logger.info("  PRODUCTOS CON PROBLEMAS:")
             for problem in all_problematic_products:
                 logger.info("   - %s: %s (Peso: %s %s) - %s", 
                         problem['supermercado'], problem['producto'],
@@ -425,7 +425,7 @@ class CanastaBasicaManager:
 
     def _ask_continue_with_problems(self, problematic_products):
         """Pregunta al usuario si desea continuar con productos problemáticos"""
-        logger.warning("⚠️  Se encontraron %d productos con menos del 51%% de links válidos", len(problematic_products))
+        logger.warning("  Se encontraron %d productos con menos del 51%% de links válidos", len(problematic_products))
         
         # En modo automático, podemos decidir automáticamente
         # En modo interactivo, podríamos preguntar al usuario
@@ -456,10 +456,10 @@ class CanastaBasicaManager:
                     validity_percentage, valid_links, total_links)
             
             if validity_percentage >= min_percentage:
-                logger.info("✅ Porcentaje de links válidos aceptable (>=%d%%)", min_percentage)
+                logger.info(" Porcentaje de links válidos aceptable (>=%d%%)", min_percentage)
                 return True
             else:
-                logger.error("❌ Porcentaje de links válidos insuficiente (%.1f%% < %d%%)", 
+                logger.error(" Porcentaje de links válidos insuficiente (%.1f%% < %d%%)", 
                             validity_percentage, min_percentage)
                 return False
                 
@@ -574,7 +574,7 @@ class CanastaBasicaManager:
                     product_data = self._ensure_required_fields(product_data)
                     product_results.append(product_data)
                     
-                    logger.info("✅ %s extraído correctamente (Peso: %s %s)", 
+                    logger.info(" %s extraído correctamente (Peso: %s %s)", 
                             product_name, peso, unidad)
                     
                 else:
@@ -584,7 +584,7 @@ class CanastaBasicaManager:
                         product_data.get('error_type', 'ERROR_EXTRACCION') if product_data else 'SIN_DATOS'
                     )
                     product_results.append(error_data)
-                    logger.warning("❌ Error extrayendo %s: %s", 
+                    logger.warning(" Error extrayendo %s: %s", 
                                 product_name, error_data['error_type'])
                     
             except Exception as e:
@@ -593,7 +593,7 @@ class CanastaBasicaManager:
                     product_name, supermarket, url, peso, unidad, f"EXCEPCION: {str(e)}"
                 )
                 product_results.append(error_data)
-                logger.error("💥 Error procesando %s: %s", product_name, str(e))
+                logger.error(" Error procesando %s: %s", product_name, str(e))
         
         # Convertir a DataFrame
         if product_results:
@@ -770,7 +770,7 @@ class CanastaBasicaManager:
             should_continue = self.validate_all_links(all_supermarkets_data)
             
             if not should_continue:
-                logger.info("⏹️  Proceso cancelado por el usuario")
+                logger.info("Proceso cancelado por el usuario")
                 return
             
             # 2.2 VERIFICACIÓN DE PORCENTAJE DE LINKS VÁLIDOS
@@ -779,7 +779,7 @@ class CanastaBasicaManager:
                 logger.error(" Proceso cancelado por bajo porcentaje de links válidos")
                 #exit()
 
-            logger.info("✅ Validación exitosa - Continuando con extracción...")
+            logger.info("Validación exitosa - Continuando con extracción...")
             
             # 3. Inicializar sesiones
             self.initialize_sessions()
@@ -806,7 +806,7 @@ class CanastaBasicaManager:
                     # Mostrar resumen del procesamiento
                     valid_products = len(df_result[df_result['precio_normal'].notna() & (df_result['precio_normal'] != '')])
                     total_products = len(df_result)
-                    logger.info("✅ %s: %d/%d productos extraídos exitosamente", 
+                    logger.info("%s: %d/%d productos extraídos exitosamente", 
                             supermarket.upper(), valid_products, total_products)
                 else:
                     logger.warning("No se extrajeron datos para %s", supermarket)
@@ -814,6 +814,10 @@ class CanastaBasicaManager:
             # 5. Consolidar resultados finales
             if all_results:
                 final_df = pd.concat(all_results, ignore_index=True)
+                # ELIMINAR COLUMNA 'unidad' (duplicada con 'unidad_medida')
+                if 'unidad' in final_df.columns and 'unidad_medida' in final_df.columns:
+                    logger.info("Eliminando columna duplicada 'unidad', conservando 'unidad_medida'")
+                    final_df = final_df.drop(columns=['unidad'])
                 final_csv = f'canasta_basica_completa_{datetime.now().strftime("%Y%m%d_%H%M")}.csv'
                 final_df.to_csv(final_csv, index=False, encoding='utf-8')
                 logger.info("Resultados consolidados guardados en %s", final_csv)

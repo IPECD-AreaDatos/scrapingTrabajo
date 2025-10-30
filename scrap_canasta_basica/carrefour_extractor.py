@@ -5,6 +5,7 @@ import pandas as pd
 import logging
 from dotenv import load_dotenv
 from datetime import datetime
+from typing import Dict, List, Tuple, Optional
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -55,7 +56,7 @@ class CarrefourExtractor:
         
         return self.driver, self.wait
         
-    def extract_product(self, url):
+    def extraer_producto(self, url):
         """Extrae datos de un producto individual"""
         try:
             # Asegurar sesión activa UNA SOLA VEZ al inicio
@@ -70,7 +71,7 @@ class CarrefourExtractor:
             
             # Verificar si es página de error 404
             if self._es_pagina_error():
-                logger.warning(f"❌ Página no encontrada (404): {url}")
+                logger.warning(f"Página no encontrada (404): {url}")
                 return {"error_type": "404", "url": url, "titulo": self.driver.title}
             
             # Nombre del producto
@@ -226,7 +227,7 @@ class CarrefourExtractor:
                     for elem in elementos:
                         if elem.is_displayed():
                             texto = elem.text.strip()
-                            if texto and len(texto) > 1:  # Evitar textos vacíos o de un solo carácter
+                            if self.es_descuento_valido(texto):
                                 descuentos.append(texto)
                                 logger.debug(f"Descuento encontrado con selector '{selector}': {texto}")
                 except:
@@ -245,27 +246,132 @@ class CarrefourExtractor:
                     for elem in elementos:
                         if elem.is_displayed():
                             texto = elem.text.strip()
-                            if texto and len(texto) > 1 and any(clave in texto.upper() for clave in palabras_clave):
+                            if self.es_descuento_valido(texto):
                                 descuentos.append(texto)
                                 logger.debug(f"Descuento encontrado por texto '{palabra}': {texto}")
                 except:
                     continue
+            # ESTRATEGIA 3: Buscar elementos con estilos de descuento
+            try:
+                # Buscar elementos con colores típicos de descuento (rojo, verde)
+                elementos_color = driver.find_elements(By.XPATH, "//*[contains(@style, 'color')]")
+                for elem in elementos_color:
+                    if elem.is_displayed():
+                        estilo = elem.get_attribute('style')
+                        texto = elem.text.strip()
+                        if (self._es_descuento_valido(texto) and 
+                            any(color in estilo.lower() for color in ['red', '#ff0000', '#d32f2f', 'green', '#00ff00', '#4caf50'])):
+                            descuentos.append(texto)
+                            logger.debug(f"Descuento por estilo de color: {texto}")
+            except:
+                pass
 
         except Exception as e:
             logger.error(f"Error extrayendo descuentos: {str(e)}")
-            
-        # Limpiar y filtrar resultados
-        descuentos_limpios = []
-        for descuento in descuentos:
-            # Eliminar duplicados y textos irrelevantes
-            if (descuento and 
-                    len(descuento) > 1 and 
-                    descuento not in descuentos_limpios and
-                    not descuento.replace('%', '').replace('$', '').strip().isdigit()):  # No solo números
-                    descuentos_limpios.append(descuento)
-            
-        logger.info(f"Descuentos encontrados: {descuentos_limpios}")
+        
+        # LIMPIEZA Y FILTRADO MEJORADO
+        descuentos_limpios = self._filtrar_descuentos(descuentos)
+        
+        logger.info(f"Descuentos finales: {descuentos_limpios}")
         return descuentos_limpios
+    
+    def _es_descuento_valido(self, texto: str) -> bool:
+        """Determina si un texto es un descuento válido"""
+        if not texto or len(texto) > 50:  # Muy largo, probablemente no es descuento
+            return False
+        
+        texto_limpio = texto.upper().strip()
+        
+        # Debe contener palabras clave de descuento
+        palabras_clave_descuento = [
+            'OFF', '%', 'DESCUENTO', 'DCTO', 'SAVE', 'AHORRO', 
+            'PROMO', 'OFERTA', '2X1', '3X2', 'BONIF', 'LLEVÁ', 'LLEVÉ'
+        ]
+        
+        tiene_palabra_clave = any(palabra in texto_limpio for palabra in palabras_clave_descuento)
+        
+        # Debe tener algún contenido numérico o de porcentaje
+        tiene_contenido_numerico = any(caracter.isdigit() for caracter in texto) or '%' in texto
+        
+        # No debe ser solo números (podría ser un precio)
+        no_es_solo_numeros = not texto.replace('%', '').replace('$', '').replace('.', '').replace(',', '').strip().isdigit()
+        
+        # Longitud razonable
+        longitud_razonable = 2 <= len(texto) <= 30
+        
+        # No debe contener palabras que indiquen que NO es un descuento
+        palabras_excluidas = ['PRECIO', 'PRICE', 'COSTO', 'COST', 'VALOR', 'TOTAL', 'SUBTOTAL']
+        no_contiene_excluidas = not any(palabra in texto_limpio for palabra in palabras_excluidas)
+        
+        return (tiene_palabra_clave and 
+                tiene_contenido_numerico and 
+                no_es_solo_numeros and 
+                longitud_razonable and 
+                no_contiene_excluidas)
+    
+    def _filtrar_descuentos(self, descuentos: List[str]) -> List[str]:
+        """Filtra y limpia la lista de descuentos"""
+        if not descuentos:
+            return []
+        
+        descuentos_filtrados = []
+        
+        for descuento in descuentos:
+            # Limpiar el texto
+            descuento_limpio = descuento.strip()
+            
+            # Eliminar espacios múltiples
+            descuento_limpio = ' '.join(descuento_limpio.split())
+            
+            # Verificar que sea único y válido
+            if (descuento_limpio and 
+                descuento_limpio not in descuentos_filtrados and
+                self._es_descuento_valido(descuento_limpio)):
+                
+                # Normalizar formato común
+                descuento_normalizado = self._normalizar_descuento(descuento_limpio)
+                descuentos_filtrados.append(descuento_normalizado)
+        
+        # Ordenar por relevancia (los que tienen % primero)
+        descuentos_filtrados.sort(key=lambda x: ('%' in x, x), reverse=True)
+        
+        return descuentos_filtrados
+
+    def _normalizar_descuento(self, descuento: str) -> str:
+        """Normaliza el formato del descuento para consistencia"""
+        descuento_upper = descuento.upper()
+        
+        # Reemplazar variaciones comunes
+        reemplazos = {
+            'OFF': 'OFF',
+            'DCTO': 'DESCUENTO',
+            'SAVE': 'AHORRO',
+            'PROMO': 'PROMOCIÓN',
+            'OFERTA': 'OFERTA',
+            '2X1': '2X1',
+            '3X2': '3X2'
+        }
+        
+        descuento_normalizado = descuento
+        for original, reemplazo in reemplazos.items():
+            if original in descuento_upper:
+                # Mantener el formato original pero estandarizar palabras clave
+                descuento_normalizado = descuento_normalizado.upper().replace(original, reemplazo)
+        
+        # Asegurar que los porcentajes tengan formato consistente
+        if '%' in descuento_normalizado:
+            # Buscar patrones como "10% OFF" y estandarizar
+            import re
+            patron_porcentaje = r'(\d+)%'
+            match = re.search(patron_porcentaje, descuento_normalizado)
+            if match:
+                porcentaje = match.group(1)
+                # Si es solo el porcentaje, agregar "OFF"
+                if len(descuento_normalizado.strip()) <= 4:
+                    descuento_normalizado = f"{porcentaje}% OFF"
+        
+        return descuento_normalizado
+
     
     def _buscar_precio(self, driver, selectores, default):
         """Busca precio en múltiples selectores"""
@@ -286,47 +392,47 @@ class CarrefourExtractor:
             logger.info("=== DEBUG LOGIN ===")
             
             # Paso 1: Ir a página de login
-            logger.info("🔍 Navegando a login...")
+            logger.info(" Navegando a login...")
             self.driver.get("https://www.carrefour.com.ar/login")
             time.sleep(3)
             
             # TOMAR SCREENSHOT ANTES DE CUALQUIER ACCIÓN
             self.driver.save_screenshot('debug_01_login_page.png')
-            logger.info("📸 Screenshot: debug_01_login_page.png")
+            logger.info(" Screenshot: debug_01_login_page.png")
             
             # Paso 2: Buscar botón de email
-            logger.info("🔍 Buscando botón email...")
+            logger.info(" Buscando botón email...")
             if not self.hacer_clic_ingresar_con_mail():
                 return False
             
             # Screenshot después del clic
             self.driver.save_screenshot('debug_02_after_email_click.png')
-            logger.info("📸 Screenshot: debug_02_after_email_click.png")
+            logger.info(" Screenshot: debug_02_after_email_click.png")
             
             # Paso 3: Ingresar credenciales con más verificación
-            logger.info("🔍 Ingresando credenciales...")
+            logger.info(" Ingresando credenciales...")
             if not self.ingresar_credenciales_con_debug():
                 return False
             
             # Screenshot después de ingresar credenciales
             self.driver.save_screenshot('debug_03_after_credentials.png')
-            logger.info("📸 Screenshot: debug_03_after_credentials.png")
+            logger.info(" Screenshot: debug_03_after_credentials.png")
             
             # Paso 4: Verificar login con más detalle
             logger.info("🔍 Verificando login...")
             if self.verificar_sesion_con_debug():
                 self.sesion_iniciada = True
                 self.guardar_sesion()
-                logger.info("✅ LOGIN EXITOSO")
+                logger.info(" LOGIN EXITOSO")
                 return True
             else:
-                logger.error("❌ LOGIN FALLIDO - Revisar screenshots")
+                logger.error(" LOGIN FALLIDO - Revisar screenshots")
                 # Tomar screenshot de error
                 self.driver.save_screenshot('debug_04_login_failed.png')
                 return False
                 
         except Exception as e:
-            logger.error(f"❌ Error en login: {e}")
+            logger.error(f" Error en login: {e}")
             self.driver.save_screenshot('debug_05_error.png')
             return False
         
@@ -343,7 +449,7 @@ class CarrefourExtractor:
                     "//button[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'ingresar con mail y contraseña')]"
                 )
                 if boton_exacto.is_displayed() and boton_exacto.is_enabled():
-                    logger.info("🎯 Botón EXACTO encontrado: 'ingresar con mail y contraseña'")
+                    logger.info(" Botón EXACTO encontrado: 'ingresar con mail y contraseña'")
                     
                     # Scroll para asegurar visibilidad
                     self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", boton_exacto)
@@ -352,20 +458,20 @@ class CarrefourExtractor:
                     # Intentar clic normal
                     try:
                         boton_exacto.click()
-                        logger.info("✅ Clic exitoso en botón exacto")
+                        logger.info(" Clic exitoso en botón exacto")
                         time.sleep(5)
                         return True
                     except Exception as click_error:
-                        logger.warning(f"⚠️ Clic normal falló: {click_error}")
+                        logger.warning(f" Clic normal falló: {click_error}")
                         
                         # Intentar clic JavaScript
                         try:
                             self.driver.execute_script("arguments[0].click();", boton_exacto)
-                            logger.info("✅ Clic JS exitoso en botón exacto")
+                            logger.info(" Clic JS exitoso en botón exacto")
                             time.sleep(5)
                             return True
                         except Exception as js_error:
-                            logger.error(f"💥 Clic JS también falló: {js_error}")
+                            logger.error(f" Clic JS también falló: {js_error}")
                             
             except Exception as e:
                 logger.debug(f"Búsqueda exacta falló: {e}")
@@ -386,7 +492,7 @@ class CarrefourExtractor:
                         f"//button[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '{texto.lower()}')]"
                     )
                     if boton.is_displayed() and boton.is_enabled():
-                        logger.info(f"🎯 Botón encontrado (parcial): '{texto}'")
+                        logger.info(f" Botón encontrado (parcial): '{texto}'")
                         
                         # Scroll para asegurar visibilidad
                         self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", boton)
@@ -395,20 +501,20 @@ class CarrefourExtractor:
                         # Intentar clic normal
                         try:
                             boton.click()
-                            logger.info(f"✅ Clic exitoso en: '{texto}'")
+                            logger.info(f" Clic exitoso en: '{texto}'")
                             time.sleep(5)
                             return True
                         except Exception as click_error:
-                            logger.warning(f"⚠️ Clic normal falló en '{texto}': {click_error}")
+                            logger.warning(f" Clic normal falló en '{texto}': {click_error}")
                             
                             # Intentar clic JavaScript
                             try:
                                 self.driver.execute_script("arguments[0].click();", boton)
-                                logger.info(f"✅ Clic JS exitoso en: '{texto}'")
+                                logger.info(f" Clic JS exitoso en: '{texto}'")
                                 time.sleep(5)
                                 return True
                             except Exception as js_error:
-                                logger.error(f"💥 Clic JS falló en '{texto}': {js_error}")
+                                logger.error(f" Clic JS falló en '{texto}': {js_error}")
                                 
                 except Exception as e:
                     logger.debug(f"Texto parcial '{texto}' no encontrado: {e}")
@@ -418,7 +524,7 @@ class CarrefourExtractor:
                 modal = self.driver.find_element(By.XPATH, "//div[contains(@class, 'vtex-login')]")
                 botones = modal.find_elements(By.TAG_NAME, "button")
                 
-                logger.info(f"🔍 Buscando en modal - Botones encontrados: {len(botones)}")
+                logger.info(f" Buscando en modal - Botones encontrados: {len(botones)}")
                 
                 for i, boton in enumerate(botones):
                     texto = boton.text.strip().lower()
@@ -433,7 +539,7 @@ class CarrefourExtractor:
                         'ingresar con mail' in texto):
                         
                         if is_enabled and is_displayed:
-                            logger.info(f"🎯 Botón modal encontrado: '{texto}'")
+                            logger.info(f" Botón modal encontrado: '{texto}'")
                             
                             # Scroll para asegurar visibilidad
                             self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", boton)
@@ -442,23 +548,23 @@ class CarrefourExtractor:
                             # Intentar clic normal
                             try:
                                 boton.click()
-                                logger.info(f"✅ Clic exitoso en botón modal: '{texto}'")
+                                logger.info(f" Clic exitoso en botón modal: '{texto}'")
                                 time.sleep(5)
                                 return True
                             except Exception as click_error:
-                                logger.warning(f"⚠️ Clic modal falló: {click_error}")
+                                logger.warning(f" Clic modal falló: {click_error}")
                                 
                                 # Intentar clic JavaScript
                                 try:
                                     self.driver.execute_script("arguments[0].click();", boton)
-                                    logger.info(f"✅ Clic JS exitoso en botón modal: '{texto}'")
+                                    logger.info(f" Clic JS exitoso en botón modal: '{texto}'")
                                     time.sleep(5)
                                     return True
                                 except Exception as js_error:
-                                    logger.error(f"💥 Clic JS modal falló: {js_error}")
+                                    logger.error(f" Clic JS modal falló: {js_error}")
                         else:
-                            logger.warning(f"⚠️ Botón modal encontrado pero no usable: '{texto}'")
-                            
+                            logger.warning(f" Botón modal encontrado pero no usable: '{texto}'")
+                        
             except Exception as e:
                 logger.debug(f"Búsqueda en modal falló: {e}")
             
@@ -477,7 +583,7 @@ class CarrefourExtractor:
                     try:
                         boton = self.driver.find_element(By.CSS_SELECTOR, selector)
                         if boton.is_displayed() and boton.is_enabled():
-                            logger.info(f"🎯 Botón por selector especial: {selector}")
+                            logger.info(f" Botón por selector especial: {selector}")
                             
                             # Verificar que el texto contenga lo que buscamos
                             texto_boton = boton.text.strip().lower()
@@ -489,7 +595,7 @@ class CarrefourExtractor:
                                 
                                 # Intentar clic JavaScript directamente (más confiable)
                                 self.driver.execute_script("arguments[0].click();", boton)
-                                logger.info(f"✅ Clic JS en botón especial: {selector} - Texto: '{texto_boton}'")
+                                logger.info(f" Clic JS en botón especial: {selector} - Texto: '{texto_boton}'")
                                 time.sleep(5)
                                 return True
                                 
@@ -500,10 +606,10 @@ class CarrefourExtractor:
                 logger.debug(f"Búsqueda por atributos falló: {e}")
             
             # ESTRATEGIA 5: Debugging - Mostrar TODOS los botones de la página
-            logger.info("🔍 HACIENDO INVENTARIO DE TODOS LOS BOTONES...")
+            logger.info(" HACIENDO INVENTARIO DE TODOS LOS BOTONES...")
             try:
                 todos_los_botones = self.driver.find_elements(By.TAG_NAME, "button")
-                logger.info(f"📋 TOTAL de botones en página: {len(todos_los_botones)}")
+                logger.info(f" TOTAL de botones en página: {len(todos_los_botones)}")
                 
                 for i, boton in enumerate(todos_los_botones):
                     try:
@@ -518,11 +624,11 @@ class CarrefourExtractor:
             except Exception as e:
                 logger.error(f"Error en inventario de botones: {e}")
             
-            logger.error("❌ No se pudo encontrar el botón 'ingresar con mail y contraseña'")
+            logger.error(" No se pudo encontrar el botón 'ingresar con mail y contraseña'")
             return False
             
         except Exception as e:
-            logger.error(f"❌ Error general en búsqueda de botón: {e}")
+            logger.error(f" Error general en búsqueda de botón: {e}")
             return False
         
     def ingresar_credenciales_con_debug(self):
@@ -536,7 +642,7 @@ class CarrefourExtractor:
                 errores = self.driver.find_elements(By.CSS_SELECTOR, ".error, .alert, .message-error")
                 for error in errores:
                     if error.is_displayed():
-                        logger.error(f"❌ Error visible: {error.text}")
+                        logger.error(f" Error visible: {error.text}")
             except:
                 pass
             
@@ -558,29 +664,29 @@ class CarrefourExtractor:
                     campo_email = self.wait.until(
                         EC.presence_of_element_located((By.CSS_SELECTOR, selector))
                     )
-                    logger.info(f"✅ Campo email encontrado con selector: {selector}")
+                    logger.info(f" Campo email encontrado con selector: {selector}")
                     break
                 except:
                     continue
             
             if not campo_email:
-                logger.error("❌ No se pudo encontrar campo email con ningún selector")
+                logger.error(" No se pudo encontrar campo email con ningún selector")
                 return False
             
             # VERIFICAR SI EL CAMPO ESTÁ HABILITADO
             if not campo_email.is_enabled():
-                logger.error("❌ Campo email NO está habilitado")
+                logger.error(" Campo email NO está habilitado")
                 return False
             
             campo_email.clear()
             campo_email.send_keys(self.email)
-            logger.info("✅ Email ingresado")
+            logger.info(" Email ingresado")
             time.sleep(1)
             
             # VERIFICAR SI EL EMAIL SE INGRESÓ CORRECTAMENTE
             valor_email = campo_email.get_attribute('value')
             if valor_email != self.email:
-                logger.error(f"❌ Email no se ingresó correctamente. Esperado: {self.email}, Obtenido: {valor_email}")
+                logger.error(f" Email no se ingresó correctamente. Esperado: {self.email}, Obtenido: {valor_email}")
                 return False
             
             # CAMPO CONTRASEÑA - MÚLTIPLES ESTRATEGIAS
@@ -597,13 +703,13 @@ class CarrefourExtractor:
                 try:
                     campo_password = self.driver.find_element(By.CSS_SELECTOR, selector)
                     if campo_password.is_displayed() and campo_password.is_enabled():
-                        logger.info(f"✅ Campo password encontrado: {selector}")
+                        logger.info(f" Campo password encontrado: {selector}")
                         break
                 except:
                     continue
             
             if not campo_password:
-                logger.error("❌ No se pudo encontrar campo contraseña")
+                logger.error(" No se pudo encontrar campo contraseña")
                 # Listar todos los inputs para debugging
                 try:
                     inputs = self.driver.find_elements(By.TAG_NAME, "input")
@@ -620,13 +726,13 @@ class CarrefourExtractor:
             
             campo_password.clear()
             campo_password.send_keys(self.password)
-            logger.info("✅ Contraseña ingresada")
+            logger.info(" Contraseña ingresada")
             time.sleep(1)
             
             # VERIFICAR SI LA CONTRASEÑA SE INGRESÓ
             valor_password = campo_password.get_attribute('value')
             if len(valor_password) != len(self.password):
-                logger.error("❌ Contraseña no se ingresó correctamente")
+                logger.error(" Contraseña no se ingresó correctamente")
                 return False
             
             # BOTÓN LOGIN - CON JAVASCRIPT COMO ALTERNATIVA
@@ -634,36 +740,36 @@ class CarrefourExtractor:
                 boton_login = self.wait.until(
                     EC.element_to_be_clickable((By.CSS_SELECTOR, "button[type='submit']"))
                 )
-                logger.info("✅ Botón login encontrado")
+                logger.info(" Botón login encontrado")
                 
                 # VERIFICAR SI EL BOTÓN ESTÁ HABILITADO
                 if not boton_login.is_enabled():
-                    logger.error("❌ Botón login NO está habilitado")
+                    logger.error(" Botón login NO está habilitado")
                     return False
                 
                 # HACER CLIC - INTENTAR NORMAL PRIMERO, LUEGO JAVASCRIPT
                 try:
                     boton_login.click()
-                    logger.info("✅ Clic normal en botón login")
+                    logger.info(" Clic normal en botón login")
                 except Exception as click_error:
-                    logger.warning(f"⚠️ Clic normal falló: {click_error}")
+                    logger.warning(f" Clic normal falló: {click_error}")
                     # Intentar JavaScript click como alternativa
                     try:
                         self.driver.execute_script("arguments[0].click();", boton_login)
-                        logger.info("✅ Clic JS en botón login")
+                        logger.info(" Clic JS en botón login")
                     except Exception as js_error:
-                        logger.error(f"❌ Clic JS también falló: {js_error}")
+                        logger.error(f" Clic JS también falló: {js_error}")
                         return False
                 
                 time.sleep(5)  # Esperar más tiempo para el login
                 return True
                 
             except Exception as e:
-                logger.error(f"❌ Error con botón login: {e}")
+                logger.error(f" Error con botón login: {e}")
                 return False
             
         except Exception as e:
-            logger.error(f"❌ Error en credenciales: {e}")
+            logger.error(f" Error en credenciales: {e}")
             return False
 
     def verificar_sesion_con_debug(self):
@@ -676,17 +782,17 @@ class CarrefourExtractor:
             
             # Verificar URL actual
             current_url = self.driver.current_url
-            logger.info(f"📋 URL actual: {current_url}")
+            logger.info(f" URL actual: {current_url}")
             
             # Si estamos todavía en login, falló
             if 'login' in current_url.lower():
-                logger.error("❌ Seguimos en página de login")
+                logger.error(" Seguimos en página de login")
                 # Buscar mensajes de error específicos
                 try:
                     errores = self.driver.find_elements(By.CSS_SELECTOR, ".error, .alert, .message-error, .vtex-login-2-x-errorMessage")
                     for error in errores:
                         if error.is_displayed():
-                            logger.error(f"❌ Mensaje de error: {error.text}")
+                            logger.error(f" Mensaje de error: {error.text}")
                 except:
                     pass
                 return False
@@ -708,16 +814,16 @@ class CarrefourExtractor:
                         elemento = self.driver.find_element(By.CSS_SELECTOR, indicador)
                     
                     if elemento.is_displayed():
-                        logger.info(f"✅ Sesión activa - Indicador: {indicador}")
+                        logger.info(f" Sesión activa - Indicador: {indicador}")
                         return True
                 except:
                     continue
             
-            logger.error("❌ No se encontraron indicadores de sesión activa")
+            logger.error(" No se encontraron indicadores de sesión activa")
             return False
             
         except Exception as e:
-            logger.error(f"❌ Error verificando sesión: {e}")
+            logger.error(f" Error verificando sesión: {e}")
             return False
         
     def asegurar_sesion_activa(self):
@@ -727,7 +833,7 @@ class CarrefourExtractor:
         
         # Solo 2 intentos máximo
         for intento in range(2):
-            logger.info(f"🔄 Intento {intento + 1}/2 de login")
+            logger.info(f" Intento {intento + 1}/2 de login")
             
             # Intentar cargar sesión existente
             if intento == 0 and os.path.exists(self.cookies_file):
@@ -748,7 +854,7 @@ class CarrefourExtractor:
                     
                     if self.verificar_sesion_con_debug():
                         self.sesion_iniciada = True
-                        logger.info("✅ Sesión cargada")
+                        logger.info(" Sesión cargada")
                         return True
                 except Exception as e:
                     logger.debug(f"Error cargando sesión: {e}")
@@ -761,7 +867,7 @@ class CarrefourExtractor:
             if intento < 1:  # No esperar después del último intento
                 time.sleep(5)
         
-        logger.error("❌ Todos los intentos de login fallaron")
+        logger.error(" Todos los intentos de login fallaron")
         return False
 
     def guardar_sesion(self):
@@ -861,10 +967,10 @@ class CarrefourExtractor:
         Valida todos los links antes de la extracción completa
         Retorna: dict con información de validación por producto
         """
-        logger.info("🔍 INICIANDO VALIDACIÓN DE LINKS")
+        logger.info(" INICIANDO VALIDACIÓN DE LINKS")
         
         # VERIFICAR QUE LO QUE RECIBIMOS SON URLs VÁLIDAS
-        logger.info(f"📦 Datos recibidos para validación: {len(urls)} elementos")
+        logger.info(f" Datos recibidos para validación: {len(urls)} elementos")
         
         # Filtrar solo URLs válidas
         urls_validas = []
@@ -872,12 +978,12 @@ class CarrefourExtractor:
             if isinstance(item, str) and item.startswith(('http://', 'https://')):
                 urls_validas.append(item)
             else:
-                logger.warning(f"⚠️ Elemento no es URL válida: {item}")
+                logger.warning(f" Elemento no es URL válida: {item}")
         
-        logger.info(f"🔗 URLs válidas encontradas: {len(urls_validas)}/{len(urls)}")
+        logger.info(f" URLs válidas encontradas: {len(urls_validas)}/{len(urls)}")
         
         if not urls_validas:
-            logger.error("❌ No hay URLs válidas para validar")
+            logger.error(" No hay URLs válidas para validar")
             return {}
         
         # Asegurar sesión activa
@@ -890,7 +996,7 @@ class CarrefourExtractor:
         
         # CORRECCIÓN: Iterar sobre urls_validas en lugar de urls
         for i, url in enumerate(urls_validas, 1):
-            logger.info(f"📋 Validando link {i}/{len(urls_validas)}: {url}")
+            logger.info(f" Validando link {i}/{len(urls_validas)}: {url}")
             
             resultado = self._validar_link_individual(url, i)
             resultados_validacion[url] = resultado
@@ -957,8 +1063,8 @@ class CarrefourExtractor:
             current_url = self.driver.current_url
             titulo_pagina = self.driver.title
             
-            logger.info(f"📄 Página cargada - Título: {titulo_pagina}")
-            logger.info(f"🔗 URL final: {current_url}")
+            logger.info(f" Página cargada - Título: {titulo_pagina}")
+            logger.info(f" URL final: {current_url}")
             
             if "carrefour.com.ar" not in current_url:
                 return {
@@ -970,7 +1076,7 @@ class CarrefourExtractor:
                 }
             
             # DEBUG: Analizar qué está detectando exactamente
-            logger.info("🔍 ANALIZANDO ESTADO DEL PRODUCTO...")
+            logger.info(" ANALIZANDO ESTADO DEL PRODUCTO...")
             
             # USAR LOS MÉTODOS QUE YA FUNCIONABAN
             es_error = self._es_pagina_error_ups()  # ✅ Método original que funciona
@@ -1005,7 +1111,7 @@ class CarrefourExtractor:
             if disponible:
                 # Verificar si podemos extraer información básica
                 nombre = self._extraer_nombre(self.wait)
-                logger.info(f"🔍 Nombre extraído: {nombre}")
+                logger.info(f" Nombre extraído: {nombre}")
                 
                 if not nombre:
                     return {
@@ -1018,7 +1124,7 @@ class CarrefourExtractor:
                 
                 # Verificar si hay precios - CRITERIO PRINCIPAL CORREGIDO
                 precio_desc = self._extraer_precio_descuento(self.driver)
-                logger.info(f"🔍 Precio extraído: {precio_desc}")
+                logger.info(f" Precio extraído: {precio_desc}")
                 
                 # ✅ CRITERIO MEJORADO: Si no hay precio o precio es 0 = NO DISPONIBLE
                 if not precio_desc or precio_desc == "0":
@@ -1043,11 +1149,11 @@ class CarrefourExtractor:
                 }
             
             # Si no cumple ninguna de las condiciones anteriores, verificar por datos
-            logger.info("❓ No se pudo determinar por botones - Verificando por datos...")
+            logger.info(" No se pudo determinar por botones - Verificando por datos...")
             nombre = self._extraer_nombre(self.wait)
             precio_desc = self._extraer_precio_descuento(self.driver)
             
-            logger.info(f"🔍 Verificación por datos - Nombre: {nombre}, Precio: {precio_desc}")
+            logger.info(f" Verificación por datos - Nombre: {nombre}, Precio: {precio_desc}")
             
             # ✅ CRITERIO MEJORADO: Si tiene nombre pero NO tiene precio = NO DISPONIBLE
             if nombre and (not precio_desc or precio_desc == "0"):
@@ -1073,7 +1179,7 @@ class CarrefourExtractor:
                 }
             
             # Si llegamos aquí, es inválido
-            logger.info("❌ No se pudo determinar el estado - Marcando como DESCONOCIDO")
+            logger.info(" No se pudo determinar el estado - Marcando como DESCONOCIDO")
             return {
                 "valido": False,
                 "estado": "DESCONOCIDO",
@@ -1083,7 +1189,7 @@ class CarrefourExtractor:
             }
                 
         except Exception as e:
-            logger.error(f"❌ Error validando link {numero_link}: {str(e)}")
+            logger.error(f" Error validando link {numero_link}: {str(e)}")
             return {
                 "valido": False,
                 "estado": "ERROR_EXCEPCION",
@@ -1122,7 +1228,7 @@ class CarrefourExtractor:
                     
                     for elemento in elementos:
                         if elemento.is_displayed():
-                            logger.info(f"❌ Página de error detectada con selector: {selector}")
+                            logger.info(f" Página de error detectada con selector: {selector}")
                             return True
                 except:
                     continue
@@ -1130,7 +1236,7 @@ class CarrefourExtractor:
             # También verificar por texto en la página (backup)
             page_text = self.driver.page_source
             if "¡Ups!" in page_text and "Página no encontrada" in page_text:
-                logger.info("❌ Página de error detectada por texto '¡Ups!'")
+                logger.info(" Página de error detectada por texto '¡Ups!'")
                 return True
                     
             return False
@@ -1157,7 +1263,7 @@ class CarrefourExtractor:
                             # VERIFICAR que NO contenga texto "No Disponible"
                             texto_boton = boton.text.strip()
                             if "No Disponible" not in texto_boton:
-                                logger.info(f"✅ Botón '{texto}' HABILITADO encontrado: {texto_boton}")
+                                logger.info(f" Botón '{texto}' HABILITADO encontrado: {texto_boton}")
                                 return True
                 except Exception as e:
                     logger.debug(f"Error buscando botón '{texto}': {e}")
@@ -1184,7 +1290,7 @@ class CarrefourExtractor:
                             # Verificar que no sea un falso positivo
                             texto = elemento.text.strip()
                             if texto and "No Disponible" not in texto:
-                                logger.info(f"✅ Elemento disponible encontrado: {selector} - Texto: '{texto}'")
+                                logger.info(f" Elemento disponible encontrado: {selector} - Texto: '{texto}'")
                                 return True
                 except:
                     continue
@@ -1198,8 +1304,8 @@ class CarrefourExtractor:
                 
                 if nombre and precio != "0":
                     # Si tenemos nombre y precio, y NO hay indicadores claros de no disponibilidad
-                    if not self._producto_no_disponible_mejorado():
-                        logger.info("✅ Producto disponible (tiene datos válidos y sin indicadores de no disponibilidad)")
+                    if not self._producto_no_disponible():
+                        logger.info(" Producto disponible (tiene datos válidos y sin indicadores de no disponibilidad)")
                         return True
             except Exception as e:
                 logger.debug(f"Error en verificación por datos: {e}")
@@ -1232,7 +1338,7 @@ class CarrefourExtractor:
                         if elemento.is_displayed():
                             texto = elemento.text.strip()
                             if "No Disponible" in texto:
-                                logger.info(f"❌ Confirmado: Producto NO disponible - {selector}")
+                                logger.info(f" Confirmado: Producto NO disponible - {selector}")
                                 return True
                 except:
                     continue
@@ -1253,32 +1359,32 @@ class CarrefourExtractor:
         try:
             df = pd.DataFrame(datos)
             df.to_csv(nombre_archivo, index=False, encoding='utf-8')
-            logger.info(f"📄 CSV con links inválidos guardado: {nombre_archivo}")
-            logger.info(f"📊 Total de links inválidos registrados: {len(datos)}")
+            logger.info(f" CSV con links inválidos guardado: {nombre_archivo}")
+            logger.info(f" Total de links inválidos registrados: {len(datos)}")
             
             # Mostrar resumen por tipo de error
             if not df.empty:
                 resumen_errores = df['motivo'].value_counts()
-                logger.info("📋 Resumen de errores:")
+                logger.info(" Resumen de errores:")
                 for motivo, cantidad in resumen_errores.items():
                     logger.info(f"   - {motivo}: {cantidad} links")
                     
         except Exception as e:
-            logger.error(f"❌ Error guardando CSV de links inválidos: {e}")
+            logger.error(f" Error guardando CSV de links inválidos: {e}")
 
     def _mostrar_resumen_validacion(self, resultados):
         """
         Muestra un resumen detallado de la validación
         """
-        logger.info("📊 ========== RESUMEN DE VALIDACIÓN ==========")
+        logger.info(" ========== RESUMEN DE VALIDACIÓN ==========")
         
         total_links = len(resultados)
         links_validos = sum(1 for r in resultados.values() if r.get('valido', False))
         links_invalidos = total_links - links_validos
         
-        logger.info(f"📈 Total links procesados: {total_links}")
-        logger.info(f"✅ Links válidos: {links_validos}")
-        logger.info(f"❌ Links inválidos: {links_invalidos}")
+        logger.info(f" Total links procesados: {total_links}")
+        logger.info(f" Links válidos: {links_validos}")
+        logger.info(f" Links inválidos: {links_invalidos}")
         
         # Detalle por estado
         estados = {}
@@ -1286,7 +1392,7 @@ class CarrefourExtractor:
             estado = resultado.get('estado', 'DESCONOCIDO')
             estados[estado] = estados.get(estado, 0) + 1
         
-        logger.info("📋 Detalle por estado:")
+        logger.info(" Detalle por estado:")
         for estado, cantidad in estados.items():
             logger.info(f"   - {estado}: {cantidad} links")
         
