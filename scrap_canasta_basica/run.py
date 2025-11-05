@@ -34,9 +34,9 @@ class CanastaBasicaManager:
     def _setup_extractors(self):
         """Configura los extractores de supermercados"""
         self.extractors = {
-            'carrefour': CarrefourExtractor(),
-            'delimart': DelimartExtractor(),
-            #'masonline': MasonlineExtractor()
+            #'carrefour': CarrefourExtractor(),
+            #'delimart': DelimartExtractor(),
+            'masonline': MasonlineExtractor()
         }
         logger.info("Extractores inicializados: %s", list(self.extractors.keys()))
     
@@ -71,7 +71,7 @@ class CanastaBasicaManager:
                 logger.info("Leyendo hoja: %s", sheet_name)
                 
                 # Leer datos de la hoja específica
-                range_name = f"'{sheet_name}'!A4:D5"
+                range_name = f"'{sheet_name}'!A2:D6"
                 df_sheet = gs.leer_df(range_name, header=False)
                 
                 # Parsear productos y links de esta hoja
