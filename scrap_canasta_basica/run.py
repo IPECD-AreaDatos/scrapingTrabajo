@@ -71,7 +71,7 @@ class CanastaBasicaManager:
                 logger.info("Leyendo hoja: %s", sheet_name)
                 
                 # Leer datos de la hoja específica
-                range_name = f"'{sheet_name}'!A2:D251"
+                range_name = f"'{sheet_name}'!A2:D451"
                 df_sheet = gs.leer_df(range_name, header=False)
                 
                 # Parsear productos y links de esta hoja
@@ -766,17 +766,17 @@ class CanastaBasicaManager:
                         supermarket, total_products, total_links, products_with_metadata)
                 
             # 2. NUEVO: Validación completa de links
-            logger.info("=== FASE 1: VALIDACIÓN DE LINKS ===")
-            should_continue = self.validate_all_links(all_supermarkets_data)
+            #logger.info("=== FASE 1: VALIDACIÓN DE LINKS ===")
+            #should_continue = self.validate_all_links(all_supermarkets_data)
             
-            if not should_continue:
-                logger.info("Proceso cancelado por el usuario")
-                return
+            #if not should_continue:
+            #    logger.info("Proceso cancelado por el usuario")
+            #    return
             
             # 2.2 VERIFICACIÓN DE PORCENTAJE DE LINKS VÁLIDOS
-            logger.info("=== FASE 2: VERIFICACIÓN DE PORCENTAJES ===")
-            if not self.check_links_validity_percentage(all_supermarkets_data, min_percentage=51):
-                logger.error(" Proceso cancelado por bajo porcentaje de links válidos")
+            #logger.info("=== FASE 2: VERIFICACIÓN DE PORCENTAJES ===")
+            #if not self.check_links_validity_percentage(all_supermarkets_data, min_percentage=51):
+            #    logger.error(" Proceso cancelado por bajo porcentaje de links válidos")
                 #exit()
 
             logger.info("Validación exitosa - Continuando con extracción...")

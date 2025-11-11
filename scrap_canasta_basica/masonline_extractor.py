@@ -83,7 +83,7 @@ class MasonlineExtractor:
         return resultados
 
     def extraer_producto(self, url):
-        """Extrae datos de un producto individual (ESQUELETO - IMPLEMENTAR DESPUÉS)"""
+        """Extrae datos de un producto individual - VERSIÓN MEJORADA"""
         try:
             # Asegurar sesión activa
             if not self.sesion_iniciada:
@@ -92,20 +92,37 @@ class MasonlineExtractor:
                     return None
             
             self.driver.get(url)
+            
+            # Esperar a que cargue la página
             try:
                 self.wait.until(EC.presence_of_element_located(
-                    (By.CSS_SELECTOR, "span.valtech-gdn-dynamic-product-1-x-dynamicProductPrice")
+                    (By.CSS_SELECTOR, "h1")
                 ))
             except:
                 time.sleep(3)
+            
             logger.info(f"Página cargada: {self.driver.title}")
             
-            # Verificar si es página de error
+            # ═══════════════════════════════════════════════════════════
+            # PASO 1: Verificar si el producto NO está disponible
+            # ═══════════════════════════════════════════════════════════
+            if self._es_producto_no_disponible():
+                logger.warning(f"⚠ PRODUCTO NO DISPONIBLE: {self.driver.title}")
+                name = self._extract_name()
+                return self._build_product_data(
+                    name, 0, 0, None, None, ["NO DISPONIBLE"], url
+                )
+            
+            # ═══════════════════════════════════════════════════════════
+            # PASO 2: Verificar si es página de error
+            # ═══════════════════════════════════════════════════════════
             if self._es_pagina_error():
                 logger.warning(f"Página no encontrada: {url}")
                 return {"error_type": "404", "url": url, "titulo": self.driver.title}
             
-            # Extraer datos usando métodos mejorados
+            # ═══════════════════════════════════════════════════════════
+            # PASO 3: Extraer datos del producto DISPONIBLE
+            # ═══════════════════════════════════════════════════════════
             name = self._extract_name()
             if not name:
                 logger.warning(f"No se pudo extraer nombre de {url}")
@@ -125,11 +142,16 @@ class MasonlineExtractor:
                 url
             )
 
+            # ═══════════════════════════════════════════════════════════
+            # PASO 4: Verificar resultado final
+            # ═══════════════════════════════════════════════════════════
             final_price = prices["descuento"] or prices["normal"]
-            if final_price:
-                logger.info(f"Producto extraído: {name} - Precio final: ${final_price}")
+            if final_price and final_price > 0:
+                logger.info(f"✅ Producto extraído: {name} - Precio: ${final_price}")
+            elif final_price == 0:
+                logger.warning(f"❌ Producto NO DISPONIBLE: {name}")
             else:
-                logger.warning(f"Producto sin precio detectado: {name}")
+                logger.warning(f"⚠ Producto sin precio detectado: {name}")
 
             return product_data
 
@@ -190,262 +212,321 @@ class MasonlineExtractor:
             return raw_name
         
     # ==================================================================================
-    # MÉTODOS A REEMPLAZAR EN TU CÓDIGO MASONLINE_EXTRACTOR
+    # MÉTODOS DE EXTRACCIÓN DE PRECIOS - VERSIÓN CORREGIDA
     # ==================================================================================
-    # Solo copia estos 2 métodos y reemplaza los que tienes actualmente
-    # NO toques nada más, el login queda intacto
-    # ==================================================================================
+
+    def _es_producto_no_disponible(self):
+        """
+        Detecta si el producto NO está disponible - VERSIÓN MEJORADA
+        Retorna True si el producto no se puede comprar
+        """
+        try:
+            # 1. Buscar botón "No Disponible" específico
+            try:
+                boton_no_disponible = self.driver.find_element(By.XPATH, "//button[contains(@class, 'bg-disabled') and contains(., 'No Disponible')]")
+                if boton_no_disponible.is_displayed():
+                    logger.info("✅ Producto NO disponible - Botón 'No Disponible' encontrado")
+                    return True
+            except:
+                pass
+
+            # 2. Buscar texto "No Disponible" en cualquier elemento
+            indicadores_no_disponible = [
+                "//*[contains(text(), 'No Disponible')]",
+                "//*[contains(text(), 'Sin stock')]",
+                "//*[contains(text(), 'Agotado')]",
+                "//*[contains(text(), 'Out of stock')]",
+                "//*[contains(text(), 'Sin existencia')]",
+            ]
+            
+            for indicador in indicadores_no_disponible:
+                try:
+                    elementos = self.driver.find_elements(By.XPATH, indicador)
+                    for elemento in elementos:
+                        if elemento.is_displayed():
+                            logger.info(f"✅ Producto NO disponible detectado: {elemento.text.strip()}")
+                            return True
+                except:
+                    continue
+
+            # 3. Verificar si el botón de agregar al carrito está deshabilitado
+            try:
+                boton_deshabilitado = self.driver.find_element(By.CSS_SELECTOR, "button[disabled][class*='bg-disabled']")
+                if boton_deshabilitado.is_displayed():
+                    logger.info("✅ Producto NO disponible - Botón deshabilitado encontrado")
+                    return True
+            except:
+                pass
+
+            # 4. Verificar precio = 0 en el selector específico de Masonline
+            try:
+                # Buscar en el contenedor principal de precio
+                precio_element = self.driver.find_element(By.CSS_SELECTOR, "span.valtech-gdn-dynamic-product-1-x-sellingPrice--isUnavailable")
+                texto_precio = precio_element.text.strip()
+                if texto_precio and '$' in texto_precio:
+                    precio_parseado = self._parsear_precio(texto_precio)
+                    if precio_parseado == 0:
+                        logger.info("✅ Producto NO disponible - Precio = $0 en elemento de precio no disponible")
+                        return True
+            except:
+                pass
+
+            # 5. Verificar precio = 0 en cualquier contenedor de precio
+            try:
+                selectores_precio = [
+                    "span.valtech-gdn-dynamic-product-1-x-dynamicProductPrice",
+                    "div.valtech-gdn-dynamic-product-1-x-dynamicProductPrice",
+                    ".valtech-gdn-dynamic-product-1-x-currencyContainer"
+                ]
+                
+                for selector in selectores_precio:
+                    try:
+                        elementos = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                        for elemento in elementos:
+                            if elemento.is_displayed():
+                                texto_precio = elemento.text.strip()
+                                if texto_precio and '$' in texto_precio:
+                                    precio_parseado = self._parsear_precio(texto_precio)
+                                    if precio_parseado == 0:
+                                        logger.info(f"✅ Producto NO disponible - Precio = $0 en selector: {selector}")
+                                        return True
+                    except:
+                        continue
+            except:
+                pass
+
+            # 6. Verificar clase específica de no disponible
+            try:
+                elemento_no_disp = self.driver.find_element(By.CSS_SELECTOR, ".valtech-gdn-incompatible-cart-0-x-isUnavailable")
+                if elemento_no_disp.is_displayed():
+                    logger.info("✅ Producto NO disponible - Clase 'isUnavailable' encontrada")
+                    return True
+            except:
+                pass
+
+            return False
+            
+        except Exception as e:
+            logger.debug(f"Error verificando disponibilidad: {e}")
+            return False
 
     def _extract_prices(self):
         """
-        Extrae precios para Masonline
-        LÓGICA:
-        - precio_normal = precio de lista (siempre presente)
-        - precio_descuento = precio promocional SI EXISTE, sino igual al precio_normal
+        Extrae precios para Masonline - VERSIÓN MEJORADA
         """
         try:
+            # Primero verificar si el producto no está disponible
+            if self._es_producto_no_disponible():
+                logger.warning("🛑 PRODUCTO NO DISPONIBLE DETECTADO - Retornando precios 0")
+                return {"normal": 0, "descuento": 0}
+            
+            precio_principal = None
             precio_lista = None
-            precio_oferta = None
+            
+            logger.info("🔍 BUSCANDO PRECIOS...")
             
             # ═══════════════════════════════════════════════════════════
-            # PASO 1: Buscar PRECIO DE LISTA (precio tachado/original)
+            # BUSCAR PRECIO PRINCIPAL (OBLIGATORIO)
+            # ═══════════════════════════════════════════════════════════
+            selectors_principal = [
+                "span.valtech-gdn-dynamic-product-1-x-dynamicProductPrice",
+                "div.valtech-gdn-dynamic-product-1-x-dynamicProductPrice", 
+                ".valtech-gdn-dynamic-product-1-x-currencyContainer",
+                "span.valtech-gdn-dynamic-product-1-x-sellingPriceValue"
+            ]
+            
+            for selector in selectors_principal:
+                try:
+                    elementos = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                    for elemento in elementos:
+                        if elemento.is_displayed():
+                            texto = elemento.text.strip()
+                            if texto and '$' in texto:
+                                logger.info(f"💰 Precio encontrado: '{texto}'")
+                                precio = self._parsear_precio(texto)
+                                if precio is not None:  # Puede ser 0
+                                    precio_principal = precio
+                                    logger.info(f"  → ${precio_principal}")
+                                    break
+                    if precio_principal is not None:
+                        break
+                except:
+                    continue
+            
+            # ═══════════════════════════════════════════════════════════
+            # VERIFICAR: Si no hay precio principal → PRODUCTO SIN PRECIO
+            # ═══════════════════════════════════════════════════════════
+            if precio_principal is None:
+                logger.error("❌ NO SE ENCONTRÓ PRECIO PRINCIPAL")
+                return {"normal": None, "descuento": None}
+            
+            # ═══════════════════════════════════════════════════════════
+            # VERIFICAR: Si precio = 0 → PRODUCTO NO DISPONIBLE
+            # ═══════════════════════════════════════════════════════════
+            if precio_principal == 0:
+                logger.warning("❌ PRODUCTO NO DISPONIBLE (precio = $0)")
+                return {"normal": 0, "descuento": 0}
+            
+            # ═══════════════════════════════════════════════════════════
+            # BUSCAR PRECIO LISTA (OPCIONAL - solo si hay descuento)
             # ═══════════════════════════════════════════════════════════
             selectors_lista = [
-                "span.mt4.valtech-gdn-dynamic-product-1-x-weighableListPrice",
                 "span.valtech-gdn-dynamic-product-1-x-weighableListPrice",
-                "span[class*='listPrice']",
-                "span[class*='ListPrice']",
-                "s",
-                "del"
+                ".valtech-gdn-dynamic-product-1-x-weighableSavings span"
             ]
             
             for selector in selectors_lista:
                 try:
-                    element = self.driver.find_element(By.CSS_SELECTOR, selector)
-                    if element.is_displayed():
-                        text = element.text.strip()
-                        if text and '$' in text:
-                            logger.info(f"Precio lista encontrado con selector '{selector}': '{text}'")
-                            precio = self._parsear_precio(text)
-                            if precio:
-                                precio_lista = precio
-                                break
+                    elementos = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                    for elemento in elementos:
+                        if elemento.is_displayed():
+                            texto = elemento.text.strip()
+                            if texto and '$' in texto:
+                                logger.info(f"📋 Precio lista: '{texto}'")
+                                precio = self._parsear_precio(texto)
+                                if precio and precio > precio_principal:  # Lista debe ser mayor
+                                    precio_lista = precio
+                                    logger.info(f"  → ${precio_lista}")
+                                    break
+                    if precio_lista:
+                        break
                 except:
                     continue
             
             # ═══════════════════════════════════════════════════════════
-            # PASO 2: Buscar PRECIO DE OFERTA (precio principal/destacado)
+            # CONSTRUIR RESULTADO FINAL
             # ═══════════════════════════════════════════════════════════
-            selectors_oferta = [
-                "span.valtech-gdn-dynamic-product-1-x-dynamicProductPrice",
-                "div.valtech-gdn-dynamic-product-1-x-dynamicProductPrice",
-                "span[class*='sellingPrice']",
-                "span[class*='SellingPrice']"
-            ]
-            
-            for selector in selectors_oferta:
-                try:
-                    element = self.driver.find_element(By.CSS_SELECTOR, selector)
-                    if element.is_displayed():
-                        text = element.text.strip()
-                        if text and '$' in text:
-                            logger.info(f"Precio oferta encontrado con selector '{selector}': '{text}'")
-                            precio = self._parsear_precio(text)
-                            if precio:
-                                precio_oferta = precio
-                                break
-                except:
-                    continue
-            
-            # ═══════════════════════════════════════════════════════════
-            # PASO 3: FALLBACK - Buscar todos los precios visibles
-            # ═══════════════════════════════════════════════════════════
-            if not precio_lista and not precio_oferta:
-                logger.warning("No se encontraron precios con selectores específicos, buscando en todo el DOM")
-                todos_precios = self._buscar_todos_precios_visibles()
-                
-                if todos_precios:
-                    logger.info(f"Precios encontrados en DOM: {todos_precios}")
-                    if len(todos_precios) >= 2:
-                        precio_lista = max(todos_precios)
-                        precio_oferta = min(todos_precios)
-                    elif len(todos_precios) == 1:
-                        precio_lista = todos_precios[0]
-                        precio_oferta = None
-            
-            # ═══════════════════════════════════════════════════════════
-            # PASO 4: APLICAR LÓGICA DE NEGOCIO
-            # ═══════════════════════════════════════════════════════════
-            
-            if precio_oferta and not precio_lista:
-                logger.warning("Solo se encontró precio de oferta, asumiendo que es el precio normal")
-                precio_lista = precio_oferta
-            
-            if precio_lista and not precio_oferta:
-                logger.info("Producto sin oferta detectado")
-                precio_oferta = None
-            
-            if precio_lista and precio_oferta:
-                if precio_oferta > precio_lista:
-                    logger.warning(f"¡Inconsistencia! Precio oferta ({precio_oferta}) > precio lista ({precio_lista}). Intercambiando...")
-                    precio_lista, precio_oferta = precio_oferta, precio_lista
-            
-            # ═══════════════════════════════════════════════════════════
-            # PASO 5: CONSTRUIR RESPUESTA
-            # ═══════════════════════════════════════════════════════════
-            precio_normal = precio_lista
-            precio_descuento = precio_oferta if precio_oferta else precio_normal
-            
-            logger.info(f"═══ RESULTADO FINAL ═══")
-            logger.info(f"Precio Normal (lista): ${precio_normal}")
-            logger.info(f"Precio Descuento: ${precio_descuento}")
-            if precio_oferta and precio_lista and precio_oferta < precio_lista:
-                descuento_pct = ((precio_lista - precio_oferta) / precio_lista) * 100
-                logger.info(f"Descuento aplicado: {descuento_pct:.1f}%")
+            if precio_lista and precio_lista > precio_principal:
+                # PRODUCTO CON DESCUENTO
+                logger.info(f"✅ CON DESCUENTO - Normal: ${precio_lista}, Descuento: ${precio_principal}")
+                return {
+                    "normal": precio_lista,
+                    "descuento": precio_principal
+                }
             else:
-                logger.info(f"Sin descuento - ambos precios son iguales")
-            logger.info(f"═══════════════════════")
-            
-            return {
-                "normal": precio_normal,
-                "descuento": precio_descuento
-            }
-            
+                # PRODUCTO SIN DESCUENTO
+                logger.info(f"✅ SIN DESCUENTO - Precio: ${precio_principal}")
+                return {
+                    "normal": precio_principal,
+                    "descuento": precio_principal
+                }
+                
         except Exception as e:
-            logger.error(f"Error crítico extrayendo precios: {e}")
-            import traceback
-            logger.error(traceback.format_exc())
+            logger.error(f"💥 ERROR extrayendo precios: {e}")
             return {"normal": None, "descuento": None}
-
 
     def _parsear_precio(self, precio_str):
         """
-        Parsea precios en formato argentino de Masonline
-        Ejemplos:
-        - "$ 2.999" -> 2999.00
-        - "$ 5.649" -> 5649.00
-        - "$ 3.38940" -> 3389.40
-        - "$ 1.780,35" -> 1780.35
-        - "$ 2.824,50" -> 2824.50
+        Parsea precios - VERSIÓN SEGURA
+        NO inventa precios, retorna None si no puede parsear
         """
         try:
-            if not precio_str:
+            if not precio_str or '$' not in precio_str:
                 return None
             
-            texto_limpio = precio_str.strip()
-            
-            if '$' not in texto_limpio:
+            # Extraer parte numérica
+            match = re.search(r'\$\s*([\d\.,]+)', precio_str)
+            if not match:
                 return None
-            
-            # Remover el símbolo $ y espacios
-            texto_limpio = texto_limpio.replace('$', '').strip()
-            
-            # CASO 1: Formato "1.780,35" (punto para miles, coma para decimales)
-            if ',' in texto_limpio and '.' in texto_limpio:
-                texto_limpio = texto_limpio.replace('.', '').replace(',', '.')
-                precio = float(texto_limpio)
-                if 1 <= precio <= 100000:
-                    logger.debug(f"Parseado con formato miles+decimales: {precio}")
-                    return precio
-            
-            # CASO 2: Formato con punto
-            elif '.' in texto_limpio and texto_limpio.count('.') == 1:
-                partes = texto_limpio.split('.')
-                digitos_despues = len(partes[1])
                 
-                # SUBCASO 2A: 3 dígitos después del punto = separador de miles
-                if digitos_despues == 3:
-                    precio = float(texto_limpio.replace('.', ''))
-                    if 1 <= precio <= 100000:
-                        logger.debug(f"Parseado como miles (3 dígitos): {precio}")
-                        return precio
-                
-                # SUBCASO 2B: >3 dígitos después del punto = formato mal formateado
-                elif digitos_despues > 3:
-                    numero_completo = partes[0] + partes[1]
-                    if len(numero_completo) > 2:
-                        entero = numero_completo[:-2]
-                        decimal = numero_completo[-2:]
-                        precio = float(f"{entero}.{decimal}")
-                    else:
-                        precio = float(f"0.{numero_completo}")
-                    
-                    if 1 <= precio <= 100000:
-                        logger.debug(f"Parseado decimal extendido: {precio}")
-                        return precio
-                
-                # SUBCASO 2C: ≤2 dígitos después del punto
+            texto = match.group(1).strip()
+            
+            # CASO 1: Formato "1.584,50"
+            if ',' in texto and '.' in texto:
+                partes = texto.split(',')
+                parte_entera = partes[0].replace('.', '')
+                parte_decimal = partes[1][:2] if len(partes) > 1 else '00'
+                return float(f"{parte_entera}.{parte_decimal}")
+            
+            # CASO 2: Solo coma "584,50"
+            elif ',' in texto:
+                partes = texto.split(',')
+                parte_entera = partes[0]
+                parte_decimal = partes[1][:2] if len(partes) > 1 else '00'
+                return float(f"{parte_entera}.{parte_decimal}")
+            
+            # CASO 3: Solo puntos
+            elif '.' in texto:
+                # Si tiene múltiples puntos = miles
+                if texto.count('.') > 1:
+                    return float(texto.replace('.', ''))
                 else:
-                    precio = float(texto_limpio)
-                    if 1 <= precio <= 100000:
-                        logger.debug(f"Parseado con punto: {precio}")
-                        return precio
+                    partes = texto.split('.')
+                    # Si parte después tiene 2 dígitos = decimal
+                    if len(partes) == 2 and len(partes[1]) == 2:
+                        return float(texto)
+                    else:
+                        return float(texto.replace('.', ''))
             
-            # CASO 3: Solo coma
-            elif ',' in texto_limpio:
-                texto_limpio = texto_limpio.replace(',', '.')
-                precio = float(texto_limpio)
-                if 1 <= precio <= 100000:
-                    logger.debug(f"Parseado con coma: {precio}")
-                    return precio
-            
-            # CASO 4: Solo entero
+            # CASO 4: Solo números
             else:
-                precio = float(texto_limpio)
-                if 1 <= precio <= 100000:
-                    logger.debug(f"Parseado como entero: {precio}")
-                    return precio
-            
-            logger.warning(f"No se pudo parsear: '{precio_str}'")
-            return None
-            
-        except Exception as e:
-            logger.debug(f"Error parseando '{precio_str}': {e}")
+                return float(texto)
+                
+        except:
             return None
 
 
     def _buscar_todos_precios_visibles(self):
-        """Busca todos los precios visibles como fallback"""
+        """
+        Busca todos los precios visibles en la página como último recurso
+        Retorna lista de precios únicos ordenados de mayor a menor
+        """
         try:
             precios_encontrados = set()
             elementos = self.driver.find_elements(By.XPATH, "//*[contains(text(), '$')]")
             
+            logger.info(f"🔍 Analizando {len(elementos)} elementos con símbolo '$'")
+            
             for elemento in elementos:
                 try:
+                    # Solo elementos visibles
                     if not elemento.is_displayed():
                         continue
                     
                     texto = elemento.text.strip()
                     
-                    if len(texto) > 50:
+                    # Ignorar textos muy largos (probablemente no son precios)
+                    if len(texto) > 100:
                         continue
                     
+                    # Ignorar textos con palabras clave que NO son precios
                     texto_lower = texto.lower()
-                    palabras_excluir = ['impuesto', 'kilo', 'kg', 'unidad', 'ahorra', 'x ', 'litro']
+                    palabras_excluir = [
+                        'impuesto', 'kilo', 'kg', 'unidad', 'ahorra', 
+                        'x ', 'litro', 'lt', 'por', 'gramo', 'gr',
+                        'precio anterior', 'antes', 'envío', 'cuota'
+                    ]
                     if any(palabra in texto_lower for palabra in palabras_excluir):
                         continue
                     
+                    # Intentar parsear
                     precio = self._parsear_precio(texto)
-                    if precio:
+                    if precio is not None and precio > 0:  # Excluir 0 en búsqueda fallback
                         precios_encontrados.add(precio)
+                        logger.debug(f"  Precio válido encontrado: ${precio:.2f} en '{texto}'")
                         
-                except:
+                except Exception as e:
+                    logger.debug(f"Error procesando elemento: {e}")
                     continue
             
+            # Ordenar de mayor a menor
             lista_precios = sorted(list(precios_encontrados), reverse=True)
             
+            # Filtrar precios muy similares (diferencia < 1%)
             precios_filtrados = []
             for precio in lista_precios:
                 es_duplicado = False
                 for precio_existente in precios_filtrados:
-                    diferencia_pct = abs(precio - precio_existente) / precio_existente
-                    if diferencia_pct < 0.01:
-                        es_duplicado = True
-                        break
+                    if precio_existente > 0:
+                        diferencia_pct = abs(precio - precio_existente) / precio_existente
+                        if diferencia_pct < 0.01:  # Menos de 1% de diferencia
+                            es_duplicado = True
+                            break
+                
                 if not es_duplicado:
                     precios_filtrados.append(precio)
             
-            logger.info(f"Precios únicos encontrados: {precios_filtrados}")
+            logger.info(f"✓ Precios únicos encontrados en DOM: {precios_filtrados}")
             return precios_filtrados
             
         except Exception as e:
@@ -480,16 +561,41 @@ class MasonlineExtractor:
                     text = el.text.strip()
                     if text and len(text) < 100:  # Evitar textos muy largos
                         promos.append(text)
-            return promos
+            
+            # Eliminar duplicados
+            return list(dict.fromkeys(promos))
         except:
             return []
         
     def _build_product_data(self, name, price_normal, price_discount, unit_price, unit_text, discounts, url):
-        """Construye los datos del producto"""
+        """
+        Construye los datos del producto con manejo correcto de precios
+        
+        Casos:
+        - None: "Sin precio"
+        - 0: "0" (no disponible)
+        - Valor: string del número
+        """
+        # Manejo de precio normal
+        if price_normal is None:
+            precio_normal_str = "Sin precio"
+        elif price_normal == 0:
+            precio_normal_str = "0"
+        else:
+            precio_normal_str = str(price_normal)
+        
+        # Manejo de precio descuento
+        if price_discount is None:
+            precio_descuento_str = "Sin precio"
+        elif price_discount == 0:
+            precio_descuento_str = "0"
+        else:
+            precio_descuento_str = str(price_discount)
+        
         return {
             "nombre": name,
-            "precio_normal": price_normal if price_normal else "",
-            "precio_descuento": price_discount if price_discount else "",
+            "precio_normal": precio_normal_str,
+            "precio_descuento": precio_descuento_str,
             "precio_por_unidad": unit_price if unit_price else "",
             "unidad": unit_text if unit_text else "",
             "descuentos": " | ".join(discounts) if discounts else "Ninguno",
@@ -499,7 +605,6 @@ class MasonlineExtractor:
         }
 
 
-    
 
 
     def login_con_email_password(self):
