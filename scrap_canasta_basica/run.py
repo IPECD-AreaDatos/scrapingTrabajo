@@ -11,6 +11,7 @@ import re
 from carrefour_extractor import CarrefourExtractor
 from delimart_extractor import DelimartExtractor
 from masonline_extractor import MasonlineExtractor
+from depot_extractor import DepotExtractor
 from load import load_canasta_basica_data
 from utils_db import ConexionBaseDatos
 from utils_sheets import ConexionGoogleSheets
@@ -36,7 +37,8 @@ class CanastaBasicaManager:
         self.extractors = {
             #'carrefour': CarrefourExtractor(),
             #'delimart': DelimartExtractor(),
-            'masonline': MasonlineExtractor()
+            #'masonline': MasonlineExtractor(),
+            'depot': DepotExtractor()
         }
         logger.info("Extractores inicializados: %s", list(self.extractors.keys()))
     
@@ -93,12 +95,12 @@ class CanastaBasicaManager:
         """Obtiene los nombres de todas las hojas del spreadsheet"""
         try:
             # Lista de hojas conocidas - agregar más según necesites
-            known_sheets = ['carrefour', 'delimart', 'masonline']
+            known_sheets = ['carrefour', 'delimart', 'masonline', 'depot']
             return known_sheets
             
         except Exception as e:
             logger.warning("No se pudieron obtener nombres de hojas, usando lista por defecto: %s", str(e))
-            return ['carrefour', 'delimart', 'masonline']
+            return ['carrefour', 'delimart', 'masonline', 'depot']
     
     def _parse_sheet_data(self, df_sheet: pd.DataFrame, sheet_name: str) -> Dict[str, List[str]]:
         """Parsea los datos de una hoja específica con la nueva estructura - VERSIÓN DEBUG"""
@@ -207,7 +209,8 @@ class CanastaBasicaManager:
                 text.startswith('https://') or
                 'carrefour.com.ar' in text or
                 'delimart.com.ar' in text or
-                'masonline.com.ar' in text)
+                'masonline.com.ar' in text or
+                'depotexpress.com.ar' in text)
     
     def _extract_all_links(self, products_links: Dict[str, List[str]]) -> List[str]:
         """Extrae todos los links de un diccionario de productos"""
@@ -223,7 +226,7 @@ class CanastaBasicaManager:
             all_problematic_products = []
             
             for supermarket, products_links in all_supermarkets_data.items():
-                logger.info("🔍 Validando links de %s...", supermarket)
+                logger.info("Validando links de %s...", supermarket)
                 
                 validation_results = self._validate_supermarket_links(supermarket, products_links)
                 all_validation_results[supermarket] = validation_results
@@ -766,17 +769,17 @@ class CanastaBasicaManager:
                         supermarket, total_products, total_links, products_with_metadata)
                 
             # 2. NUEVO: Validación completa de links
-            #logger.info("=== FASE 1: VALIDACIÓN DE LINKS ===")
-            #should_continue = self.validate_all_links(all_supermarkets_data)
+            logger.info("=== FASE 1: VALIDACIÓN DE LINKS ===")
+            should_continue = self.validate_all_links(all_supermarkets_data)
             
-            #if not should_continue:
-            #    logger.info("Proceso cancelado por el usuario")
-            #    return
+            if not should_continue:
+                logger.info("Proceso cancelado por el usuario")
+                return
             
             # 2.2 VERIFICACIÓN DE PORCENTAJE DE LINKS VÁLIDOS
-            #logger.info("=== FASE 2: VERIFICACIÓN DE PORCENTAJES ===")
-            #if not self.check_links_validity_percentage(all_supermarkets_data, min_percentage=51):
-            #    logger.error(" Proceso cancelado por bajo porcentaje de links válidos")
+            logger.info("=== FASE 2: VERIFICACIÓN DE PORCENTAJES ===")
+            if not self.check_links_validity_percentage(all_supermarkets_data, min_percentage=51):
+                logger.error(" Proceso cancelado por bajo porcentaje de links válidos")
                 #exit()
 
             logger.info("Validación exitosa - Continuando con extracción...")
