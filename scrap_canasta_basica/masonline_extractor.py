@@ -25,7 +25,7 @@ class MasonlineExtractor:
     # Configuraciones centralizadas (estilo Delimart)
     CONFIG = {
         'timeout': 30,
-        'wait_between_requests': 1,
+        'wait_between_requests': 2,
         'supermarket_name': 'Masonline',
         'base_url': 'https://www.masonline.com.ar'
     }
@@ -37,8 +37,8 @@ class MasonlineExtractor:
         self.wait = None
         self.sesion_iniciada = False
         self.cookies_file = "masonline_cookies.pkl"
-        self.email = os.getenv('MASONLINE_EMAIL', 'manumarder@gmail.com')
-        self.password = os.getenv('MASONLINE_PASSWORD', 'Ipecd2025')
+        self.email = 'manumarder@gmail.com'
+        self.password = 'Ipecd2025'
     
     def setup_driver(self):
         """Configura el driver de Selenium"""
@@ -73,6 +73,8 @@ class MasonlineExtractor:
         
         for i, url in enumerate(urls, 1):
             logger.info(f"Extrayendo producto {i}/{len(urls)}")
+            logger.info(f"URL: {url}")
+
             producto = self.extraer_producto(url)
             if producto:
                 resultados.append(producto)
@@ -91,43 +93,80 @@ class MasonlineExtractor:
                     logger.error("No se pudo establecer sesión en Masonline")
                     return None
             
+            logger.info(f"🔍 Navegando a: {url}")
             self.driver.get(url)
             
-            # Esperar a que cargue la página
+            # ═══════════════════════════════════════════════════════════
+            # ESPERAS MEJORADAS - CLAVE PARA CARGAR PRECIOS
+            # ═══════════════════════════════════════════════════════════
+            
+            # Espera 1: Esperar que la página esté completamente cargada
+            logger.info("⏳ Esperando carga completa de la página...")
+            time.sleep(2)  # Espera fija inicial
+            
+            # Espera 2: Esperar elementos críticos
             try:
+                # Esperar que al menos el título esté presente
+                self.wait.until(EC.presence_of_element_located((By.TAG_NAME, "h1")))
+                logger.info("✅ Título cargado")
+            except Exception as e:
+                logger.warning(f"⚠️ Timeout esperando h1: {e}")
+            
+            # Espera 3: Esperar específicamente elementos de precio
+            logger.info("⏳ Esperando elementos de precio...")
+            try:
+                # Esperar contenedor de precio principal
                 self.wait.until(EC.presence_of_element_located(
-                    (By.CSS_SELECTOR, "h1")
+                    (By.CSS_SELECTOR, "div.valtech-gdn-dynamic-product-1-x-dynamicProductPrice")
                 ))
-            except:
+                logger.info("✅ Contenedor de precio cargado")
+                
+                # Esperar adicional para precios dinámicos
+                time.sleep(1.5)
+                
+            except Exception as e:
+                logger.warning(f"⚠️ Contenedor de precio no encontrado: {e}")
+                # Espera de fallback
                 time.sleep(3)
             
-            logger.info(f"Página cargada: {self.driver.title}")
+            logger.info(f"📄 Título de página: {self.driver.title}")
             
             # ═══════════════════════════════════════════════════════════
-            # PASO 1: Verificar si el producto NO está disponible
+            # PASO 1: Verificar si es página de error
             # ═══════════════════════════════════════════════════════════
-            if self._es_producto_no_disponible():
-                logger.warning(f"⚠ PRODUCTO NO DISPONIBLE: {self.driver.title}")
+            if self._es_pagina_error():
+                logger.warning(f"❌ Página no encontrada (404): {url}")
+                return {"error_type": "404", "url": url, "titulo": self.driver.title}
+            
+            # ═══════════════════════════════════════════════════════════
+            # PASO 2: Verificar disponibilidad del producto
+            # ═══════════════════════════════════════════════════════════
+            time.sleep(1) 
+            disponibilidad = self._verificar_disponibilidad_detallada()
+            
+            if disponibilidad["estado"] == "no_disponible":
+                logger.warning(f"🛑 PRODUCTO NO DISPONIBLE: {self.driver.title}")
                 name = self._extract_name()
                 return self._build_product_data(
                     name, 0, 0, None, None, ["NO DISPONIBLE"], url
                 )
+            elif disponibilidad["estado"] == "disponible":
+                logger.info("✅ PRODUCTO DISPONIBLE")
+            else:
+                logger.warning(f"⚠️ Estado de disponibilidad incierto: {disponibilidad['estado']}")
             
             # ═══════════════════════════════════════════════════════════
-            # PASO 2: Verificar si es página de error
+            # PASO 3: Extraer datos del producto
             # ═══════════════════════════════════════════════════════════
-            if self._es_pagina_error():
-                logger.warning(f"Página no encontrada: {url}")
-                return {"error_type": "404", "url": url, "titulo": self.driver.title}
             
-            # ═══════════════════════════════════════════════════════════
-            # PASO 3: Extraer datos del producto DISPONIBLE
-            # ═══════════════════════════════════════════════════════════
             name = self._extract_name()
             if not name:
-                logger.warning(f"No se pudo extraer nombre de {url}")
+                logger.warning(f"❌ No se pudo extraer nombre de {url}")
                 return {"error_type": "no_name", "url": url, "titulo": self.driver.title}
             
+            logger.info(f"📦 Nombre extraído: {name}")
+            
+            # Extraer precios con debugging detallado
             prices = self._extract_prices()
             unit_price, unit_text = self._extract_unit_price()
             discounts = self._extract_discounts()
@@ -147,19 +186,29 @@ class MasonlineExtractor:
             # ═══════════════════════════════════════════════════════════
             final_price = prices["descuento"] or prices["normal"]
             if final_price and final_price > 0:
-                logger.info(f"✅ Producto extraído: {name} - Precio: ${final_price}")
+                logger.info(f"✅ EXTRACCIÓN EXITOSA: {name} - Precio: ${final_price}")
             elif final_price == 0:
-                logger.warning(f"❌ Producto NO DISPONIBLE: {name}")
+                logger.warning(f"❌ Producto sin precio (0): {name}")
             else:
-                logger.warning(f"⚠ Producto sin precio detectado: {name}")
+                logger.warning(f"⚠️ Producto sin precio detectado: {name}")
+
+            # Debug adicional: capturar screenshot en caso de problemas
+            if not final_price or final_price == 0:
+                try:
+                    screenshot_name = f"debug_no_price_{datetime.now().strftime('%H%M%S')}.png"
+                    self.driver.save_screenshot(screenshot_name)
+                    logger.info(f"📸 Captura de pantalla guardada: {screenshot_name}")
+                except:
+                    pass
 
             return product_data
 
         except Exception as e:
-            logger.error(f"Error extrayendo {url}: {e}")
+            logger.error(f"💥 ERROR crítico extrayendo {url}: {str(e)}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
             self.sesion_iniciada = False
             return None
-        
         
     def _extract_name(self):
         """Extrae el nombre del producto"""
@@ -270,112 +319,311 @@ class MasonlineExtractor:
         except Exception as e:
             logger.debug(f"   Error verificando disponibilidad: {e}")
             return False
-    
-    def _extract_prices(self):
-        """
-        Extrae precios - VERSIÓN SIMPLIFICADA Y ROBUSTA
-        """
+        
+    def _verificar_disponibilidad_detallada(self):
+        """Verifica disponibilidad con debugging detallado"""
+        logger.info("🔍 Verificando disponibilidad del producto...")
+        
         try:
-            # Verificar disponibilidad
-            is_unavailable = self._es_producto_no_disponible()
+            # 1. Buscar botón "Agregar" habilitado
+            botones_agregar = self.driver.find_elements(By.XPATH, 
+                "//button[contains(., 'Agregar') or contains(., 'AGREGAR')]")
             
-            if is_unavailable:
-                logger.warning("🛑 PRODUCTO NO DISPONIBLE")
-                return {"normal": 0, "descuento": 0}
+            logger.info(f"   Encontrados {len(botones_agregar)} botones 'Agregar'")
             
-            logger.info("🔍 BUSCANDO PRECIOS...")
+            for i, boton in enumerate(botones_agregar):
+                try:
+                    displayed = boton.is_displayed()
+                    enabled = boton.is_enabled()
+                    clases = boton.get_attribute('class') or ''
+                    texto = boton.text
+                    
+                    logger.info(f"   Botón {i+1}: texto='{texto}', visible={displayed}, habilitado={enabled}, clases={clases}")
+                    
+                    if displayed and enabled and 'disabled' not in clases.lower():
+                        logger.info("   ✅ Botón 'Agregar' HABILITADO encontrado → PRODUCTO DISPONIBLE")
+                        return {"estado": "disponible", "tipo": "boton_agregar"}
+                except Exception as e:
+                    logger.debug(f"   Error analizando botón {i+1}: {e}")
+
+            # 2. Buscar botones deshabilitados o "No Disponible"
+            botones_no_disp = self.driver.find_elements(By.XPATH, 
+                "//button[contains(., 'No Disponible') or contains(., 'Agotado') or contains(., 'Sin stock')]")
             
-            precio_principal = None
-            precio_lista = None
+            logger.info(f"   Encontrados {len(botones_no_disp)} botones de no disponible")
             
-            # ═══════════════════════════════════════════════════════════
-            # BUSCAR PRECIO PRINCIPAL
-            # ═══════════════════════════════════════════════════════════
+            for i, boton in enumerate(botones_no_disp):
+                try:
+                    displayed = boton.is_displayed()
+                    enabled = boton.is_enabled()
+                    clases = boton.get_attribute('class') or ''
+                    texto = boton.text
+                    
+                    logger.info(f"   Botón no-disp {i+1}: texto='{texto}', visible={displayed}, habilitado={enabled}")
+                    
+                    if displayed and (not enabled or 'disabled' in clases.lower()):
+                        logger.info("   🛑 Botón 'No Disponible' encontrado → PRODUCTO NO DISPONIBLE")
+                        return {"estado": "no_disponible", "tipo": "boton_no_disponible"}
+                except Exception as e:
+                    logger.debug(f"   Error analizando botón no-disp {i+1}: {e}")
+
+            # 3. Buscar textos de no disponibilidad
+            textos_no_disp = [
+                "Sin stock", "Agotado", "No disponible", "Out of stock", 
+                "Producto agotado", "Temporalmente no disponible"
+            ]
+            
+            for texto_buscar in textos_no_disp:
+                try:
+                    elementos = self.driver.find_elements(By.XPATH, f"//*[contains(text(), '{texto_buscar}')]")
+                    for elemento in elementos:
+                        if elemento.is_displayed():
+                            logger.info(f"   🛑 Texto '{texto_buscar}' visible → PRODUCTO NO DISPONIBLE")
+                            return {"estado": "no_disponible", "tipo": f"texto_{texto_buscar}"}
+                except:
+                    continue
+
+            # 4. Verificar estructura de precios (si no hay precios, probablemente no disponible)
             try:
-                # Buscar contenedor del precio principal
-                contenedor = self.driver.find_element(By.CSS_SELECTOR, 
+                contenedor_precio = self.driver.find_elements(By.CSS_SELECTOR, 
                     "div.valtech-gdn-dynamic-product-1-x-dynamicProductPrice")
                 
-                # Buscar el currencyContainer dentro
+                if not contenedor_precio:
+                    logger.warning("   ⚠️ No se encontró contenedor de precio")
+                    return {"estado": "indeterminado", "tipo": "sin_contenedor_precio"}
+                    
+            except Exception as e:
+                logger.debug(f"   Error buscando contenedor de precio: {e}")
+
+            logger.info("   ✅ No se encontraron indicadores de no disponible → ASUNIENDO DISPONIBLE")
+            return {"estado": "disponible", "tipo": "asumido"}
+            
+        except Exception as e:
+            logger.error(f"   💥 Error en verificación de disponibilidad: {e}")
+            return {"estado": "error", "tipo": f"error: {str(e)}"}
+    
+    def _extract_prices(self):
+        """Extrae precios con debugging detallado"""
+        logger.info("💰 Iniciando extracción de precios...")
+        
+        try:
+            # PRIMERO: Buscar todos los elementos de precio visibles como fallback
+            logger.info("🔍 Búsqueda inicial de precios visibles...")
+            precios_fallback = self._buscar_todos_precios_visibles()
+            logger.info(f"📊 Precios encontrados en búsqueda general: {precios_fallback}")
+            
+            # Buscar contenedor principal de precio
+            try:
+                contenedor = self.driver.find_element(By.CSS_SELECTOR, 
+                    "div.valtech-gdn-dynamic-product-1-x-dynamicProductPrice")
+                logger.info("✅ Contenedor principal de precio encontrado")
+                
+                # Buscar precio principal
+                precio_principal = None
                 try:
                     precio_elem = contenedor.find_element(By.CSS_SELECTOR,
                         ".valtech-gdn-dynamic-product-1-x-currencyContainer")
                     
                     if precio_elem.is_displayed():
-                        # RECONSTRUIR precio
                         texto_precio = self._extraer_precio_de_contenedor(precio_elem)
+                        logger.info(f"   Texto precio crudo: '{texto_precio}'")
                         
                         if texto_precio:
-                            logger.info(f"   💰 Precio principal extraído: '{texto_precio}'")
-                            
-                            # Limpiar y parsear
                             texto_limpio = self._limpiar_texto_precio(texto_precio)
                             precio_principal = self._parsear_precio(texto_limpio)
-                            
-                            if precio_principal and precio_principal > 0:
-                                logger.info(f"   ✅ PRECIO PRINCIPAL: ${precio_principal}")
+                            logger.info(f"   Precio principal parseado: {precio_principal}")
                 except Exception as e:
-                    logger.debug(f"   Error buscando currencyContainer: {e}")
-            
-            except Exception as e:
-                logger.warning(f"   ⚠️ No se encontró contenedor de precio principal: {e}")
-            
-            # Si no hay precio principal → error
-            if not precio_principal or precio_principal == 0:
-                logger.error("❌ NO SE PUDO EXTRAER PRECIO PRINCIPAL")
-                return {"normal": None, "descuento": None}
-            
-            # ═══════════════════════════════════════════════════════════
-            # BUSCAR PRECIO LISTA
-            # ═══════════════════════════════════════════════════════════
-            try:
-                # Buscar todos los elementos de precio lista
-                elementos_lista = self.driver.find_elements(By.CSS_SELECTOR,
-                    "span.valtech-gdn-dynamic-product-1-x-weighableListPrice")
+                    logger.warning(f"   ❌ Error extrayendo precio principal: {e}")
                 
-                for elem_lista in elementos_lista:
-                    if elem_lista.is_displayed():
-                        try:
-                            # Buscar currencyContainer dentro
-                            precio_elem = elem_lista.find_element(By.CSS_SELECTOR,
-                                ".valtech-gdn-dynamic-product-1-x-currencyContainer")
-                            
-                            # RECONSTRUIR precio
-                            texto_precio = self._extraer_precio_de_contenedor(precio_elem)
-                            
-                            if texto_precio:
-                                logger.info(f"   📋 Precio lista extraído: '{texto_precio}'")
+                # Si no hay precio principal, usar fallback
+                if not precio_principal or precio_principal == 0:
+                    logger.warning("   ⚠️ No se pudo extraer precio principal, usando fallback")
+                    if precios_fallback:
+                        precio_principal = precios_fallback[0]  # Tomar el mayor
+                        logger.info(f"   🎯 Usando precio de fallback: ${precio_principal}")
+                    else:
+                        logger.error("   💥 No hay precios disponibles")
+                        return {"normal": None, "descuento": None}
+                
+                # Buscar precio de lista (precio anterior)
+                precio_lista = None
+                try:
+                    elementos_lista = self.driver.find_elements(By.CSS_SELECTOR,
+                        "span.valtech-gdn-dynamic-product-1-x-weighableListPrice")
+                    
+                    logger.info(f"   Encontrados {len(elementos_lista)} elementos de precio lista")
+                    
+                    for i, elem_lista in enumerate(elementos_lista):
+                        if elem_lista.is_displayed():
+                            try:
+                                precio_elem_lista = elem_lista.find_element(By.CSS_SELECTOR,
+                                    ".valtech-gdn-dynamic-product-1-x-currencyContainer")
                                 
-                                texto_limpio = self._limpiar_texto_precio(texto_precio)
-                                precio = self._parsear_precio(texto_limpio)
+                                texto_precio_lista = self._extraer_precio_de_contenedor(precio_elem_lista)
+                                logger.info(f"   Precio lista {i+1}: '{texto_precio_lista}'")
                                 
-                                # Solo aceptar si es MAYOR que el precio principal
-                                if precio and precio > precio_principal:
-                                    precio_lista = precio
-                                    logger.info(f"   ✅ PRECIO LISTA: ${precio_lista}")
-                                    break
-                        except:
-                            continue
-            
+                                if texto_precio_lista:
+                                    texto_limpio_lista = self._limpiar_texto_precio(texto_precio_lista)
+                                    precio_lista_candidato = self._parsear_precio(texto_limpio_lista)
+                                    
+                                    if precio_lista_candidato and precio_lista_candidato > precio_principal:
+                                        precio_lista = precio_lista_candidato
+                                        logger.info(f"   ✅ Precio lista válido: ${precio_lista}")
+                                        break
+                            except Exception as e:
+                                logger.debug(f"   Error procesando precio lista {i+1}: {e}")
+                                continue
+                                
+                except Exception as e:
+                    logger.warning(f"   Error buscando precio lista: {e}")
+                
+                # Determinar precios finales
+                if precio_lista and precio_lista > precio_principal:
+                    logger.info(f"🎯 PRECIO CON DESCUENTO - Normal: ${precio_lista}, Oferta: ${precio_principal}")
+                    return {"normal": precio_lista, "descuento": precio_principal}
+                else:
+                    logger.info(f"🎯 PRECIO NORMAL - Precio: ${precio_principal}")
+                    return {"normal": precio_principal, "descuento": precio_principal}
+                    
             except Exception as e:
-                logger.debug(f"   No se encontró precio lista: {e}")
-            
-            # ═══════════════════════════════════════════════════════════
-            # RESULTADO
-            # ═══════════════════════════════════════════════════════════
-            if precio_lista and precio_lista > precio_principal:
-                logger.info(f"✅ CON DESCUENTO - Normal: ${precio_lista}, Descuento: ${precio_principal}")
-                return {"normal": precio_lista, "descuento": precio_principal}
-            else:
-                logger.info(f"✅ SIN DESCUENTO - Precio: ${precio_principal}")
-                return {"normal": precio_principal, "descuento": precio_principal}
-        
+                logger.error(f"💥 No se pudo encontrar contenedor principal de precio: {e}")
+                
+                # Usar fallback si no se encuentra el contenedor
+                if precios_fallback:
+                    precio_fallback = precios_fallback[0]
+                    logger.info(f"🔄 Usando precios de fallback: ${precio_fallback}")
+                    return {"normal": precio_fallback, "descuento": precio_fallback}
+                else:
+                    logger.error("💥 No se pudieron extraer precios")
+                    return {"normal": None, "descuento": None}
+                    
         except Exception as e:
-            logger.error(f"💥 ERROR extrayendo precios: {e}")
+            logger.error(f"💥 Error general en extracción de precios: {e}")
             import traceback
-            traceback.print_exc()
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            return {"normal": None, "descuento": None}
+        
+    def _extract_prices_with_debug(self):
+        """Extrae precios con foco en el precio FINAL visible"""
+        logger.info("💰 Iniciando extracción de precios...")
+        
+        try:
+            # PRIMERO: Buscar el precio más prominente (precio final)
+            precio_final = self._buscar_precio_final_visible()
+            if precio_final:
+                logger.info(f"🎯 Precio final encontrado: ${precio_final}")
+                
+                # Buscar precio de lista para comparar
+                precio_lista = self._buscar_precio_lista()
+                
+                if precio_lista and precio_lista > precio_final:
+                    logger.info(f"✅ CON DESCUENTO - Normal: ${precio_lista}, Oferta: ${precio_final}")
+                    return {"normal": precio_lista, "descuento": precio_final}
+                else:
+                    logger.info(f"✅ PRECIO NORMAL - Precio: ${precio_final}")
+                    return {"normal": precio_final, "descuento": precio_final}
+            
+            # FALLBACK: Método original
+            logger.warning("⚠️ No se encontró precio final, usando método original")
+            return self._extract_prices()
+            
+        except Exception as e:
+            logger.error(f"💥 Error en extracción de precios: {e}")
             return {"normal": None, "descuento": None}
     
+    def _buscar_precio_final_visible(self):
+        """Busca el precio FINAL más prominente en la página"""
+        try:
+            logger.info("🔍 Buscando precio FINAL visible...")
+            
+            # Estrategia 1: Buscar el precio más grande y prominente
+            selectores_precio_final = [
+                # Selector para precio principal grande
+                "h1[class*='price'], h2[class*='price'], h3[class*='price']",
+                "div[class*='sellingPrice'] span",
+                "span[class*='sellingPrice']",
+                "div[class*='price'] span",
+                # Buscar por tamaño de texto
+                "span[style*='font-size']",
+                "div[style*='font-size']",
+                # Selectores generales
+                ".vtex-product-price-1-x-sellingPrice .vtex-product-price-1-x-currencyContainer",
+                ".valtech-gdn-dynamic-product-1-x-dynamicProductPrice .vtex-product-price-1-x-currencyContainer"
+            ]
+            
+            for selector in selectores_precio_final:
+                try:
+                    elementos = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                    for elemento in elementos:
+                        if elemento.is_displayed():
+                            texto = elemento.text.strip()
+                            if texto and '$' in texto:
+                                precio = self._parsear_precio(texto)
+                                if precio and precio > 0:
+                                    logger.info(f"   ✅ Precio en selector '{selector}': ${precio} ('{texto}')")
+                                    return precio
+                except:
+                    continue
+            
+            # Estrategia 2: Buscar por contexto visual (elementos cerca del nombre del producto)
+            try:
+                # Buscar contenedores que probablemente contengan el precio final
+                contenedores = self.driver.find_elements(By.XPATH, 
+                    "//div[contains(@class, 'price') or contains(@class, 'Price')] | //span[contains(@class, 'price') or contains(@class, 'Price')]")
+                
+                for contenedor in contenedores:
+                    if contenedor.is_displayed():
+                        texto = contenedor.text.strip()
+                        if texto and '$' in texto and len(texto) < 50:  # Texto razonable
+                            # Filtrar precios base (que contienen "sin impuestos")
+                            if 'sin impuestos' not in texto.lower() and 'precio sin' not in texto.lower():
+                                precio = self._parsear_precio(texto)
+                                if precio and precio > 0:
+                                    logger.info(f"   ✅ Precio en contenedor: ${precio} ('{texto}')")
+                                    return precio
+            except Exception as e:
+                logger.debug(f"   Error en estrategia 2: {e}")
+            
+            # Estrategia 3: Buscar todos los precios y tomar el más prominente
+            precios_todos = self._buscar_todos_precios_visibles()
+            if precios_todos:
+                logger.info(f"   📊 Precios encontrados: {precios_todos}")
+                return precios_todos[0]  # Tomar el mayor
+            
+            logger.warning("   ❌ No se encontró precio final")
+            return None
+            
+        except Exception as e:
+            logger.error(f"   💥 Error buscando precio final: {e}")
+            return None
+        
+    def _buscar_precio_lista(self):
+        """Busca precio de lista/regular"""
+        try:
+            selectores_precio_lista = [
+                "span[class*='listPrice']",
+                "div[class*='listPrice'] span", 
+                ".vtex-product-price-1-x-listPrice .vtex-product-price-1-x-currencyContainer",
+                ".valtech-gdn-dynamic-product-1-x-weighableListPrice .valtech-gdn-dynamic-product-1-x-currencyContainer"
+            ]
+            
+            for selector in selectores_precio_lista:
+                try:
+                    elementos = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                    for elemento in elementos:
+                        if elemento.is_displayed():
+                            texto = elemento.text.strip()
+                            if texto and '$' in texto:
+                                precio = self._parsear_precio(texto)
+                                if precio and precio > 0:
+                                    logger.info(f"   📋 Precio lista: ${precio}")
+                                    return precio
+                except:
+                    continue
+            return None
+        except:
+            return None
+
     def _limpiar_texto_precio(self, texto):
         """Extrae solo el precio del texto"""
         try:
@@ -526,72 +774,71 @@ class MasonlineExtractor:
             return None
 
     def _buscar_todos_precios_visibles(self):
-        """
-        Busca todos los precios visibles en la página como último recurso
-        Retorna lista de precios únicos ordenados de mayor a menor
-        """
+        """Busca TODOS los precios visibles con mejor filtrado"""
         try:
-            precios_encontrados = set()
+            precios_encontrados = []
+            
+            # Buscar elementos que contengan símbolo de peso
             elementos = self.driver.find_elements(By.XPATH, "//*[contains(text(), '$')]")
+            logger.info(f"🔍 Analizando {len(elementos)} elementos con '$'")
             
-            logger.info(f"🔍 Analizando {len(elementos)} elementos con símbolo '$'")
-            
-            for elemento in elementos:
+            for i, elemento in enumerate(elementos):
                 try:
-                    # Solo elementos visibles
                     if not elemento.is_displayed():
                         continue
                     
                     texto = elemento.text.strip()
-                    
-                    # Ignorar textos muy largos (probablemente no son precios)
-                    if len(texto) > 100:
+                    if not texto or len(texto) > 100:
                         continue
                     
-                    # Ignorar textos con palabras clave que NO son precios
+                    # EXCLUIR elementos que son precios base/sin impuestos
                     texto_lower = texto.lower()
-                    palabras_excluir = [
-                        'impuesto', 'kilo', 'kg', 'unidad', 'ahorra', 
-                        'x ', 'litro', 'lt', 'por', 'gramo', 'gr',
-                        'precio anterior', 'antes', 'envío', 'cuota'
+                    exclusion_patterns = [
+                        'sin impuestos', 'precio sin', 'impuestos nacionales',
+                        'x kg', 'x kilo', 'por kg', '/kg',
+                        'impuesto', 'kilo', 'kg', 'unidad', 'ahorra', 'x ', 'litro', 'lt', 
+                        'por', 'gramo', 'gr', 'precio anterior', 'antes', 'envío', 'cuota',
+                        'c/u', 'total', 'subtotal', 'descuento', 'oferta', 'ahorro', '%'
                     ]
-                    if any(palabra in texto_lower for palabra in palabras_excluir):
+                    
+                    if any(pattern in texto_lower for pattern in exclusion_patterns):
                         continue
                     
-                    # Intentar parsear
-                    precio = self._parsear_precio(texto)
-                    if precio is not None and precio > 0:  # Excluir 0 en búsqueda fallback
-                        precios_encontrados.add(precio)
-                        logger.debug(f"  Precio válido encontrado: ${precio:.2f} en '{texto}'")
-                        
+                    # Buscar patrones de precio válidos (formato argentino)
+                    patrones_precio = [
+                        r'\$\s*\d{1,3}(?:\.\d{3})*(?:,\d{2})?',  # $ 1.429, $ 1.429,00
+                        r'\$\s*\d+(?:,\d{2})?',                  # $ 1429, $ 1429,00
+                    ]
+                    
+                    for patron in patrones_precio:
+                        if re.search(patron, texto):
+                            precio = self._parsear_precio(texto)
+                            if precio and precio > 0:
+                                # Calcular "score" de prominencia (precios más altos y textos más cortos son más probables)
+                                score = precio / (len(texto) if len(texto) > 0 else 1)
+                                precios_encontrados.append((precio, score, texto))
+                                logger.debug(f"   ✅ Precio {i+1}: ${precio} ('{texto}')")
+                                break
+                            
                 except Exception as e:
-                    logger.debug(f"Error procesando elemento: {e}")
                     continue
             
-            # Ordenar de mayor a menor
-            lista_precios = sorted(list(precios_encontrados), reverse=True)
-            
-            # Filtrar precios muy similares (diferencia < 1%)
-            precios_filtrados = []
-            for precio in lista_precios:
-                es_duplicado = False
-                for precio_existente in precios_filtrados:
-                    if precio_existente > 0:
-                        diferencia_pct = abs(precio - precio_existente) / precio_existente
-                        if diferencia_pct < 0.01:  # Menos de 1% de diferencia
-                            es_duplicado = True
-                            break
+            # Ordenar por score de prominencia (precio alto, texto corto)
+            if precios_encontrados:
+                precios_encontrados.sort(key=lambda x: x[1], reverse=True)
+                precios_unicos = []
+                for precio, score, texto in precios_encontrados:
+                    if not precios_unicos or abs(precio - precios_unicos[-1]) / precios_unicos[-1] > 0.05:
+                        precios_unicos.append(precio)
                 
-                if not es_duplicado:
-                    precios_filtrados.append(precio)
+                logger.info(f"📊 Precios únicos por prominencia: {precios_unicos}")
+                return precios_unicos
             
-            logger.info(f"✓ Precios únicos encontrados en DOM: {precios_filtrados}")
-            return precios_filtrados
+            return []
             
         except Exception as e:
-            logger.error(f"Error buscando precios visibles: {e}")
+            logger.error(f"Error en búsqueda de precios visibles: {e}")
             return []
-    
     
     def _extract_unit_price(self):
         """Busca precios unitarios (por kg, lt, etc.)."""
@@ -701,7 +948,7 @@ class MasonlineExtractor:
             
             # Paso 3: Verificar login
             logger.info("🔍 Verificando login...")
-            if self.verificar_sesion_con_debug():
+            if self._verificar_sesion_activa():
                 self.sesion_iniciada = True
                 self.guardar_sesion()
                 logger.info("✅ LOGIN MASONLINE EXITOSO")
@@ -919,139 +1166,178 @@ class MasonlineExtractor:
         except Exception as e:
             logger.error(f"❌ Error en credenciales Masonline: {e}")
             return False
-    
-    def verificar_sesion_con_debug(self):
-        """Verificar sesión en Masonline con debugging - VERSIÓN MEJORADA"""
+        
+    def _hacer_login_manual(self):
+        """Realiza el login manual con las credenciales"""
         try:
-            logger.info("Verificando sesión Masonline...")
-            time.sleep(5)  # Más tiempo para redirección
+            logger.info("Navegando a página de login...")
+            self.driver.get(f"{self.CONFIG['base_url']}/login")
+            time.sleep(3)
             
-            # Verificar URL actual
-            current_url = self.driver.current_url
-            logger.info(f"📋 URL actual: {current_url}")
+            # Buscar y hacer clic en "Entrar con email y contraseña"
+            logger.info("Buscando opción de login con email...")
+            opciones_login = [
+                "//h3[contains(text(), 'Entrar con e-mail y contraseña')]",
+                "//*[contains(text(), 'Entrar con e-mail y contraseña')]",
+                "//button[contains(text(), 'Entrar con e-mail y contraseña')]"
+            ]
             
-            # Si estamos en login todavía, falló
-            if 'login' in current_url.lower():
-                logger.error("❌ Seguimos en página de login")
-                
-                # Buscar mensajes de error específicos
+            for opcion in opciones_login:
                 try:
-                    errores = self.driver.find_elements(By.CSS_SELECTOR, ".error, .alert, .message-error, .vtex-login-2-x-errorMessage")
-                    for error in errores:
-                        if error.is_displayed():
-                            error_text = error.text.strip()
-                            logger.error(f"❌ Mensaje de error: {error_text}")
-                            
-                            # Tomar screenshot del error
-                            self.driver.save_screenshot('masonline_login_error.png')
-                            logger.info("📸 Screenshot del error: masonline_login_error.png")
+                    elemento = self.driver.find_element(By.XPATH, opcion)
+                    if elemento.is_displayed() and elemento.is_enabled():
+                        elemento.click()
+                        logger.info("Clic en opción de login con email")
+                        time.sleep(2)
+                        break
                 except:
-                    pass
-                
-                # Verificar si hay mensajes de credenciales incorrectas
-                page_text = self.driver.find_element(By.TAG_NAME, "body").text.lower()
-                if "incorrect" in page_text or "inválid" in page_text or "error" in page_text:
-                    logger.error("❌ Posibles credenciales incorrectas")
-                
+                    continue
+            
+            # Ingresar email
+            logger.info("Ingresando email...")
+            campo_email = None
+            selectores_email = [
+                "input[type='email']",
+                "input[name='email']",
+                "#email",
+                "input[placeholder*='email']"
+            ]
+            
+            for selector in selectores_email:
+                try:
+                    campo_email = self.driver.find_element(By.CSS_SELECTOR, selector)
+                    if campo_email.is_displayed():
+                        campo_email.clear()
+                        campo_email.send_keys(self.email)
+                        logger.info("Email ingresado")
+                        break
+                except:
+                    continue
+            
+            if not campo_email:
+                logger.error("No se pudo encontrar campo email")
                 return False
             
-            # Buscar indicadores de sesión activa en Masonline
+            # Ingresar contraseña
+            logger.info("Ingresando contraseña...")
+            campo_password = None
+            selectores_password = [
+                "input[type='password']",
+                "input[name='password']",
+                "#password"
+            ]
+            
+            for selector in selectores_password:
+                try:
+                    campo_password = self.driver.find_element(By.CSS_SELECTOR, selector)
+                    if campo_password.is_displayed():
+                        campo_password.clear()
+                        campo_password.send_keys(self.password)
+                        logger.info("Contraseña ingresada")
+                        break
+                except:
+                    continue
+            
+            if not campo_password:
+                logger.error("No se pudo encontrar campo password")
+                return False
+            
+            # Hacer clic en botón de login
+            logger.info("Haciendo clic en botón login...")
+            boton_login = None
+            selectores_boton = [
+                "button[type='submit']",
+                "//button[contains(text(), 'Entrar')]",
+                "//button[contains(text(), 'Ingresar')]"
+            ]
+            
+            for selector in selectores_boton:
+                try:
+                    if selector.startswith("//"):
+                        boton_login = self.driver.find_element(By.XPATH, selector)
+                    else:
+                        boton_login = self.driver.find_element(By.CSS_SELECTOR, selector)
+                    
+                    if boton_login.is_displayed() and boton_login.is_enabled():
+                        boton_login.click()
+                        logger.info("Clic en botón login realizado")
+                        break
+                except:
+                    continue
+            
+            if not boton_login:
+                logger.error("No se pudo encontrar botón login")
+                return False
+            
+            # Esperar y verificar login
+            time.sleep(5)
+            
+            if self._verificar_sesion_activa():
+                self.sesion_iniciada = True
+                self.guardar_sesion()
+                logger.info("Login exitoso")
+                return True
+            else:
+                logger.error("Login fallido")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error en login manual: {e}")
+            return False
+    
+    def _verificar_sesion_activa(self):
+        """Verifica si la sesión está activa"""
+        try:
+            # Intentar acceder a una página protegida
+            self.driver.get(f"{self.CONFIG['base_url']}/my-account")
+            time.sleep(2)
+            
+            # Si no redirige a login, la sesión está activa
+            if 'login' not in self.driver.current_url.lower():
+                return True
+            
+            # Buscar indicadores de sesión activa
             indicadores = [
                 "//*[contains(text(), 'Mi cuenta')]",
-                "//*[contains(text(), 'Hola')]", 
-                "//*[contains(text(), 'Bienvenido')]",
                 "//*[contains(text(), 'Cerrar sesión')]",
-                "//*[contains(text(), 'Mis pedidos')]",
-                ".my-account",
-                ".user-menu",
-                "[data-testid='user-info']",
-                "//a[contains(@href, 'my-account')]"
+                "//*[contains(text(), 'Mis pedidos')]"
             ]
             
             for indicador in indicadores:
                 try:
-                    if indicador.startswith("//"):
-                        elemento = self.driver.find_element(By.XPATH, indicador)
-                    else:
-                        elemento = self.driver.find_element(By.CSS_SELECTOR, indicador)
-                    
+                    elemento = self.driver.find_element(By.XPATH, indicador)
                     if elemento.is_displayed():
-                        logger.info(f"✅ Sesión Masonline activa - Indicador: {indicador}")
                         return True
                 except:
                     continue
             
-            # Verificar si podemos acceder a página de perfil
-            try:
-                self.driver.get(f"{self.CONFIG['base_url']}/my-account")
-                time.sleep(3)
-                current_url_after = self.driver.current_url
-                logger.info(f"📋 URL después de my-account: {current_url_after}")
-                
-                if 'login' not in current_url_after.lower() and 'my-account' in current_url_after.lower():
-                    logger.info("✅ Acceso a my-account exitoso")
-                    return True
-            except Exception as e:
-                logger.debug(f"Error accediendo a my-account: {e}")
-            
-            # Última verificación: intentar navegar a página protegida
-            try:
-                self.driver.get(f"{self.CONFIG['base_url']}/orders")
-                time.sleep(2)
-                if 'login' not in self.driver.current_url.lower():
-                    logger.info("✅ Acceso a orders exitoso")
-                    return True
-            except:
-                pass
-            
-            logger.error("❌ No se encontraron indicadores de sesión activa en Masonline")
             return False
-            
-        except Exception as e:
-            logger.error(f"❌ Error verificando sesión Masonline: {e}")
+        except:
             return False
     
     def asegurar_sesion_activa(self):
-        """Asegurar sesión con reintentos limitados"""
+        """Asegura que haya una sesión activa - VERSIÓN CORREGIDA"""
         if self.driver is None:
             self.setup_driver()
         
-        for intento in range(2):
-            logger.info(f"🔄 Intento {intento + 1}/2 de login Masonline")
-            
-            # Intentar cargar sesión existente
-            if intento == 0 and os.path.exists(self.cookies_file):
-                try:
-                    with open(self.cookies_file, 'rb') as f:
-                        cookies = pickle.load(f)
-                    
-                    self.driver.get(self.CONFIG['base_url'])
-                    self.driver.delete_all_cookies()
-                    for cookie in cookies:
-                        try:
-                            self.driver.add_cookie(cookie)
-                        except:
-                            pass
-                    
-                    self.driver.refresh()
-                    time.sleep(3)
-                    
-                    if self.verificar_sesion_con_debug():
-                        self.sesion_iniciada = True
-                        logger.info("✅ Sesión Masonline cargada")
-                        return True
-                except Exception as e:
-                    logger.debug(f"Error cargando sesión Masonline: {e}")
-            
-            # Login nuevo
-            if self.login_con_email_password():
-                return True
-            
-            if intento < 1:
-                time.sleep(5)
+        # PRIMERO: Limpiar cookies viejas si existen y forzar login fresco
+        if os.path.exists(self.cookies_file):
+            try:
+                # Eliminar cookies viejas para forzar login nuevo
+                os.remove(self.cookies_file)
+                logger.info("Cookies viejas eliminadas, forzando login nuevo")
+            except:
+                pass
         
-        logger.error("❌ Todos los intentos de login Masonline fallaron")
-        return False
+        # SEGUNDO: Hacer login manual SIEMPRE (para asegurar sesión fresca)
+        logger.info("Iniciando sesión manualmente (sesión fresca)...")
+        if self.login_con_email_password():  # Usar el método detallado que ya tienes
+            self.sesion_iniciada = True
+            logger.info("Sesión iniciada exitosamente")
+            return True
+        else:
+            logger.error("No se pudo iniciar sesión")
+            return False
     
     def guardar_sesion(self):
         """Guarda las cookies de la sesión actual"""

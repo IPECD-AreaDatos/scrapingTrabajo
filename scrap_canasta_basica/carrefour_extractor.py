@@ -57,38 +57,48 @@ class CarrefourExtractor:
         return self.driver, self.wait
         
     def extraer_producto(self, url):
-        """Extrae datos de un producto individual"""
+        """Extrae datos de un producto individual - VERSIÓN CORREGIDA CON ANTI-CACHE"""
         try:
+            logger.info("🚀 INICIANDO EXTRACCIÓN CARREFOUR")
+            logger.info(f"📝 URL: {url}")
+            
             # Asegurar sesión activa UNA SOLA VEZ al inicio
             if not self.sesion_iniciada:
                 if not self.asegurar_sesion_activa():
-                    logger.error("No se pudo establecer sesión")
+                    logger.error("❌ No se pudo establecer sesión")
                     return None
                 
             self.driver.get(url)
-            time.sleep(1)  # Reducir tiempo de espera
-            logger.info(f"Página cargada: {self.driver.title}")
+            time.sleep(2)  # Reducir tiempo de espera
+            logger.info(f"🌐 Página cargada: {self.driver.title}")
             
             # Verificar si es página de error 404
             if self._es_pagina_error():
-                logger.warning(f"Página no encontrada (404): {url}")
+                logger.warning(f"🛑 Página no encontrada (404): {url}")
                 return {"error_type": "404", "url": url, "titulo": self.driver.title}
             
             # Nombre del producto
+            logger.info("📦 EXTRAYENDO NOMBRE...")
             nombre = self._extraer_nombre(self.wait)
             if not nombre:
-                logger.warning(f"No se pudo extraer nombre de {url}")
+                logger.warning(f"❌ No se pudo extraer nombre de {url}")
                 return {"error_type": "no_name", "url": url, "titulo": self.driver.title}
+            logger.info(f"✅ Nombre extraído: {nombre}")
             
-            # Precios
-            precio_desc = self._extraer_precio_descuento(self.driver)
-            precio_normal = self._extraer_precio_normal(self.driver, precio_desc)
+            # Precios - USAR MÉTODOS ORIGINALES
+            logger.info("💰 ========== EXTRACCIÓN DE PRECIOS ==========")
+            precio_desc = self._extraer_precio_descuento(self.driver)  # MÉTODO ORIGINAL
+            precio_normal = self._extraer_precio_normal(self.driver, precio_desc)  # MÉTODO ORIGINAL
             precio_completo, unidad_text = self._extraer_precio_unidad(self.driver)
+            logger.info("💰 ===========================================")
             
             # Descuentos
+            logger.info("🎁 EXTRAYENDO DESCUENTOS...")
             descuentos = self._extraer_descuentos(self.driver)
+            logger.info(f"✅ Descuentos encontrados: {len(descuentos)}")
             
-            return {
+            # Construir resultado
+            resultado = {
                 "nombre": nombre,
                 "precio_normal": self._clean_price(precio_normal),
                 "precio_descuento": self._clean_price(precio_desc),
@@ -100,10 +110,25 @@ class CarrefourExtractor:
                 "url": url
             }
             
+            # Verificación final
+            logger.info("📊 RESUMEN EXTRACCIÓN:")
+            logger.info(f"   Nombre: {resultado['nombre']}")
+            logger.info(f"   Precio normal: {resultado['precio_normal']}")
+            logger.info(f"   Precio descuento: {resultado['precio_descuento']}")
+            logger.info(f"   Precio unidad: {resultado['precio_por_unidad']}")
+            logger.info(f"   Unidad: {resultado['unidad']}")
+            logger.info(f"   Descuentos: {resultado['descuentos']}")
+            
+            if resultado['precio_descuento'] != "0":
+                logger.info(f"✅ EXTRACCIÓN EXITOSA: {nombre}")
+            else:
+                logger.warning(f"⚠️ Producto sin precio: {nombre}")
+                
+            return resultado
+            
         except Exception as e:
-            logger.error(f"Error extrayendo {url}: {str(e)}")
-            # En caso de error, resetear sesión
-            self.sesion_iniciada = False
+            logger.error(f"💥 ERROR crítico extrayendo {url}: {str(e)}")
+            # NO resetear sesión automáticamente - solo en casos muy específicos
             return None
         
     def extract_products(self, urls):
@@ -374,16 +399,30 @@ class CarrefourExtractor:
 
     
     def _buscar_precio(self, driver, selectores, default):
-        """Busca precio en múltiples selectores"""
-        for selector in selectores:
+        """Busca precio en múltiples selectores - VERSIÓN CON DEBUG"""
+        logger.info(f"🔍 BUSCANDO PRECIO - Selectores: {len(selectores)}, Default: {default}")
+        
+        for i, selector in enumerate(selectores):
             try:
                 elementos = driver.find_elements(By.CSS_SELECTOR, selector)
-                for elem in elementos:
+                logger.info(f"   Selector {i+1}: '{selector}' - Elementos: {len(elementos)}")
+                
+                for j, elem in enumerate(elementos):
                     texto = elem.text.strip()
-                    if texto and any(c.isdigit() for c in texto):
+                    is_visible = elem.is_displayed()
+                    logger.info(f"     Elemento {j+1}: '{texto}' - Visible: {is_visible}")
+                    
+                    if is_visible and texto and any(c.isdigit() for c in texto):
+                        logger.info(f"     ✅ PRECIO VÁLIDO ENCONTRADO: '{texto}'")
                         return texto
-            except:
+                    else:
+                        logger.info(f"     ❌ Elemento descartado - Texto: '{texto}', Visible: {is_visible}")
+                        
+            except Exception as e:
+                logger.debug(f"   Error en selector {selector}: {e}")
                 continue
+        
+        logger.warning(f"⚠️ No se encontró precio, usando default: {default}")
         return default
     
     def login_con_email_password(self):
@@ -833,9 +872,9 @@ class CarrefourExtractor:
         
         # Solo 2 intentos máximo
         for intento in range(2):
-            logger.info(f" Intento {intento + 1}/2 de login")
+            logger.info(f"🔄 Intento {intento + 1}/2 de login")
             
-            # Intentar cargar sesión existente
+            # Intentar cargar sesión existente PRIMERO
             if intento == 0 and os.path.exists(self.cookies_file):
                 try:
                     with open(self.cookies_file, 'rb') as f:
@@ -854,20 +893,22 @@ class CarrefourExtractor:
                     
                     if self.verificar_sesion_con_debug():
                         self.sesion_iniciada = True
-                        logger.info(" Sesión cargada")
+                        logger.info("✅ Sesión cargada desde cookies")
                         return True
                 except Exception as e:
                     logger.debug(f"Error cargando sesión: {e}")
             
-            # Login nuevo
+            # Login nuevo SOLO si no hay cookies o no funcionan
             if self.login_con_email_password():
+                self.sesion_iniciada = True
+                logger.info("✅ Sesión iniciada manualmente")
                 return True
             
             # Esperar entre intentos
             if intento < 1:  # No esperar después del último intento
                 time.sleep(5)
         
-        logger.error(" Todos los intentos de login fallaron")
+        logger.error("❌ Todos los intentos de login fallaron")
         return False
 
     def guardar_sesion(self):
