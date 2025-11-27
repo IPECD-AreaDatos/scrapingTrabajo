@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "ipicorr",
+  "private_key_id": "568edcc09afb6f3d3bc8cb75055fb6006928bf3b",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCvNtCpbOVTHv6s\nK47n0eI8DpAo1HZVu5DS4+Er0F33Lma03OnKKvrzSXEi2xVDaJS+pPdgzt2paOsX\nDXHLMm33ywpEaaibNIbrtOeY/sBN1pNM3cqIkvYBe32ppy+H/UGlnkxWH2zlvv2x\nf+LJoeB9VN2vNklgC5B3uflIA26iPW2csWtnmxUexKJcCpsJ6lzLV9wScypVUloT\neITMdbeui3DKMqLCcUxNgp8kUmFNY8G/Kfpw2kNW3aiTMPsmybQmYInCN8yp6ECW\nBc3QjnPCPCyrjP4PDSEbBXdN3So+jWtgcYzLVG29NEhwn2IIJnC+bKfhWYaH39Nx\ng1GbQlJbAgMBAAECggEAFePqIjNjMUUpjza/8LwwS3g2+uA/H+CXrD62hplOlrpa\n2uomC/veWh/eUnr+8erdI+ELW7JspM+MCNdv/0bVJgSyyy+iK4Xep2XKG5C+/i/l\nO6YSuYkW0sJBcGfdUIb2Y9aI9fzmHOFa47QKZaOOSZ+dNK3lG+qbSYICysRMVwN9\nxIDE/v98Ej/yAaD29ViQxx5wWt0fi5DY9VVVX0FLMqnsdgQ9efInQT30ja92NF0u\nOMYYjKVtmgPxs6ncISOft9+3MoRbbFLSZ3OmubCvVnuCllUgGBUsSm5pns59RmQJ\nENdoOGCDQo5Z+Wo1irW8T4MIYCULnHnW0eYFH6FCgQKBgQDT9bq3nzRuTl1joOwt\nKSOuigQQtc5l1KLYm4Zlx/onRhx8sYTBtzj3yozdmQ3QDhDPUfyN2QWF8UmqeZiZ\nuMJ/oSzV/Qjl1+vNDOXZSRs35r5IgK2QD47rJzztUYzmCL5Xt0jaXUBnTZe8OHvD\n2K+4pe0AF9dE+jtDd2fbJELugQKBgQDTno6k6FL2XOK8wu+twpvlBvvMHPynV2BR\noZqLTd/LKxdTsEVXfSd2CtRu11+wU257/h8WzrlmhWJvPiH6VfIK580R1jyvwrSA\nWJqHEndi1zqNgi5uNIWlRBwJxzMjw+Bs7xoFW+/Mn4iQCoGKwupdqBOanl/wXubf\nk+dvg49K2wKBgFIGnHWHBPFTHkz576wiaY6YFq6ozPEXctXEiiRFWYdtWITg5fFZ\niJBMMGtpWbEUYGj633O9cqe9ErcIS4fhulNN+l3tiE36W2SFA0YtRn1BrI2+Tmyb\nuMFD9A4bKx2ycIbdhTIMOGpB2uCaMzs9VfNtMuSAVWx6MgkP4n8p70UBAoGAOOoZ\n/ywks/HDYXUkNR10BCLescTSBsevNgU6pWCqYeATBAUSgTc917eN7smqCKhHvL1Z\n6y5qGrKhCL4zMTrQQDKbqsJty++X0DUESnOi/EhajRiIGEez8gDhcZfLn0DdKS8d\nVnelhOkbN3I76PAHTG0Z6KnTr7g2a8dBpXJCpaUCgYBvHXnOozohk4j1krRFAuXC\nm05ujjdi5jlkZLB430bkc16lX9+2Hp5lptbM6ycn8ok99r3tcOoHZ+o+zO2f0vUL\nWbksqJqCLToxkyawB44lx0XowPrmp6781MSf+ZC82QjoOTHVqSjyl5j8ZGti827i\nacNl4ExajKhkwxyUZa2uOA==\n-----END PRIVATE KEY-----\n",
+  "client_email": "departamentodedatos@ipicorr.iam.gserviceaccount.com",
+  "client_id": "108924600629044945417",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/departamentodedatos%40ipicorr.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

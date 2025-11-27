@@ -4,6 +4,7 @@
 *.xls
 *.pdf
 *.venv
+venv/
 entorno_trabajo/
 __pycache__/
 *.zip
@@ -11,3 +12,30 @@ __pycache__/
 #Archivo de variables de entorno - NUNCA SUBIR AL GIT
 .env
 *env_scrapping
+
+# Archivos temporales y de sesión
+*.pkl
+*.log
+*.tmp
+*.bak
+
+# Carpetas de logs
+logs/
+*.log.*
+
+# Archivos de cookies y sesiones
+*_cookies.pkl
+*_session.pkl
+
+# Archivos de test temporales (mantener tests en carpetas)
+test_*.py
+*_test.py
+
+# Carpetas de versiones antiguas
+version_anterior/
+old/
+backup/
+
+# Archivos de bloqueo de LibreOffice/OpenOffice
+.~lock.*
+*~
