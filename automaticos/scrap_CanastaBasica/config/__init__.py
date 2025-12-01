@@ -7,3 +7,6 @@ __all__ = ['obtener_categoria', 'CATEGORIAS_PRODUCTOS', 'PALABRAS_CLAVE_CATEGORI
 
 
 
+
+
+
