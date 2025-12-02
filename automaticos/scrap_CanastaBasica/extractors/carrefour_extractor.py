@@ -1,6 +1,7 @@
 import os
 import time
 import re
+import unicodedata
 import pandas as pd
 import logging
 from dotenv import load_dotenv
@@ -114,7 +115,7 @@ class CarrefourExtractor:
             }
             
             # Verificación final
-            logger.info("📊 RESUMEN EXTRACCIÓN:")
+            logger.info("RESUMEN EXTRACCIÓN:")
             logger.info(f"   Nombre: {resultado['nombre']}")
             logger.info(f"   Precio normal: {resultado['precio_normal']}")
             logger.info(f"   Precio descuento: {resultado['precio_descuento']}")
@@ -130,7 +131,7 @@ class CarrefourExtractor:
             return resultado
             
         except Exception as e:
-            logger.error(f"💥 ERROR crítico extrayendo {url}: {str(e)}")
+            logger.error(f"ERROR crítico extrayendo {url}: {str(e)}")
             # NO resetear sesión automáticamente - solo en casos muy específicos
             return None
         
@@ -298,107 +299,95 @@ class CarrefourExtractor:
             logger.error(f"Error extrayendo descuentos: {str(e)}")
         
         # LIMPIEZA Y FILTRADO MEJORADO
-        descuentos_limpios = self._filtrar_descuentos(descuentos)
+        descuentos_limpios = self.procesar_descuentos(descuentos)
         
         logger.info(f"Descuentos finales: {descuentos_limpios}")
         return descuentos_limpios
     
-    def _es_descuento_valido(self, texto: str) -> bool:
-        """Determina si un texto es un descuento válido"""
-        if not texto or len(texto) > 50:  # Muy largo, probablemente no es descuento
-            return False
-        
-        texto_limpio = texto.upper().strip()
-        
-        # Debe contener palabras clave de descuento
-        palabras_clave_descuento = [
-            'OFF', '%', 'DESCUENTO', 'DCTO', 'SAVE', 'AHORRO', 
-            'PROMO', 'OFERTA', '2X1', '3X2', 'BONIF', 'LLEVÁ', 'LLEVÉ'
-        ]
-        
-        tiene_palabra_clave = any(palabra in texto_limpio for palabra in palabras_clave_descuento)
-        
-        # Debe tener algún contenido numérico o de porcentaje
-        tiene_contenido_numerico = any(caracter.isdigit() for caracter in texto) or '%' in texto
-        
-        # No debe ser solo números (podría ser un precio)
-        no_es_solo_numeros = not texto.replace('%', '').replace('$', '').replace('.', '').replace(',', '').strip().isdigit()
-        
-        # Longitud razonable
-        longitud_razonable = 2 <= len(texto) <= 30
-        
-        # No debe contener palabras que indiquen que NO es un descuento
-        palabras_excluidas = ['PRECIO', 'PRICE', 'COSTO', 'COST', 'VALOR', 'TOTAL', 'SUBTOTAL']
-        no_contiene_excluidas = not any(palabra in texto_limpio for palabra in palabras_excluidas)
-        
-        return (tiene_palabra_clave and 
-                tiene_contenido_numerico and 
-                no_es_solo_numeros and 
-                longitud_razonable and 
-                no_contiene_excluidas)
-    
-    def _filtrar_descuentos(self, descuentos: List[str]) -> List[str]:
-        """Filtra y limpia la lista de descuentos"""
-        if not descuentos:
-            return []
-        
-        descuentos_filtrados = []
-        
-        for descuento in descuentos:
-            # Limpiar el texto
-            descuento_limpio = descuento.strip()
-            
-            # Eliminar espacios múltiples
-            descuento_limpio = ' '.join(descuento_limpio.split())
-            
-            # Verificar que sea único y válido
-            if (descuento_limpio and 
-                descuento_limpio not in descuentos_filtrados and
-                self._es_descuento_valido(descuento_limpio)):
-                
-                # Normalizar formato común
-                descuento_normalizado = self._normalizar_descuento(descuento_limpio)
-                descuentos_filtrados.append(descuento_normalizado)
-        
-        # Ordenar por relevancia (los que tienen % primero)
-        descuentos_filtrados.sort(key=lambda x: ('%' in x, x), reverse=True)
-        
-        return descuentos_filtrados
+    def limpiar_descuento(self, texto: str) -> str:
+        """
+        Limpieza unificada para descuentos:
+        - minuscula
+        - sin acentos
+        - sin emojis
+        - sin caracteres raros
+        - espacios normalizados
+        """
+        if not texto:
+            return ""
 
-    def _normalizar_descuento(self, descuento: str) -> str:
-        """Normaliza el formato del descuento para consistencia"""
-        descuento_upper = descuento.upper()
-        
-        # Reemplazar variaciones comunes
-        reemplazos = {
-            'OFF': 'OFF',
-            'DCTO': 'DESCUENTO',
-            'SAVE': 'AHORRO',
-            'PROMO': 'PROMOCIÓN',
-            'OFERTA': 'OFERTA',
-            '2X1': '2X1',
-            '3X2': '3X2'
-        }
-        
-        descuento_normalizado = descuento
-        for original, reemplazo in reemplazos.items():
-            if original in descuento_upper:
-                # Mantener el formato original pero estandarizar palabras clave
-                descuento_normalizado = descuento_normalizado.upper().replace(original, reemplazo)
-        
-        # Asegurar que los porcentajes tengan formato consistente
-        if '%' in descuento_normalizado:
-            # Buscar patrones como "10% OFF" y estandarizar
-            import re
-            patron_porcentaje = r'(\d+)%'
-            match = re.search(patron_porcentaje, descuento_normalizado)
-            if match:
-                porcentaje = match.group(1)
-                # Si es solo el porcentaje, agregar "OFF"
-                if len(descuento_normalizado.strip()) <= 4:
-                    descuento_normalizado = f"{porcentaje}% OFF"
-        
-        return descuento_normalizado
+        # 1) eliminar emojis y símbolos no textuales
+        texto = texto.encode('ascii', 'ignore').decode('ascii')
+
+        # 2) pasar a minúscula
+        texto = texto.lower()
+
+        # 3) eliminar acentos
+        texto = ''.join(
+            c for c in unicodedata.normalize('NFD', texto)
+            if unicodedata.category(c) != 'Mn'
+        )
+
+        # 4) normalizar espacios
+        texto = " ".join(texto.split())
+
+        # 5) eliminar basura: solo letras, números, %, x
+        texto = re.sub(r"[^a-z0-9% x/\.]", "", texto)
+
+        # 6) normalizar formato de descuento: ej: "20 %", "20%off"
+        texto = texto.replace(" %", "%")
+        texto = texto.replace("% ", "% ")
+        texto = texto.replace("off", "off")  # ya está minúscula
+
+        return texto.strip()
+    
+    def descuento_es_valido(self, texto: str) -> bool:
+        if not texto or len(texto) > 80:
+            return False
+
+        text = texto.lower()
+
+        keywords = ["%", "off", "descuento", "dcto", "promo", "oferta", "2x1", "3x2"]
+        has_keyword = any(k in text for k in keywords)
+
+        has_digit = any(c.isdigit() for c in text)
+
+        return has_keyword and has_digit
+    
+    def normalizar_descuento(self, texto: str) -> str:
+        t = texto
+
+        # unir "20 %"
+        t = re.sub(r"(\d+)\s*%", r"\1%", t)
+
+        # ordenar formato clásico: "20% off"
+        t = t.replace("off", " off")
+
+        # arreglar doble espacio
+        t = " ".join(t.split())
+
+        return t.strip()
+
+    def procesar_descuentos(self, descuentos_raw):
+        """
+        Aplica: limpiar → validar → normalizar → quitar duplicados
+        """
+        final = []
+
+        for d in descuentos_raw:
+            limpio = self.limpiar_descuento(d)
+
+            if self.descuento_es_valido(limpio):
+                norm = self.normalizar_descuento(limpio)
+                final.append(norm)
+
+        # eliminar duplicados manteniendo orden
+        final = list(dict.fromkeys(final))
+
+        # ordenar poniendo primero los que tienen %
+        final.sort(key=lambda x: "%" not in x)
+
+        return final
 
     
     def _buscar_precio(self, driver, selectores, default):
@@ -438,27 +427,15 @@ class CarrefourExtractor:
             self.driver.get("https://www.carrefour.com.ar/login")
             time.sleep(3)
             
-            # TOMAR SCREENSHOT ANTES DE CUALQUIER ACCIÓN
-            self.driver.save_screenshot('debug_01_login_page.png')
-            logger.info(" Screenshot: debug_01_login_page.png")
-            
             # Paso 2: Buscar botón de email
             logger.info(" Buscando botón email...")
             if not self.hacer_clic_ingresar_con_mail():
                 return False
             
-            # Screenshot después del clic
-            self.driver.save_screenshot('debug_02_after_email_click.png')
-            logger.info(" Screenshot: debug_02_after_email_click.png")
-            
             # Paso 3: Ingresar credenciales con más verificación
             logger.info(" Ingresando credenciales...")
             if not self.ingresar_credenciales_con_debug():
                 return False
-            
-            # Screenshot después de ingresar credenciales
-            self.driver.save_screenshot('debug_03_after_credentials.png')
-            logger.info(" Screenshot: debug_03_after_credentials.png")
             
             # Paso 4: Verificar login con más detalle
             logger.info("[SEARCH] Verificando login...")
@@ -468,14 +445,11 @@ class CarrefourExtractor:
                 logger.info(" LOGIN EXITOSO")
                 return True
             else:
-                logger.error(" LOGIN FALLIDO - Revisar screenshots")
-                # Tomar screenshot de error
-                self.driver.save_screenshot('debug_04_login_failed.png')
+                logger.error(" LOGIN FALLIDO ")
                 return False
                 
         except Exception as e:
             logger.error(f" Error en login: {e}")
-            self.driver.save_screenshot('debug_05_error.png')
             return False
         
     def hacer_clic_ingresar_con_mail(self):
@@ -875,7 +849,7 @@ class CarrefourExtractor:
         
         # Solo 2 intentos máximo
         for intento in range(2):
-            logger.info(f"🔄 Intento {intento + 1}/2 de login")
+            logger.info(f"Intento {intento + 1}/2 de login")
             
             # Intentar cargar sesión existente PRIMERO
             if intento == 0 and os.path.exists(self.cookies_file):

@@ -1,6 +1,7 @@
 import os
 import time
 import re
+import unicodedata
 import pandas as pd
 import logging
 from dotenv import load_dotenv
@@ -101,7 +102,7 @@ class MasonlineExtractor:
             # ═══════════════════════════════════════════════════════════
             
             # Espera 1: Esperar que la página esté completamente cargada
-            logger.info("⏳ Esperando carga completa de la página...")
+            logger.info("Esperando carga completa de la página...")
             time.sleep(2)  # Espera fija inicial
             
             # Espera 2: Esperar elementos críticos
@@ -113,7 +114,7 @@ class MasonlineExtractor:
                 logger.warning(f"[WARNING] Timeout esperando h1: {e}")
             
             # Espera 3: Esperar específicamente elementos de precio
-            logger.info("⏳ Esperando elementos de precio...")
+            logger.info("Esperando elementos de precio...")
             try:
                 # Esperar contenedor de precio principal
                 self.wait.until(EC.presence_of_element_located(
@@ -129,7 +130,7 @@ class MasonlineExtractor:
                 # Espera de fallback
                 time.sleep(3)
             
-            logger.info(f"📄 Título de página: {self.driver.title}")
+            logger.info(f"Título de página: {self.driver.title}")
             
             # ═══════════════════════════════════════════════════════════
             # PASO 1: Verificar si es página de error
@@ -192,19 +193,10 @@ class MasonlineExtractor:
             else:
                 logger.warning(f"[WARNING] Producto sin precio detectado: {name}")
 
-            # Debug adicional: capturar screenshot en caso de problemas
-            if not final_price or final_price == 0:
-                try:
-                    screenshot_name = f"debug_no_price_{datetime.now().strftime('%H%M%S')}.png"
-                    self.driver.save_screenshot(screenshot_name)
-                    logger.info(f"📸 Captura de pantalla guardada: {screenshot_name}")
-                except:
-                    pass
-
             return product_data
 
         except Exception as e:
-            logger.error(f"💥 ERROR crítico extrayendo {url}: {str(e)}")
+            logger.error(f"ERROR crítico extrayendo {url}: {str(e)}")
             import traceback
             logger.error(f"Traceback: {traceback.format_exc()}")
             self.sesion_iniciada = False
@@ -399,18 +391,18 @@ class MasonlineExtractor:
             return {"estado": "disponible", "tipo": "asumido"}
             
         except Exception as e:
-            logger.error(f"   💥 Error en verificación de disponibilidad: {e}")
+            logger.error(f"   Error en verificación de disponibilidad: {e}")
             return {"estado": "error", "tipo": f"error: {str(e)}"}
     
     def _extract_prices(self):
         """Extrae precios con debugging detallado"""
-        logger.info("💰 Iniciando extracción de precios...")
+        logger.info("Iniciando extracción de precios...")
         
         try:
             # PRIMERO: Buscar todos los elementos de precio visibles como fallback
             logger.info("[SEARCH] Búsqueda inicial de precios visibles...")
             precios_fallback = self._buscar_todos_precios_visibles()
-            logger.info(f"📊 Precios encontrados en búsqueda general: {precios_fallback}")
+            logger.info(f"Precios encontrados en búsqueda general: {precios_fallback}")
             
             # Buscar contenedor principal de precio
             try:
@@ -440,9 +432,9 @@ class MasonlineExtractor:
                     logger.warning("   [WARNING] No se pudo extraer precio principal, usando fallback")
                     if precios_fallback:
                         precio_principal = precios_fallback[0]  # Tomar el mayor
-                        logger.info(f"   🎯 Usando precio de fallback: ${precio_principal}")
+                        logger.info(f"   Usando precio de fallback: ${precio_principal}")
                     else:
-                        logger.error("   💥 No hay precios disponibles")
+                        logger.error("   No hay precios disponibles")
                         return {"normal": None, "descuento": None}
                 
                 # Buscar precio de lista (precio anterior)
@@ -479,39 +471,39 @@ class MasonlineExtractor:
                 
                 # Determinar precios finales
                 if precio_lista and precio_lista > precio_principal:
-                    logger.info(f"🎯 PRECIO CON DESCUENTO - Normal: ${precio_lista}, Oferta: ${precio_principal}")
+                    logger.info(f"PRECIO CON DESCUENTO - Normal: ${precio_lista}, Oferta: ${precio_principal}")
                     return {"normal": precio_lista, "descuento": precio_principal}
                 else:
-                    logger.info(f"🎯 PRECIO NORMAL - Precio: ${precio_principal}")
+                    logger.info(f"PRECIO NORMAL - Precio: ${precio_principal}")
                     return {"normal": precio_principal, "descuento": precio_principal}
                     
             except Exception as e:
-                logger.error(f"💥 No se pudo encontrar contenedor principal de precio: {e}")
+                logger.error(f"No se pudo encontrar contenedor principal de precio: {e}")
                 
                 # Usar fallback si no se encuentra el contenedor
                 if precios_fallback:
                     precio_fallback = precios_fallback[0]
-                    logger.info(f"🔄 Usando precios de fallback: ${precio_fallback}")
+                    logger.info(f"Usando precios de fallback: ${precio_fallback}")
                     return {"normal": precio_fallback, "descuento": precio_fallback}
                 else:
-                    logger.error("💥 No se pudieron extraer precios")
+                    logger.error("No se pudieron extraer precios")
                     return {"normal": None, "descuento": None}
                     
         except Exception as e:
-            logger.error(f"💥 Error general en extracción de precios: {e}")
+            logger.error(f"Error general en extracción de precios: {e}")
             import traceback
             logger.error(f"Traceback: {traceback.format_exc()}")
             return {"normal": None, "descuento": None}
         
     def _extract_prices_with_debug(self):
         """Extrae precios con foco en el precio FINAL visible"""
-        logger.info("💰 Iniciando extracción de precios...")
+        logger.info("Iniciando extracción de precios...")
         
         try:
             # PRIMERO: Buscar el precio más prominente (precio final)
             precio_final = self._buscar_precio_final_visible()
             if precio_final:
-                logger.info(f"🎯 Precio final encontrado: ${precio_final}")
+                logger.info(f"Precio final encontrado: ${precio_final}")
                 
                 # Buscar precio de lista para comparar
                 precio_lista = self._buscar_precio_lista()
@@ -528,7 +520,7 @@ class MasonlineExtractor:
             return self._extract_prices()
             
         except Exception as e:
-            logger.error(f"💥 Error en extracción de precios: {e}")
+            logger.error(f"Error en extracción de precios: {e}")
             return {"normal": None, "descuento": None}
     
     def _buscar_precio_final_visible(self):
@@ -587,14 +579,14 @@ class MasonlineExtractor:
             # Estrategia 3: Buscar todos los precios y tomar el más prominente
             precios_todos = self._buscar_todos_precios_visibles()
             if precios_todos:
-                logger.info(f"   📊 Precios encontrados: {precios_todos}")
+                logger.info(f"Precios encontrados: {precios_todos}")
                 return precios_todos[0]  # Tomar el mayor
             
             logger.warning("   [ERROR] No se encontró precio final")
             return None
             
         except Exception as e:
-            logger.error(f"   💥 Error buscando precio final: {e}")
+            logger.error(f"Error buscando precio final: {e}")
             return None
         
     def _buscar_precio_lista(self):
@@ -616,7 +608,7 @@ class MasonlineExtractor:
                             if texto and '$' in texto:
                                 precio = self._parsear_precio(texto)
                                 if precio and precio > 0:
-                                    logger.info(f"   📋 Precio lista: ${precio}")
+                                    logger.info(f"Precio lista: ${precio}")
                                     return precio
                 except:
                     continue
@@ -831,7 +823,7 @@ class MasonlineExtractor:
                     if not precios_unicos or abs(precio - precios_unicos[-1]) / precios_unicos[-1] > 0.05:
                         precios_unicos.append(precio)
                 
-                logger.info(f"📊 Precios únicos por prominencia: {precios_unicos}")
+                logger.info(f"Precios únicos por prominencia: {precios_unicos}")
                 return precios_unicos
             
             return []
@@ -849,29 +841,6 @@ class MasonlineExtractor:
             return (txt, match.group(0)) if match else (None, None)
         except:
             return (None, None)
-        
-    def _extract_discounts(self):
-        """Detecta textos de promociones o descuentos visibles."""
-        try:
-            promos = []
-            discount_selectors = [
-                "//*[contains(text(),'Descuento')]",
-                "//*[contains(text(),'Promo')]",
-                "//*[contains(text(),'Oferta')]",
-                "//*[contains(text(),'%')]"
-            ]
-            
-            for selector in discount_selectors:
-                elements = self.driver.find_elements(By.XPATH, selector)
-                for el in elements:
-                    text = el.text.strip()
-                    if text and len(text) < 100:  # Evitar textos muy largos
-                        promos.append(text)
-            
-            # Eliminar duplicados
-            return list(dict.fromkeys(promos))
-        except:
-            return []
         
     def _build_product_data(self, name, price_normal, price_discount, unit_price, unit_text, discounts, url):
         """
@@ -909,7 +878,107 @@ class MasonlineExtractor:
             "supermercado": self.CONFIG['supermarket_name'],
             "url": url
         }
+    
+    def _extract_discounts(self): 
+        """Detecta textos de promociones o descuentos visibles.""" 
+        try: 
+            promos = [] 
+            discount_selectors = [ "//*[contains(text(),'Descuento')]", "//*[contains(text(),'Promo')]", "//*[contains(text(),'Oferta')]", "//*[contains(text(),'%')]" ] 
+            for selector in discount_selectors: 
+                elements = self.driver.find_elements(By.XPATH, selector) 
+                for el in elements: 
+                    text = el.text.strip() 
+                    if text and len(text) < 100: 
+                        promos.append(text) 
+                    
+            return self.procesar_descuentos(promos)
+        except: 
+            return []
+    
+    def limpiar_descuento(self, texto: str) -> str:
+        """
+        Limpieza unificada para descuentos:
+        - minuscula
+        - sin acentos
+        - sin emojis
+        - sin caracteres raros
+        - espacios normalizados
+        """
+        if not texto:
+            return ""
 
+        # 1) eliminar emojis y símbolos no textuales
+        texto = texto.encode('ascii', 'ignore').decode('ascii')
+
+        # 2) pasar a minúscula
+        texto = texto.lower()
+
+        # 3) eliminar acentos
+        texto = ''.join(
+            c for c in unicodedata.normalize('NFD', texto)
+            if unicodedata.category(c) != 'Mn'
+        )
+
+        # 4) normalizar espacios
+        texto = " ".join(texto.split())
+
+        # 5) eliminar basura: solo letras, números, %, x
+        texto = re.sub(r"[^a-z0-9% x/\.]", "", texto)
+
+        # 6) normalizar formato de descuento: ej: "20 %", "20%off"
+        texto = texto.replace(" %", "%")
+        texto = texto.replace("% ", "% ")
+        texto = texto.replace("off", "off")  # ya está minúscula
+
+        return texto.strip()
+    
+    def descuento_es_valido(self, texto: str) -> bool:
+        if not texto or len(texto) > 80:
+            return False
+
+        text = texto.lower()
+
+        keywords = ["%", "off", "descuento", "dcto", "promo", "oferta", "2x1", "3x2"]
+        has_keyword = any(k in text for k in keywords)
+
+        has_digit = any(c.isdigit() for c in text)
+
+        return has_keyword and has_digit
+    
+    def normalizar_descuento(self, texto: str) -> str:
+        t = texto
+
+        # unir "20 %"
+        t = re.sub(r"(\d+)\s*%", r"\1%", t)
+
+        # ordenar formato clásico: "20% off"
+        t = t.replace("off", " off")
+
+        # arreglar doble espacio
+        t = " ".join(t.split())
+
+        return t.strip()
+
+    def procesar_descuentos(self, descuentos_raw):
+        """
+        Aplica: limpiar → validar → normalizar → quitar duplicados
+        """
+        final = []
+
+        for d in descuentos_raw:
+            limpio = self.limpiar_descuento(d)
+
+            if self.descuento_es_valido(limpio):
+                norm = self.normalizar_descuento(limpio)
+                final.append(norm)
+
+        # eliminar duplicados manteniendo orden
+        final = list(dict.fromkeys(final))
+
+        # ordenar poniendo primero los que tienen %
+        final.sort(key=lambda x: "%" not in x)
+
+        return final
 
 
 
@@ -922,10 +991,6 @@ class MasonlineExtractor:
             logger.info("[SEARCH] Navegando a login de Masonline...")
             self.driver.get(f"{self.CONFIG['base_url']}/login")
             time.sleep(3)
-            
-            # TOMAR SCREENSHOT ANTES DE CUALQUIER ACCIÓN
-            self.driver.save_screenshot('masonline_debug_01_login_page.png')
-            logger.info("📸 Screenshot: masonline_debug_01_login_page.png")
             
             # DEBUG: Mostrar estructura de la página
             logger.info("[SEARCH] Estructura inicial de la página:")
@@ -942,10 +1007,6 @@ class MasonlineExtractor:
             if not self.ingresar_credenciales_con_debug():
                 return False
             
-            # Screenshot después de ingresar credenciales
-            self.driver.save_screenshot('masonline_debug_02_after_credentials.png')
-            logger.info("📸 Screenshot: masonline_debug_02_after_credentials.png")
-            
             # Paso 3: Verificar login
             logger.info("[SEARCH] Verificando login...")
             if self._verificar_sesion_activa():
@@ -955,12 +1016,10 @@ class MasonlineExtractor:
                 return True
             else:
                 logger.error("[ERROR] LOGIN MASONLINE FALLIDO")
-                self.driver.save_screenshot('masonline_debug_03_login_failed.png')
                 return False
                 
         except Exception as e:
             logger.error(f"[ERROR] Error en login Masonline: {e}")
-            self.driver.save_screenshot('masonline_debug_04_error.png')
             return False
     
     def ingresar_credenciales_con_debug(self):

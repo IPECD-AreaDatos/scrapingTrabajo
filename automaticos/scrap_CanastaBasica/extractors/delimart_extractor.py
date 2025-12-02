@@ -167,7 +167,6 @@ class DelimartExtractor:
             name = self._extract_name()
             if not name:
                 logger.warning(f"No se pudo extraer nombre de {url}")
-                self._take_debug_screenshot("error_nombre")
                 return {"error_type": "no_name", "url": url, "titulo": self.driver.title}
             
             logger.info(f"Nombre encontrado: {name}")
@@ -410,15 +409,6 @@ class DelimartExtractor:
             return clean_price
         except:
             return price_text
-    
-    def _take_debug_screenshot(self, prefix):
-        """Toma screenshot para debug"""
-        try:
-            timestamp = datetime.now().strftime('%H%M%S')
-            self.driver.save_screenshot(f"{prefix}_{timestamp}.png")
-            logger.debug("Screenshot guardado para debug")
-        except Exception as e:
-            logger.debug(f"No se pudo guardar screenshot: {e}")
     
     def cleanup_driver(self):
         """Limpia recursos del driver"""
