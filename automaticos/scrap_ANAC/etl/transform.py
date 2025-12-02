@@ -90,84 +90,68 @@ class TransformANAC:
     def transform(self, file_path):
         """
         Transforma el archivo Excel en un DataFrame procesado
-        
-        Args:
-            file_path: Ruta al archivo Excel
-            
-        Returns:
-            pd.DataFrame: DataFrame transformado y limpio
         """
         try:
             logger.info(f"Leyendo archivo Excel: {file_path}")
             df = pd.read_excel(file_path, sheet_name=0)
             
-            # Buscar la fila objetivo
+            # Buscar la fila objetivo (donde aparece "TABLA 11")
             fila_target = self._buscar_fila_por_valor(df, self.target_value)
             if fila_target is None:
                 raise ValueError(f"No se encontró el valor '{self.target_value}' en el archivo.")
             
-            # Seleccionar las filas necesarias
-            # IMPORTANTE: No limitar a 58 filas, tomar todas las filas con datos
-            fila_inicio = fila_target + 2
+            # === 1) Encontrar inicio real de TABLA 11 ===
+            fila_inicio = fila_target + 2   # La tabla empieza 2 filas después
             
-            # Contar cuántas filas realmente tienen datos
-            filas_con_datos = 0
-            for i in range(fila_inicio, len(df)):
-                row = df.iloc[i]
-                valores_no_nulos = row.notna().sum()
-                if valores_no_nulos > 5:  # Si tiene más de 5 valores, es una fila de datos
-                    filas_con_datos += 1
-                else:
-                    break  # Fila vacía, terminaron los datos
-            
-            # Usar todas las filas con datos, no solo 58
-            if filas_con_datos > 0:
-                df = df.iloc[fila_inicio:(fila_inicio + filas_con_datos)]
-                logger.info(f"Seleccionadas {filas_con_datos} filas con datos (desde fila {fila_inicio})")
-            else:
-                # Fallback: usar 58 filas si no se detectan automáticamente
-                df = df.iloc[fila_inicio:(fila_inicio + 58)]
-                logger.warning("No se detectaron filas automáticamente, usando 58 filas por defecto")
-            
+            # === 2) Encontrar final real de la tabla ===
+            fila_fin = fila_inicio
+            while fila_fin < len(df) and not df.iloc[fila_fin].isna().all():
+                fila_fin += 1
+
+            logger.info(f"Filas detectadas para TABLA 11: inicio={fila_inicio}, fin={fila_fin}")
+
+            # === 3) Extraer fechas ANTES de recortar ===
+            self.fechas = df.iloc[fila_inicio:fila_fin].iloc[:, 0].tolist()
+
+            # === 4) Recortamos SOLO la tabla ===
+            df = df.iloc[fila_inicio:fila_fin].copy()
+
+            logger.info(f"Filtrado final TABLA 11: {len(df)} filas")
+
+            # Eliminar filas que no tienen al menos 2 valores numéricos
+            df = df[df.apply(lambda row: pd.to_numeric(row, errors="coerce").count() >= 2, axis=1)]
+
             # Limpiar columnas vacías
             df.dropna(axis=1, how='all', inplace=True)
             
             # Transponer y renombrar columnas
             df = df.transpose()
             df.columns = df.iloc[0]
-            
-            # Guardar los índices ANTES de hacer drop (contienen las fechas)
-            # El primer índice es el nombre de la columna, los siguientes son las fechas
-            indices_originales = df.index.tolist()
-            
-            # Eliminar la primera fila (que ahora son los nombres de columnas)
-            df = df.drop(df.index[0])
-            
-            # Extraer fechas reales del Excel desde los índices originales
-            # Saltamos el primer índice (nombre de columna) y tomamos el resto (fechas)
-            fechas = self._parsear_fechas_desde_excel(indices_originales[1:])
-            
-            # Si se pudieron parsear todas las fechas, usarlas
-            if len(fechas) == len(df) and all(f is not None for f in fechas):
-                df.insert(0, 'fecha', fechas)
-                logger.info(f"[OK] Fechas extraídas del Excel: desde {fechas[0]} hasta {fechas[-1]} ({len(fechas)} fechas)")
-            else:
-                # Si hay problemas, intentar inferir desde la primera fecha válida
-                fechas_corregidas = self._corregir_fechas_faltantes(fechas)
-                if all(f is not None for f in fechas_corregidas):
-                    df.insert(0, 'fecha', fechas_corregidas)
-                    logger.info(f"[OK] Fechas corregidas: desde {fechas_corregidas[0]} hasta {fechas_corregidas[-1]}")
-                else:
-                    logger.warning(f"[WARNING] No se pudieron parsear todas las fechas. Generando desde 2023-01-01")
-                    fecha_inicio = datetime.strptime("2023-01-01", "%Y-%m-%d").date()
-                    fechas = [fecha_inicio + relativedelta(months=i) for i in range(len(df))]
-                    df.insert(0, 'fecha', fechas)
-            
-            # Eliminar última columna si es None
+            df = df.drop(df.index[0]).reset_index(drop=True)
+
+            print("\n=== TABLA TRANSFORMADA ANTES DE FECHAS ===")
+
+            # Fecha inicial del histórico ANAC
+            fecha_inicio = pd.Timestamp("2023-01-01")
+
+            # Generar una fecha por cada fila
+            fechas_reales = [
+                fecha_inicio + pd.DateOffset(months=i)
+                for i in range(len(df))
+            ]
+
+            # Insertar fechas generadas
+            df.insert(0, "fecha", fechas_reales)
+
+            logger.info(f"[OK] Fechas generadas automáticamente ({len(fechas_reales)})")
+
+            print("\n=== TABLA CON FECHAS CORRECTAS ===")
+
+            # Eliminar última columna None si existe
             if df.columns[-1] is None:
                 df.drop(df.columns[-1], axis=1, inplace=True)
             
-            # Convertir columnas a numérico y multiplicar por 1000
+            # Convertir columnas a numerico y multiplicar por 1000
             self._convertir_columnas_numericas(df)
             
             # Renombrar columnas
@@ -175,7 +159,14 @@ class TransformANAC:
             
             # Aplicar correcciones específicas
             df = self._aplicar_correcciones(df)
-            
+
+            # Convertir al formato long
+            df = self._convertir_a_formato_long(df)
+
+            print(df)
+
+            print(df.columns.tolist())
+        
             logger.info(f"[OK] DataFrame transformado: {len(df)} filas, {len(df.columns)} columnas")
             return df
             
@@ -183,14 +174,57 @@ class TransformANAC:
             logger.error(f"Error en transformación: {e}")
             raise
 
+    def debug_tablas(self, df):
+        for i, row in df.iterrows():
+            for j, cell in enumerate(row):
+                if isinstance(cell, str) and "tabla" in cell.lower():
+                    print(f"Fila {i}, Col {j}: '{cell}'")
+
+    def _convertir_a_formato_long(self, df):
+        # Columnas que no son aeropuertos
+        columnas_id = ["fecha"]
+
+        # Todas las demás columnas son aeropuertos
+        columnas_aeropuertos = [c for c in df.columns if c not in columnas_id]
+
+        # Convertimos usando melt()
+        df_long = df.melt(
+            id_vars=columnas_id,
+            value_vars=columnas_aeropuertos,
+            var_name="aeropuerto",
+            value_name="cantidad"
+        )
+
+        # Asegurar valores numéricos
+        df_long["cantidad"] = pd.to_numeric(df_long["cantidad"], errors="coerce").fillna(0)
+
+        return df_long
+
     def _buscar_fila_por_valor(self, df, target_value):
-        """Busca el valor en todas las columnas del DataFrame"""
-        try:
-            for index, row in df.iterrows():
-                if target_value in row.values:
+        target_norm = target_value.lower().strip()
+
+        for index, row in df.iterrows():
+            for cell in row:
+                if not isinstance(cell, str):
+                    continue
+                
+                cell_norm = cell.lower().strip()
+
+                # match estricto de palabra entera
+                if cell_norm == target_norm:
                     return index
-        except Exception as e:
-            logger.error(f"Error durante la búsqueda del valor: {e}")
+
+                # match flexible seguro
+                if cell_norm.startswith(target_norm + " "):
+                    return index
+
+                if cell_norm.startswith(target_norm + "\n"):
+                    return index
+
+                # TABLA 11 separado por espacios
+                if cell_norm.replace(" ", "") == target_norm.replace(" ", ""):
+                    return index
+
         return None
 
     def _convertir_columnas_numericas(self, df):
@@ -333,4 +367,3 @@ class TransformANAC:
                     logger.info(f"[OK] Corregidos {cantidad} registros: {valor_incorrecto} -> {valor_correcto}")
         
         return df
-
