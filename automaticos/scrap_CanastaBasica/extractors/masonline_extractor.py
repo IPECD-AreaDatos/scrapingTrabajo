@@ -1438,3 +1438,7 @@ class MasonlineExtractor:
                 logger.info("Driver de Masonline cerrado correctamente")
         except Exception as e:
             logger.error(f"Error cerrando driver Masonline: {e}")
+
+
+
+            

@@ -20,6 +20,7 @@ from extractors.delimart_extractor import DelimartExtractor
 from extractors.masonline_extractor import MasonlineExtractor
 from extractors.depot_extractor import DepotExtractor
 from extractors.lareina_extractor import LareinaExtractor
+from extractors.dia_extractor import DiaExtractor
 import re
 
 logger = logging.getLogger(__name__)
@@ -36,10 +37,11 @@ class ExtractCanastaBasica:
         """Configura los extractores de supermercados"""
         self.extractors = {
             'carrefour': CarrefourExtractor(),
-            #'delimart': DelimartExtractor(),
-            #'masonline': MasonlineExtractor(),
-            #'depot': DepotExtractor(), 
-            #'lareina': LareinaExtractor()
+            'delimart': DelimartExtractor(),
+            'masonline': MasonlineExtractor(),
+            'depot': DepotExtractor(), 
+            'lareina': LareinaExtractor(),
+            'dia' : DiaExtractor()
         }
         logger.info("[OK] Extractores inicializados: %s", list(self.extractors.keys()))
     
@@ -59,7 +61,7 @@ class ExtractCanastaBasica:
                 logger.info("[EXTRACT] Leyendo hoja: %s", sheet_name)
                 
                 # Leer datos de la hoja específica
-                range_name = f"'{sheet_name}'!A30:D40"
+                range_name = f"'{sheet_name}'!A2:D1000"
                 df_sheet = gs.leer_df(range_name, header=False)
                 
                 # Parsear productos y links de esta hoja
@@ -81,12 +83,12 @@ class ExtractCanastaBasica:
         """Obtiene los nombres de todas las hojas del spreadsheet"""
         try:
             # Lista de hojas conocidas
-            known_sheets = ['carrefour', 'delimart', 'masonline', 'depot', 'lareina']
+            known_sheets = ['carrefour', 'delimart', 'masonline', 'depot', 'lareina', 'dia']
             return known_sheets
             
         except Exception as e:
             logger.warning("[WARNING] No se pudieron obtener nombres de hojas, usando lista por defecto: %s", str(e))
-            return ['carrefour', 'delimart', 'masonline', 'depot', 'lareina']
+            return ['carrefour', 'delimart', 'masonline', 'depot', 'lareina', 'dia']
     
     def _parse_sheet_data(self, df_sheet: pd.DataFrame, sheet_name: str) -> Dict[str, List[Dict]]:
         """Parsea los datos de una hoja específica"""
@@ -170,7 +172,8 @@ class ExtractCanastaBasica:
                 'delimart.com.ar' in text or
                 'masonline.com.ar' in text or
                 'depotexpress.com.ar' in text or
-                'lareinacorrientes.com.ar' in text)
+                'lareinacorrientes.com.ar' in text or
+                'diaonline.supermercadosdia.com.ar' in text)
     
     def initialize_sessions(self):
         """Inicializa las sesiones de todos los supermercados"""

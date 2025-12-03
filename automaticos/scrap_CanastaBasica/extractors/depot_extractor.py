@@ -24,8 +24,8 @@ class DepotExtractor:
     
     # Configuraciones centralizadas
     CONFIG = {
-        'timeout': 30,
-        'wait_between_requests': 1,
+        'timeout': 10,
+        'wait_between_requests': 0.1,
         'supermarket_name': 'Depot'
     }
     
@@ -93,6 +93,8 @@ class DepotExtractor:
         if self.driver is None:
             options = Options()
             # options.add_argument('--headless')  # Descomentar para producción
+
+            options.page_load_strategy = 'eager' 
             options.add_argument('--disable-gpu')
             options.add_argument('--no-sandbox')
             options.add_argument('--disable-dev-shm-usage')
@@ -180,9 +182,7 @@ class DepotExtractor:
                 self.setup_driver()
 
             logger.info(f"Navegando a: {url}")
-            self.driver.set_page_load_timeout(30)
             self.driver.get(url)
-            time.sleep(2)
             logger.info(f"Pagina cargada: {self.driver.title}")
             
             name = self._extract_name()
