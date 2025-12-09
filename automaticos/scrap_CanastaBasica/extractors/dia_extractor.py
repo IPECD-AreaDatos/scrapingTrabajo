@@ -11,6 +11,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
 import pickle
 
 load_dotenv()
@@ -426,17 +427,102 @@ class DiaExtractor:
             return False
 
     def asegurar_sesion_activa(self):
-        """Lógica principal para garantizar sesión"""
+        """Lógica principal para garantizar sesión Y UBICACIÓN"""
         if self.driver is None:
             self.setup_driver()
             
-        # Intentamos ir al home para ver si ya estamos logueados por cookies viejas
+        # Intentamos ir al home 
         self.driver.get("https://diaonline.supermercadosdia.com.ar/")
         time.sleep(3)
         
+        sesion_ok = False
+        
+        # Paso A: Verificar Login
         if self._verificar_sesion_activa():
             logger.info("Sesión recuperada por cookies/cache exitosamente.")
-            return True
+            sesion_ok = True
+        else:
+            logger.info("Sesión no detectada. Iniciando login fresco...")
+            sesion_ok = self.login_con_email_password()
             
-        logger.info("Sesión no detectada. Iniciando login fresco...")
-        return self.login_con_email_password()
+        # Paso B: Si el login está ok (o aunque fallara, intentamos), forzar ubicación
+        if sesion_ok:
+            self._configurar_ubicacion_corrientes() # <--- AQUÍ ESTÁ LA MAGIA
+            
+        return sesion_ok
+    
+    def _configurar_ubicacion_corrientes(self):
+        """
+        Flujo FINAL optimizado con el HTML proporcionado.
+        1. Click en #region-locator-trigger (Botón 'Cambiar dirección' del header).
+        2. Click en Confirmar (Dirección guardada).
+        3. Click en Confirmar (Sucursal/Envío).
+        """
+        try:
+            logger.info("[GEO] Iniciando configuración de ubicación (Modo Corrientes)...")
+            time.sleep(3) # Esperar que el header se renderice completamente
+
+            # --- PASO 1: ABRIR EL MODAL (Usando tu HTML exacto) ---
+            logger.info("[GEO] Buscando botón de ubicación en el header...")
+            boton_geo = None
+            
+            # Lista de selectores basada en tu HTML, de más específico a más general
+            selectores_apertura = [
+                (By.ID, "region-locator-trigger"),  # EL MEJOR: ID directo del HTML que pasaste
+                (By.XPATH, "//input[@value='Cambiar dirección']"), # El botón interno
+                (By.CSS_SELECTOR, ".diaio-region-locator-v2-0-x-sc__container"), # La clase del contenedor
+                (By.XPATH, "//*[contains(text(), 'Retiras en')]") # Texto visible
+            ]
+
+            opened = False
+            for tipo, selector in selectores_apertura:
+                try:
+                    boton_geo = self.driver.find_element(tipo, selector)
+                    if boton_geo.is_displayed():
+                        # A veces el click normal falla en headers flotantes, usamos JS por seguridad
+                        self.driver.execute_script("arguments[0].click();", boton_geo)
+                        logger.info(f"[GEO] Click en botón de ubicación exitoso ({selector})")
+                        opened = True
+                        break
+                except Exception as e:
+                    continue
+            
+            if not opened:
+                logger.warning("[GEO] No se pudo hacer click en el botón de ubicación.")
+
+            time.sleep(2) # Esperar animación del modal
+
+            # --- PASO 2: PRIMER CONFIRMAR (Dirección guardada) ---
+            logger.info("[GEO] Confirmando dirección guardada...")
+            try:
+                # Buscamos el botón rojo "Confirmar"
+                boton_conf_1 = self.wait.until(EC.element_to_be_clickable(
+                    (By.XPATH, "//button[contains(text(), 'Confirmar')]")
+                ))
+                boton_conf_1.click()
+                logger.info("[GEO] Dirección confirmada.")
+            except Exception as e:
+                logger.warning(f"[GEO] Falló primer confirmar (¿Ya estaba seleccionado?): {e}")
+
+            time.sleep(2) # Breve pausa entre modales
+
+            # --- PASO 3: SEGUNDO CONFIRMAR (Sucursal Av. Libertad) ---
+            logger.info("[GEO] Confirmando sucursal/envío...")
+            try:
+                # Buscamos el último botón confirmar que aparezca en el DOM (el del segundo modal)
+                boton_conf_2 = self.wait.until(EC.element_to_be_clickable(
+                    (By.XPATH, "(//button[contains(text(), 'Confirmar')])[last()]")
+                ))
+                boton_conf_2.click()
+                logger.info("[GEO] Sucursal confirmada.")
+            except Exception as e:
+                logger.warning(f"[GEO] Falló segundo confirmar: {e}")
+
+            # --- PASO 4: ESPERAR RECARGA ---
+            logger.info("[GEO] Esperando actualización de precios...")
+            time.sleep(4) 
+            return True
+
+        except Exception as e:
+            logger.error(f"[GEO] Error crítico configurando ubicación: {e}")
+            return False
