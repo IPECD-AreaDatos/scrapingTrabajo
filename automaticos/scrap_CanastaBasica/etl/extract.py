@@ -36,12 +36,12 @@ class ExtractCanastaBasica:
     def _setup_extractors(self):
         """Configura los extractores de supermercados"""
         self.extractors = {
-            'carrefour': CarrefourExtractor(),
-            'delimart': DelimartExtractor(),
-            'masonline': MasonlineExtractor(),
-            'depot': DepotExtractor(), 
-            'lareina': LareinaExtractor(),
-            #'dia' : DiaExtractor()
+            #'carrefour': CarrefourExtractor(),
+            #'delimart': DelimartExtractor(),
+            #'masonline': MasonlineExtractor(),
+            #'depot': DepotExtractor(), 
+            #'lareina': LareinaExtractor(),
+            'dia' : DiaExtractor()
         }
         logger.info("[OK] Extractores inicializados: %s", list(self.extractors.keys()))
     

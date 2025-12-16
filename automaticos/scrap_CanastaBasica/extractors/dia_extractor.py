@@ -15,6 +15,9 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver import ActionChains
+from selenium.webdriver.chrome.service import Service as ChromeService 
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.service import Service
 import pickle
 
 load_dotenv()
@@ -63,6 +66,7 @@ class DiaExtractor:
             options.add_argument('--disable-blink-features=AutomationControlled')
             options.add_experimental_option('excludeSwitches', ['enable-automation'])
             options.add_experimental_option('useAutomationExtension', False)
+            service = Service(ChromeDriverManager().install())
             
             self.driver = webdriver.Chrome(options=options)
             self.wait = WebDriverWait(self.driver, self.timeout)

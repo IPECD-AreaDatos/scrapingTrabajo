@@ -478,17 +478,30 @@ class DepotExtractor:
             return "desconocido"
         
     def _clean_price(self, price_text):
-        """Limpia y formatea el precio"""
+        """Limpia y formatea el precio para formato argentino (1.000,00)"""
         if not price_text or price_text == "0" or price_text == "":
-            return ""  # Devuelve vacío en lugar de 0
+            return "" 
         
         try:
-            # Remover caracteres no numéricos excepto punto y coma
-            clean_price = re.sub(r'[^\d,.]', '', str(price_text))
-            # Reemplazar coma por punto para decimales
+            # 1. Convertir a string y quitar espacios
+            txt = str(price_text).strip()
+
+            # 2. Remover caracteres no numéricos excepto punto y coma
+            #    (Mantiene el formato original "2.825,83")
+            clean_price = re.sub(r'[^\d,.]', '', txt)
+            
+            # 3. ELIMINAR el punto de los miles
+            #    "2.825,83" pasa a ser "2825,83"
+            clean_price = clean_price.replace('.', '')
+            
+            # 4. REEMPLAZAR la coma decimal por punto
+            #    "2825,83" pasa a ser "2825.83" (formato correcto para float)
             clean_price = clean_price.replace(',', '.')
+            
             return clean_price
-        except:
+        except Exception as e:
+            # Es útil imprimir el error para debuggear si falla
+            print(f"Error limpiando precio {price_text}: {e}")
             return ""
         
     def _check_availability(self):
