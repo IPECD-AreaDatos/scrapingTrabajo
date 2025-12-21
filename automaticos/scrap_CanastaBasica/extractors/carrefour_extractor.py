@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import re
 import unicodedata
@@ -14,6 +15,12 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pickle
 
+# Agregar directorio padre al path para imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from utils.cookie_manager import CookieManager
+from utils.optimization import optimize_driver_options, SmartWait
+
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -26,36 +33,40 @@ class CarrefourExtractor:
     
     def __init__(self):
         self.nombre_super = "Carrefour"
-        self.timeout = 30  # Aumentar timeout para mejor estabilidad
+        self.timeout = 15  # OPTIMIZADO: Reducido de 30 a 15 segundos
         self.driver = None
         self.wait = None
         self.sesion_iniciada = False
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.files_dir = os.path.join(base_dir, 'files')
         os.makedirs(self.files_dir, exist_ok=True)
-        self.cookies_file = os.path.join(self.files_dir, "carrefour_cookies.pkl")
+        
+        # OPTIMIZADO: Usar CookieManager centralizado
+        self.cookie_manager = CookieManager(base_dir)
+        self.cookies_file = str(self.cookie_manager.get_cookie_path('carrefour'))
+        
         self.email = os.getenv('CARREFOUR_EMAIL', 'manumarder@gmail.com')
         self.password = os.getenv('CARREFOUR_PASSWORD', 'Ipecd2025')
     
     def setup_driver(self):
-        """Configura el driver de Selenium"""
+        """Configura el driver de Selenium - OPTIMIZADO"""
         if self.driver is None:
             options = Options()
-            # Activar modo headless para producción
-            #options.add_argument('--headless')
-            options.add_argument('--disable-gpu')
-            options.add_argument('--no-sandbox')
-            options.add_argument('--disable-dev-shm-usage')
-            options.add_argument('--ignore-certificate-errors')
-            options.add_argument('--ignore-ssl-errors')
+            # OPTIMIZADO: Aplicar optimizaciones automáticas
+            optimize_driver_options(options)
+            
+            # Configuraciones adicionales específicas
             options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
             options.add_argument('--window-size=1920,1080')
-            # Optimizaciones de rendimiento
             options.add_argument('--disable-blink-features=AutomationControlled')
             options.add_experimental_option('excludeSwitches', ['enable-automation'])
             options.add_experimental_option('useAutomationExtension', False)
             
+            # OPTIMIZADO: Estrategia de carga rápida
+            options.page_load_strategy = 'eager'
+            
             self.driver = webdriver.Chrome(options=options)
+            self.driver.set_page_load_timeout(15)  # OPTIMIZADO: Timeout reducido
             self.wait = WebDriverWait(self.driver, self.timeout)
         
         return self.driver, self.wait
@@ -73,7 +84,8 @@ class CarrefourExtractor:
                     return None
                 
             self.driver.get(url)
-            time.sleep(2)  # Reducir tiempo de espera
+            # OPTIMIZADO: Espera mínima, usar WebDriverWait cuando sea necesario
+            SmartWait.wait_minimal(0.3)  # Reducido de 2s a 0.3s
             logger.info(f"[EXTRACT] Página cargada: {self.driver.title}")
             
             # Verificar si es página de error 404
@@ -151,8 +163,8 @@ class CarrefourExtractor:
             if producto:
                 resultados.append(producto)
             
-            # Pequeña pausa entre requests
-            time.sleep(1)
+            # OPTIMIZADO: Pausa mínima entre requests
+            SmartWait.wait_minimal(0.2)
         
         # Guardar sesión al finalizar
         self.guardar_sesion()
@@ -425,7 +437,7 @@ class CarrefourExtractor:
             # Paso 1: Ir a página de login
             logger.info(" Navegando a login...")
             self.driver.get("https://www.carrefour.com.ar/login")
-            time.sleep(3)
+            SmartWait.wait_minimal(1)  # OPTIMIZADO: Reducido de 3s a 1s
             
             # Paso 2: Buscar botón de email
             logger.info(" Buscando botón email...")
@@ -469,13 +481,13 @@ class CarrefourExtractor:
                     
                     # Scroll para asegurar visibilidad
                     self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", boton_exacto)
-                    time.sleep(1)
+                    SmartWait.wait_minimal(0.3)  # OPTIMIZADO: Reducido de 1s a 0.3s
                     
                     # Intentar clic normal
                     try:
                         boton_exacto.click()
                         logger.info(" Clic exitoso en botón exacto")
-                        time.sleep(5)
+                        SmartWait.wait_minimal(2)  # OPTIMIZADO: Reducido de 5s a 2s
                         return True
                     except Exception as click_error:
                         logger.warning(f" Clic normal falló: {click_error}")
@@ -512,13 +524,13 @@ class CarrefourExtractor:
                         
                         # Scroll para asegurar visibilidad
                         self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", boton)
-                        time.sleep(1)
+                        SmartWait.wait_minimal(0.3)  # OPTIMIZADO: Reducido de 1s a 0.3s
                         
                         # Intentar clic normal
                         try:
                             boton.click()
                             logger.info(f" Clic exitoso en: '{texto}'")
-                            time.sleep(5)
+                            SmartWait.wait_minimal(2)  # OPTIMIZADO: Reducido de 5s a 2s
                             return True
                         except Exception as click_error:
                             logger.warning(f" Clic normal falló en '{texto}': {click_error}")
@@ -527,7 +539,7 @@ class CarrefourExtractor:
                             try:
                                 self.driver.execute_script("arguments[0].click();", boton)
                                 logger.info(f" Clic JS exitoso en: '{texto}'")
-                                time.sleep(5)
+                                SmartWait.wait_minimal(2)  # OPTIMIZADO: Reducido de 5s a 2s
                                 return True
                             except Exception as js_error:
                                 logger.error(f" Clic JS falló en '{texto}': {js_error}")
@@ -559,13 +571,13 @@ class CarrefourExtractor:
                             
                             # Scroll para asegurar visibilidad
                             self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", boton)
-                            time.sleep(1)
+                            SmartWait.wait_minimal(0.3)  # OPTIMIZADO: Reducido de 1s a 0.3s
                             
                             # Intentar clic normal
                             try:
                                 boton.click()
                                 logger.info(f" Clic exitoso en botón modal: '{texto}'")
-                                time.sleep(5)
+                                SmartWait.wait_minimal(2)  # OPTIMIZADO: Reducido de 5s a 2s
                                 return True
                             except Exception as click_error:
                                 logger.warning(f" Clic modal falló: {click_error}")
@@ -607,12 +619,12 @@ class CarrefourExtractor:
                                 
                                 # Scroll para asegurar visibilidad
                                 self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", boton)
-                                time.sleep(1)
+                                SmartWait.wait_minimal(0.3)  # OPTIMIZADO: Reducido de 1s a 0.3s
                                 
                                 # Intentar clic JavaScript directamente (más confiable)
                                 self.driver.execute_script("arguments[0].click();", boton)
                                 logger.info(f" Clic JS en botón especial: {selector} - Texto: '{texto_boton}'")
-                                time.sleep(5)
+                                SmartWait.wait_minimal(2)  # OPTIMIZADO: Reducido de 5s a 2s
                                 return True
                                 
                     except Exception as e:
@@ -651,7 +663,7 @@ class CarrefourExtractor:
         """Ingresar credenciales con debugging detallado"""
         try:
             logger.info("Ingresando credenciales...")
-            time.sleep(3)
+            SmartWait.wait_minimal(1)  # OPTIMIZADO: Reducido de 3s a 1s
             
             # VERIFICAR SI HAY MENSAJES DE ERROR ANTES
             try:
@@ -697,7 +709,7 @@ class CarrefourExtractor:
             campo_email.clear()
             campo_email.send_keys(self.email)
             logger.info(" Email ingresado")
-            time.sleep(1)
+            SmartWait.wait_minimal(0.3)  # OPTIMIZADO: Reducido de 1s a 0.3s
             
             # VERIFICAR SI EL EMAIL SE INGRESÓ CORRECTAMENTE
             valor_email = campo_email.get_attribute('value')
@@ -743,7 +755,7 @@ class CarrefourExtractor:
             campo_password.clear()
             campo_password.send_keys(self.password)
             logger.info(" Contraseña ingresada")
-            time.sleep(1)
+            SmartWait.wait_minimal(0.3)  # OPTIMIZADO: Reducido de 1s a 0.3s
             
             # VERIFICAR SI LA CONTRASEÑA SE INGRESÓ
             valor_password = campo_password.get_attribute('value')
@@ -777,7 +789,7 @@ class CarrefourExtractor:
                         logger.error(f" Clic JS también falló: {js_error}")
                         return False
                 
-                time.sleep(5)  # Esperar más tiempo para el login
+                SmartWait.wait_minimal(2)  # OPTIMIZADO: Reducido de 5s a 2s
                 return True
                 
             except Exception as e:
@@ -793,8 +805,8 @@ class CarrefourExtractor:
         try:
             logger.info("Verificando sesión...")
             
-            # Esperar a que se complete cualquier redirección
-            time.sleep(3)
+            # OPTIMIZADO: Espera mínima para redirección
+            SmartWait.wait_minimal(1)  # Reducido de 3s a 1s
             
             # Verificar URL actual
             current_url = self.driver.current_url
@@ -851,29 +863,28 @@ class CarrefourExtractor:
         for intento in range(2):
             logger.info(f"Intento {intento + 1}/2 de login")
             
-            # Intentar cargar sesión existente PRIMERO
-            if intento == 0 and os.path.exists(self.cookies_file):
-                try:
-                    with open(self.cookies_file, 'rb') as f:
-                        cookies = pickle.load(f)
-                    
-                    self.driver.get("https://www.carrefour.com.ar")
-                    self.driver.delete_all_cookies()
-                    for cookie in cookies:
-                        try:
-                            self.driver.add_cookie(cookie)
-                        except:
-                            pass
-                    
-                    self.driver.refresh()
-                    time.sleep(3)
-                    
-                    if self.verificar_sesion_con_debug():
-                        self.sesion_iniciada = True
-                        logger.info("[OK] Sesión cargada desde cookies")
-                        return True
-                except Exception as e:
-                    logger.debug(f"Error cargando sesión: {e}")
+            # OPTIMIZADO: Intentar cargar sesión existente usando CookieManager
+            if intento == 0:
+                cookies = self.cookie_manager.load_cookies('carrefour')
+                if cookies:
+                    try:
+                        self.driver.get("https://www.carrefour.com.ar")
+                        self.driver.delete_all_cookies()
+                        for cookie in cookies:
+                            try:
+                                self.driver.add_cookie(cookie)
+                            except:
+                                pass
+                        
+                        self.driver.refresh()
+                        SmartWait.wait_minimal(1.5)  # OPTIMIZADO: Reducido de 3s a 1.5s
+                        
+                        if self.verificar_sesion_con_debug():
+                            self.sesion_iniciada = True
+                            logger.info("[OK] Sesión cargada desde cookies")
+                            return True
+                    except Exception as e:
+                        logger.debug(f"Error cargando sesión: {e}")
             
             # Login nuevo SOLO si no hay cookies o no funcionan
             if self.login_con_email_password():
@@ -881,22 +892,22 @@ class CarrefourExtractor:
                 logger.info("[OK] Sesión iniciada manualmente")
                 return True
             
-            # Esperar entre intentos
+            # OPTIMIZADO: Espera mínima entre intentos
             if intento < 1:  # No esperar después del último intento
-                time.sleep(5)
+                SmartWait.wait_minimal(2)  # Reducido de 5s a 2s
         
         logger.error("[ERROR] Todos los intentos de login fallaron")
         return False
 
     def guardar_sesion(self):
-        """Guarda las cookies de la sesión actual"""
+        """Guarda las cookies de la sesión actual - OPTIMIZADO con CookieManager"""
         try:
             if self.driver and self.sesion_iniciada:
                 cookies = self.driver.get_cookies()
-                with open(self.cookies_file, 'wb') as f:
-                    pickle.dump(cookies, f)
-                logger.info(f"Sesión guardada en {self.cookies_file}")
-                return True
+                # OPTIMIZADO: Usar CookieManager centralizado
+                if self.cookie_manager.save_cookies('carrefour', cookies):
+                    logger.info(f"Sesión guardada con CookieManager")
+                    return True
             return False
         except Exception as e:
             logger.error(f"Error guardando sesión: {e}")
@@ -1064,10 +1075,10 @@ class CarrefourExtractor:
             # Configurar timeout más corto para páginas de error
             self.driver.set_page_load_timeout(15)  # Reducir de 30 a 15 segundos
             
-            # Intentar cargar la página con manejo de timeout
+            # OPTIMIZADO: Intentar cargar la página con manejo de timeout
             try:
                 self.driver.get(url)
-                time.sleep(2)  # Dar más tiempo para cargar
+                SmartWait.wait_minimal(0.5)  # Reducido de 2s a 0.5s
             except Exception as load_error:
                 return {
                     "valido": False,

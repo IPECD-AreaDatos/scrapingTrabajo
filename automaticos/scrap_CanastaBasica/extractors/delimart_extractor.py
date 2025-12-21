@@ -1,5 +1,6 @@
 
 import os
+import sys
 import time
 import pandas as pd
 import logging
@@ -13,6 +14,11 @@ from selenium.webdriver.support import expected_conditions as EC
 import re
 import traceback
 
+# Agregar directorio padre al path para imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from utils.optimization import optimize_driver_options, SmartWait
+
 # Configurar logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger('delimart_extractor')
@@ -24,10 +30,10 @@ load_dotenv()
 class DelimartExtractor:
     """Extractor optimizado para Delimart"""
     
-    # Configuraciones centralizadas
+    # Configuraciones centralizadas - OPTIMIZADO
     CONFIG = {
-        'timeout': 30,
-        'wait_between_requests': 1,
+        'timeout': 15,  # OPTIMIZADO: Reducido de 30 a 15
+        'wait_between_requests': 0.3,  # OPTIMIZADO: Reducido de 1 a 0.3
         'supermarket_name': 'Delimart'
     }
     
@@ -71,22 +77,24 @@ class DelimartExtractor:
         self.session_active = False
     
     def setup_driver(self):
-        """Configura el driver de Selenium"""
+        """Configura el driver de Selenium - OPTIMIZADO"""
         if self.driver is None:
             options = Options()
-            # options.add_argument('--headless')  # Descomentar para producción
-            options.add_argument('--disable-gpu')
-            options.add_argument('--no-sandbox')
-            options.add_argument('--disable-dev-shm-usage')
-            options.add_argument('--ignore-certificate-errors')
-            options.add_argument('--ignore-ssl-errors')
+            # OPTIMIZADO: Aplicar optimizaciones automáticas
+            optimize_driver_options(options)
+            
+            # Configuraciones adicionales específicas
             options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
             options.add_argument('--window-size=1920,1080')
             options.add_argument('--disable-blink-features=AutomationControlled')
             options.add_experimental_option('excludeSwitches', ['enable-automation'])
             options.add_experimental_option('useAutomationExtension', False)
             
+            # OPTIMIZADO: Estrategia de carga rápida
+            options.page_load_strategy = 'eager'
+            
             self.driver = webdriver.Chrome(options=options)
+            self.driver.set_page_load_timeout(15)  # OPTIMIZADO: Timeout reducido
             self.wait = WebDriverWait(self.driver, self.CONFIG['timeout'])
         
         return self.driver, self.wait
@@ -159,9 +167,9 @@ class DelimartExtractor:
                 self.setup_driver()
 
             logger.info(f"Navegando a: {url}")
-            self.driver.set_page_load_timeout(30)
+            self.driver.set_page_load_timeout(15)  # OPTIMIZADO: Reducido de 30 a 15
             self.driver.get(url)
-            time.sleep(2)
+            SmartWait.wait_minimal(0.5)  # OPTIMIZADO: Reducido de 2s a 0.5s
             logger.info(f"Pagina cargada: {self.driver.title}")
             
             name = self._extract_name()
@@ -446,10 +454,10 @@ class DelimartExtractor:
             logger.info("Validando link %d/%d: %s", i, len(urls), url)
             
             try:
-                # Configurar timeout corto para validación
-                self.driver.set_page_load_timeout(15)
+                # OPTIMIZADO: Timeout corto para validación
+                self.driver.set_page_load_timeout(10)  # Reducido de 15 a 10
                 self.driver.get(url)
-                time.sleep(2)
+                SmartWait.wait_minimal(0.5)  # Reducido de 2s a 0.5s
                 
                 # Verificar si la página carga correctamente
                 titulo = self.driver.title
@@ -500,6 +508,6 @@ class DelimartExtractor:
                     'titulo_pagina': 'No disponible'
                 }
             
-            time.sleep(1)  # Pausa entre validaciones
+            SmartWait.wait_minimal(0.2)  # OPTIMIZADO: Pausa mínima
         
         return resultados

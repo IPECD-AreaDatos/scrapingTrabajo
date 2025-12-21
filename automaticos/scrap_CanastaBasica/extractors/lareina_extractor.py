@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import pandas as pd
 import logging
@@ -12,6 +13,11 @@ from selenium.webdriver.support import expected_conditions as EC
 import re
 import traceback
 
+# Agregar directorio padre al path para imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from utils.optimization import optimize_driver_options, SmartWait
+
 # Configurar logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger('lareina_extractor')
@@ -22,10 +28,10 @@ load_dotenv()
 class LareinaExtractor:
     """Extractor optimizado para La Reina"""
     
-    # Configuraciones centralizadas
+    # Configuraciones centralizadas - OPTIMIZADO
     CONFIG = {
-        'timeout': 30,
-        'wait_between_requests': 1,
+        'timeout': 15,  # OPTIMIZADO: Reducido de 30 a 15
+        'wait_between_requests': 0.3,  # OPTIMIZADO: Reducido de 1 a 0.3
         'supermarket_name': 'Lareina'
     }
 
@@ -80,22 +86,24 @@ class LareinaExtractor:
         self.session_active = False
 
     def setup_driver(self):
-        """Configura el driver de Selenium"""
+        """Configura el driver de Selenium - OPTIMIZADO"""
         if self.driver is None:
             options = Options()
-            # options.add_argument('--headless')  # Descomentar para producción
-            options.add_argument('--disable-gpu')
-            options.add_argument('--no-sandbox')
-            options.add_argument('--disable-dev-shm-usage')
-            options.add_argument('--ignore-certificate-errors')
-            options.add_argument('--ignore-ssl-errors')
+            # OPTIMIZADO: Aplicar optimizaciones automáticas
+            optimize_driver_options(options)
+            
+            # Configuraciones adicionales específicas
             options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
             options.add_argument('--window-size=1920,1080')
             options.add_argument('--disable-blink-features=AutomationControlled')
             options.add_experimental_option('excludeSwitches', ['enable-automation'])
             options.add_experimental_option('useAutomationExtension', False)
             
+            # OPTIMIZADO: Estrategia de carga rápida
+            options.page_load_strategy = 'eager'
+            
             self.driver = webdriver.Chrome(options=options)
+            self.driver.set_page_load_timeout(15)  # OPTIMIZADO: Timeout reducido
             self.wait = WebDriverWait(self.driver, self.CONFIG['timeout'])
         
         return self.driver, self.wait

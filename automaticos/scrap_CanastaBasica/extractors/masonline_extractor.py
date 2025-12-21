@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import re
 import unicodedata
@@ -13,20 +14,25 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pickle
 
+# Agregar directorio padre al path para imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from utils.cookie_manager import CookieManager
+from utils.optimization import optimize_driver_options, SmartWait
+
 load_dotenv()
 
 # Configurar logging
-#logging.basicConfig(level=logging.INFO)
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class MasonlineExtractor:
     """Extractor mejorado para Masonline combinando lo mejor de ambos enfoques"""
     
-    # Configuraciones centralizadas (estilo Delimart)
+    # Configuraciones centralizadas (estilo Delimart) - OPTIMIZADO
     CONFIG = {
-        'timeout': 30,
-        'wait_between_requests': 2,
+        'timeout': 15,  # OPTIMIZADO: Reducido de 30 a 15
+        'wait_between_requests': 0.5,  # OPTIMIZADO: Reducido de 2 a 0.5
         'supermarket_name': 'Masonline',
         'base_url': 'https://www.masonline.com.ar'
     }
@@ -37,28 +43,34 @@ class MasonlineExtractor:
         self.driver = None
         self.wait = None
         self.sesion_iniciada = False
-        self.cookies_file = "masonline_cookies.pkl"
+        
+        # OPTIMIZADO: Usar CookieManager centralizado
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.cookie_manager = CookieManager(base_dir)
+        self.cookies_file = str(self.cookie_manager.get_cookie_path('masonline'))
+        
         self.email = 'manumarder@gmail.com'
         self.password = 'Ipecd2025'
     
     def setup_driver(self):
-        """Configura el driver de Selenium"""
+        """Configura el driver de Selenium - OPTIMIZADO"""
         if self.driver is None:
             options = Options()
-            # Descomentar para producción
-            # options.add_argument('--headless')
-            options.add_argument('--disable-gpu')
-            options.add_argument('--no-sandbox')
-            options.add_argument('--disable-dev-shm-usage')
-            options.add_argument('--ignore-certificate-errors')
-            options.add_argument('--ignore-ssl-errors')
+            # OPTIMIZADO: Aplicar optimizaciones automáticas
+            optimize_driver_options(options)
+            
+            # Configuraciones adicionales específicas
             options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
             options.add_argument('--window-size=1920,1080')
             options.add_argument('--disable-blink-features=AutomationControlled')
             options.add_experimental_option('excludeSwitches', ['enable-automation'])
             options.add_experimental_option('useAutomationExtension', False)
             
+            # OPTIMIZADO: Estrategia de carga rápida
+            options.page_load_strategy = 'eager'
+            
             self.driver = webdriver.Chrome(options=options)
+            self.driver.set_page_load_timeout(15)  # OPTIMIZADO: Timeout reducido
             self.wait = WebDriverWait(self.driver, self.timeout)
         
         return self.driver, self.wait
@@ -80,7 +92,7 @@ class MasonlineExtractor:
             if producto:
                 resultados.append(producto)
             
-            time.sleep(self.CONFIG['wait_between_requests'])
+            SmartWait.wait_minimal(0.2)  # OPTIMIZADO: Reducido
         
         self.guardar_sesion()
         return resultados
@@ -101,9 +113,9 @@ class MasonlineExtractor:
             # ESPERAS MEJORADAS - CLAVE PARA CARGAR PRECIOS
             # ═══════════════════════════════════════════════════════════
             
-            # Espera 1: Esperar que la página esté completamente cargada
+            # OPTIMIZADO: Espera mínima para carga de página
             logger.info("Esperando carga completa de la página...")
-            time.sleep(2)  # Espera fija inicial
+            SmartWait.wait_minimal(0.5)  # Reducido de 2s a 0.5s
             
             # Espera 2: Esperar elementos críticos
             try:
@@ -122,13 +134,13 @@ class MasonlineExtractor:
                 ))
                 logger.info("[OK] Contenedor de precio cargado")
                 
-                # Esperar adicional para precios dinámicos
-                time.sleep(1.5)
+                # OPTIMIZADO: Espera mínima para precios dinámicos
+                SmartWait.wait_minimal(0.5)  # Reducido de 1.5s a 0.5s
                 
             except Exception as e:
                 logger.warning(f"[WARNING] Contenedor de precio no encontrado: {e}")
-                # Espera de fallback
-                time.sleep(3)
+                # OPTIMIZADO: Espera de fallback reducida
+                SmartWait.wait_minimal(1)  # Reducido de 3s a 1s
             
             logger.info(f"Título de página: {self.driver.title}")
             
@@ -142,7 +154,7 @@ class MasonlineExtractor:
             # ═══════════════════════════════════════════════════════════
             # PASO 2: Verificar disponibilidad del producto
             # ═══════════════════════════════════════════════════════════
-            time.sleep(1) 
+            SmartWait.wait_minimal(0.3)  # OPTIMIZADO: Reducido de 1s a 0.3s 
             disponibilidad = self._verificar_disponibilidad_detallada()
             
             if disponibilidad["estado"] == "no_disponible":
@@ -990,7 +1002,7 @@ class MasonlineExtractor:
             # Paso 1: Ir a página de login
             logger.info("[SEARCH] Navegando a login de Masonline...")
             self.driver.get(f"{self.CONFIG['base_url']}/login")
-            time.sleep(3)
+            SmartWait.wait_minimal(1)  # OPTIMIZADO: Reducido de 3s a 1s
             
             # DEBUG: Mostrar estructura de la página
             logger.info("[SEARCH] Estructura inicial de la página:")
@@ -1026,7 +1038,7 @@ class MasonlineExtractor:
         """Ingresar credenciales en Masonline con debugging - VERSIÓN CORREGIDA"""
         try:
             logger.info("Ingresando credenciales en Masonline...")
-            time.sleep(3)
+            SmartWait.wait_minimal(1)  # OPTIMIZADO: Reducido de 3s a 1s
             
             # PRIMERO: HACER CLIC EN "ENTRAR CON E-MAIL Y CONTRASEÑA"
             logger.info("[SEARCH] Buscando opción 'Entrar con e-mail y contraseña'...")
@@ -1050,7 +1062,7 @@ class MasonlineExtractor:
                             elemento.click()
                             logger.info("[OK] Clic en opción 'Entrar con e-mail y contraseña'")
                             opcion_encontrada = True
-                            time.sleep(2)  # Esperar que se despliegue el formulario
+                            SmartWait.wait_minimal(0.5)  # OPTIMIZADO: Reducido de 2s a 0.5s
                             break
                         except Exception as click_error:
                             logger.warning(f"[WARNING] Clic normal falló: {click_error}")
@@ -1058,7 +1070,7 @@ class MasonlineExtractor:
                                 self.driver.execute_script("arguments[0].click();", elemento)
                                 logger.info("[OK] Clic JS en opción")
                                 opcion_encontrada = True
-                                time.sleep(2)
+                                SmartWait.wait_minimal(0.5)  # OPTIMIZADO: Reducido de 2s a 0.5s
                                 break
                             except Exception as js_error:
                                 logger.error(f"[ERROR] Clic JS falló: {js_error}")
@@ -1123,7 +1135,7 @@ class MasonlineExtractor:
             campo_email.clear()
             campo_email.send_keys(self.email)
             logger.info("[OK] Email ingresado")
-            time.sleep(1)
+            SmartWait.wait_minimal(0.3)  # OPTIMIZADO: Reducido de 1s a 0.3s
             
             # VERIFICAR EMAIL INGRESADO
             valor_email = campo_email.get_attribute('value')
@@ -1162,7 +1174,7 @@ class MasonlineExtractor:
             campo_password.clear()
             campo_password.send_keys(self.password)
             logger.info("[OK] Contraseña ingresada")
-            time.sleep(1)
+            SmartWait.wait_minimal(0.3)  # OPTIMIZADO: Reducido de 1s a 0.3s
             
             # BOTÓN LOGIN
             boton_login = None
@@ -1219,7 +1231,7 @@ class MasonlineExtractor:
                     logger.error(f"[ERROR] Clic JS falló: {js_error}")
                     return False
             
-            time.sleep(5)  # Esperar proceso de login
+            SmartWait.wait_minimal(2)  # OPTIMIZADO: Reducido de 5s a 2s
             return True
             
         except Exception as e:
@@ -1231,7 +1243,7 @@ class MasonlineExtractor:
         try:
             logger.info("Navegando a página de login...")
             self.driver.get(f"{self.CONFIG['base_url']}/login")
-            time.sleep(3)
+            SmartWait.wait_minimal(1)  # OPTIMIZADO: Reducido de 3s a 1s
             
             # Buscar y hacer clic en "Entrar con email y contraseña"
             logger.info("Buscando opción de login con email...")
@@ -1247,7 +1259,7 @@ class MasonlineExtractor:
                     if elemento.is_displayed() and elemento.is_enabled():
                         elemento.click()
                         logger.info("Clic en opción de login con email")
-                        time.sleep(2)
+                        SmartWait.wait_minimal(0.5)  # OPTIMIZADO: Reducido de 2s a 0.5s
                         break
                 except:
                     continue
@@ -1328,8 +1340,8 @@ class MasonlineExtractor:
                 logger.error("No se pudo encontrar botón login")
                 return False
             
-            # Esperar y verificar login
-            time.sleep(5)
+            # OPTIMIZADO: Espera mínima para verificar login
+            SmartWait.wait_minimal(2)  # Reducido de 5s a 2s
             
             if self._verificar_sesion_activa():
                 self.sesion_iniciada = True
@@ -1349,7 +1361,7 @@ class MasonlineExtractor:
         try:
             # Intentar acceder a una página protegida
             self.driver.get(f"{self.CONFIG['base_url']}/my-account")
-            time.sleep(2)
+            SmartWait.wait_minimal(1)  # OPTIMIZADO: Reducido de 2s a 1s
             
             # Si no redirige a login, la sesión está activa
             if 'login' not in self.driver.current_url.lower():
@@ -1375,22 +1387,34 @@ class MasonlineExtractor:
             return False
     
     def asegurar_sesion_activa(self):
-        """Asegura que haya una sesión activa - VERSIÓN CORREGIDA"""
+        """Asegura que haya una sesión activa - OPTIMIZADO con CookieManager"""
         if self.driver is None:
             self.setup_driver()
         
-        # PRIMERO: Limpiar cookies viejas si existen y forzar login fresco
-        if os.path.exists(self.cookies_file):
+        # OPTIMIZADO: Intentar cargar cookies existentes primero
+        cookies = self.cookie_manager.load_cookies('masonline')
+        if cookies:
             try:
-                # Eliminar cookies viejas para forzar login nuevo
-                os.remove(self.cookies_file)
-                logger.info("Cookies viejas eliminadas, forzando login nuevo")
-            except:
-                pass
+                self.driver.get(f"{self.CONFIG['base_url']}")
+                self.driver.delete_all_cookies()
+                for cookie in cookies:
+                    try:
+                        self.driver.add_cookie(cookie)
+                    except:
+                        pass
+                self.driver.refresh()
+                SmartWait.wait_minimal(1)
+                
+                if self._verificar_sesion_activa():
+                    self.sesion_iniciada = True
+                    logger.info("[OK] Sesión cargada desde cookies")
+                    return True
+            except Exception as e:
+                logger.debug(f"Error cargando cookies: {e}")
         
-        # SEGUNDO: Hacer login manual SIEMPRE (para asegurar sesión fresca)
-        logger.info("Iniciando sesión manualmente (sesión fresca)...")
-        if self.login_con_email_password():  # Usar el método detallado que ya tienes
+        # Si no hay cookies o no funcionan, hacer login
+        logger.info("Iniciando sesión manualmente...")
+        if self.login_con_email_password():
             self.sesion_iniciada = True
             logger.info("Sesión iniciada exitosamente")
             return True
@@ -1399,14 +1423,14 @@ class MasonlineExtractor:
             return False
     
     def guardar_sesion(self):
-        """Guarda las cookies de la sesión actual"""
+        """Guarda las cookies de la sesión actual - OPTIMIZADO con CookieManager"""
         try:
             if self.driver and self.sesion_iniciada:
                 cookies = self.driver.get_cookies()
-                with open(self.cookies_file, 'wb') as f:
-                    pickle.dump(cookies, f)
-                logger.info(f"Sesión Masonline guardada en {self.cookies_file}")
-                return True
+                # OPTIMIZADO: Usar CookieManager centralizado
+                if self.cookie_manager.save_cookies('masonline', cookies):
+                    logger.info("Sesión Masonline guardada con CookieManager")
+                    return True
             return False
         except Exception as e:
             logger.error(f"Error guardando sesión Masonline: {e}")

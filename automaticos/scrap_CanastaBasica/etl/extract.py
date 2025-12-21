@@ -1,6 +1,7 @@
 """
 Módulo de Extracción para Canasta Básica
 Responsabilidad: Leer datos de Google Sheets e extraer productos de supermercados
+OPTIMIZADO: Procesamiento paralelo, manejo centralizado de cookies, caché
 """
 import os
 import sys
@@ -15,33 +16,60 @@ from dotenv import load_dotenv
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.utils_sheets import ConexionGoogleSheets
+from utils.cookie_manager import CookieManager
+from utils.optimization import ParallelProcessor, SmartWait, ResultCache, timeit
 from extractors.carrefour_extractor import CarrefourExtractor
 from extractors.delimart_extractor import DelimartExtractor
 from extractors.masonline_extractor import MasonlineExtractor
 from extractors.depot_extractor import DepotExtractor
 from extractors.lareina_extractor import LareinaExtractor
-from extractors.dia_extractor import DiaExtractor
+# from extractors.dia_extractor import DiaExtractor  # Excluido de la ejecución
 import re
 
 logger = logging.getLogger(__name__)
 
 class ExtractCanastaBasica:
-    """Clase para manejar la extracción de datos de Canasta Básica"""
+    """Clase para manejar la extracción de datos de Canasta Básica - OPTIMIZADA"""
     
-    def __init__(self):
+    def __init__(self, enable_parallel: bool = True, max_workers: int = 3):
+        """
+        Inicializa el extractor con optimizaciones
+        
+        Args:
+            enable_parallel: Habilitar procesamiento paralelo
+            max_workers: Número máximo de workers paralelos
+        """
         load_dotenv()
         self.extractors = {}
+        self.enable_parallel = enable_parallel
+        self.max_workers = max_workers
+        
+        # Inicializar gestor de cookies centralizado
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.cookie_manager = CookieManager(base_dir)
+        self.cookie_manager.migrate_old_cookies()  # Migrar cookies antiguas
+        
+        # Inicializar caché de resultados
+        cache_dir = os.path.join(base_dir, 'cache')
+        self.result_cache = ResultCache(cache_dir)
+        
+        # Inicializar procesador paralelo
+        if self.enable_parallel:
+            self.parallel_processor = ParallelProcessor(max_workers=max_workers)
+        else:
+            self.parallel_processor = None
+        
         self._setup_extractors()
     
     def _setup_extractors(self):
         """Configura los extractores de supermercados"""
         self.extractors = {
-            #'carrefour': CarrefourExtractor(),
-            #'delimart': DelimartExtractor(),
-            #'masonline': MasonlineExtractor(),
-            #'depot': DepotExtractor(), 
-            #'lareina': LareinaExtractor(),
-            'dia' : DiaExtractor()
+            'carrefour': CarrefourExtractor(),
+            'delimart': DelimartExtractor(),
+            'masonline': MasonlineExtractor(),
+            'depot': DepotExtractor(), 
+            'lareina': LareinaExtractor(),
+            #'dia' : DiaExtractor()  # Excluido de la ejecución
         }
         logger.info("[OK] Extractores inicializados: %s", list(self.extractors.keys()))
     
@@ -82,13 +110,13 @@ class ExtractCanastaBasica:
     def _get_sheet_names(self, gs_connection) -> List[str]:
         """Obtiene los nombres de todas las hojas del spreadsheet"""
         try:
-            # Lista de hojas conocidas
-            known_sheets = ['carrefour', 'delimart', 'masonline', 'depot', 'lareina', 'dia']
+            # Lista de hojas conocidas (excluyendo 'dia')
+            known_sheets = ['carrefour', 'delimart', 'masonline', 'depot', 'lareina']
             return known_sheets
             
         except Exception as e:
             logger.warning("[WARNING] No se pudieron obtener nombres de hojas, usando lista por defecto: %s", str(e))
-            return ['carrefour', 'delimart', 'masonline', 'depot', 'lareina', 'dia']
+            return ['carrefour', 'delimart', 'masonline', 'depot', 'lareina']
     
     def _parse_sheet_data(self, df_sheet: pd.DataFrame, sheet_name: str) -> Dict[str, List[Dict]]:
         """Parsea los datos de una hoja específica"""
@@ -198,16 +226,43 @@ class ExtractCanastaBasica:
                 logger.error("[ERROR] Error inicializando sesión para %s: %s", supermarket, str(e))
     
     def extract(self, all_supermarkets_data: Dict[str, Dict[str, List[Dict]]]) -> Dict[str, pd.DataFrame]:
-        """Extrae productos de todos los supermercados"""
+        """
+        Extrae productos de todos los supermercados
+        OPTIMIZADO: Procesamiento paralelo opcional
+        """
         logger.info("[EXTRACT] Iniciando extracción de productos...")
+        start_time = time.time()
         
+        # Filtrar solo supermercados con extractores configurados
+        valid_supermarkets = {
+            sm: data for sm, data in all_supermarkets_data.items()
+            if sm in self.extractors
+        }
+        
+        if not valid_supermarkets:
+            logger.error("[ERROR] No hay supermercados válidos para procesar")
+            return {}
+        
+        # Procesar en paralelo o secuencial según configuración
+        if self.enable_parallel and self.parallel_processor and len(valid_supermarkets) > 1:
+            logger.info("[EXTRACT] Procesando %d supermercados en PARALELO (%d workers)", 
+                       len(valid_supermarkets), self.max_workers)
+            all_results = self._extract_parallel(valid_supermarkets)
+        else:
+            logger.info("[EXTRACT] Procesando %d supermercados en SECUENCIAL", len(valid_supermarkets))
+            all_results = self._extract_sequential(valid_supermarkets)
+        
+        elapsed_time = time.time() - start_time
+        logger.info("[EXTRACT] Extracción completada en %.2f segundos (%.2f minutos)", 
+                   elapsed_time, elapsed_time / 60)
+        
+        return all_results
+    
+    def _extract_sequential(self, supermarkets_data: Dict) -> Dict[str, pd.DataFrame]:
+        """Extracción secuencial (método original)"""
         all_results = {}
         
-        for supermarket, products_data in all_supermarkets_data.items():
-            if supermarket not in self.extractors:
-                logger.warning("[WARNING] No hay extractor configurado para %s, saltando...", supermarket)
-                continue
-            
+        for supermarket, products_data in supermarkets_data.items():
             logger.info("[EXTRACT] Procesando %s", supermarket.upper())
             df_result = self._process_supermarket(supermarket, products_data)
             
@@ -216,6 +271,34 @@ class ExtractCanastaBasica:
                 logger.info("[OK] %s: %d registros extraídos", supermarket.upper(), len(df_result))
             else:
                 logger.warning("[WARNING] No se extrajeron datos para %s", supermarket)
+        
+        return all_results
+    
+    def _extract_parallel(self, supermarkets_data: Dict) -> Dict[str, pd.DataFrame]:
+        """Extracción paralela usando ThreadPoolExecutor"""
+        def process_supermarket_wrapper(supermarket, products_data):
+            """Wrapper para procesar un supermercado"""
+            try:
+                logger.info("[EXTRACT] [PARALLEL] Iniciando %s", supermarket.upper())
+                df_result = self._process_supermarket(supermarket, products_data)
+                logger.info("[EXTRACT] [PARALLEL] Completado %s: %d registros", 
+                           supermarket.upper(), len(df_result) if not df_result.empty else 0)
+                return df_result
+            except Exception as e:
+                logger.error("[ERROR] [PARALLEL] Error procesando %s: %s", supermarket, str(e))
+                return pd.DataFrame()
+        
+        # Procesar en paralelo
+        results = self.parallel_processor.process_supermarkets(
+            supermarkets_data,
+            process_supermarket_wrapper
+        )
+        
+        # Filtrar resultados vacíos
+        all_results = {
+            sm: df for sm, df in results.items()
+            if df is not None and not df.empty
+        }
         
         return all_results
     
@@ -272,7 +355,10 @@ class ExtractCanastaBasica:
             extractor.session_active = False
     
     def _process_product(self, extractor, product_name: str, product_list: List[Dict], supermarket: str) -> pd.DataFrame:
-        """Procesa un producto individual con sus links"""
+        """
+        Procesa un producto individual con sus links
+        OPTIMIZADO: Usa caché para evitar re-extracciones
+        """
         logger.info("[EXTRACT] Procesando %s en %s", product_name, supermarket)
         
         product_results = []
@@ -283,8 +369,20 @@ class ExtractCanastaBasica:
             unidad = product_info['unidad']
             
             try:
-                # Extraer datos del producto
-                product_data = extractor.extraer_producto(url)
+                # Verificar caché primero (solo para productos del mismo día)
+                cache_key = f"{supermarket}_{url}"
+                cached_result = self.result_cache.get(cache_key, max_age_hours=24)
+                
+                if cached_result:
+                    logger.debug("[CACHE] Usando resultado en caché para %s", product_name)
+                    product_data = cached_result.copy()
+                else:
+                    # Extraer datos del producto
+                    product_data = extractor.extraer_producto(url)
+                    
+                    # Guardar en caché si es exitoso
+                    if product_data and 'error_type' not in product_data:
+                        self.result_cache.set(cache_key, product_data)
                 
                 if product_data and 'error_type' not in product_data:
                     # Agregar metadatos adicionales
@@ -389,14 +487,29 @@ class ExtractCanastaBasica:
                 logger.error("[ERROR] Error limpiando recursos de %s: %s", name, str(e))
     
     def _save_sessions(self):
-        """Guarda las sesiones de todos los supermercados"""
+        """
+        Guarda las sesiones de todos los supermercados
+        OPTIMIZADO: Usa CookieManager centralizado
+        """
         logger.info("[EXTRACT] Guardando sesiones para futuras ejecuciones...")
         
         for supermarket, extractor in self.extractors.items():
             try:
+                # Intentar guardar usando el método del extractor
                 if hasattr(extractor, 'guardar_sesion'):
                     if extractor.guardar_sesion():
-                        logger.debug("[EXTRACT] Sesión de %s guardada", supermarket)
+                        logger.debug("[EXTRACT] Sesión de %s guardada por extractor", supermarket)
+                
+                # Si el extractor tiene driver y cookies, guardarlas también con CookieManager
+                if hasattr(extractor, 'driver') and extractor.driver:
+                    try:
+                        cookies = extractor.driver.get_cookies()
+                        if cookies:
+                            self.cookie_manager.save_cookies(supermarket, cookies)
+                            logger.debug("[EXTRACT] Cookies de %s guardadas con CookieManager", supermarket)
+                    except Exception as e:
+                        logger.debug("[EXTRACT] No se pudieron guardar cookies de %s: %s", supermarket, str(e))
+                        
             except Exception as e:
                 logger.error("[ERROR] Error guardando sesión de %s: %s", supermarket, str(e))
 
