@@ -70,6 +70,32 @@ class CarrefourExtractor:
             self.wait = WebDriverWait(self.driver, self.timeout)
         
         return self.driver, self.wait
+    
+    def _cerrar_popups_molestos(self):
+        """Cierra modales de ubicación, cookies y publicidad"""
+        if not self.driver: return
+
+        try:
+            # 1. Cartel de Cookies (Botón 'Aceptar todo')
+            botones_cookies = self.driver.find_elements(By.XPATH, "//button[contains(text(), 'Aceptar todo')]")
+            if botones_cookies:
+                self.driver.execute_script("arguments[0].click();", botones_cookies[0])
+                time.sleep(0.5)
+
+            # 2. Modal de Sucursal (El 'Hiper Corrientes' que salía en tus logs)
+            botones_sucursal = self.driver.find_elements(By.XPATH, "//button[contains(@class, 'confirm') or contains(text(), 'Confirmar')]")
+            if botones_sucursal:
+                self.driver.execute_script("arguments[0].click();", botones_sucursal[0])
+                time.sleep(0.5)
+            
+            # 3. Publicidades genéricas (Botones de cerrar X)
+            botones_cerrar = self.driver.find_elements(By.CSS_SELECTOR, "button[aria-label='Close'], .vtex-modal-layout-0-x-closeButton")
+            for btn in botones_cerrar:
+                if btn.is_displayed():
+                    self.driver.execute_script("arguments[0].click();", btn)
+        
+        except Exception as e:
+            pass
         
     def extraer_producto(self, url):
         """Extrae datos de un producto individual - VERSIÓN CORREGIDA CON ANTI-CACHE"""
@@ -88,6 +114,8 @@ class CarrefourExtractor:
             SmartWait.wait_minimal(0.3)  # Reducido de 2s a 0.3s
             logger.info(f"[EXTRACT] Página cargada: {self.driver.title}")
             
+            self._cerrar_popups_molestos()
+
             # Verificar si es página de error 404
             if self._es_pagina_error():
                 logger.warning(f"[WARNING] Página no encontrada (404): {url}")
@@ -438,6 +466,8 @@ class CarrefourExtractor:
             logger.info(" Navegando a login...")
             self.driver.get("https://www.carrefour.com.ar/login")
             SmartWait.wait_minimal(1)  # OPTIMIZADO: Reducido de 3s a 1s
+            
+            self._cerrar_popups_molestos()
             
             # Paso 2: Buscar botón de email
             logger.info(" Buscando botón email...")
