@@ -49,6 +49,7 @@ class DiaExtractor:
         self.dni = "45374423"
         self.password = 'Ipecd2025'
         self.sucursal_calle = "Libertad"
+        self.login_solicitado = False
     
     def setup_driver(self):
         """Configura el driver de Selenium"""
