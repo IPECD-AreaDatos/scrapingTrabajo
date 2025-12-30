@@ -24,6 +24,7 @@ from extractors.masonline_extractor import MasonlineExtractor
 from extractors.depot_extractor import DepotExtractor
 from extractors.lareina_extractor import LareinaExtractor
 from extractors.dia_extractor import DiaExtractor  # Excluido de la ejecución
+from extractors.paradacanga_extractor import ParadacangaExtractor
 import re
 
 logger = logging.getLogger(__name__)
@@ -69,7 +70,8 @@ class ExtractCanastaBasica:
             'masonline': MasonlineExtractor(),
             'depot': DepotExtractor(), 
             'lareina': LareinaExtractor(),
-            'dia' : DiaExtractor()  # Excluido de la ejecución
+            'dia' : DiaExtractor(), 
+            'paradacanga' : ParadacangaExtractor()
         }
         logger.info("[OK] Extractores inicializados: %s", list(self.extractors.keys()))
     
@@ -89,7 +91,7 @@ class ExtractCanastaBasica:
                 logger.info("[EXTRACT] Leyendo hoja: %s", sheet_name)
                 
                 # Leer datos de la hoja específica
-                range_name = f"'{sheet_name}'!A20:D40"
+                range_name = f"'{sheet_name}'!A2:D1000"
                 df_sheet = gs.leer_df(range_name, header=False)
                 
                 # Parsear productos y links de esta hoja
@@ -111,12 +113,12 @@ class ExtractCanastaBasica:
         """Obtiene los nombres de todas las hojas del spreadsheet"""
         try:
             # Lista de hojas conocidas 
-            known_sheets = ['carrefour', 'delimart', 'masonline', 'depot', 'lareina', 'dia']
+            known_sheets = ['carrefour', 'delimart', 'masonline', 'depot', 'lareina', 'dia', 'paradacanga']
             return known_sheets
             
         except Exception as e:
             logger.warning("[WARNING] No se pudieron obtener nombres de hojas, usando lista por defecto: %s", str(e))
-            return ['carrefour', 'delimart', 'masonline', 'depot', 'lareina', 'dia']
+            return ['carrefour', 'delimart', 'masonline', 'depot', 'lareina', 'dia', 'paradacanga']
     
     def _parse_sheet_data(self, df_sheet: pd.DataFrame, sheet_name: str) -> Dict[str, List[Dict]]:
         """Parsea los datos de una hoja específica"""
@@ -201,7 +203,8 @@ class ExtractCanastaBasica:
                 'masonline.com.ar' in text or
                 'depotexpress.com.ar' in text or
                 'lareinacorrientes.com.ar' in text or
-                'diaonline.supermercadosdia.com.ar' in text)
+                'diaonline.supermercadosdia.com.ar' in text or 
+                'paradacanga.com' in text)
     
     def initialize_sessions(self):
         """Inicializa las sesiones de todos los supermercados"""
@@ -356,8 +359,7 @@ class ExtractCanastaBasica:
     
     def _process_product(self, extractor, product_name: str, product_list: List[Dict], supermarket: str) -> pd.DataFrame:
         """
-        Procesa un producto individual con sus links
-        OPTIMIZADO: Usa caché para evitar re-extracciones
+        Procesa un producto individual o una categoría (lista de productos).
         """
         logger.info("[EXTRACT] Procesando %s en %s", product_name, supermarket)
         
@@ -365,62 +367,97 @@ class ExtractCanastaBasica:
         
         for product_info in product_list:
             url = product_info['url']
-            peso = product_info['peso']
-            unidad = product_info['unidad']
+            peso_excel = product_info['peso']
+            unidad_excel = product_info['unidad']
             
             try:
-                # Verificar caché primero (solo para productos del mismo día)
+                # --- 1. GESTIÓN DE CACHÉ ---
                 cache_key = f"{supermarket}_{url}"
                 cached_result = self.result_cache.get(cache_key, max_age_hours=24)
                 
                 if cached_result:
                     logger.debug("[CACHE] Usando resultado en caché para %s", product_name)
-                    product_data = cached_result.copy()
+                    if isinstance(cached_result, list):
+                        product_data = [item.copy() for item in cached_result]
+                    else:
+                        product_data = cached_result.copy()
                 else:
-                    # Extraer datos del producto
                     product_data = extractor.extraer_producto(url)
                     
                     # Guardar en caché si es exitoso
-                    if product_data and 'error_type' not in product_data:
-                        self.result_cache.set(cache_key, product_data)
+                    if product_data:
+                        has_error = False
+                        if isinstance(product_data, dict) and 'error_type' in product_data:
+                            has_error = True
+                        elif isinstance(product_data, list) and len(product_data) > 0 and 'error_type' in product_data[0]:
+                            has_error = True     
+                        if not has_error:
+                            self.result_cache.set(cache_key, product_data)
+
+                # --- 2. PROCESAMIENTO DE RESULTADOS ---
                 
-                if product_data and 'error_type' not in product_data:
-                    # Agregar metadatos adicionales
-                    product_data.update({
-                        'peso': peso,
-                        'unidad_medida': unidad,
-                        'producto_nombre': product_name,
-                        'supermercado': supermarket,
-                        'url': url,
-                        'fecha_extraccion': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    })
-                    
-                    # Asegurar que todos los campos necesarios estén presentes
-                    product_data = self._ensure_required_fields(product_data)
-                    product_results.append(product_data)
-                    
-                    logger.info("[OK] %s extraído correctamente (Peso: %s %s)", 
-                            product_name, peso, unidad)
-                    
+                # CASO A: El extractor devolvió UNA LISTA (Ej: Parada Canga - Categorías)
+                if isinstance(product_data, list):
+                    for item in product_data:
+                        if 'error_type' not in item:
+                            # AQUI ESTA LA MAGIA:
+                            # 1. 'nombre': Ya viene del extractor con el nombre real (ej: "Aguja de Novillito")
+                            # 2. 'producto_nombre': Lo FORZAMOS a ser la categoría del Excel (ej: "Carne vacuna")
+                            
+                            item.update({
+                                'producto_nombre': product_name,  # <--- ESTO PONE LA CATEGORÍA
+                                'supermercado': supermarket,
+                                'fecha_extraccion': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            })
+                            
+                            # Fallback de unidad: Si el extractor no detectó unidad, usar la del Excel
+                            if not item.get('unidad') or item.get('unidad') == 'UN':
+                                # Solo si la unidad del Excel vale la pena (no es vacía)
+                                if unidad_excel and unidad_excel.strip():
+                                    item['unidad'] = unidad_excel
+                                    # Si cambiamos la unidad a la del excel, asumimos peso 1 si no hay otro
+                                    if not item.get('peso') or item.get('peso') == '1':
+                                        item['peso'] = peso_excel
+
+                            item = self._ensure_required_fields(item)
+                            product_results.append(item)
+                        else:
+                            logger.warning("[WARNING] Item con error en lista: %s", item.get('error_type'))
+
+                # CASO B: El extractor devolvió UN DICCIONARIO (Ej: Carrefour - Producto Único)
+                elif isinstance(product_data, dict):
+                    if 'error_type' not in product_data:
+                        product_data.update({
+                            'peso': peso_excel,
+                            'unidad_medida': unidad_excel,
+                            'producto_nombre': product_name, # En este caso coinciden
+                            'supermercado': supermarket,
+                            'url': url,
+                            'fecha_extraccion': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        })
+                        
+                        product_data = self._ensure_required_fields(product_data)
+                        product_results.append(product_data)
+                    else:
+                        error_data = self._create_error_product_data(
+                            product_name, supermarket, url, peso_excel, unidad_excel, 
+                            product_data.get('error_type', 'ERROR_EXTRACCION')
+                        )
+                        product_results.append(error_data)
+
                 else:
-                    # Manejar errores de extracción
                     error_data = self._create_error_product_data(
-                        product_name, supermarket, url, peso, unidad, 
-                        product_data.get('error_type', 'ERROR_EXTRACCION') if product_data else 'SIN_DATOS'
+                        product_name, supermarket, url, peso_excel, unidad_excel, 'SIN_DATOS_RETORNADOS'
                     )
                     product_results.append(error_data)
-                    logger.warning("[WARNING] Error extrayendo %s: %s", 
-                                product_name, error_data['error_type'])
-                    
+
             except Exception as e:
-                # Manejar excepciones durante la extracción
                 error_data = self._create_error_product_data(
-                    product_name, supermarket, url, peso, unidad, f"EXCEPCION: {str(e)}"
+                    product_name, supermarket, url, peso_excel, unidad_excel, f"EXCEPCION: {str(e)}"
                 )
                 product_results.append(error_data)
-                logger.error("[ERROR] Error procesando %s: %s", product_name, str(e))
+                logger.error("[ERROR] Error procesando %s: %s", product_name, str(e), exc_info=True)
         
-        # Convertir a DataFrame
         if product_results:
             return pd.DataFrame(product_results)
         else:
