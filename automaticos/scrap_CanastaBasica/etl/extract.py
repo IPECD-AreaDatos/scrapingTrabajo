@@ -1,15 +1,18 @@
 """
 Módulo de Extracción para Canasta Básica
 Responsabilidad: Leer datos de Google Sheets e extraer productos de supermercados
-OPTIMIZADO: Procesamiento paralelo, manejo centralizado de cookies, caché
+OPTIMIZADO: Arquitectura Producer-Consumer (Cola Global) para balanceo de carga
 """
 import os
 import sys
 import pandas as pd
 import logging
 import time
+import threading
+import queue
+import re
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict, List, Any
 from dotenv import load_dotenv
 
 # Agregar directorio padre al path para imports
@@ -17,536 +20,351 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.utils_sheets import ConexionGoogleSheets
 from utils.cookie_manager import CookieManager
-from utils.optimization import ParallelProcessor, SmartWait, ResultCache, timeit
+from utils.optimization import ResultCache
 from extractors.carrefour_extractor import CarrefourExtractor
 from extractors.delimart_extractor import DelimartExtractor
 from extractors.masonline_extractor import MasonlineExtractor
 from extractors.depot_extractor import DepotExtractor
 from extractors.lareina_extractor import LareinaExtractor
-from extractors.dia_extractor import DiaExtractor  # Excluido de la ejecución
+from extractors.dia_extractor import DiaExtractor
 from extractors.paradacanga_extractor import ParadacangaExtractor
-import re
 
 logger = logging.getLogger(__name__)
 
 class ExtractCanastaBasica:
-    """Clase para manejar la extracción de datos de Canasta Básica - OPTIMIZADA"""
+    """Clase para manejar la extracción de datos de Canasta Básica - ARQUITECTURA COLA GLOBAL"""
     
     def __init__(self, enable_parallel: bool = True, max_workers: int = 3):
         """
-        Inicializa el extractor con optimizaciones
-        
+        Inicializa el extractor
         Args:
             enable_parallel: Habilitar procesamiento paralelo
-            max_workers: Número máximo de workers paralelos
+            max_workers: Número de hilos simultáneos (Navegadores activos a la vez)
         """
         load_dotenv()
-        self.extractors = {}
         self.enable_parallel = enable_parallel
-        self.max_workers = max_workers
+        # Si no es paralelo, forzamos 1 worker
+        self.max_workers = max_workers if enable_parallel else 1
         
-        # Inicializar gestor de cookies centralizado
+        # Mapeo de clases de extractores para instanciación dinámica
+        self.extractor_classes = {
+            'carrefour': CarrefourExtractor,
+            'delimart': DelimartExtractor,
+            'masonline': MasonlineExtractor,
+            'depot': DepotExtractor, 
+            'lareina': LareinaExtractor,
+            'dia' : DiaExtractor, 
+            'paradacanga' : ParadacangaExtractor()
+        }
+
+        # Inicializar gestor de cookies
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.cookie_manager = CookieManager(base_dir)
-        self.cookie_manager.migrate_old_cookies()  # Migrar cookies antiguas
+        self.cookie_manager.migrate_old_cookies()
         
-        # Inicializar caché de resultados
+        # Inicializar caché
         cache_dir = os.path.join(base_dir, 'cache')
         self.result_cache = ResultCache(cache_dir)
         
-        # Inicializar procesador paralelo
-        if self.enable_parallel:
-            self.parallel_processor = ParallelProcessor(max_workers=max_workers)
-        else:
-            self.parallel_processor = None
-        
-        self._setup_extractors()
-    
-    def _setup_extractors(self):
-        """Configura los extractores de supermercados"""
-        self.extractors = {
-            'carrefour': CarrefourExtractor(),
-            'delimart': DelimartExtractor(),
-            'masonline': MasonlineExtractor(),
-            'depot': DepotExtractor(), 
-            'lareina': LareinaExtractor(),
-            'dia' : DiaExtractor(), 
-            'paradacanga' : ParadacangaExtractor()
-        }
-        logger.info("[OK] Extractores inicializados: %s", list(self.extractors.keys()))
-    
+    def initialize_sessions(self):
+        """
+        Compatibilidad con main.py:
+        En esta arquitectura optimizada, las sesiones se inician dinámicamente
+        dentro de cada worker, no al principio.
+        """
+        logger.info("[EXTRACT] Modo Paralelo Optimizado: Las sesiones se iniciarán bajo demanda en los workers.")
+        pass
+
+    def cleanup(self):
+        """
+        Compatibilidad con main.py:
+        Los workers limpian sus propios recursos (drivers) al terminar su cola de tareas.
+        """
+        logger.info("[EXTRACT] Cleanup: Recursos ya liberados automáticamente por los workers.")
+        pass
+
     def read_links_from_sheets(self) -> Dict[str, Dict[str, List[Dict]]]:
-        """Lee todos los links desde Google Sheets organizados por supermercado"""
+        """Lee todos los links desde Google Sheets (Lógica Original)"""
         try:
             sheet_id = '13vz5WzXnXLdp61YVHkKO17C4OBEXVJcC5cP38N--8XA'
             gs = ConexionGoogleSheets(sheet_id)
-            
-            # Obtener nombres de todas las hojas (supermercados)
-            sheet_names = self._get_sheet_names(gs)
-            logger.info("[OK] Hojas encontradas en el spreadsheet: %s", sheet_names)
-            
+            sheet_names = ['carrefour', 'delimart', 'masonline', 'depot', 'lareina', 'dia', 'paradacanga']
             all_products_links = {}
             
+            logger.info("[EXTRACT] Leyendo hojas del spreadsheet...")
+            
             for sheet_name in sheet_names:
-                logger.info("[EXTRACT] Leyendo hoja: %s", sheet_name)
-                
-                # Leer datos de la hoja específica
-                range_name = f"'{sheet_name}'!A2:D1000"
-                df_sheet = gs.leer_df(range_name, header=False)
-                
-                # Parsear productos y links de esta hoja
-                products_links = self._parse_sheet_data(df_sheet, sheet_name)
-                
-                if products_links:
-                    all_products_links[sheet_name] = products_links
-                    logger.info("[OK] Hoja %s: %d productos con links", sheet_name, len(products_links))
-                else:
-                    logger.warning("[WARNING] No se encontraron productos en la hoja %s", sheet_name)
+                try:
+                    # NOTA: Rango fijo según tu código original. 
+                    # Si agregas más productos, asegúrate de ampliar 'D716'
+                    range_name = f"'{sheet_name}'!A2:D10"
+                    df_sheet = gs.leer_df(range_name, header=False)
+                    products_links = self._parse_sheet_data(df_sheet, sheet_name)
+                    if products_links:
+                        all_products_links[sheet_name] = products_links
+                except Exception as e:
+                    logger.warning(f"No se pudo leer la hoja {sheet_name}: {e}")
             
             return all_products_links
-                
         except Exception as e:
-            logger.error("[ERROR] Error leyendo links desde Google Sheets: %s", str(e))
+            logger.error(f"[ERROR] Error leyendo Sheets: {e}")
             return {}
-    
-    def _get_sheet_names(self, gs_connection) -> List[str]:
-        """Obtiene los nombres de todas las hojas del spreadsheet"""
-        try:
-            # Lista de hojas conocidas 
-            known_sheets = ['carrefour', 'delimart', 'masonline', 'depot', 'lareina', 'dia', 'paradacanga']
-            return known_sheets
-            
-        except Exception as e:
-            logger.warning("[WARNING] No se pudieron obtener nombres de hojas, usando lista por defecto: %s", str(e))
-            return ['carrefour', 'delimart', 'masonline', 'depot', 'lareina', 'dia', 'paradacanga']
-    
-    def _parse_sheet_data(self, df_sheet: pd.DataFrame, sheet_name: str) -> Dict[str, List[Dict]]:
-        """Parsea los datos de una hoja específica"""
-        products = {}
-        
-        logger.info("[EXTRACT] Analizando hoja %s - Dimensiones: %s", sheet_name, df_sheet.shape)
-        
-        for idx, row in df_sheet.iterrows():
-            # Verificar que la fila tenga datos y que la primera columna (Producto) no esté vacía
-            if len(row) >= 2 and pd.notna(row[0]) and str(row[0]).strip():
-                product_name = str(row[0]).strip()
-                
-                # Verificar si hay link en la columna B (índice 1)
-                link_cell = row[1] if len(row) > 1 else None
-                peso_cell = row[2] if len(row) > 2 else None
-                unidad_cell = row[3] if len(row) > 3 else None
-                
-                # Procesar el link
-                link_data = []
-                if (pd.notna(link_cell) and 
-                    isinstance(link_cell, str) and 
-                    self._is_valid_url(link_cell.strip())):
-                    
-                    # Crear diccionario con todos los datos del producto
-                    product_info = {
-                        'url': link_cell.strip(),
-                        'peso': self._clean_peso_value(peso_cell) if pd.notna(peso_cell) else '',
-                        'unidad': self._clean_unidad_value(unidad_cell) if pd.notna(unidad_cell) else '',
-                        'producto_nombre': product_name
-                    }
-                    
-                    link_data.append(product_info)
-                    logger.debug("[EXTRACT] Hoja %s - Producto: %s - Link: %s", sheet_name, product_name, link_cell.strip())
-                
-                if link_data:
-                    # Si el producto ya existe, agregar a la lista existente
-                    if product_name in products:
-                        products[product_name].extend(link_data)
-                    else:
-                        products[product_name] = link_data
-        
-        logger.info("[OK] Hoja %s procesada: %d productos encontrados", sheet_name, len(products))
-        return products
-    
-    def _clean_peso_value(self, peso_cell):
-        """Limpia y formatea el valor del peso"""
-        try:
-            if pd.isna(peso_cell):
-                return ""
-            
-            peso_str = str(peso_cell).strip()
-            peso_str = re.sub(r'[^\d,.]', '', peso_str)
-            peso_str = peso_str.replace(',', '.')
-            float(peso_str)  # Validar que sea número
-            return peso_str
-        except:
-            return ""
-    
-    def _clean_unidad_value(self, unidad_cell):
-        """Limpia y formatea el valor de la unidad"""
-        try:
-            if pd.isna(unidad_cell):
-                return ""
-            
-            unidad_str = str(unidad_cell).strip().upper()
-            unidad_map = {
-                'KG': 'KG', 'KGS': 'KG',
-                'GRAMOS': 'G', 'GR': 'G', 'G': 'G',
-                'LITROS': 'L', 'L': 'L', 'ML': 'ML',
-                'UNIDADES': 'UN', 'UN': 'UN', 'U': 'UN'
-            }
-            return unidad_map.get(unidad_str, unidad_str)
-        except:
-            return ""
-    
-    def _is_valid_url(self, text: str) -> bool:
-        """Verifica si un texto es una URL válida"""
-        return (text.startswith('http://') or 
-                text.startswith('https://') or
-                'carrefour.com.ar' in text or
-                'delimart.com.ar' in text or
-                'masonline.com.ar' in text or
-                'depotexpress.com.ar' in text or
-                'lareinacorrientes.com.ar' in text or
-                'diaonline.supermercadosdia.com.ar' in text or 
-                'paradacanga.com' in text)
-    
-    def initialize_sessions(self):
-        """Inicializa las sesiones de todos los supermercados"""
-        logger.info("[EXTRACT] Inicializando sesiones de supermercados...")
-        
-        for supermarket, extractor in self.extractors.items():
-            try:
-                if hasattr(extractor, 'asegurar_sesion_activa'):
-                    if extractor.asegurar_sesion_activa():
-                        logger.info("[OK] Sesión activa para %s", supermarket)
-                    else:
-                        logger.error("[ERROR] No se pudo establecer sesión para %s", supermarket)
-                elif hasattr(extractor, 'ensure_active_session'):
-                    if extractor.ensure_active_session():
-                        logger.info("[OK] Sesión activa para %s", supermarket)
-                    else:
-                        logger.error("[ERROR] No se pudo establecer sesión para %s", supermarket)
-                else:
-                    logger.warning("[WARNING] Extractor %s no tiene método de gestión de sesión", supermarket)
-                    
-            except Exception as e:
-                logger.error("[ERROR] Error inicializando sesión para %s: %s", supermarket, str(e))
-    
+
     def extract(self, all_supermarkets_data: Dict[str, Dict[str, List[Dict]]]) -> Dict[str, pd.DataFrame]:
         """
-        Extrae productos de todos los supermercados
-        OPTIMIZADO: Procesamiento paralelo opcional
+        Método principal de extracción usando Cola Global (Producer-Consumer).
+        Reemplaza a _extract_parallel y _extract_sequential originales.
         """
-        logger.info("[EXTRACT] Iniciando extracción de productos...")
+        logger.info(f"[EXTRACT] Iniciando extracción con {self.max_workers} workers...")
         start_time = time.time()
         
-        # Filtrar solo supermercados con extractores configurados
-        valid_supermarkets = {
-            sm: data for sm, data in all_supermarkets_data.items()
-            if sm in self.extractors
-        }
+        # 1. Aplanar todos los productos en una cola de tareas única
+        task_queue = queue.Queue()
+        total_tasks = 0
         
-        if not valid_supermarkets:
-            logger.error("[ERROR] No hay supermercados válidos para procesar")
-            return {}
+        # Validar qué supermercados tenemos disponibles en el código
+        valid_supers = [s for s in all_supermarkets_data.keys() if s in self.extractor_classes]
         
-        # Procesar en paralelo o secuencial según configuración
-        if self.enable_parallel and self.parallel_processor and len(valid_supermarkets) > 1:
-            logger.info("[EXTRACT] Procesando %d supermercados en PARALELO (%d workers)", 
-                       len(valid_supermarkets), self.max_workers)
-            all_results = self._extract_parallel(valid_supermarkets)
-        else:
-            logger.info("[EXTRACT] Procesando %d supermercados en SECUENCIAL", len(valid_supermarkets))
-            all_results = self._extract_sequential(valid_supermarkets)
-        
-        elapsed_time = time.time() - start_time
-        logger.info("[EXTRACT] Extracción completada en %.2f segundos (%.2f minutos)", 
-                   elapsed_time, elapsed_time / 60)
-        
-        return all_results
-    
-    def _extract_sequential(self, supermarkets_data: Dict) -> Dict[str, pd.DataFrame]:
-        """Extracción secuencial (método original)"""
-        all_results = {}
-        
-        for supermarket, products_data in supermarkets_data.items():
-            logger.info("[EXTRACT] Procesando %s", supermarket.upper())
-            df_result = self._process_supermarket(supermarket, products_data)
-            
-            if not df_result.empty:
-                all_results[supermarket] = df_result
-                logger.info("[OK] %s: %d registros extraídos", supermarket.upper(), len(df_result))
-            else:
-                logger.warning("[WARNING] No se extrajeron datos para %s", supermarket)
-        
-        return all_results
-    
-    def _extract_parallel(self, supermarkets_data: Dict) -> Dict[str, pd.DataFrame]:
-        """Extracción paralela usando ThreadPoolExecutor"""
-        def process_supermarket_wrapper(supermarket, products_data):
-            """Wrapper para procesar un supermercado"""
-            try:
-                logger.info("[EXTRACT] [PARALLEL] Iniciando %s", supermarket.upper())
-                df_result = self._process_supermarket(supermarket, products_data)
-                logger.info("[EXTRACT] [PARALLEL] Completado %s: %d registros", 
-                           supermarket.upper(), len(df_result) if not df_result.empty else 0)
-                return df_result
-            except Exception as e:
-                logger.error("[ERROR] [PARALLEL] Error procesando %s: %s", supermarket, str(e))
-                return pd.DataFrame()
-        
-        # Procesar en paralelo
-        results = self.parallel_processor.process_supermarkets(
-            supermarkets_data,
-            process_supermarket_wrapper
-        )
-        
-        # Filtrar resultados vacíos
-        all_results = {
-            sm: df for sm, df in results.items()
-            if df is not None and not df.empty
-        }
-        
-        return all_results
-    
-    def _process_supermarket(self, supermarket: str, products_data: Dict[str, List[Dict]]) -> pd.DataFrame:
-        """Procesa todos los productos de un supermercado"""
-        if supermarket not in self.extractors:
-            logger.error("[ERROR] Extractor no disponible para %s", supermarket)
-            return pd.DataFrame()
-        
-        extractor = self.extractors[supermarket]
-        all_data = []
-        start_time = time.time()
-        
-        try:
-            # Verificar sesión activa
-            if not self._check_session_active(extractor, supermarket):
-                return pd.DataFrame()
-            
-            # Procesar cada producto con sus metadatos
-            for product_name, product_list in products_data.items():
-                product_data = self._process_product(extractor, product_name, product_list, supermarket)
-                if not product_data.empty:
-                    all_data.append(product_data)
-            
-            # Consolidar resultados básicos
-            if all_data:
-                final_df = pd.concat(all_data, ignore_index=True)
-                processing_time = time.time() - start_time
-                logger.info("[OK] Procesamiento %s completado: %d registros en %.1fs", 
-                        supermarket, len(final_df), processing_time)
-                return final_df
-            else:
-                return pd.DataFrame()
-            
-        except Exception as e:
-            logger.error("[ERROR] Error crítico procesando %s: %s", supermarket, str(e))
-            self._mark_session_expired(extractor)
-            return pd.DataFrame()
-    
-    def _check_session_active(self, extractor, supermarket: str) -> bool:
-        """Verifica si la sesión está activa"""
-        if (hasattr(extractor, 'session_active') and 
-            not extractor.session_active and
-            hasattr(extractor, 'ensure_active_session')):
-            
-            logger.warning("[WARNING] Sesión perdida para %s, reintentando login...", supermarket)
-            return extractor.ensure_active_session()
-        
-        return True
-    
-    def _mark_session_expired(self, extractor):
-        """Marca la sesión como expirada"""
-        if hasattr(extractor, 'session_active'):
-            extractor.session_active = False
-    
-    def _process_product(self, extractor, product_name: str, product_list: List[Dict], supermarket: str) -> pd.DataFrame:
-        """
-        Procesa un producto individual o una categoría (lista de productos).
-        """
-        logger.info("[EXTRACT] Procesando %s en %s", product_name, supermarket)
-        
-        product_results = []
-        
-        for product_info in product_list:
-            url = product_info['url']
-            peso_excel = product_info['peso']
-            unidad_excel = product_info['unidad']
-            
-            try:
-                # --- 1. GESTIÓN DE CACHÉ ---
-                cache_key = f"{supermarket}_{url}"
-                cached_result = self.result_cache.get(cache_key, max_age_hours=24)
-                
-                if cached_result:
-                    logger.debug("[CACHE] Usando resultado en caché para %s", product_name)
-                    if isinstance(cached_result, list):
-                        product_data = [item.copy() for item in cached_result]
-                    else:
-                        product_data = cached_result.copy()
-                else:
-                    product_data = extractor.extraer_producto(url)
+        for supermarket in valid_supers:
+            products_dict = all_supermarkets_data[supermarket]
+            for prod_name, variants in products_dict.items():
+                for variant in variants:
+                    # Crear tarea
+                    task = {
+                        'supermarket': supermarket,
+                        'product_name': prod_name,
+                        'url': variant['url'],
+                        'peso': variant['peso'],
+                        'unidad': variant['unidad']
+                    }
+                    task_queue.put(task)
+                    total_tasks += 1
                     
-                    # Guardar en caché si es exitoso
-                    if product_data:
-                        has_error = False
-                        if isinstance(product_data, dict) and 'error_type' in product_data:
-                            has_error = True
-                        elif isinstance(product_data, list) and len(product_data) > 0 and 'error_type' in product_data[0]:
-                            has_error = True     
-                        if not has_error:
-                            self.result_cache.set(cache_key, product_data)
-
-                # --- 2. PROCESAMIENTO DE RESULTADOS ---
+        logger.info(f"[EXTRACT] Cola generada con {total_tasks} productos totales.")
+        
+        # 2. Estructura para recolectar resultados de forma segura entre hilos
+        results_list = []
+        results_lock = threading.Lock()
+        
+        # 3. Definición del Worker (El motor de la paralelización)
+        def worker_loop(worker_id):
+            logger.debug(f"[WORKER {worker_id}] Iniciado.")
+            
+            # Cada worker tiene sus propios extractores para no mezclar sesiones de Selenium
+            local_extractors = {} 
+            
+            while True:
+                try:
+                    # Intentar obtener tarea sin bloquear indefinidamente
+                    task = task_queue.get(block=False)
+                except queue.Empty:
+                    # Si la cola está vacía, el worker termina
+                    break
                 
-                # CASO A: El extractor devolvió UNA LISTA (Ej: Parada Canga - Categorías)
-                if isinstance(product_data, list):
-                    for item in product_data:
-                        if 'error_type' not in item:
-                            # AQUI ESTA LA MAGIA:
-                            # 1. 'nombre': Ya viene del extractor con el nombre real (ej: "Aguja de Novillito")
-                            # 2. 'producto_nombre': Lo FORZAMOS a ser la categoría del Excel (ej: "Carne vacuna")
+                sm = task['supermarket']
+                
+                try:
+                    # Instanciar extractor si este worker aún no lo tiene
+                    if sm not in local_extractors:
+                        try:
+                            # Instanciamos el extractor específico para este hilo
+                            local_extractors[sm] = self.extractor_classes[sm]()
+                        except Exception as e:
+                            logger.error(f"[WORKER {worker_id}] Falló init driver {sm}: {e}")
+                            task_queue.task_done()
+                            continue
+
+                    # Procesar la tarea
+                    extractor_instance = local_extractors[sm]
+                    df_result = self._process_single_task(extractor_instance, task)
+                    
+                    # Guardar resultado de forma segura
+                    if not df_result.empty:
+                        with results_lock:
+                            results_list.append(df_result)
                             
-                            item.update({
-                                'producto_nombre': product_name,  # <--- ESTO PONE LA CATEGORÍA
-                                'supermercado': supermarket,
-                                'fecha_extraccion': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                            })
-                            
-                            # Fallback de unidad: Si el extractor no detectó unidad, usar la del Excel
-                            if not item.get('unidad') or item.get('unidad') == 'UN':
-                                # Solo si la unidad del Excel vale la pena (no es vacía)
-                                if unidad_excel and unidad_excel.strip():
-                                    item['unidad'] = unidad_excel
-                                    # Si cambiamos la unidad a la del excel, asumimos peso 1 si no hay otro
-                                    if not item.get('peso') or item.get('peso') == '1':
-                                        item['peso'] = peso_excel
+                except Exception as e:
+                    logger.error(f"[WORKER {worker_id}] Error en tarea {task['product_name']}: {e}")
+                finally:
+                    # Marcar tarea como completada pase lo que pase
+                    task_queue.task_done()
+            
+            # Limpieza: El worker cierra SUS propios drivers al terminar
+            logger.debug(f"[WORKER {worker_id}] Terminando y limpiando drivers...")
+            for sm_name, ext_instance in local_extractors.items():
+                try:
+                    if hasattr(ext_instance, 'driver') and ext_instance.driver:
+                        ext_instance.driver.quit()
+                except Exception as e:
+                    logger.error(f"Error cerrando driver {sm_name} en worker {worker_id}: {e}")
 
-                            item = self._ensure_required_fields(item)
-                            product_results.append(item)
-                        else:
-                            logger.warning("[WARNING] Item con error en lista: %s", item.get('error_type'))
+        # 4. Lanzar los Hilos (Workers)
+        threads = []
+        # No crear más workers que tareas
+        num_workers = min(self.max_workers, total_tasks)
+        if num_workers < 1: num_workers = 1
 
-                # CASO B: El extractor devolvió UN DICCIONARIO (Ej: Carrefour - Producto Único)
-                elif isinstance(product_data, dict):
-                    if 'error_type' not in product_data:
-                        product_data.update({
-                            'peso': peso_excel,
-                            'unidad_medida': unidad_excel,
-                            'producto_nombre': product_name, # En este caso coinciden
-                            'supermercado': supermarket,
-                            'url': url,
-                            'fecha_extraccion': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        })
-                        
-                        product_data = self._ensure_required_fields(product_data)
-                        product_results.append(product_data)
-                    else:
-                        error_data = self._create_error_product_data(
-                            product_name, supermarket, url, peso_excel, unidad_excel, 
-                            product_data.get('error_type', 'ERROR_EXTRACCION')
-                        )
-                        product_results.append(error_data)
-
+        for i in range(num_workers):
+            t = threading.Thread(target=worker_loop, args=(i,))
+            t.start()
+            threads.append(t)
+            
+        # 5. Esperar a que todos terminen
+        for t in threads:
+            t.join()
+            
+        logger.info("[EXTRACT] Todos los workers han finalizado.")
+        
+        # 6. Consolidar y Agrupar resultados
+        # 6. Consolidar y Agrupar resultados
+        final_results = {}
+        if results_list:
+            # Unimos toda la lista en un gran DataFrame
+            full_df = pd.concat(results_list, ignore_index=True)
+            
+            # Separamos por supermercado para devolver el formato esperado por main.py (Dict[str, DataFrame])
+            for sm in valid_supers:
+                # --- CORRECCIÓN AQUÍ: Usar 'supermercado' en lugar de 'supermarket' ---
+                if 'supermercado' in full_df.columns:
+                    sm_df = full_df[full_df['supermercado'] == sm]
+                    if not sm_df.empty:
+                        final_results[sm] = sm_df
                 else:
-                    error_data = self._create_error_product_data(
-                        product_name, supermarket, url, peso_excel, unidad_excel, 'SIN_DATOS_RETORNADOS'
-                    )
-                    product_results.append(error_data)
-
-            except Exception as e:
-                error_data = self._create_error_product_data(
-                    product_name, supermarket, url, peso_excel, unidad_excel, f"EXCEPCION: {str(e)}"
-                )
-                product_results.append(error_data)
-                logger.error("[ERROR] Error procesando %s: %s", product_name, str(e), exc_info=True)
+                    logger.critical("La columna 'supermercado' no existe en el DataFrame consolidado. Columnas encontradas: %s", full_df.columns.tolist())
         
-        if product_results:
-            return pd.DataFrame(product_results)
+        elapsed = time.time() - start_time
+        logger.info(f"[EXTRACT] Proceso total completado en {elapsed:.2f}s")
+        return final_results
+
+    def _process_single_task(self, extractor, task: Dict) -> pd.DataFrame:
+        """
+        Versión Corregida: Sin normalización a diccionario.
+        Inyecta metadatos directamente en el DataFrame.
+        """
+        url = task['url']
+        supermarket = task['supermarket']
+        
+        # 1. Verificar Caché
+        cache_key = f"{supermarket}_{url}"
+        cached_result = self.result_cache.get(cache_key, max_age_hours=24)
+        
+        raw_data = None
+        if cached_result:
+            raw_data = cached_result
         else:
-            return pd.DataFrame()
-    
-    def _ensure_required_fields(self, product_data: Dict) -> Dict:
-        """Asegura que todos los campos requeridos estén presentes"""
-        required_fields = {
-            'nombre': '',
-            'precio_normal': '',
-            'precio_descuento': '',
-            'precio_por_unidad': '',
-            'unidad': '',
-            'descuentos': 'Ninguno',
-            'fecha': datetime.today().strftime("%Y-%m-%d"),
-            'supermercado': '',
-            'url': '',
-            'peso': '',
-            'unidad_medida': '',
-            'producto_nombre': ''
-        }
-        
-        for field, default_value in required_fields.items():
-            if field not in product_data or product_data[field] is None:
-                product_data[field] = default_value
-        
-        return product_data
-    
-    def _create_error_product_data(self, product_name: str, supermarket: str, url: str, 
-                                peso: str, unidad: str, error_type: str) -> Dict:
-        """Crea un registro de producto para casos de error"""
-        return {
-            'nombre': product_name,
-            'precio_normal': '',
-            'precio_descuento': '',
-            'precio_por_unidad': '',
-            'unidad': unidad,
-            'descuentos': 'Ninguno',
-            'fecha': datetime.today().strftime("%Y-%m-%d"),
-            'supermercado': supermarket,
-            'url': url,
-            'peso': peso,
-            'unidad_medida': unidad,
-            'producto_nombre': product_name,
-            'error_type': error_type,
-            'fecha_extraccion': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        }
-    
-    def cleanup(self):
-        """Limpia recursos y cierra conexiones"""
-        logger.info("[EXTRACT] Cerrando todos los drivers y guardando sesiones...")
-        
-        self._save_sessions()
-        
-        for name, extractor in self.extractors.items():
             try:
-                if hasattr(extractor, 'cleanup_driver'):
-                    extractor.cleanup_driver()
-                    logger.debug("[EXTRACT] Recursos de %s limpiados", name)
-                elif hasattr(extractor, 'driver') and extractor.driver:
-                    extractor.driver.quit()
-                    logger.debug("[EXTRACT] Driver de %s cerrado", name)
-            except Exception as e:
-                logger.error("[ERROR] Error limpiando recursos de %s: %s", name, str(e))
-    
-    def _save_sessions(self):
-        """
-        Guarda las sesiones de todos los supermercados
-        OPTIMIZADO: Usa CookieManager centralizado
-        """
-        logger.info("[EXTRACT] Guardando sesiones para futuras ejecuciones...")
-        
-        for supermarket, extractor in self.extractors.items():
-            try:
-                # Intentar guardar usando el método del extractor
-                if hasattr(extractor, 'guardar_sesion'):
-                    if extractor.guardar_sesion():
-                        logger.debug("[EXTRACT] Sesión de %s guardada por extractor", supermarket)
+                # Extracción real
+                raw_data = extractor.extraer_producto(url)
                 
-                # Si el extractor tiene driver y cookies, guardarlas también con CookieManager
-                if hasattr(extractor, 'driver') and extractor.driver:
-                    try:
-                        cookies = extractor.driver.get_cookies()
-                        if cookies:
-                            self.cookie_manager.save_cookies(supermarket, cookies)
-                            logger.debug("[EXTRACT] Cookies de %s guardadas con CookieManager", supermarket)
-                    except Exception as e:
-                        logger.debug("[EXTRACT] No se pudieron guardar cookies de %s: %s", supermarket, str(e))
+                # Cachear si no es un error y tiene datos
+                if raw_data is not None:
+                    is_error = False
+                    if isinstance(raw_data, dict) and 'error_type' in raw_data:
+                        is_error = True
+                    # Si es DataFrame vacío
+                    if isinstance(raw_data, pd.DataFrame) and raw_data.empty:
+                        is_error = True
                         
+                    if not is_error:
+                        self.result_cache.set(cache_key, raw_data)
             except Exception as e:
-                logger.error("[ERROR] Error guardando sesión de %s: %s", supermarket, str(e))
+                raw_data = pd.DataFrame([{'error_type': f'EXCEPTION: {str(e)}'}])
 
+        # 2. CONVERTIR A DATAFRAME (Sin to_dict intermedio)
+        df_result = pd.DataFrame()
+        
+        if raw_data is None:
+            df_result = pd.DataFrame([{'error_type': 'SIN_DATOS'}])
+        elif isinstance(raw_data, pd.DataFrame):
+            df_result = raw_data.copy()
+            if df_result.empty: # Si el extractor devolvió DF vacío
+                df_result = pd.DataFrame([{'error_type': 'SIN_DATOS'}])
+        elif isinstance(raw_data, dict):
+            df_result = pd.DataFrame([raw_data])
+        elif isinstance(raw_data, pd.Series):
+            df_result = raw_data.to_frame().T
+        else:
+            # Fallback para tipos desconocidos
+            df_result = pd.DataFrame([{'error_type': 'FORMATO_DESCONOCIDO'}])
+
+        # 3. INYECCIÓN FORZADA DE METADATOS (Aquí solucionamos el bug)
+        # Asignamos las columnas directamente. Si existen, se sobrescriben. Si no, se crean.
+        # Usamos values constantes para todas las filas del DF (generalmente es 1 fila)
+        df_result['supermercado'] = supermarket
+        df_result['producto_nombre'] = task['product_name']
+        df_result['url'] = url
+        df_result['peso'] = task['peso']
+        df_result['unidad_medida'] = task['unidad']
+        df_result['fecha_extraccion'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        # 4. Asegurar campos mínimos (precio, nombre, etc) para que no falle Transform
+        # Rellenamos NaNs con valores por defecto
+        required_cols = {
+            'nombre': '', 
+            'precio_normal': '', 
+            'precio_descuento': '', 
+            'descuentos': 'Ninguno',
+            'fecha': datetime.today().strftime("%Y-%m-%d")
+        }
+        
+        for col, default_val in required_cols.items():
+            if col not in df_result.columns:
+                df_result[col] = default_val
+            else:
+                # Rellenar nulos en esas columnas específicas
+                df_result[col] = df_result[col].fillna(default_val)
+
+        return df_result
+    # --- Métodos Auxiliares Originales ---
+    
+    def _ensure_required_fields(self, data: Dict) -> Dict:
+        """Asegura campos por defecto"""
+        defaults = {
+            'nombre': '', 'precio_normal': '', 'precio_descuento': '', 
+            'precio_por_unidad': '', 'descuentos': 'Ninguno', 
+            'fecha': datetime.today().strftime("%Y-%m-%d"),
+            'supermercado': '', 'url': '', 'error_type': ''
+        }
+        for k, v in defaults.items():
+            if k not in data or data[k] is None: 
+                data[k] = v
+        return data
+
+    def _parse_sheet_data(self, df_sheet: pd.DataFrame, sheet_name: str) -> Dict[str, List[Dict]]:
+        """Logica de parseo del Excel original"""
+        products = {}
+        for idx, row in df_sheet.iterrows():
+            if len(row) >= 2 and pd.notna(row[0]) and str(row[0]).strip():
+                p_name = str(row[0]).strip()
+                link = row[1] if len(row) > 1 else None
+                if pd.notna(link) and isinstance(link, str) and self._is_valid_url(link.strip()):
+                    info = {
+                        'url': link.strip(),
+                        'peso': self._clean_peso_value(row[2]) if len(row)>2 else '',
+                        'unidad': self._clean_unidad_value(row[3]) if len(row)>3 else ''
+                    }
+                    if p_name in products: 
+                        products[p_name].append(info)
+                    else: 
+                        products[p_name] = [info]
+        return products
+
+    def _clean_peso_value(self, val):
+        if pd.isna(val): return ""
+        s = str(val).strip()
+        # Requiere import re
+        s = re.sub(r'[^\d,.]', '', s).replace(',', '.')
+        try:
+            float(s)
+            return s
+        except:
+            return ""
+
+    def _clean_unidad_value(self, val):
+        if pd.isna(val): return ""
+        s = str(val).strip().upper()
+        m = {'GRAMOS': 'G', 'GR': 'G', 'LITROS': 'L', 'UNIDADES': 'UN', 'U': 'UN'}
+        return m.get(s, s)
+
+    def _is_valid_url(self, text: str) -> bool:
+        return text.startswith(('http://', 'https://'))

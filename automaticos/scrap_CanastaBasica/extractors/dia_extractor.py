@@ -2,8 +2,6 @@ import os
 import time
 import re
 import pickle
-import unicodedata
-import pandas as pd
 import logging
 from dotenv import load_dotenv
 from datetime import datetime
@@ -12,27 +10,20 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver import ActionChains
-from selenium.webdriver.chrome.service import Service as ChromeService 
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
-import pickle
+from webdriver_manager.chrome import ChromeDriverManager
 
 load_dotenv()
 
 # Configurar logging
-#logging.basicConfig(level=logging.INFO)
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class DiaExtractor:
-    """Extractor mejorado para Dia combinando lo mejor de ambos enfoques"""
+    """Extractor robusto para Dia (Plataforma VTEX)"""
     
-    # Configuraciones centralizadas (estilo Delimart)
     CONFIG = {
-        'timeout': 30,
+        'timeout': 15,
         'wait_between_requests': 2,
         'supermarket_name': 'Dia',
         'base_url': 'https://diaonline.supermercadosdia.com.ar/'
@@ -45,10 +36,8 @@ class DiaExtractor:
         self.wait = None
         self.sesion_iniciada = False
         self.cookies_file = "dia_cookies.pkl"
-        self.email = 'manumarder@gmail.com'
-        self.dni = "45374423"
-        self.password = 'Ipecd2025'
-        self.sucursal_calle = "Libertad"
+        # Datos de sesión (Opcionales si usas cookies)
+        self.email = 'manumarder@gmail.com' 
         self.login_solicitado = False
     
     def setup_driver(self):
@@ -56,7 +45,7 @@ class DiaExtractor:
         if self.driver is None:
             options = Options()
             # Descomentar para producción
-            # options.add_argument('--headless')
+            options.add_argument('--headless')
             options.add_argument('--disable-gpu')
             options.add_argument('--no-sandbox')
             options.add_argument('--disable-dev-shm-usage')
@@ -73,16 +62,16 @@ class DiaExtractor:
             self.wait = WebDriverWait(self.driver, self.timeout)
         
         return self.driver, self.wait
-    
-    # ==========================================
-    # LÓGICA DE SESIÓN (LOGIN ASISTIDO)
-    # ==========================================
 
+    # ==========================================
+    # GESTIÓN DE SESIÓN
+    # ==========================================
     def asegurar_sesion_activa(self):
+        """Maneja la sesión: cookies o espera manual"""
         if self.driver is None:
             self.setup_driver()
             
-        # 1. Intentar cargar cookies previas
+        # 1. Intentar cargar cookies
         if not self.sesion_iniciada and os.path.exists(self.cookies_file):
             try:
                 self.driver.get(self.CONFIG['base_url'])
@@ -90,82 +79,65 @@ class DiaExtractor:
                 for cookie in cookies:
                     try:
                         self.driver.add_cookie(cookie)
-                    except:
-                        pass
+                    except: pass
                 self.driver.refresh()
                 time.sleep(5)
                 
                 if self._verificar_login_exitoso():
                     self.sesion_iniciada = True
-                    logger.info(" [OK] Sesión recuperada desde cookies.")
+                    logger.info("[DIA] Sesión recuperada desde cookies.")
                     return True
-            except:
-                pass
+            except Exception as e:
+                logger.warning(f"[DIA] Falló carga de cookies: {e}")
 
-        # 2. LOGIN MANUAL ASISTIDO (Si fallaron las cookies)
+        # 2. Login Manual si falla cookie
         if not self.sesion_iniciada:
             if not self.login_solicitado:
-                logger.info("---------------------------------------------------------")
-                logger.info(" SE REQUIERE LOGIN MANUAL - PROCESO INICIADO")
-                logger.info("---------------------------------------------------------")
+                logger.info("=========================================")
+                logger.info("[DIA] SE REQUIERE LOGIN MANUAL O SELECCIÓN DE SUCURSAL")
+                logger.info("=========================================")
                 
-                self.driver.get("https://diaonline.supermercadosdia.com.ar/")
-                time.sleep(6) # Esperar a que cargue la home completamente
+                self.driver.get(self.CONFIG['base_url'])
+                time.sleep(5)
                 
-                # --- PASO CLAVE: ABRIR EL MODAL AUTOMÁTICAMENTE ---
+                # Intentar abrir modal de ubicación
                 try:
-                    logger.info(">> Intentando abrir menú 'Elegí tu envío'...")
-                    
-                    # Buscamos por ID 'region-locator-trigger' (el de tu HTML)
-                    boton_ubicacion = self.wait.until(EC.presence_of_element_located((By.ID, "region-locator-trigger")))
-                    
-                    # Scroll para asegurar que sea visible
-                    self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", boton_ubicacion)
-                    time.sleep(1)
-                    
-                    # Click JS forzado (ignora pointer-events y bloqueos)
-                    self.driver.execute_script("arguments[0].click();", boton_ubicacion)
-                    logger.info(">> Click enviado al botón de ubicación.")
-                    
-                except Exception as e:
-                    logger.warning(f" No se pudo hacer click automático: {e}")
-                    logger.warning(" POR FAVOR ABRE EL MENÚ MANUALMENTE.")
+                    boton = self.wait.until(EC.presence_of_element_located((By.ID, "region-locator-trigger")))
+                    self.driver.execute_script("arguments[0].click();", boton)
+                except:
+                    logger.warning("[DIA] No se encontró botón de ubicación automático.")
 
-                # --- ESPERA ACTIVA PARA QUE EL USUARIO COMPLETE ---
-                logger.info(">> TIENES 60 SEGUNDOS PARA LOGUEARTE Y ELEGIR SUCURSAL <<")
-                
-                tiempo_espera = 60
-                for i in range(tiempo_espera):
-                    if i % 10 == 0:
-                        logger.info(f" Esperando login... {tiempo_espera - i}s restantes")
-                    
+                # Espera activa
+                logger.info("[DIA] Tienes 60 segundos para configurar tu ubicación...")
+                start_wait = time.time()
+                while time.time() - start_wait < 60:
                     if self._verificar_login_exitoso():
-                        logger.info(" [OK] Login detectado exitosamente!")
                         self.sesion_iniciada = True
                         self.guardar_sesion()
+                        logger.info("[DIA] Login/Ubicación detectada exitosamente.")
                         return True
-                    time.sleep(1)
+                    time.sleep(2)
                 
                 self.login_solicitado = True 
             
-            # Último intento de verificación
+            # Verificación final
             if self._verificar_login_exitoso():
                 self.sesion_iniciada = True
                 self.guardar_sesion()
                 return True
             else:
-                logger.error(" [ERROR] No se detectó el login tras la espera.")
-                return False
+                logger.error("[DIA] No se detectó sesión activa. Continuando sin sesión (precios pueden variar).")
+                # Permitimos continuar aunque falle el login para no detener todo el scrape
+                return True 
         
         return True
 
     def _verificar_login_exitoso(self):
-        """Verifica si aparece la dirección o el usuario logueado"""
+        """Busca indicadores de usuario logueado o sucursal seleccionada"""
         try:
             indicadores = [
                 "//span[contains(text(), 'Retiras en')]",
                 "//div[contains(text(), 'Retiras en')]",
-                "//*[contains(text(), 'Hola')]",
                 "//span[contains(@class, 'profile')]"
             ]
             for xpath in indicadores:
@@ -182,127 +154,127 @@ class DiaExtractor:
             except: pass
 
     # ==========================================
-    # EXTRACCIÓN DE PRODUCTOS
+    # EXTRACCIÓN
     # ==========================================
-
-    def extract_products(self, urls):
-        resultados = []
-        if not self.asegurar_sesion_activa():
-            return resultados
-            
-        for i, url in enumerate(urls, 1):
-            logger.info(f"Procesando {i}/{len(urls)}")
-            prod = self.extraer_producto(url)
-            if prod:
-                resultados.append(prod)
-            time.sleep(self.CONFIG['wait_between_requests'])
-        return resultados
-
     def extraer_producto(self, url):
+        """Extrae datos de un producto individual de forma segura"""
+        if not self.driver:
+            self.setup_driver()
+
         try:
             self.driver.get(url)
-            time.sleep(4) # Esperar renderizado VTEX
+            # Espera inteligente: o carga el precio o pasa el timeout
+            try:
+                self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "[class*='sellingPriceValue']")))
+            except:
+                time.sleep(2) # Espera fija si falla la dinámica
 
-            if "404" in self.driver.title:
-                return None
+            if "404" in self.driver.title or "Pagina no encontrada" in self.driver.title:
+                logger.warning(f"[DIA] 404 No encontrado: {url}")
+                return {'error_type': '404_NOT_FOUND'}
 
-            # 1. NOMBRE (Corregido con tu HTML)
+            # 1. Extraer Nombre
             name = self._extract_name(url)
-            if not name: 
-                logger.warning(f" No pude extraer nombre de {url}")
-                return None
 
-            # 2. PRECIOS
-            prices = self._extract_prices_fixed()
+            # 2. Extraer Precios (Lógica Robusta)
+            prices = self._extract_prices_safe()
 
-            # 3. CONSTRUCCIÓN DE DATOS (Sin columna Stock)
+            # 3. Construir Datos
             data = {
                 "supermercado": "Dia",
                 "producto_nombre": name,
-                "nombre": name,           # Clave extra por si tu CSV busca esta
-                "name": name,
-                "precio_descuento": prices['selling_price'], 
-                "precio_normal": prices['list_price'],
-                "precio_por_unidad": self._extract_unit_price(),
+                "nombre": name,
+                "precio_descuento": prices['precio_descuento'], 
+                "precio_normal": prices['precio_normal'],
+                "precio_por_unidad": self._extract_text_safe("[class*='measurementUnit']"),
                 "unidad_medida": "",
-                "descuentos": str(self._extract_discounts()),
-                # "stock" ELIMINADO SEGÚN PEDIDO
+                "descuentos": " | ".join(self._extract_list_safe(".vtex-product-highlights-2-x-productHighlightText")),
                 "url": url,
-                "fecha_extraccion": time.strftime("%Y-%m-%d %H:%M:%S")
+                "fecha_extraccion": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
-            logger.info(f" Extraído: {name} | $ {data['precio_descuento']}")
+            
+            logger.info(f"[DIA] OK: {name[:30]}... | ${data['precio_descuento']}")
             return data
 
         except Exception as e:
-            logger.error(f" Error: {e}")
-            return None
+            logger.error(f"[DIA] Error crítico en {url}: {str(e)}")
+            return {'error_type': f'EXCEPTION: {str(e)}'}
 
-    def _extract_name(self, url_fallback):
-        """Intenta extraer nombre de H1, Clase o URL como último recurso"""
-        
-        # 1. Intento por H1 (Tu HTML lo tiene así)
+    def _extract_name(self, url):
+        """Intenta obtener nombre por H1, Clase o URL"""
         try:
-            h1 = self.driver.find_element(By.TAG_NAME, "h1")
-            texto = h1.text.strip()
-            if texto: return texto
-        except: pass
-
-        # 2. Intento por clase específica de marca/nombre
-        try:
-            elem = self.driver.find_element(By.CSS_SELECTOR, "span.vtex-store-components-3-x-productBrand")
-            texto = elem.text.strip()
-            if texto: return texto
-        except: pass
-
-        # 3. FALLBACK: URL (Si todo falla, sacamos el nombre del link)
-        try:
-            # De '.../aceite-cocinero-15-lt-25338/p' saca 'Aceite Cocinero 15 Lt'
-            slug = url_fallback.split('.ar/')[-1].split('/p')[0]
-            partes = slug.split('-')
-            # Quitamos el ID final si es numérico
-            if partes[-1].isdigit(): partes.pop()
-            nombre_url = " ".join(partes).title()
-            logger.warning(f" Usando nombre desde URL: {nombre_url}")
-            return nombre_url
-        except:
-            return "Producto Desconocido"
-
-    def _extract_prices_fixed(self):
-        prices = {'list_price': 0.0, 'selling_price': 0.0}
-        try:
-            # Precio Venta
-            selling_elem = self.driver.find_element(By.CSS_SELECTOR, "[class*='sellingPriceValue']")
-            prices['selling_price'] = self._clean_price(selling_elem.text)
+            # Opción A: H1
+            h1 = self.driver.find_elements(By.TAG_NAME, "h1")
+            if h1 and h1[0].text.strip():
+                return h1[0].text.strip()
             
-            # Precio Lista
-            try:
-                list_elem = self.driver.find_element(By.CSS_SELECTOR, "[class*='listPriceValue']")
-                prices['list_price'] = self._clean_price(list_elem.text)
-            except:
-                prices['list_price'] = prices['selling_price']
-
-            if prices['list_price'] == 0: prices['list_price'] = prices['selling_price']
+            # Opción B: Clase específica de marca
+            brand = self.driver.find_elements(By.CSS_SELECTOR, "span.vtex-store-components-3-x-productBrand")
+            if brand and brand[0].text.strip():
+                return brand[0].text.strip()
+                
+        except: pass
+        
+        # Opción C: Fallback URL
+        try:
+            slug = url.split('.ar/')[-1].split('/p')[0]
+            clean_slug = slug.replace('-', ' ').title()
+            return clean_slug
         except:
-            pass
-        return prices
+            return "Nombre Desconocido"
+
+    def _extract_prices_safe(self):
+        """Busca precios con múltiples selectores y manejo de errores"""
+        resultado = {'precio_normal': 0.0, 'precio_descuento': 0.0}
+        
+        try:
+            # Selectores parciales (contienen texto) para mayor compatibilidad
+            selling_elems = self.driver.find_elements(By.CSS_SELECTOR, "[class*='sellingPriceValue']")
+            list_elems = self.driver.find_elements(By.CSS_SELECTOR, "[class*='listPriceValue']")
+
+            # Precio de Venta (El que se paga)
+            if selling_elems:
+                resultado['precio_descuento'] = self._clean_price(selling_elems[0].text)
+            
+            # Precio de Lista (Tachado)
+            if list_elems:
+                resultado['precio_normal'] = self._clean_price(list_elems[0].text)
+            else:
+                # Si no hay tachado, el normal es igual al de venta
+                resultado['precio_normal'] = resultado['precio_descuento']
+                
+        except Exception as e:
+            logger.debug(f"[DIA] Error extrayendo precios: {e}")
+            
+        return resultado
 
     def _clean_price(self, text):
+        """Limpia string de precio a float"""
         if not text: return 0.0
         try:
-            return float(re.sub(r'[^\d,]', '', text).replace('.', '').replace(',', '.'))
+            # Eliminar todo excepto dígitos y coma
+            clean = re.sub(r'[^\d,]', '', text)
+            # Reemplazar coma decimal por punto
+            return float(clean.replace(',', '.'))
         except:
             return 0.0
 
-    def _extract_unit_price(self):
-        try: return self.driver.find_element(By.CSS_SELECTOR, "[class*='measurementUnit']").text
+    def _extract_text_safe(self, selector):
+        """Extrae texto de un elemento si existe"""
+        try:
+            elems = self.driver.find_elements(By.CSS_SELECTOR, selector)
+            return elems[0].text.strip() if elems else ""
         except: return ""
 
-    def _extract_discounts(self):
+    def _extract_list_safe(self, selector):
+        """Extrae lista de textos"""
         try:
-            return [el.text for el in self.driver.find_elements(By.CSS_SELECTOR, ".vtex-product-highlights-2-x-productHighlightText") if el.text]
+            return [el.text.strip() for el in self.driver.find_elements(By.CSS_SELECTOR, selector) if el.text.strip()]
         except: return []
 
     def cleanup_driver(self):
         if self.driver:
-            self.driver.quit()
+            try:
+                self.driver.quit()
+            except: pass
             self.driver = None
