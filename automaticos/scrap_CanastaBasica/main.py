@@ -1,6 +1,6 @@
 """
 Orquestador principal para el proceso ETL de Canasta Básica
-Responsabilidad: Coordinar Extract → Transform → Load
+Responsabilidad: Coordinar Extract (MySQL) → Transform → Load (MySQL)
 """
 import os
 import sys
@@ -9,7 +9,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 
 # Configurar logging
-log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'logs')
+log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'logs')
 os.makedirs(log_dir, exist_ok=True)
 
 log_file = os.path.join(log_dir, 'canasta_basica_scraper.log')
@@ -26,14 +26,16 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Importar módulos ETL
-from etl import ExtractCanastaBasica, TransformCanastaBasica, LoadCanastaBasica
+from etl.extract import ExtractCanastaBasica
+from etl.transform import TransformCanastaBasica
+from etl.load import LoadCanastaBasica
 
 
 def main():
     """Función principal que ejecuta el proceso ETL completo"""
     inicio = datetime.now()
     logger.info("=" * 80)
-    logger.info("=== INICIO EJECUCIÓN CANASTA BÁSICA SCRAPER - %s ===", inicio.strftime("%Y-%m-%d %H:%M:%S"))
+    logger.info("=== INICIO EJECUCIÓN CANASTA BÁSICA SCRAPER (DB MODE) - %s ===", inicio.strftime("%Y-%m-%d %H:%M:%S"))
     logger.info("=" * 80)
     
     extractor = None
@@ -42,76 +44,76 @@ def main():
     try:
         load_dotenv()
         
-        logger.info("=== Iniciando proceso ETL Canasta Básica ===")
+        logger.info("=== Iniciando proceso ETL ===")
         
-        # 1. EXTRACT: Leer datos de Sheets y extraer productos
-        logger.info("1. [EXTRACT] Leyendo datos de Google Sheets...")
-        extractor = ExtractCanastaBasica()
+        # ---------------------------------------------------------
+        # 1. EXTRACT: Leer links de la DB y extraer precios
+        # ---------------------------------------------------------
+        logger.info("1. [EXTRACT] Inicializando extractor...")
+        extractor = ExtractCanastaBasica(enable_parallel=True, max_workers=5)
         
-        all_supermarkets_data = extractor.read_links_from_sheets()
-        if not all_supermarkets_data:
-            logger.error("[ERROR] No se encontraron datos en Google Sheets")
+        # Leemos los links activos de la tabla 'link_productos'
+        # IMPORTANTE: El nombre debe ser EXACTO como está en la base de datos ('La Reina', 'Carrefour', etc.)
+        links_list = extractor.read_links_from_db(supermercado_filtro='La Reina')
+        
+        if not links_list:
+            logger.error("[ERROR] No se encontraron links activos en la base de datos.")
             return
         
-        logger.info("[OK] Se encontraron datos para %d supermercados: %s", 
-                   len(all_supermarkets_data), list(all_supermarkets_data.keys()))
+        # Ejecutar extracción masiva
+        df_raw = extractor.extract(links_list)
         
-        # Mostrar estadísticas
-        for supermarket, products_data in all_supermarkets_data.items():
-            total_products = len(products_data)
-            total_links = sum(len(product_list) for product_list in products_data.values())
-            logger.info("[EXTRACT] Supermercado %s: %d productos, %d links", 
-                    supermarket, total_products, total_links)
-        
-        # Inicializar sesiones
-        logger.info("[EXTRACT] Inicializando sesiones de supermercados...")
-        extractor.initialize_sessions()
-        
-        # Extraer productos
-        logger.info("[EXTRACT] Extrayendo productos...")
-        extracted_data = extractor.extract(all_supermarkets_data)
-        
-        if not extracted_data:
-            logger.error("[ERROR] No se extrajeron datos de ningún supermercado")
+        if df_raw.empty:
+            logger.error("[ERROR] La extracción no generó datos. Abortando.")
             return
+            
+        logger.info("[OK] Extracción finalizada. Filas obtenidas: %d", len(df_raw))
         
-        logger.info("[OK] Extracción completada: %d supermercados procesados", len(extracted_data))
-        
-        # 2. TRANSFORM: Consolidar y limpiar datos
-        logger.info("2. [TRANSFORM] Procesando datos...")
+        # ---------------------------------------------------------
+        # 2. TRANSFORM: Limpiar y ajustar columnas para SQL
+        # ---------------------------------------------------------
+        logger.info("2. [TRANSFORM] Normalizando datos...")
         transformer = TransformCanastaBasica()
-        df_transformed = transformer.transform(extracted_data)
+        
+        df_transformed = transformer.transform(df_raw)
         
         if df_transformed.empty:
-            logger.error("[ERROR] No hay datos transformados para cargar")
+            logger.error("[ERROR] El DataFrame quedó vacío tras la transformación.")
             return
+            
+        logger.info("[OK] Transformación completada. Datos listos para carga: %d", len(df_transformed))
         
-        logger.info("[OK] DataFrame transformado: %d filas", len(df_transformed))
-        
-        # 3. LOAD: Guardar CSV y cargar a BD
-        logger.info("3. [LOAD] Guardando datos...")
+        # ---------------------------------------------------------
+        # 3. LOAD: Insertar en 'precios_productos' y registrar extracción
+        # ---------------------------------------------------------
+        logger.info("3. [LOAD] Iniciando carga a base de datos...")
         loader = LoadCanastaBasica()
-        loader.load(df_transformed, extracted_data, skip_database=True)  # Omitir carga a BD
         
-        logger.info("=== Proceso ETL completado exitosamente ===")
+        exito = loader.load(df_transformed)
+        
+        if exito:
+            logger.info("=== Proceso ETL completado EXITOSAMENTE ===")
+        else:
+            logger.error("=== El proceso ETL finalizó con ERRORES en la etapa de carga ===")
         
     except Exception as e:
-        logger.error("[ERROR] ERROR DURANTE EJECUCIÓN: %s", str(e), exc_info=True)
+        logger.error("[ERROR] FALLO CRÍTICO DURANTE EJECUCIÓN: %s", str(e), exc_info=True)
         raise
     
     finally:
         # Limpiar recursos
-        if extractor:
+        if extractor and hasattr(extractor, 'cleanup'):
             extractor.cleanup()
-        if loader:
-            loader.close_connections()
+        
+        # Si usas conexiones persistentes en loader, cerrarlas
+        if loader and hasattr(loader, 'db'):
+            loader.db.close_connections()
         
         fin = datetime.now()
         duracion = (fin - inicio).total_seconds()
-        logger.info("=== FIN EJECUCIÓN - Duración: %.2f segundos ===", duracion)
+        logger.info("=== FIN EJECUCIÓN - Duración total: %.2f segundos ===", duracion)
         logger.info("=" * 80)
 
 
 if __name__ == "__main__":
     main()
-
