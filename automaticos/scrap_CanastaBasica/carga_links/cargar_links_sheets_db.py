@@ -170,9 +170,9 @@ class CargadorLinksDB:
         self.cargar_mapas_ids()
         
         # Lista de hojas a procesar
-        #hojas = ['delimart', 'carrefour', 'masonline', 'paradacanga', 'depot', 'lareina', 'dia']
+        hojas = ['delimart', 'carrefour', 'masonline', 'paradacanga', 'depot', 'lareina', 'dia']
 
-        hojas = [ 'paradacanga',  'lareina', 'dia']
+        #hojas = [ 'paradacanga',  'lareina', 'dia']
         
         for hoja in hojas:
             self.procesar_hoja(hoja)

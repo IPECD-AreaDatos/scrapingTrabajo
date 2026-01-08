@@ -54,7 +54,8 @@ def main():
         
         # Leemos los links activos de la tabla 'link_productos'
         # IMPORTANTE: El nombre debe ser EXACTO como está en la base de datos ('La Reina', 'Carrefour', etc.)
-        links_list = extractor.read_links_from_db(supermercado_filtro='La Reina')
+        #links_list = extractor.read_links_from_db(supermercado_filtro='La Reina')
+        links_list = extractor.read_links_from_db()
         
         if not links_list:
             logger.error("[ERROR] No se encontraron links activos en la base de datos.")
@@ -68,6 +69,16 @@ def main():
             return
             
         logger.info("[OK] Extracción finalizada. Filas obtenidas: %d", len(df_raw))
+
+        # =================================================================
+        backup_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'files', f'BACKUP_RAW_{datetime.now().strftime("%Y%m%d_%H%M")}.csv')
+        os.makedirs(os.path.dirname(backup_file), exist_ok=True)
+        try:
+            df_raw.to_csv(backup_file, index=False)
+            logger.info(f" BACKUP GUARDADO: {backup_file} (Si falla algo, los datos están aquí)")
+        except Exception as e:
+            logger.error(f"No se pudo crear backup: {e}")
+        # =================================================================
         
         # ---------------------------------------------------------
         # 2. TRANSFORM: Limpiar y ajustar columnas para SQL

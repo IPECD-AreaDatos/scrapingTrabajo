@@ -24,6 +24,11 @@ class TransformCanastaBasica:
         }
         df = df.rename(columns=rename_map)
 
+        # Eliminar columnas duplicadas si existen (esto causaba el error 'DataFrame object has no attribute str')
+        if df.columns.duplicated().any():
+            logger.warning("[TRANSFORM] Se detectaron columnas duplicadas. Eliminando duplicados...")
+            df = df.loc[:, ~df.columns.duplicated()]
+
         # 2. Asegurar columnas requeridas por la tabla SQL
         required_cols = [
             'id_link_producto', 'nombre_producto', 'precio_normal', 
@@ -44,9 +49,13 @@ class TransformCanastaBasica:
             df[col] = df[col].fillna(0.0)
 
         # 4. Truncar textos largos (por seguridad)
-        df['nombre_producto'] = df['nombre_producto'].astype(str).str.slice(0, 255)
-        df['unidad_medida'] = df['unidad_medida'].astype(str).str.slice(0, 20)
-
+        # Convertimos a string primero para evitar errores si viene como objeto
+        if 'nombre_producto' in df.columns:
+            df['nombre_producto'] = df['nombre_producto'].astype(str).str.slice(0, 255)
+            
+        if 'unidad_medida' in df.columns:
+            df['unidad_medida'] = df['unidad_medida'].astype(str).str.slice(0, 20)
+            
         # 5. Filtrar solo columnas finales
         final_df = df[required_cols].copy()
         
