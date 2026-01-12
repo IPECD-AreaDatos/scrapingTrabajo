@@ -3,6 +3,7 @@ Orquestador principal para el proceso ETL de Canasta Básica
 Responsabilidad: Coordinar Extract (MySQL) → Transform → Load (MySQL)
 """
 import os
+import pandas as pd 
 import sys
 import logging
 from datetime import datetime
@@ -92,6 +93,42 @@ def main():
             logger.error("[ERROR] El DataFrame quedó vacío tras la transformación.")
             return
             
+        # =================================================================
+        # NUEVA VALIDACIÓN INTELIGENTE (FILTRO DE PRECIOS EN 0)
+        # =================================================================
+        CANTIDAD_MINIMA = 2100
+        
+        # 1. Limpieza preventiva: Aseguramos que la columna precio sea numérica y los NaN sean 0
+        # Esto evita errores si pandas leyó algún precio como texto o vacío
+        df_transformed['precio_normal'] = pd.to_numeric(df_transformed['precio_normal'], errors='coerce').fillna(0)
+
+        # 2. Contar SOLO los productos válidos (Precio > 0)
+        # Creamos un dataframe temporal solo para contar, no modificamos el original todavía
+        df_validos = df_transformed[df_transformed['precio_normal'] > 0]
+        
+        cantidad_total = len(df_transformed)   # Total extraído (ej: 2500)
+        cantidad_real = len(df_validos)        # Total con precio (ej: 2100)
+        diferencia_vacios = cantidad_total - cantidad_real
+
+        logger.info(f" REPORTE DE CALIDAD:")
+        logger.info(f"   - Total filas extraídas: {cantidad_total}")
+        logger.info(f"   - Productos con precio 0 (Descartados para validación): {diferencia_vacios}")
+        logger.info(f"   - Productos VÁLIDOS para carga: {cantidad_real}")
+
+        # 3. Decisión basada en CANTIDAD REAL
+        if cantidad_real < CANTIDAD_MINIMA:
+            logger.error(f" [VALIDACIÓN FALLIDA] Cantidad insuficiente de precios válidos: {cantidad_real}.")
+            logger.error(f"   Se requiere un mínimo de {CANTIDAD_MINIMA} productos con precio > 0.")
+            logger.error("   SE CANCELA LA CARGA A LA BASE DE DATOS.")
+            return  # <--- SE DETIENE EL PROGRAMA
+        else:
+            logger.info(f" [VALIDACIÓN OK] Superado el umbral de {CANTIDAD_MINIMA} productos válidos.")
+            
+            # OPCIONAL: Si quieres subir SOLO los que tienen precio, descomenta la siguiente línea:
+            # df_transformed = df_validos.copy() 
+            
+        # =================================================================
+
         logger.info("[OK] Transformación completada. Datos listos para carga: %d", len(df_transformed))
         
         # ---------------------------------------------------------
