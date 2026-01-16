@@ -52,6 +52,37 @@ class LoadCanastaBasica:
             logger.warning("[LOAD] DataFrame vacío, nada que cargar.")
             return False
 
+        # --- CORRECCIÓN 1: Filtrar productos con precio 0 ---
+        # Guardamos la cantidad inicial para el log (opcional)
+        total_inicial = len(df)
+        
+        # Filtramos: Nos quedamos solo con los que tengan AL MENOS un precio mayor a 0.
+        # NOTA: Ajusta 'precio_regular' y 'precio_promo' a los nombres reales de tus columnas.
+        # Si tu lógica es "ambos deben ser 0 para eliminar", usamos esta condición:
+        # "Eliminar si precio_regular es 0 Y precio_promo es 0"
+        
+        # Ejemplo asumiendo que tus columnas se llaman 'precio_lista' y 'precio_promo'
+        # (Ajusta estos nombres según tu DataFrame real)
+        col_precio_1 = 'precio_lista' 
+        col_precio_2 = 'precio_promo'
+
+        # Verifica si las columnas existen para evitar errores
+        if col_precio_1 in df.columns and col_precio_2 in df.columns:
+            df = df[~((df[col_precio_1] == 0) & (df[col_precio_2] == 0))].copy()
+        elif 'precio' in df.columns: # Caso de respaldo si solo hay una columna
+            df = df[df['precio'] > 0].copy()
+            
+        productos_validos = len(df)
+        logger.info(f"[LOAD] Filtrado: {total_inicial - productos_validos} productos con precio 0 eliminados.")
+
+        if df.empty:
+            logger.warning("[LOAD] Todos los productos tenían precio 0. Nada que cargar.")
+            return False
+
+        # --- CORRECCIÓN 2: Agregar fecha de extracción ---
+        # Asignamos la fecha y hora actual a la columna 'fecha_extraccion'
+        df['fecha_extraccion'] = datetime.now()
+
         # 1. Registrar la extracción (Batch ID)
         id_extraccion = self.registrar_inicio_extraccion()
         if not id_extraccion:
@@ -61,7 +92,7 @@ class LoadCanastaBasica:
         df['id_extraccion'] = id_extraccion
 
         # 3. Insertar en precios_productos
-        logger.info(f"[LOAD] Insertando {len(df)} precios en BD...")
+        logger.info(f"[LOAD] Insertando {productos_validos} precios válidos en BD...")
         
         if self.db.connect_db():
             try:
@@ -72,13 +103,13 @@ class LoadCanastaBasica:
                 estado = 'completada' if success else 'error'
                 
                 # Actualizar contadores en la tabla extracciones
-                productos_extraidos = len(df)
+                # AHORA usamos 'productos_validos' que ya tiene descontados los de precio 0
                 
                 query_update = f"""
                     UPDATE extracciones 
                     SET estado = '{estado}', 
                         fecha_fin = NOW(),
-                        productos_extraidos = {productos_extraidos}
+                        productos_extraidos = {productos_validos}
                     WHERE id_extraccion = {id_extraccion}
                 """
                 
