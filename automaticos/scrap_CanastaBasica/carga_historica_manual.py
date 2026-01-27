@@ -17,12 +17,10 @@ logger = logging.getLogger(__name__)
 
 # --- CONFIGURACIÓN DE ARCHIVOS ---
 ARCHIVOS_CSV = [
-    'canasta_basica_completa_20260105_2028.csv',
-    'canasta_basica_completa_20260106_2230.csv',
-    'canasta_basica_completa_20260109_1020.csv'
+    'BACKUP_RAW_20260123_0040.csv'
 ]
-# Dejamos esto vacío para que busque en la misma carpeta donde está el script
-CARPETA_CSV = ''  
+# Carpeta donde están los archivos CSV
+CARPETA_CSV = 'files'  
 
 class CargaHistorica:
     def __init__(self):
@@ -84,22 +82,58 @@ class CargaHistorica:
                 # 1. Leer CSV
                 df_csv = pd.read_csv(ruta_completa)
                 
-                # 2. Obtener fecha del archivo (asumiendo que todos los registros tienen la misma fecha)
-                # Tomamos la fecha del primer registro para crear la extracción
-                fecha_str = df_csv['fecha'].iloc[0] 
+                # 2. Filtrar filas con error_type = 'SIN_DATOS' o con error_type no vacío
+                if 'error_type' in df_csv.columns:
+                    filas_antes_filtro = len(df_csv)
+                    df_csv = df_csv[df_csv['error_type'].isna() | (df_csv['error_type'] == '')]
+                    filas_despues_filtro = len(df_csv)
+                    if filas_antes_filtro > filas_despues_filtro:
+                        logger.info(f"Se filtraron {filas_antes_filtro - filas_despues_filtro} filas con error_type = 'SIN_DATOS'")
                 
-                # 3. Merge para obtener IDs
-                df_merged = pd.merge(
-                    df_csv, 
-                    df_links_db, 
-                    left_on='url', 
-                    right_on='link', 
-                    how='inner'
-                )
-
-                if df_merged.empty:
-                    logger.warning(f"El archivo {archivo} no cruzó con ningún link conocido.")
+                if df_csv.empty:
+                    logger.warning(f"El archivo {archivo} no tiene registros válidos después del filtrado.")
                     continue
+                
+                # 3. Verificar si el CSV ya tiene id_link_producto o necesita merge
+                if 'id_link_producto' in df_csv.columns:
+                    # El CSV ya tiene id_link_producto, validar que existan en la BD
+                    logger.info("El CSV ya contiene id_link_producto, validando existencia en BD...")
+                    ids_validos = set(df_links_db['id_link_producto'].unique())
+                    df_csv = df_csv[df_csv['id_link_producto'].isin(ids_validos)]
+                    df_merged = df_csv.copy()
+                    
+                    if df_merged.empty:
+                        logger.warning(f"El archivo {archivo} no tiene id_link_producto válidos en la BD.")
+                        continue
+                else:
+                    # Hacer merge para obtener IDs
+                    df_merged = pd.merge(
+                        df_csv, 
+                        df_links_db, 
+                        left_on='url', 
+                        right_on='link', 
+                        how='inner'
+                    )
+
+                    if df_merged.empty:
+                        logger.warning(f"El archivo {archivo} no cruzó con ningún link conocido.")
+                        continue
+                
+                # 4. Obtener fecha del archivo
+                # Intentar extraer fecha del nombre del archivo (formato: BACKUP_RAW_YYYYMMDD_*.csv)
+                # Si no se encuentra, usar la fecha del CSV
+                fecha_str = None
+                import re
+                match = re.search(r'(\d{4})(\d{2})(\d{2})', archivo)
+                if match:
+                    año, mes, dia = match.groups()
+                    fecha_str = f"{año}-{mes}-{dia}"
+                    logger.info(f"Fecha extraída del nombre del archivo: {fecha_str}")
+                
+                if not fecha_str:
+                    # Fallback: usar fecha del CSV
+                    fecha_str = df_merged['fecha'].iloc[0]
+                    logger.info(f"Usando fecha del CSV: {fecha_str}")
 
                 # --- CORRECCIÓN DEL ERROR DE DUPLICADOS ---
                 # Si un producto está 2 veces en el CSV, nos quedamos con el primero.
@@ -130,8 +164,8 @@ class CargaHistorica:
                 for mal, bien in correcciones.items():
                     df_merged['nombre_producto'] = df_merged['nombre_producto'].str.replace(mal, bien, regex=False, case=False)
 
-                # Formato de fechas
-                df_merged['fecha_extraccion'] = pd.to_datetime(df_merged['fecha']).dt.date
+                # Formato de fechas - usar la fecha extraída del nombre del archivo o del CSV
+                df_merged['fecha_extraccion'] = pd.to_datetime(fecha_str).date()
                 df_merged['created_at'] = datetime.now()
 
                 # 6. Selección final de columnas
