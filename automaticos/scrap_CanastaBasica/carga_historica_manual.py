@@ -18,7 +18,8 @@ logger = logging.getLogger(__name__)
 # --- CONFIGURACIÓN DE ARCHIVOS ---
 ARCHIVOS_CSV = [
     'BACKUP_RAW_20260128_2316.csv',
-    'BACKUP_RAW_20260130_0058.csv'
+    'BACKUP_RAW_20260130_0058.csv',
+    ''
 ]
 CARPETA_CSV = ''  
 
