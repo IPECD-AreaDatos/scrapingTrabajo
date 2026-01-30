@@ -37,7 +37,7 @@ class Transform:
 
              # Verificar si df es None o vacío
             if df is None or df.empty:
-                print(f"⚠️ {archivo} fue omitido por estar vacío o con error.")
+                print(f" {archivo} fue omitido por estar vacío o con error.")
                 continue
 
             # agregamos el df al final de nuestro df final
@@ -63,15 +63,15 @@ class Transform:
     def normalizar_csv(self, file_path):
 
         separador = self.detectar_separador(file_path)
-        print(f"📂 Procesando {file_path} con separador detectado: '{separador}'")
+        print(f" Procesando {file_path} con separador detectado: '{separador}'")
 
         try:
             df = pd.read_csv(file_path, sep=separador, engine="python", dtype=str) 
             df.to_csv(file_path, index=False, sep=',', quoting=csv.QUOTE_MINIMAL, encoding='utf-8')  
-            print(f"✅ Archivo normalizado: {file_path}")
+            print(f" Archivo normalizado: {file_path}")
             return df
         except Exception as e:
-            print(f"❌ Error procesando {file_path}: {e}")
+            print(f" Error procesando {file_path}: {e}")
             return None
 
     # generar el df limpio de un periodo

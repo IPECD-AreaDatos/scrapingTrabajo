@@ -51,18 +51,22 @@ class ConexionBase:
         print("\n*****************************************************************************")
 
         engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
-        df.to_sql(name=tabla, con=engine, if_exists='replace', index=False)
+        df.to_sql(name=tabla, con=engine, if_exists='append', index=False)
     
         print(f" == ACTUALIZACION == Nuevos datos en la base de {tabla}")
 
-    def main(self, df, dicc_seccion, dicc_grupo, dicc_ciiu):
-
+    def main(self, df):  # <--- Quitamos dicc_seccion, dicc_grupo, dicc_ciiu de los argumentos
+        
         self.conectar_bdd()
+        
+        # Solo cargamos la tabla principal con los datos del CSV
         self.carga_bdd(df, 'srt')
-        self.carga_bdd(dicc_seccion, 'srt_seccion')
-        self.carga_bdd(dicc_grupo, 'srt_grupo')
-        self.carga_bdd(dicc_ciiu, 'srt_ciiu')
- 
+        
+        # BORRAMOS o COMENTAMOS las cargas de diccionarios porque ya existen en BD
+        # self.carga_bdd(dicc_seccion, 'srt_seccion')
+        # self.carga_bdd(dicc_grupo, 'srt_grupo')
+        # self.carga_bdd(dicc_ciiu, 'srt_ciiu')
+
         # cerramos conexiones
         self.conn.commit()
         self.conn.close()
