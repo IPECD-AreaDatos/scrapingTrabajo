@@ -20,6 +20,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.cookie_manager import CookieManager
 from utils.optimization import optimize_driver_options, SmartWait, create_driver_with_retry
+import random
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -47,8 +48,16 @@ class CarrefourExtractor:
         
         self.email = os.getenv('CARREFOUR_EMAIL', 'manumarder@gmail.com')
         self.password = os.getenv('CARREFOUR_PASSWORD', 'Ipecd2025')
+        
+        # Lista de User-Agents reales para rotación
+        self.user_agents = [
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+        ]
     
-    def setup_driver(self):
+    def setup_driver(self, user_agent=None):
         """Configura el driver de Selenium - OPTIMIZADO"""
         if self.driver is None:
             options = Options()
@@ -56,17 +65,20 @@ class CarrefourExtractor:
             optimize_driver_options(options)
             
             # Configuraciones adicionales específicas
-            options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
+            ua = user_agent if user_agent else random.choice(self.user_agents)
+            logger.info(f"[DRIVER] Usando User-Agent: {ua}")
+            options.add_argument(f'user-agent={ua}')
+            
             options.add_argument('--window-size=1920,1080')
             options.add_argument('--disable-blink-features=AutomationControlled')
             options.add_experimental_option('excludeSwitches', ['enable-automation'])
             options.add_experimental_option('useAutomationExtension', False)
             
             # USAR REINTENTOS PARA CREACIÓN DEL DRIVER (Resiliencia)
+            # Nota: create_driver_with_retry ya aplica timeouts de 40s por defecto
             self.driver = create_driver_with_retry(options, max_retries=2, wait_seconds=5)
             
             if self.driver:
-                self.driver.set_page_load_timeout(15)
                 self.wait = WebDriverWait(self.driver, self.timeout)
         
         return self.driver, self.wait
@@ -76,26 +88,64 @@ class CarrefourExtractor:
         if not self.driver: return
 
         try:
-            # 1. Cartel de Cookies (Botón 'Aceptar todo')
-            botones_cookies = self.driver.find_elements(By.XPATH, "//button[contains(text(), 'Aceptar todo')]")
-            if botones_cookies:
-                self.driver.execute_script("arguments[0].click();", botones_cookies[0])
-                time.sleep(0.5)
-
-            # 2. Modal de Sucursal (El 'Hiper Corrientes' que salía en tus logs)
-            botones_sucursal = self.driver.find_elements(By.XPATH, "//button[contains(@class, 'confirm') or contains(text(), 'Confirmar')]")
-            if botones_sucursal:
-                self.driver.execute_script("arguments[0].click();", botones_sucursal[0])
-                time.sleep(0.5)
+            # 1. Cartel de Cookies (Varios idiomas y textos)
+            selectores_cookies = [
+                "//button[contains(text(), 'Aceptar todo')]",
+                "//button[contains(text(), 'Aceptar')]",
+                "//button[contains(text(), 'Entendido')]",
+                "//button[contains(text(), 'Accept all')]",
+                "#onetrust-accept-btn-handler",
+                ".vtex-cookie-consent-0-x-hideButton"
+            ]
             
-            # 3. Publicidades genéricas (Botones de cerrar X)
-            botones_cerrar = self.driver.find_elements(By.CSS_SELECTOR, "button[aria-label='Close'], .vtex-modal-layout-0-x-closeButton")
-            for btn in botones_cerrar:
-                if btn.is_displayed():
-                    self.driver.execute_script("arguments[0].click();", btn)
+            for selector in selectores_cookies:
+                try:
+                    if selector.startswith("//"):
+                        elementos = self.driver.find_elements(By.XPATH, selector)
+                    else:
+                        elementos = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                    
+                    if elementos and elementos[0].is_displayed():
+                        self.driver.execute_script("arguments[0].click();", elementos[0])
+                        logger.info(f"[POPUP] Cookie banner cerrado con: {selector}")
+                        time.sleep(0.5)
+                        break
+                except:
+                    continue
+
+            # 2. Modal de Sucursal / Ubicación
+            botones_sucursal = self.driver.find_elements(By.XPATH, "//button[contains(@class, 'confirm') or contains(text(), 'Confirmar') or contains(text(), 'Si, continuar')]")
+            if botones_sucursal:
+                for btn in botones_sucursal:
+                    if btn.is_displayed():
+                        self.driver.execute_script("arguments[0].click();", btn)
+                        logger.info("[POPUP] Modal de sucursal confirmado")
+                        time.sleep(0.5)
+            
+            # 3. Publicidades genéricas y botones de cerrar
+            selectores_cerrar = [
+                "button[aria-label='Close']",
+                ".vtex-modal-layout-0-x-closeButton",
+                ".c-close",
+                ".close-button",
+                "//button[contains(text(), 'No, gracias')]"
+            ]
+            for sel in selectores_cerrar:
+                try:
+                    if sel.startswith("//"):
+                        elementos = self.driver.find_elements(By.XPATH, sel)
+                    else:
+                        elementos = self.driver.find_elements(By.CSS_SELECTOR, sel)
+                    
+                    for btn in elementos:
+                        if btn.is_displayed():
+                            self.driver.execute_script("arguments[0].click();", btn)
+                            logger.info(f"[POPUP] Popup cerrado con: {sel}")
+                except:
+                    continue
         
         except Exception as e:
-            pass
+            logger.debug(f"Error silencioso en _cerrar_popups_molestos: {e}")
         
     def extraer_producto(self, url):
         """Extrae datos de un producto individual - VERSIÓN CORREGIDA CON ANTI-CACHE"""
@@ -498,7 +548,21 @@ class CarrefourExtractor:
         """Hacer clic específicamente en el botón 'ingresar con mail y contraseña'"""
         try:
             logger.info("[SEARCH] Buscando botón 'ingresar con mail y contraseña'...")
-            time.sleep(3)
+            
+            # Asegurar que los popups no tapen el botón
+            self._cerrar_popups_molestos()
+            
+            # ESTRATEGIA 0: WebDriverWait robusto (NUEVA)
+            try:
+                xpath_login = "//button[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'mail y contraseña')]"
+                boton = self.wait.until(EC.element_to_be_clickable((By.XPATH, xpath_login)))
+                logger.info(" Botón encontrado por WebDriverWait")
+                self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", boton)
+                time.sleep(1)
+                self.driver.execute_script("arguments[0].click();", boton)
+                return True
+            except:
+                logger.debug("WebDriverWait falló para el botón de login, intentando alternativas...")
             
             # ESTRATEGIA 1: Búsqueda exacta por texto completo
             try:
@@ -885,14 +949,20 @@ class CarrefourExtractor:
             return False
         
     def asegurar_sesion_activa(self):
-        """Asegurar sesión con reintentos limitados"""
+        """Asegurar sesión con reintentos limitados y rotación de UA"""
         if self.driver is None:
             self.setup_driver()
         
         # Solo 2 intentos máximo
         for intento in range(2):
-            logger.info(f"Intento {intento + 1}/2 de login")
+            logger.info(f"Intento {intento + 1}/2 de establecer sesión")
             
+            # En el segundo intento, si el primero falló, rotar User-Agent
+            if intento > 0:
+                logger.info("[RETRY] Rotando User-Agent para evitar detección...")
+                self.cleanup_driver()
+                self.setup_driver(user_agent=random.choice(self.user_agents))
+
             # OPTIMIZADO: Intentar cargar sesión existente usando CookieManager
             if intento == 0:
                 cookies = self.cookie_manager.load_cookies('carrefour')
@@ -907,7 +977,7 @@ class CarrefourExtractor:
                                 pass
                         
                         self.driver.refresh()
-                        SmartWait.wait_minimal(1.5)  # OPTIMIZADO: Reducido de 3s a 1.5s
+                        SmartWait.wait_minimal(1.5)
                         
                         if self.verificar_sesion_con_debug():
                             self.sesion_iniciada = True
@@ -917,6 +987,10 @@ class CarrefourExtractor:
                         logger.debug(f"Error cargando sesión: {e}")
             
             # Login nuevo SOLO si no hay cookies o no funcionan
+            # Navegar a login antes de intentar
+            self.driver.get("https://www.carrefour.com.ar/login")
+            SmartWait.wait_minimal(2)
+            
             if self.login_con_email_password():
                 self.sesion_iniciada = True
                 logger.info("[OK] Sesión iniciada manualmente")
@@ -924,7 +998,7 @@ class CarrefourExtractor:
             
             # OPTIMIZADO: Espera mínima entre intentos
             if intento < 1:  # No esperar después del último intento
-                SmartWait.wait_minimal(2)  # Reducido de 5s a 2s
+                SmartWait.wait_minimal(2)
         
         logger.error("[ERROR] Todos los intentos de login fallaron")
         return False
