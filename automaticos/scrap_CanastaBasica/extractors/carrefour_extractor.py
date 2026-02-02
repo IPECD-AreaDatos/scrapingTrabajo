@@ -21,6 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.cookie_manager import CookieManager
 from utils.optimization import optimize_driver_options, SmartWait, create_driver_with_retry
 import random
+from selenium_stealth import stealth
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -80,6 +81,16 @@ class CarrefourExtractor:
             
             if self.driver:
                 self.wait = WebDriverWait(self.driver, self.timeout)
+                
+                # APLICAR STEALTH PARA OCULTAR AUTOMATIZACIÓN
+                stealth(self.driver,
+                    languages=["es-ES", "es"],
+                    vendor="Google Inc.",
+                    platform="Win32",
+                    webgl_vendor="Intel Inc.",
+                    renderer="Intel Iris OpenGL Engine",
+                    fix_hairline=True,
+                )
         
         return self.driver, self.wait
     
@@ -883,7 +894,7 @@ class CarrefourExtractor:
                         logger.error(f" Clic JS también falló: {js_error}")
                         return False
                 
-                SmartWait.wait_minimal(2)  # OPTIMIZADO: Reducido de 5s a 2s
+                SmartWait.wait_minimal(5)  # AJUSTE: Esperar 5s para que los tokens se asienten
                 return True
                 
             except Exception as e:
@@ -928,20 +939,24 @@ class CarrefourExtractor:
                 "[data-testid='user-menu']"
             ]
             
-            for indicador in indicadores:
-                try:
-                    if indicador.startswith("//"):
-                        elemento = self.driver.find_element(By.XPATH, indicador)
-                    else:
-                        elemento = self.driver.find_element(By.CSS_SELECTOR, indicador)
-                    
-                    if elemento.is_displayed():
-                        logger.info(f" Sesión activa - Indicador: {indicador}")
-                        return True
-                except:
-                    continue
+            # Buscar indicadores de sesión activa con REINTENTOS y ESPERA
+            for i in range(3):
+                for indicador in indicadores:
+                    try:
+                        if indicador.startswith("//"):
+                            elemento = self.driver.find_element(By.XPATH, indicador)
+                        else:
+                            elemento = self.driver.find_element(By.CSS_SELECTOR, indicador)
+                        
+                        if elemento.is_displayed():
+                            logger.info(f" Sesión activa - Indicador: {indicador}")
+                            return True
+                    except:
+                        continue
+                logger.info(f" Reintentando verificación de sesión ({i+1}/3)...")
+                time.sleep(3)
             
-            logger.error(" No se encontraron indicadores de sesión activa")
+            logger.error(" No se encontraron indicadores de sesión activa tras reintentos")
             return False
             
         except Exception as e:
