@@ -15,7 +15,7 @@ import re
 # Agregar directorio padre al path para imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from utils.optimization import optimize_driver_options, SmartWait
+from utils.optimization import optimize_driver_options, SmartWait, create_driver_with_retry
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger('paradacanga_extractor')
@@ -44,10 +44,13 @@ class ParadacangaExtractor:
             options = Options()
             optimize_driver_options(options)
             options.add_argument('--window-size=1920,1080')
-            options.page_load_strategy = 'eager'
-            self.driver = webdriver.Chrome(options=options)
-            self.driver.set_page_load_timeout(30)
-            self.wait = WebDriverWait(self.driver, self.CONFIG['timeout'])
+            
+            # USAR REINTENTOS PARA CREACIÓN DEL DRIVER (Resiliencia)
+            self.driver = create_driver_with_retry(options, max_retries=2, wait_seconds=5)
+            
+            if self.driver:
+                self.driver.set_page_load_timeout(30)
+                self.wait = WebDriverWait(self.driver, self.CONFIG['timeout'])
         return self.driver
 
     def asegurar_sesion_activa(self):

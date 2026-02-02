@@ -30,10 +30,14 @@ logger = logging.getLogger(__name__)
 from etl.extract import ExtractCanastaBasica
 from etl.transform import TransformCanastaBasica
 from etl.load import LoadCanastaBasica
+from utils.optimization import cleanup_environment
 
 
 def main():
     """Función principal que ejecuta el proceso ETL completo"""
+    # 0. Limpieza inicial de procesos huérfanos
+    cleanup_environment()
+    
     inicio = datetime.now()
     logger.info("=" * 80)
     logger.info("=== INICIO EJECUCIÓN CANASTA BÁSICA SCRAPER (DB MODE) - %s ===", inicio.strftime("%Y-%m-%d %H:%M:%S"))
@@ -51,7 +55,7 @@ def main():
         # 1. EXTRACT: Leer links de la DB y extraer precios
         # ---------------------------------------------------------
         logger.info("1. [EXTRACT] Inicializando extractor...")
-        extractor = ExtractCanastaBasica(enable_parallel=True, max_workers=5)
+        extractor = ExtractCanastaBasica(enable_parallel=True, max_workers=10)
         
         # Leemos los links activos de la tabla 'link_productos'
         # IMPORTANTE: El nombre debe ser EXACTO como está en la base de datos ('La Reina', 'Carrefour', etc.)

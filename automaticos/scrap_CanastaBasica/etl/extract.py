@@ -30,7 +30,7 @@ from extractors.paradacanga_extractor import ParadacangaExtractor
 logger = logging.getLogger(__name__)
 
 class ExtractCanastaBasica:
-    def __init__(self, enable_parallel: bool = True, max_workers: int = 3):
+    def __init__(self, enable_parallel: bool = True, max_workers: int = 10):
         load_dotenv()
         self.enable_parallel = enable_parallel
         self.max_workers = max_workers if enable_parallel else 1

@@ -18,7 +18,7 @@ import pickle
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.cookie_manager import CookieManager
-from utils.optimization import optimize_driver_options, SmartWait
+from utils.optimization import optimize_driver_options, SmartWait, create_driver_with_retry
 
 load_dotenv()
 
@@ -56,7 +56,7 @@ class MasonlineExtractor:
         """Configura el driver de Selenium - OPTIMIZADO"""
         if self.driver is None:
             options = Options()
-            # OPTIMIZADO: Aplicar optimizaciones automáticas
+            # OPTIMIZADO: Aplicar optimizaciones automáticas (incluye flags obligatorios)
             optimize_driver_options(options)
             
             # Configuraciones adicionales específicas
@@ -66,12 +66,12 @@ class MasonlineExtractor:
             options.add_experimental_option('excludeSwitches', ['enable-automation'])
             options.add_experimental_option('useAutomationExtension', False)
             
-            # OPTIMIZADO: Estrategia de carga rápida
-            options.page_load_strategy = 'eager'
+            # USAR REINTENTOS PARA CREACIÓN DEL DRIVER (Resiliencia)
+            self.driver = create_driver_with_retry(options, max_retries=2, wait_seconds=5)
             
-            self.driver = webdriver.Chrome(options=options)
-            self.driver.set_page_load_timeout(15)  # OPTIMIZADO: Timeout reducido
-            self.wait = WebDriverWait(self.driver, self.timeout)
+            if self.driver:
+                self.driver.set_page_load_timeout(15)
+                self.wait = WebDriverWait(self.driver, self.timeout)
         
         return self.driver, self.wait
     

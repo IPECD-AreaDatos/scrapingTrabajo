@@ -12,6 +12,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+# Agregar directorio padre al path para imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from utils.optimization import optimize_driver_options, SmartWait, create_driver_with_retry
 
 load_dotenv()
 
@@ -44,22 +48,20 @@ class DiaExtractor:
         """Configura el driver de Selenium"""
         if self.driver is None:
             options = Options()
-            # Descomentar para producción
-            options.add_argument('--headless')
-            options.add_argument('--disable-gpu')
-            options.add_argument('--no-sandbox')
-            options.add_argument('--disable-dev-shm-usage')
-            options.add_argument('--ignore-certificate-errors')
-            options.add_argument('--ignore-ssl-errors')
+            # OPTIMIZADO: Aplicar optimizaciones automáticas (incluye flags obligatorios)
+            optimize_driver_options(options)
+            
             options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
             options.add_argument('--window-size=1920,1080')
             options.add_argument('--disable-blink-features=AutomationControlled')
             options.add_experimental_option('excludeSwitches', ['enable-automation'])
             options.add_experimental_option('useAutomationExtension', False)
-            service = Service(ChromeDriverManager().install())
             
-            self.driver = webdriver.Chrome(options=options)
-            self.wait = WebDriverWait(self.driver, self.timeout)
+            # USAR REINTENTOS PARA CREACIÓN DEL DRIVER (Resiliencia)
+            self.driver = create_driver_with_retry(options, max_retries=2, wait_seconds=5)
+            
+            if self.driver:
+                self.wait = WebDriverWait(self.driver, self.timeout)
         
         return self.driver, self.wait
 

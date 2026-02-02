@@ -4,14 +4,40 @@ Incluye procesamiento paralelo, caché y optimizaciones de tiempo
 """
 import os
 import time
+import subprocess
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, List, Callable, Any, Optional
 from functools import wraps
 import hashlib
 import json
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 
 logger = logging.getLogger(__name__)
+
+
+def cleanup_environment():
+    """
+    Matar procesos de ejecuciones anteriores y limpiar archivos temporales.
+    Llamar al inicio y después de bloques de extracción.
+    """
+    logger.info("[SYSTEM] Ejecutando limpieza de ambiente (Self-healing)...")
+    try:
+        # Matar procesos de chrome y chromedriver
+        if os.name == 'posix':  # Linux/Ubuntu
+            os.system("pkill -9 -f chrome || true")
+            os.system("pkill -9 -f chromedriver || true")
+            # Limpiar archivos temporales de Chrome
+            os.system("rm -rf /tmp/.com.google.Chrome.*")
+            os.system("rm -rf /tmp/crashpad")
+        else:  # Windows fallback
+            os.system("taskkill /f /im chrome.exe /t >nul 2>&1")
+            os.system("taskkill /f /im chromedriver.exe /t >nul 2>&1")
+        
+        logger.info("[SYSTEM] Limpieza completada.")
+    except Exception as e:
+        logger.error(f"[SYSTEM] Error durante la limpieza: {e}")
 
 
 def timeit(func: Callable) -> Callable:
@@ -224,32 +250,55 @@ class ParallelProcessor:
         return results
 
 
-def optimize_driver_options(options):
+def optimize_driver_options(options: Options):
     """
-    Optimiza las opciones del driver de Selenium para mejor rendimiento
-    
-    Args:
-        options: Objeto Options de Selenium
+    Optimiza las opciones del driver de Selenium para mejor rendimiento y estabilidad.
+    Incluye argumentos obligatorios para entornos de servidor (AWS EC2).
     """
-    # Estrategia de carga más rápida
-    options.page_load_strategy = 'eager'  # No espera recursos completos
+    # ARGUMENTOS OBLIGATORIOS PARA ESTABILIDAD EN SERVIDOR
+    options.add_argument('--headless=new')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage') # CRÍTICO: Mueve la memoria compartida al disco
+    options.add_argument('--disable-gpu')
+    options.add_argument('--remote-debugging-port=9222')
     
-    # Deshabilitar imágenes y CSS para cargas más rápidas (opcional)
+    # Optimizaciones de rendimiento adicionales
+    options.page_load_strategy = 'eager'
+    options.add_argument('--disable-extensions')
+    options.add_argument('--disable-plugins')
+    options.add_argument('--disable-images')
+    options.add_argument('--blink-settings=imagesEnabled=false')
+    
+    # Bloquear imágenes vía prefs
     prefs = {
-        "profile.managed_default_content_settings.images": 2,  # Bloquear imágenes
+        "profile.managed_default_content_settings.images": 2,
         "profile.default_content_setting_values.notifications": 2
     }
     options.add_experimental_option("prefs", prefs)
     
-    # Optimizaciones de rendimiento
-    options.add_argument('--disable-dev-shm-usage')
-    options.add_argument('--disable-gpu')
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-extensions')
-    options.add_argument('--disable-plugins')
-    options.add_argument('--disable-images')  # Bloquear imágenes
+    logger.debug("[OPTIMIZATION] Opciones del driver estandarizadas para servidor")
+
+
+def create_driver_with_retry(options: Options, max_retries: int = 2, wait_seconds: int = 5):
+    """
+    Intenta crear una instancia de webdriver.Chrome con lógica de reintento.
+    """
+    from selenium.common.exceptions import SessionNotCreatedException, WebDriverException
     
-    logger.debug("[OPTIMIZATION] Opciones del driver optimizadas")
+    for attempt in range(max_retries + 1):
+        try:
+            driver = webdriver.Chrome(options=options)
+            return driver
+        except (SessionNotCreatedException, WebDriverException) as e:
+            if attempt < max_retries:
+                logger.warning(f"[RETRY] Fallo al crear driver (Intento {attempt + 1}/{max_retries + 1}): {e}")
+                logger.info(f"[RETRY] Ejecutando limpieza y esperando {wait_seconds}s...")
+                cleanup_environment()
+                time.sleep(wait_seconds)
+            else:
+                logger.error(f"[ERROR] No se pudo crear el driver tras {max_retries + 1} intentos.")
+                raise
+    return None
 
 
 def reduce_wait_times(func: Callable) -> Callable:

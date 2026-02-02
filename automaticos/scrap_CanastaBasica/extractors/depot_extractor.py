@@ -16,7 +16,7 @@ import traceback
 # Agregar directorio padre al path para imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from utils.optimization import optimize_driver_options, SmartWait
+from utils.optimization import optimize_driver_options, SmartWait, create_driver_with_retry
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -98,7 +98,7 @@ class DepotExtractor:
         """Configura el driver de Selenium - OPTIMIZADO"""
         if self.driver is None:
             options = Options()
-            # OPTIMIZADO: Aplicar optimizaciones automáticas
+            # OPTIMIZADO: Aplicar optimizaciones automáticas (incluye flags obligatorios)
             optimize_driver_options(options)
             
             # Configuraciones adicionales específicas
@@ -108,12 +108,12 @@ class DepotExtractor:
             options.add_experimental_option('excludeSwitches', ['enable-automation'])
             options.add_experimental_option('useAutomationExtension', False)
             
-            # OPTIMIZADO: Estrategia de carga rápida (ya estaba)
-            options.page_load_strategy = 'eager'
+            # USAR REINTENTOS PARA CREACIÓN DEL DRIVER (Resiliencia)
+            self.driver = create_driver_with_retry(options, max_retries=2, wait_seconds=5)
             
-            self.driver = webdriver.Chrome(options=options)
-            self.driver.set_page_load_timeout(10)  # OPTIMIZADO: Timeout explícito
-            self.wait = WebDriverWait(self.driver, self.CONFIG['timeout'])
+            if self.driver:
+                self.driver.set_page_load_timeout(10)  # OPTIMIZADO: Timeout explícito
+                self.wait = WebDriverWait(self.driver, self.CONFIG['timeout'])
         
         return self.driver, self.wait
     
