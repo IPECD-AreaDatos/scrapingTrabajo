@@ -301,6 +301,11 @@ def create_driver_with_retry(options: Options, max_retries: int = 2, wait_second
     for attempt in range(max_retries + 1):
         try:
             driver = webdriver.Chrome(options=options)
+            
+            # Ajuste de Timeouts solicitado por el usuario (40 segundos)
+            driver.set_page_load_timeout(40)
+            driver.set_script_timeout(40)
+            
             return driver
         except (SessionNotCreatedException, WebDriverException) as e:
             if attempt < max_retries:

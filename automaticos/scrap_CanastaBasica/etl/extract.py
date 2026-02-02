@@ -12,6 +12,7 @@ import queue
 from datetime import datetime
 from typing import Dict, List
 from dotenv import load_dotenv
+import random
 
 # Agregar directorio padre
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -30,7 +31,7 @@ from extractors.paradacanga_extractor import ParadacangaExtractor
 logger = logging.getLogger(__name__)
 
 class ExtractCanastaBasica:
-    def __init__(self, enable_parallel: bool = True, max_workers: int = 10):
+    def __init__(self, enable_parallel: bool = True, max_workers: int = 3):
         load_dotenv()
         self.enable_parallel = enable_parallel
         self.max_workers = max_workers if enable_parallel else 1
@@ -141,6 +142,11 @@ class ExtractCanastaBasica:
 
             # 2. Worker Loop
             def worker_loop(worker_id):
+                # AJUSTE: Delay aleatorio entre el inicio de cada worker para evitar logins simultáneos
+                stagger_delay = random.uniform(1, 3)
+                logger.info(f"[WORKER {worker_id}] Esperando {stagger_delay:.2f}s para inicio escalonado...")
+                time.sleep(stagger_delay)
+                
                 local_extractors = {}
                 while True:
                     try:

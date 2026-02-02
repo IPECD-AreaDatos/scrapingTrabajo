@@ -55,7 +55,7 @@ def main():
         # 1. EXTRACT: Leer links de la DB y extraer precios
         # ---------------------------------------------------------
         logger.info("1. [EXTRACT] Inicializando extractor...")
-        extractor = ExtractCanastaBasica(enable_parallel=True, max_workers=10)
+        extractor = ExtractCanastaBasica(enable_parallel=True, max_workers=3)
         
         # Leemos los links activos de la tabla 'link_productos'
         # IMPORTANTE: El nombre debe ser EXACTO como está en la base de datos ('La Reina', 'Carrefour', etc.)
