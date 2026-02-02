@@ -30,13 +30,13 @@ logger = logging.getLogger(__name__)
 from etl.extract import ExtractCanastaBasica
 from etl.transform import TransformCanastaBasica
 from etl.load import LoadCanastaBasica
-from utils.optimization import cleanup_environment
+from utils.optimization import cleanup_environment, set_parallel_mode
 
 
 def main():
     """Función principal que ejecuta el proceso ETL completo"""
-    # 0. Limpieza inicial de procesos huérfanos
-    cleanup_environment()
+    # 0. Limpieza inicial de procesos huérfanos (FORZADA)
+    cleanup_environment(force=True)
     
     inicio = datetime.now()
     logger.info("=" * 80)

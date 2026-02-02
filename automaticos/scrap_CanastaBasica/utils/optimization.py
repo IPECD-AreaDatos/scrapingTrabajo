@@ -16,12 +16,24 @@ from selenium.webdriver.chrome.options import Options
 
 logger = logging.getLogger(__name__)
 
+# Flag global para saber si estamos en ejecución paralela
+_PARALLEL_ACTIVE = False
 
-def cleanup_environment():
+def set_parallel_mode(active: bool):
+    global _PARALLEL_ACTIVE
+    _PARALLEL_ACTIVE = active
+
+
+def cleanup_environment(force=False):
     """
     Matar procesos de ejecuciones anteriores y limpiar archivos temporales.
     Llamar al inicio y después de bloques de extracción.
+    Si force=False y estamos en modo paralelo, no mata procesos globales.
     """
+    if _PARALLEL_ACTIVE and not force:
+        logger.debug("[SYSTEM] Modo paralelo activo, limpieza global omitida para evitar afectar a otros hilos.")
+        return
+
     logger.info("[SYSTEM] Ejecutando limpieza de ambiente (Self-healing)...")
     try:
         # Matar procesos de chrome y chromedriver
@@ -260,7 +272,8 @@ def optimize_driver_options(options: Options):
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage') # CRÍTICO: Mueve la memoria compartida al disco
     options.add_argument('--disable-gpu')
-    options.add_argument('--remote-debugging-port=9222')
+    # REMOVIDO: options.add_argument('--remote-debugging-port=9222') 
+    # Provocaba conflictos al abrir múltiples drivers en paralelo
     
     # Optimizaciones de rendimiento adicionales
     options.page_load_strategy = 'eager'
