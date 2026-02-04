@@ -3,12 +3,17 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.service import Service
 import os
 import urllib3
-import time
 
-class HomePageCBT:
+
+class ExtractorCBT:
+    """
+    Extractor para descargar el archivo de Canasta Básica Total (CBT) desde INDEC.
+    
+    Descarga el archivo serie_cba_cbt.xls desde la página oficial del INDEC.
+    """
+    
     def __init__(self):
         options = webdriver.ChromeOptions()
         options.add_argument('--disable-gpu')
@@ -18,6 +23,12 @@ class HomePageCBT:
         self.url_pagina = 'https://www.indec.gob.ar/indec/web/Nivel4-Tema-4-43-149'
 
     def descargar_archivo(self):
+        """
+        Descarga el archivo CBT.xls desde INDEC.
+        
+        Returns:
+            str: Ruta del archivo descargado
+        """
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
         self.driver.get(self.url_pagina)
@@ -38,11 +49,11 @@ class HomePageCBT:
         ))
 
         url_archivo = archivo.get_attribute('href')
-        print(f"URL del archivo: {url_archivo}")
+        print(f"[EXTRACT] URL del archivo CBT: {url_archivo}")
 
         # Crear carpeta de guardado si no existe
-        directorio_actual = os.path.dirname(os.path.abspath(__file__))
-        carpeta_guardado = os.path.join(directorio_actual, 'files')
+        directorio_actual = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        carpeta_guardado = os.path.join(directorio_actual, 'files', 'data')
         os.makedirs(carpeta_guardado, exist_ok=True)
 
         # Descargar el archivo
@@ -53,5 +64,7 @@ class HomePageCBT:
         with open(ruta_guardado, 'wb') as file:
             file.write(response.content)
 
-        print(f"Archivo guardado en: {ruta_guardado}")
+        print(f"[EXTRACT] Archivo guardado en: {ruta_guardado}")
         self.driver.quit()
+        
+        return ruta_guardado

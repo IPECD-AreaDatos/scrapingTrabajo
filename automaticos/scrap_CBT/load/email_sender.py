@@ -126,28 +126,28 @@ class MailCBTCBA:
 
 
         # Verificar si var_interanual_cba es negativa o positiva
-        if df['vinter_cba'].iloc[-1] < 0:
+        if pd.notna(df['vinter_cba'].iloc[-1]) and df['vinter_cba'].iloc[-1] < 0:
             aumento_disminucion = "disminuyó ⬇️"
             emoji_aumento_disminucion = "📉"
         else:
             aumento_disminucion = "aumentó ⬆️"
             emoji_aumento_disminucion = "📈"
         
-        if df['vinter_cbt'].iloc[-1] < 0:
+        if pd.notna(df['vinter_cbt'].iloc[-1]) and df['vinter_cbt'].iloc[-1] < 0:
             aumento_canastaBasica = "disminuyó ⬇️"
             emoji_aumento_disminucion = "📉"
         else:
             aumento_canastaBasica = "aumentó ⬆️"
             emoji_aumento_disminucion = "📈"
 
-        if df['vmensual_cba'].iloc[-1] < 0:
+        if pd.notna(df['vmensual_cba'].iloc[-1]) and df['vmensual_cba'].iloc[-1] < 0:
             aumento_mensual_canastaBasica= "disminuyó ⬇️"
             emoji_aumento_disminucion = "📉"
         else:
             aumento_mensual_canastaBasica = "aumentó ⬆️"
             emoji_aumento_disminucion = "📈"
 
-        if df['vmensual_cbt'].iloc[-1] < 0:
+        if pd.notna(df['vmensual_cbt'].iloc[-1]) and df['vmensual_cbt'].iloc[-1] < 0:
             aumento_mensual_canastaTotal=  "disminuyó ⬇️"
             emoji_aumento_disminucion = "📉"
         else:
@@ -164,21 +164,30 @@ class MailCBTCBA:
         cadena_mes_anterior = mes_anterior + " del " + str(fecha_actual.year)
 
     
-        mensaje_dos = f"""
-        <p>
-        {emoji_aumento_disminucion}La canasta básica alimentaria <span style="font-weight: bold; text-decoration: underline;">{aumento_disminucion}</span> interanualmente ({cadena_fecha_actual.upper()} VS {cadena_var_inter.upper()}) un 
-        <span style="font-size: 17px; font-weight: bold;">{abs( df['vinter_cba'].iloc[-1]*100):.2f}%</span>
-        mientras que la canasta básica total <span style="font-weight: bold; text-decoration: underline;">{aumento_canastaBasica}</span> para el mismo periodo un 
-        <span style="font-size: 17px; font-weight: bold;">{ df['vinter_cbt'].iloc[-1]*100:.2f}%</span>.
-        </p>
-        <p>
-        {emoji_aumento_disminucion}La canasta básica alimentaria <span style="font-weight: bold; text-decoration: underline;">{aumento_mensual_canastaBasica}</span> mensualmente ({cadena_fecha_actual.upper()} VS {cadena_mes_anterior.upper()}) un 
-        <span style="font-size: 17px; font-weight: bold;">{df['vmensual_cba'].iloc[-1]*100:.2f}%</span>
-        mientras que la canasta básica total <span style="font-weight: bold; text-decoration: underline;">{aumento_mensual_canastaTotal}</span> para el mismo periodo un 
-        <span style="font-size: 17px; font-weight: bold;">{df['vmensual_cbt'].iloc[-1]*100:.2f}%</span>.
-        </p>
-        <hr>
-        """
+        # Construir mensaje_dos solo si hay datos de variaciones disponibles
+        mensaje_dos = ""
+        if pd.notna(df['vinter_cba'].iloc[-1]) and pd.notna(df['vinter_cbt'].iloc[-1]):
+            mensaje_dos = f"""
+            <p>
+            {emoji_aumento_disminucion}La canasta básica alimentaria <span style="font-weight: bold; text-decoration: underline;">{aumento_disminucion}</span> interanualmente ({cadena_fecha_actual.upper()} VS {cadena_var_inter.upper()}) un 
+            <span style="font-size: 17px; font-weight: bold;">{abs(df['vinter_cba'].iloc[-1]*100):.2f}%</span>
+            mientras que la canasta básica total <span style="font-weight: bold; text-decoration: underline;">{aumento_canastaBasica}</span> para el mismo periodo un 
+            <span style="font-size: 17px; font-weight: bold;">{abs(df['vinter_cbt'].iloc[-1]*100):.2f}%</span>.
+            </p>
+            """
+        
+        if pd.notna(df['vmensual_cba'].iloc[-1]) and pd.notna(df['vmensual_cbt'].iloc[-1]):
+            mensaje_dos += f"""
+            <p>
+            {emoji_aumento_disminucion}La canasta básica alimentaria <span style="font-weight: bold; text-decoration: underline;">{aumento_mensual_canastaBasica}</span> mensualmente ({cadena_fecha_actual.upper()} VS {cadena_mes_anterior.upper()}) un 
+            <span style="font-size: 17px; font-weight: bold;">{abs(df['vmensual_cba'].iloc[-1]*100):.2f}%</span>
+            mientras que la canasta básica total <span style="font-weight: bold; text-decoration: underline;">{aumento_mensual_canastaTotal}</span> para el mismo periodo un 
+            <span style="font-size: 17px; font-weight: bold;">{abs(df['vmensual_cbt'].iloc[-1]*100):.2f}%</span>.
+            </p>
+            """
+        
+        if mensaje_dos:  # Solo agregar <hr> si hay contenido
+            mensaje_dos += "<hr>"
 
         # Verificar si las variaciones del IPC no son None
         cadena_variaciones = ""
@@ -210,8 +219,8 @@ class MailCBTCBA:
         email_emisor='departamientoactualizaciondato@gmail.com'
         email_contrasenia = 'cmxddbshnjqfehka'
 
-        email_receptores = self.obtener_correos()
-        #email_receptores = 'matizalazar2001@gmail.com'
+        #email_receptores = self.obtener_correos()
+        email_receptores = 'matizalazar2001@gmail.com'
 
         #==== Zona de envio de correo
         em = EmailMessage()
