@@ -100,7 +100,7 @@ def main():
         # =================================================================
         # NUEVA VALIDACIÓN INTELIGENTE (FILTRO DE PRECIOS EN 0)
         # =================================================================
-        CANTIDAD_MINIMA = 2100
+        CANTIDAD_MINIMA = 2000
         
         # 1. Limpieza preventiva: Aseguramos que la columna precio sea numérica y los NaN sean 0
         # Esto evita errores si pandas leyó algún precio como texto o vacío
