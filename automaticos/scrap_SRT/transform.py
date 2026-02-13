@@ -95,10 +95,12 @@ class Transform:
         date = pd.Timestamp(year=año, month=mes, day=1).date()
         df['periodo'] = date
         df['periodo'] = pd.to_datetime(df['periodo'])
+        fecha_obj = pd.Timestamp(year=año, month=mes, day=1).date()
+        df['fecha'] = fecha_obj
         
         print(df.head(80))
         # filtramos el df y generamos sumas
-        df_agrupado = df.groupby(['periodo', 'jurisdiccion_desc', 'seccion', 'grupo', 'ciiu'], as_index=False).agg({
+        df_agrupado = df.groupby(['fecha', 'jurisdiccion_desc', 'seccion', 'grupo', 'ciiu'], as_index=False).agg({
             'cant_personas_trabaj_cp': 'sum', 
             'cant_personas_trabaj_up': 'sum',
             'remuneracion': 'sum'})
@@ -117,6 +119,11 @@ class Transform:
         float_cols = df_agrupado.select_dtypes(include='float').columns
         df_agrupado.loc[:, float_cols] = df_agrupado[float_cols].round(2)
         print(df_agrupado)
+
+        df_agrupado = df_agrupado.rename(columns={
+            'seccion': 'seccion_id',
+            'grupo': 'grupo_id'
+        })
 
 
         return df_agrupado
@@ -192,8 +199,8 @@ class Transform:
         # Reemplazar los nombres de provincias por sus códigos numéricos
         df['jurisdiccion_desc'] = df['jurisdiccion_desc'].replace(dict_provincias).infer_objects(copy=False)
 
-        df = df.rename(columns={'jurisdiccion_desc': 'id_jurisdiccion'})
+        df = df.rename(columns={'jurisdiccion_desc': 'provincia_id'})
         
-        df['id_jurisdiccion'] = pd.to_numeric(df['id_jurisdiccion'], errors='coerce')
+        df['provincia_id'] = pd.to_numeric(df['provincia_id'], errors='coerce')
 
         return df

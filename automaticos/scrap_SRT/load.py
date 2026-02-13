@@ -1,4 +1,4 @@
-from pymysql import connect
+import psycopg2
 from sqlalchemy import create_engine
 import pandas as pd
 import os
@@ -12,12 +12,18 @@ class ConexionBase:
         self.user = user
         self.password = password
         self.database = database
+        self.port = 5432
 
     # realizamos la conexion a la base de datos
     def conectar_bdd(self):
 
-        self.conn = connect(
-            host=self.host, user=self.user, password=self.password, database=self.database
+        self.conn = psycopg2.connect(
+            host=self.host,
+            user=self.user,
+            password=self.password,
+            database=self.database,
+            port=self.port,
+            connect_timeout=10
         )
         self.cursor = self.conn.cursor()
         return self
@@ -50,7 +56,7 @@ class ConexionBase:
         print(f"****************inicio de la tabla {tabla}*******************")
         print("\n*****************************************************************************")
 
-        engine = create_engine(f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{3306}/{self.database}")
+        engine = create_engine(f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}")
         df.to_sql(name=tabla, con=engine, if_exists='append', index=False)
     
         print(f" == ACTUALIZACION == Nuevos datos en la base de {tabla}")
