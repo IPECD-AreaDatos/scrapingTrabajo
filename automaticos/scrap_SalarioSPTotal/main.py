@@ -1,32 +1,49 @@
-from homePage import HomePage
-from loadCSVData_SP import Gestion_bdd
-import sys
+"""
+MAIN - Orquestador ETL para SalarioSPTotal
+"""
 import os
-import transform
-
-# Cargar las variables de entorno desde el archivo .env
+import logging
+from datetime import datetime
 from dotenv import load_dotenv
-load_dotenv()
 
-host_dbb = (os.getenv('HOST_DBB'))
-user_dbb = (os.getenv('USER_DBB'))
-pass_dbb = (os.getenv('PASSWORD_DBB'))
-dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
+from etl import ExtractSalarioSPTotal, TransformSalarioSPTotal, LoadSalarioSPTotal
+from etl.validate import ValidateSalarioSPTotal
+from utils.logger import setup_logger
+
+
+def main():
+    setup_logger("salario_sp_total_scraper")
+    logger = logging.getLogger(__name__)
+    load_dotenv()
+
+    inicio = datetime.now()
+    logger.info("=== INICIO ETL SALARIO SP TOTAL - %s ===", inicio)
+
+    host = os.getenv('HOST_DBB')
+    user = os.getenv('USER_DBB')
+    pwd  = os.getenv('PASSWORD_DBB')
+    db   = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
+
+    faltantes = [k for k, v in {'HOST_DBB': host, 'USER_DBB': user,
+                                 'PASSWORD_DBB': pwd, 'NAME_DBB_DATALAKE_ECONOMICO': db}.items() if not v]
+    if faltantes:
+        raise ValueError(f"Variables de entorno faltantes: {faltantes}")
+
+    loader = None
+    try:
+        ruta_sp, ruta_total = ExtractSalarioSPTotal().extract()
+        df_sp, df_total = TransformSalarioSPTotal().transform(ruta_sp, ruta_total)
+        ValidateSalarioSPTotal().validate(df_sp, df_total)
+        loader = LoadSalarioSPTotal(host, user, pwd, db)
+        loader.load(df_sp, df_total)
+        logger.info("=== COMPLETADO - Duración: %s ===", datetime.now() - inicio)
+    except Exception as e:
+        logger.error("[ERROR CRÍTICO] %s", e, exc_info=True)
+        raise
+    finally:
+        if loader:
+            loader.close()
+
 
 if __name__ == '__main__':
-    home_page = HomePage()
-    home_page.descargar_archivo()
-
-    #Obtencion de los datos con el formato correcto 
-    df_salario_sp = transform.datos_sp() #--> Datos del PRIVADO
-    df_datos_totales = transform.datos_totales() #--> Datos TOTALES
-    
-    #Creamos instancia para cargar datos en el DATALAKE
-    instancia = Gestion_bdd(host_dbb,user_dbb,pass_dbb,dbb_datalake)
-
-    #Carga de DATALAKE de datos de Salario Privado
-    instancia.loadInDataBase(df_salario_sp,'dp_salarios_sector_privado')
-    instancia.loadInDataBase(df_datos_totales,'dp_salarios_total')
-
-
-
+    main()

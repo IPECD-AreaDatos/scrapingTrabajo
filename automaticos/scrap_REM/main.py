@@ -1,34 +1,49 @@
-
-import sys
+"""
+MAIN - Orquestador ETL para REM
+"""
 import os
-from extract import Extract 
-from transform_precios_minoristas import Transform
-from load import conexionBaseDatos
-from pandas import to_datetime
-
-# Cargar las variables de entorno desde el archivo .env
+import logging
+from datetime import datetime
 from dotenv import load_dotenv
-load_dotenv()
 
-host_dbb = (os.getenv('HOST_DBB'))
-user_dbb = (os.getenv('USER_DBB'))
-pass_dbb = (os.getenv('PASSWORD_DBB'))
-dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
+from etl import ExtractREM, TransformREM, LoadREM
+from etl.validate import ValidateREM
+from utils.logger import setup_logger
 
 
-if __name__ == "__main__":
+def main():
+    setup_logger("rem_scraper")
+    logger = logging.getLogger(__name__)
+    load_dotenv()
 
-    #Extraccion de archivos
-    Extract().descargar_archivo()
+    inicio = datetime.now()
+    logger.info("=== INICIO ETL REM - %s ===", inicio)
 
-    #Obtencion de DATAFRAMES 
-    instancia_transform = Transform()
-    df_rem_precios_minoristas = instancia_transform.get_historico_precios_minoristas()
-    df_rem_cambio_nominal = instancia_transform.get_historico_cambio_nominal()
+    host = os.getenv('HOST_DBB')
+    user = os.getenv('USER_DBB')
+    pwd  = os.getenv('PASSWORD_DBB')
+    db   = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
 
-    print(df_rem_cambio_nominal)
-    print(df_rem_precios_minoristas)
+    faltantes = [k for k, v in {'HOST_DBB': host, 'USER_DBB': user,
+                                 'PASSWORD_DBB': pwd, 'NAME_DBB_DATALAKE_ECONOMICO': db}.items() if not v]
+    if faltantes:
+        raise ValueError(f"Variables de entorno faltantes: {faltantes}")
 
-    #Carga de datos
-    instancia_load = conexionBaseDatos(host_dbb,user_dbb,pass_dbb,dbb_datalake)
-    instancia_load.main(df_rem_precios_minoristas,df_rem_cambio_nominal)
+    loader = None
+    try:
+        ExtractREM().extract()
+        df_precios, df_cambio = TransformREM().transform()
+        ValidateREM().validate(df_precios, df_cambio)
+        loader = LoadREM(host, user, pwd, db)
+        loader.load(df_precios, df_cambio)
+        logger.info("=== COMPLETADO - Duración: %s ===", datetime.now() - inicio)
+    except Exception as e:
+        logger.error("[ERROR CRÍTICO] %s", e, exc_info=True)
+        raise
+    finally:
+        if loader:
+            loader.close()
+
+
+if __name__ == '__main__':
+    main()

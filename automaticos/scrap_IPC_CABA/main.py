@@ -1,26 +1,49 @@
-from extract import HomePage
-from transform import Transform
-from load import Load
+"""
+MAIN - Orquestador ETL para IPC CABA
+"""
 import os
-import sys
-
-# Cargar las variables de entorno desde el archivo .env
+import logging
+from datetime import datetime
 from dotenv import load_dotenv
-load_dotenv()
 
-host_dbb = (os.getenv('HOST_DBB'))
-user_dbb = (os.getenv('USER_DBB'))
-pass_dbb = (os.getenv('PASSWORD_DBB'))
-dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
+from etl import ExtractIPCCABA, TransformIPCCABA, LoadIPCCABA
+from etl.validate import ValidateIPCCABA
+from utils.logger import setup_logger
 
-if __name__ == "__main__":
 
-    #Descarga del archivo
-    HomePage().descargar_archivo()
+def main():
+    setup_logger("ipc_caba_scraper")
+    logger = logging.getLogger(__name__)
+    load_dotenv()
 
-    #Transformamos los datos
-    df = Transform().extract_data_sheet()
-    
-    
-    #Cargamos en el datalake
-    Load(host_dbb,user_dbb,pass_dbb,dbb_datalake).load_datalake(df)
+    inicio = datetime.now()
+    logger.info("=== INICIO ETL IPC CABA - %s ===", inicio)
+
+    host = os.getenv('HOST_DBB')
+    user = os.getenv('USER_DBB')
+    pwd  = os.getenv('PASSWORD_DBB')
+    db   = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
+
+    faltantes = [k for k, v in {'HOST_DBB': host, 'USER_DBB': user,
+                                 'PASSWORD_DBB': pwd, 'NAME_DBB_DATALAKE_ECONOMICO': db}.items() if not v]
+    if faltantes:
+        raise ValueError(f"Variables de entorno faltantes: {faltantes}")
+
+    loader = None
+    try:
+        ruta = ExtractIPCCABA().extract()
+        df   = TransformIPCCABA().transform(ruta)
+        ValidateIPCCABA().validate(df)
+        loader = LoadIPCCABA(host, user, pwd, db)
+        loader.load(df)
+        logger.info("=== COMPLETADO - Duración: %s ===", datetime.now() - inicio)
+    except Exception as e:
+        logger.error("[ERROR CRÍTICO] %s", e, exc_info=True)
+        raise
+    finally:
+        if loader:
+            loader.close()
+
+
+if __name__ == '__main__':
+    main()

@@ -1,38 +1,49 @@
-import sys
+"""
+MAIN - Orquestador ETL para SRT
+"""
 import os
-import pandas as pd
-from transform import Transform
-from load import ConexionBase
+import logging
+from datetime import datetime
 from dotenv import load_dotenv
-load_dotenv()
-host_dbb = (os.getenv('HOST_DBB'))
-user_dbb = (os.getenv('USER_DBB'))
-pass_dbb = (os.getenv('PASSWORD_DBB'))
-dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
 
-if __name__ == "__main__":
+from etl import ExtractSRT, TransformSRT, LoadSRT
+from etl.validate import ValidateSRT
+from utils.logger import setup_logger
 
-    print("Iniciando proceso de transformación de CSVs...")
 
-    # creacion del df final (Esto sigue igual)
-    df = Transform().procesar_archivos()
-    
-    # Validaciones (Esto sigue igual)
-    if not df.empty:
-        print("df final creado con éxito.")
-        # print(df.dtypes)
-        
-        df_negativos = df[(df["cant_personas_trabaj_up"] < 0) | (df["remuneracion"]  < 0) ]
-        if not df_negativos.empty:
-            print(" ATENCIÓN: Se encontraron valores negativos.")
-            print(df_negativos)
-        
-        # Carga de datos
-        print("Iniciando carga a Base de Datos...")
-        instancia_load = ConexionBase(host_dbb, user_dbb, pass_dbb, dbb_datalake)
-        
-        instancia_load.main(df)
-        
-        print("¡Proceso finalizado con éxito!")
-    else:
-        print("No se generaron datos para cargar.")
+def main():
+    setup_logger("srt_scraper")
+    logger = logging.getLogger(__name__)
+    load_dotenv()
+
+    inicio = datetime.now()
+    logger.info("=== INICIO ETL SRT - %s ===", inicio)
+
+    host = os.getenv('HOST_DBB')
+    user = os.getenv('USER_DBB')
+    pwd  = os.getenv('PASSWORD_DBB')
+    db   = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
+
+    faltantes = [k for k, v in {'HOST_DBB': host, 'USER_DBB': user,
+                                 'PASSWORD_DBB': pwd, 'NAME_DBB_DATALAKE_ECONOMICO': db}.items() if not v]
+    if faltantes:
+        raise ValueError(f"Variables de entorno faltantes: {faltantes}")
+
+    loader = None
+    try:
+        files_dir = ExtractSRT().extract()
+        df = TransformSRT().transform(files_dir)
+        ValidateSRT().validate(df)
+        loader = LoadSRT(host, user, pwd, db)
+        loader.load(df)
+        logger.info("=== COMPLETADO - Duración: %s ===", datetime.now() - inicio)
+    except Exception as e:
+        logger.error("[ERROR CRÍTICO] %s", e, exc_info=True)
+        raise
+    finally:
+        if loader:
+            loader.close()
+
+
+if __name__ == '__main__':
+    main()

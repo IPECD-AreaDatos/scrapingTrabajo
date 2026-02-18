@@ -1,44 +1,49 @@
-from sqlalchemy import create_engine
+"""
+MAIN - Orquestador ETL para IERIC
+"""
 import os
+import logging
+from datetime import datetime
 from dotenv import load_dotenv
-from downloadArchive import downloadArchive
-from readFileActividad import readFileActividad
-from readFilePuestosDeTrabajo import readFileOcupacion
-from readFileIngreso import readFileSalario
 
-# Cargar variables de entorno
-load_dotenv()
+from etl import ExtractIERIC, TransformIERIC, LoadIERIC
+from etl.validate import ValidateIERIC
+from utils.logger import setup_logger
 
-host_dbb = os.getenv('HOST_DBB')
-user_dbb = os.getenv('USER_DBB')
-pass_dbb = os.getenv('PASSWORD_DBB')
-dbb_datalake = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
+
+def main():
+    setup_logger("ieric_scraper")
+    logger = logging.getLogger(__name__)
+    load_dotenv()
+
+    inicio = datetime.now()
+    logger.info("=== INICIO ETL IERIC - %s ===", inicio)
+
+    host = os.getenv('HOST_DBB')
+    user = os.getenv('USER_DBB')
+    pwd  = os.getenv('PASSWORD_DBB')
+    db   = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
+
+    faltantes = [k for k, v in {'HOST_DBB': host, 'USER_DBB': user,
+                                 'PASSWORD_DBB': pwd, 'NAME_DBB_DATALAKE_ECONOMICO': db}.items() if not v]
+    if faltantes:
+        raise ValueError(f"Variables de entorno faltantes: {faltantes}")
+
+    loader = None
+    try:
+        files_dir = ExtractIERIC().extract()
+        df_act, df_puestos, df_sal = TransformIERIC().transform(files_dir)
+        ValidateIERIC().validate(df_act, df_puestos, df_sal)
+        loader = LoadIERIC(host, user, pwd, db)
+        loader.load(df_act, df_puestos, df_sal)
+        logger.info("=== COMPLETADO - Duración: %s ===", datetime.now() - inicio)
+    except Exception as e:
+        logger.error("[ERROR CRÍTICO] %s", e, exc_info=True)
+        raise
+    finally:
+        if loader:
+            loader.close()
+
 
 if __name__ == '__main__':
-    print("🔽 Descargando archivos...")
-    downloadArchive().descargar_archivo()
-
-    print("📄 Leyendo archivos de actividad...")
-    df_actividad = readFileActividad().read_file()
-
-
-    print("📄 Leyendo archivos de ocupación...")
-    df_ocupacion = readFileOcupacion().read_file()
-
-    print("📄 Leyendo archivos de salario...")
-    df_salario = readFileSalario().read_file()
-
-
-    print("🔌 Conectando a la base de datos...")
-    engine = create_engine(f"mysql+pymysql://{user_dbb}:{pass_dbb}@{host_dbb}/{dbb_datalake}")
-
-    print("📤 Subiendo datos a IERIC_ACTIVIDAD...")
-    df_actividad.to_sql(name="ieric_actividad", con=engine, if_exists="replace", index=False)
-
-    print("📤 Subiendo datos a IERIC_OCUPACION...")
-    df_ocupacion.to_sql(name="ieric_puestos_trabajo", con=engine, if_exists="replace", index=False)
-
-    print("📤 Subiendo datos a IERIC_INGRESO...")
-    df_salario.to_sql(name="ieric_ingreso", con=engine, if_exists="replace", index=False)
-
-    print("✅ Proceso finalizado correctamente.")
+    main()

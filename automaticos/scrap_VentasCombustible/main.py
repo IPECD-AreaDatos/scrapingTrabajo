@@ -1,118 +1,49 @@
+"""
+MAIN - Orquestador ETL para VentasCombustible
+"""
 import os
 import logging
 from datetime import datetime
 from dotenv import load_dotenv
-from conect_bdd import ConexionBaseDatos
-from extract import Extraccion
-from transform import Transformacion
-from save_data_sheet import ReadSheets
 
-# Configuración básica de logging
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-LOG_DIR = os.path.join(BASE_DIR, 'logs')
-os.makedirs(LOG_DIR, exist_ok=True)
-LOG_FILE = os.path.join(LOG_DIR, 'ventas_combustible_scraper.log')
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(LOG_FILE, encoding='utf-8'),
-        logging.StreamHandler()
-    ]
-)
-
-logger = logging.getLogger(__name__)
-
-
-def cargar_variables_entorno():
-    """Carga las variables de entorno necesarias para la conexión."""
-    load_dotenv()
-
-    host_dbb = os.getenv('HOST_DBB')
-    user_dbb = os.getenv('USER_DBB')
-    pass_dbb = os.getenv('PASSWORD_DBB')
-    dbb_datalake = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
-
-    if not all([host_dbb, user_dbb, pass_dbb, dbb_datalake]):
-        raise ValueError("Faltan variables de entorno necesarias para la conexión.")
-
-    logger.info("Variables de entorno cargadas correctamente.")
-    return host_dbb, user_dbb, pass_dbb, dbb_datalake
-
-
-def realizar_extraccion_datos():
-    """Realiza la extracción de datos desde la fuente."""
-    logger.info("[EXTRACT] Iniciando la descarga de datos...")
-    extraccion = Extraccion()
-    extraccion.descargar_archivo()
-    logger.info("[EXTRACT] Datos descargados exitosamente.")
-
-
-def transformar_datos(transformador=None):
-    """Realiza la transformación de los datos y genera el DataFrame de combustible."""
-    logger.info("[TRANSFORM] Iniciando transformación...")
-    transformador = transformador or Transformacion()
-    df_combustible = transformador.crear_df()
-    logger.info("[TRANSFORM] Transformación completa. Filas: %d", len(df_combustible))
-    return df_combustible, transformador
-
-
-def calcular_suma_por_fecha(transformador, df=None):
-    """Calcula la suma de combustible para la última fecha disponible."""
-    logger.info("[TRANSFORM] Calculando suma mensual para la última fecha...")
-    suma_mensual = transformador.suma_por_fecha(df)
-    logger.info("[TRANSFORM] Suma calculada: %s", suma_mensual)
-    return suma_mensual
-
-
-def cargar_datos_base_datos(df_combustible, host_dbb, user_dbb, pass_dbb, dbb_datalake):
-    """Carga los datos transformados a la base de datos."""
-    logger.info("[LOAD] Preparando conexión a la base de datos...")
-    conexion_bdd = ConexionBaseDatos(host_dbb, user_dbb, pass_dbb, dbb_datalake)
-
-    logger.info("[LOAD] Iniciando carga en base de datos...")
-    carga_exitosa = conexion_bdd.main(df_combustible)
-    estado = "éxito" if carga_exitosa else "fracaso"
-    logger.info("[LOAD] Resultado de carga en BD: %s", estado)
-
-    return carga_exitosa
-
-
-def actualizar_hoja_google(carga_exitosa, suma_mensual, host_dbb, user_dbb, pass_dbb, dbb_datalake):
-    """Actualiza la hoja de cálculo de Google si la carga a la base de datos fue exitosa."""
-    if not carga_exitosa:
-        logger.info("[LOAD] No se actualiza Google Sheets porque no hubo carga nueva.")
-        return
-
-    logger.info("[LOAD] Actualizando Google Sheets...")
-    conexion_excel = ReadSheets(host_dbb, user_dbb, pass_dbb, dbb_datalake).conectar_bdd()
-    conexion_excel.cargar_datos(suma_mensual)
-    logger.info("[LOAD] Google Sheets actualizado correctamente.")
+from etl import ExtractVentasCombustible, TransformVentasCombustible, LoadVentasCombustible
+from etl.validate import ValidateVentasCombustible
+from utils.logger import setup_logger
 
 
 def main():
+    setup_logger("ventas_combustible_scraper")
+    logger = logging.getLogger(__name__)
+    load_dotenv()
+
     inicio = datetime.now()
-    logger.info("=" * 80)
-    logger.info("=== INICIO ETL Ventas Combustible ===")
-    logger.info("=" * 80)
+    logger.info("=== INICIO ETL VENTAS COMBUSTIBLE - %s ===", inicio)
 
+    host = os.getenv('HOST_DBB')
+    user = os.getenv('USER_DBB')
+    pwd  = os.getenv('PASSWORD_DBB')
+    db   = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
+
+    faltantes = [k for k, v in {'HOST_DBB': host, 'USER_DBB': user,
+                                 'PASSWORD_DBB': pwd, 'NAME_DBB_DATALAKE_ECONOMICO': db}.items() if not v]
+    if faltantes:
+        raise ValueError(f"Variables de entorno faltantes: {faltantes}")
+
+    loader = None
     try:
-        host_dbb, user_dbb, pass_dbb, dbb_datalake = cargar_variables_entorno()
-        realizar_extraccion_datos()
-        df_combustible, transformador = transformar_datos()
-        suma_mensual = calcular_suma_por_fecha(transformador, df_combustible)
-        carga_exitosa = cargar_datos_base_datos(df_combustible, host_dbb, user_dbb, pass_dbb, dbb_datalake)
-        actualizar_hoja_google(carga_exitosa, suma_mensual, host_dbb, user_dbb, pass_dbb, dbb_datalake)
-
+        ruta      = ExtractVentasCombustible().extract()
+        transform = TransformVentasCombustible()
+        df        = transform.transform(ruta)
+        ValidateVentasCombustible().validate(df)
+        loader = LoadVentasCombustible(host, user, pwd, db)
+        loader.load(df)
+        logger.info("=== COMPLETADO - Duración: %s ===", datetime.now() - inicio)
     except Exception as e:
-        logger.error("Error en el proceso ETL de Ventas Combustible: %s", e, exc_info=True)
+        logger.error("[ERROR CRÍTICO] %s", e, exc_info=True)
         raise
     finally:
-        fin = datetime.now()
-        duracion = (fin - inicio).total_seconds()
-        logger.info("=== FIN ETL Ventas Combustible (%.2f segundos) ===", duracion)
-        logger.info("=" * 80)
+        if loader:
+            loader.close()
 
 
 if __name__ == '__main__':

@@ -1,50 +1,55 @@
+"""
+MAIN - Orquestador ETL para SIPA
+"""
 import os
-import pandas as pd
+import logging
+from datetime import datetime
 from dotenv import load_dotenv
 
-from extractSheets import HomePage
-from readDataExcel import readDataExcel
-from conexionBaseDatos import conexionBaseDatos
-from send_mail_sipa import MailSipa
+from etl import ExtractSIPA, TransformSIPA, LoadSIPA
+from etl.validate import ValidateSIPA
+from utils.logger import setup_logger
 
-# === Cargar variables de entorno
-load_dotenv()
-host = os.getenv('HOST_DBB')
-user = os.getenv('USER_DBB')
-password = os.getenv('PASSWORD_DBB')
-database = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
-
-# === Ruta del archivo Excel
-directorio = os.path.dirname(os.path.abspath(__file__))
-ruta_archivo = os.path.join(directorio, 'files', 'SIPA.xlsx')
-
-"""
-TENER CUIDADO EN LA CARGA CON EL NOMBRE DE CIUDAD AUTONOMA DE BUENOS AIRES Y RIO NEGRO
-Solucion: 
-Copiar el nombre de la provincia de la hoja de con estacionalidad
-Y pegarlo en el nombre de la provincia de la hoja sin estacionalidad
-"""
 
 def main():
-    # 1. Descargar archivo actualizado desde la web
-    HomePage()
+    setup_logger("sipa_scraper")
+    logger = logging.getLogger(__name__)
+    load_dotenv()
 
-    # 2. Leer y construir el DataFrame completo
-    extractor = readDataExcel()
-    df = extractor.get_dataframe(ruta_archivo)
+    inicio = datetime.now()
+    logger.info("=== INICIO ETL SIPA - %s ===", inicio)
 
-    # 3. Cargar todo el pipeline de SIPA
-    conexion = conexionBaseDatos(host, user, password, database)
-    if conexion.load_all(df):  # ← método único que hace todo
-        print("✅ Datos cargados y procesados correctamente")
+    host = os.getenv('HOST_DBB')
+    user = os.getenv('USER_DBB')
+    pwd  = os.getenv('PASSWORD_DBB')
+    db   = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
 
-        # 4. Enviar informe por correo
-        mailer = MailSipa(host, user, password, database)
-        mailer.connect_db()
-        mailer.send_mail()
-        print("📧 Correo enviado exitosamente")
-    else:
-        print("⚠️ No se detectaron datos nuevos. No se envió el correo.")
+    faltantes = [k for k, v in {'HOST_DBB': host, 'USER_DBB': user,
+                                 'PASSWORD_DBB': pwd, 'NAME_DBB_DATALAKE_ECONOMICO': db}.items() if not v]
+    if faltantes:
+        raise ValueError(f"Variables de entorno faltantes: {faltantes}")
+
+    loader = None
+    try:
+        ruta = ExtractSIPA().extract()
+        df   = TransformSIPA().transform(ruta)
+        ValidateSIPA().validate(df)
+        loader = LoadSIPA(host, user, pwd, db)
+        cargado = loader.load(df)
+
+        if cargado:
+            logger.info("[OK] Datos nuevos cargados en SIPA.")
+        else:
+            logger.info("[SKIP] Sin datos nuevos en SIPA.")
+
+        logger.info("=== COMPLETADO - Duración: %s ===", datetime.now() - inicio)
+    except Exception as e:
+        logger.error("[ERROR CRÍTICO] %s", e, exc_info=True)
+        raise
+    finally:
+        if loader:
+            loader.close()
+
 
 if __name__ == '__main__':
     main()

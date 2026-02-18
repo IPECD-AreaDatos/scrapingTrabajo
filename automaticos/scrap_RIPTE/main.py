@@ -1,31 +1,49 @@
-from readData import readData
-from readHistory import ripte_cargaHistorico
-from loadDataBaseRIPTE import ripte_cargaUltimoDato
-import sys
+"""
+MAIN - Orquestador ETL para RIPTE
+"""
 import os
-# Cargar las variables de entorno desde el archivo .env
+import logging
+from datetime import datetime
 from dotenv import load_dotenv
-load_dotenv()
 
-host_dbb = (os.getenv('HOST_DBB'))
-user_dbb = (os.getenv('USER_DBB'))
-pass_dbb = (os.getenv('PASSWORD_DBB'))
-dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
+from etl import ExtractRIPTE, TransformRIPTE, LoadRIPTE
+from etl.validate import ValidateRIPTE
+from utils.logger import setup_logger
 
 
-if __name__ == "__main__":
-    # Descarga del archivo
-    #readData().descargar_archivo()
-    #ripte_cargaHistorico().loadInDataBase(host_dbb, user_dbb, pass_dbb, dbb_datalake)
-    
-    # Scrip principal
-    # Obtenemos el ultimo valor de RIPTE desde la pagina de inicio
-    ultimo_valor_ripte = readData().extract_last_value()
-    
-    # Carga del último dato en la base de datos Datalake Economico
-    conexion = ripte_cargaUltimoDato(
-        host_dbb,user_dbb,pass_dbb,dbb_datalake
-    )
-    conexion.loadInDataBaseDatalakeEconomico(ultimo_valor_ripte)
+def main():
+    setup_logger("ripte_scraper")
+    logger = logging.getLogger(__name__)
+    load_dotenv()
 
-    
+    inicio = datetime.now()
+    logger.info("=== INICIO ETL RIPTE - %s ===", inicio)
+
+    host = os.getenv('HOST_DBB')
+    user = os.getenv('USER_DBB')
+    pwd  = os.getenv('PASSWORD_DBB')
+    db   = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
+
+    faltantes = [k for k, v in {'HOST_DBB': host, 'USER_DBB': user,
+                                 'PASSWORD_DBB': pwd, 'NAME_DBB_DATALAKE_ECONOMICO': db}.items() if not v]
+    if faltantes:
+        raise ValueError(f"Variables de entorno faltantes: {faltantes}")
+
+    loader = None
+    try:
+        valor_str = ExtractRIPTE().extract()
+        valor     = TransformRIPTE().transform(valor_str)
+        ValidateRIPTE().validate(valor)
+        loader = LoadRIPTE(host, user, pwd, db)
+        loader.load(valor)
+        logger.info("=== COMPLETADO - Duración: %s ===", datetime.now() - inicio)
+    except Exception as e:
+        logger.error("[ERROR CRÍTICO] %s", e, exc_info=True)
+        raise
+    finally:
+        if loader:
+            loader.close()
+
+
+if __name__ == '__main__':
+    main()

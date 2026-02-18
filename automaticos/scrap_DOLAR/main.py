@@ -1,72 +1,49 @@
 """
-En este script lo que vamos a hacer es rescatar los valores de distintos tipos de dolares:
-
-- Dolar oficial: de banco nacion
-- Dolar MEP, BLUE y CCL: sacado de https://www.ambito.com/ --> Sitio web dedicado al ambito bursatil
-
+MAIN - Orquestador ETL para DOLAR
 """
-
 import os
-import sys
+import logging
 from datetime import datetime
-
-# Cargar las clases desde Ambito Financiero
-from dolarOficial import dolarOficial
-from dolarBlue import dolarBlue
-from dolarMEP import dolarMEP
-from dolarCCL import dolarCCL
-# Cargar manual desde el excel
-from dolarBlueHistorico import dolarBlueHistorico
-
-# Carga de datos desde Dolarito
-from readDataDolarOficial import readDataDolarOficial
-from readDataDolarBlue import readDataDolarBlue
-from readDataDolarMEP import readDataDolarMEP
-from readDataDolarCCL import readDataDolarCCL
-
-# Carga de correos
-from sendMail import SendMail
-
-# Cargar las variables de entorno desde el archivo .env
 from dotenv import load_dotenv
-load_dotenv()
 
-host_dbb = (os.getenv('HOST_DBB'))
-user_dbb = (os.getenv('USER_DBB'))
-pass_dbb = (os.getenv('PASSWORD_DBB'))
-dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
+from etl import ExtractDOLAR, TransformDOLAR, LoadDOLAR
+from etl.validate import ValidateDOLAR
+from utils.logger import setup_logger
 
 
-if __name__ == '__main__': 
-    """Carga vieja desde Ambito Financiero"""
-    #dolarOficial().descargaArchivo()
-    #dolarOficial().lecturaDolarOficial(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
-    #dolarBlue(credenciales.host, credenciales.user, credenciales.password, credenciales.database).tomaDolarBlue()
-    #dolarMEP().tomaDolarMEP(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
-    #dolarCCL().tomaDolarCCL(credenciales.host, credenciales.user, credenciales.password, credenciales.database)
+def main():
+    setup_logger("dolar_scraper")
+    logger = logging.getLogger(__name__)
+    load_dotenv()
 
-    """Nueva carga desde dolarito"""
-    #Dolar Oficial
-    dolarOficial_reader = readDataDolarOficial(host_dbb,user_dbb,pass_dbb,dbb_datalake, 'dolar_oficial')
-    df_dolarOficial = dolarOficial_reader.readDataWebPage()
-    dolarOficial_reader.insertDataFrameInDataBase(df_dolarOficial)
-    #Dolar Blue
-    dolarBlue_reader = readDataDolarBlue(host_dbb,user_dbb,pass_dbb,dbb_datalake, 'dolar_blue')
-    df_dolarBlue = dolarBlue_reader.readDataWebPage()
-    dolarBlue_reader.insertDataFrameInDataBase(df_dolarBlue)
-    #Dolar MEP
-    dolarMEP_reader = readDataDolarMEP(host_dbb,user_dbb,pass_dbb,dbb_datalake, 'dolar_mep')
-    df_dolarMEP = dolarMEP_reader.readDataWebPage()
-    dolarMEP_reader.insertDataFrameInDataBase(df_dolarMEP)
-    #Dolar CCL
-    dolarCCL_reader = readDataDolarCCL(host_dbb,user_dbb,pass_dbb,dbb_datalake, 'dolar_ccl')
-    df_dolarCCL = dolarCCL_reader.readDataWebPage()
-    dolarCCL_reader.insertDataFrameInDataBase(df_dolarCCL)
+    inicio = datetime.now()
+    logger.info("=== INICIO ETL DOLAR - %s ===", inicio)
 
-    #Envio de correos
-    #send_mail= SendMail(host_dbb,user_dbb,pass_dbb,dbb_datalake)
-    #df_dolarOficial, df_dolarBlue, df_dolarMEP, df_dolarCCL = send_mail.extract_data()
-    #send_mail.send_mail(df_dolarOficial, df_dolarBlue, df_dolarMEP, df_dolarCCL)
+    host = os.getenv('HOST_DBB')
+    user = os.getenv('USER_DBB')
+    pwd  = os.getenv('PASSWORD_DBB')
+    db   = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
 
-    """Carga directa desde el Excel(CAMBIAR NOMBRE DE LA TABLA)"""
-    #dolarBlueHistorico(credenciales.user, credenciales.password, credenciales.host, credenciales.database, 'dolar_ccl').load_xlsx_to_mysql()
+    faltantes = [k for k, v in {'HOST_DBB': host, 'USER_DBB': user,
+                                 'PASSWORD_DBB': pwd, 'NAME_DBB_DATALAKE_ECONOMICO': db}.items() if not v]
+    if faltantes:
+        raise ValueError(f"Variables de entorno faltantes: {faltantes}")
+
+    loader = None
+    try:
+        datos_raw = ExtractDOLAR().extract()
+        datos     = TransformDOLAR().transform(datos_raw)
+        ValidateDOLAR().validate(datos)
+        loader = LoadDOLAR(host, user, pwd, db)
+        loader.load(datos)
+        logger.info("=== COMPLETADO - Duración: %s ===", datetime.now() - inicio)
+    except Exception as e:
+        logger.error("[ERROR CRÍTICO] %s", e, exc_info=True)
+        raise
+    finally:
+        if loader:
+            loader.close()
+
+
+if __name__ == '__main__':
+    main()

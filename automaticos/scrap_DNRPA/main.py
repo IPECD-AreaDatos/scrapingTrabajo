@@ -1,37 +1,49 @@
 """
-En esta ocacion fue necesario durante el proceso de extraccion de los datos
-una transformacion, esto porque el tratado de la tabla de DNRPA requeria de 
-varias operaciones para concatenar las tablas de diferentes años entre si.
+MAIN - Orquestador ETL para DNRPA
 """
 import os
-
-#En caso de que se requiera cargar toda la informacion de nuevo
-from exctract_historico import ExtractHistoricalDnrpa
-from load_historico import conexionBaseDatos
-
-#En caso de que se requiera cargar solo la ultima informacion
-from exctract_last_year import ExtractLastData
-from load_last import conexionBaseDatosLast
-
-
-# Cargar las variables de entorno desde el archivo .env
+import logging
+from datetime import datetime
 from dotenv import load_dotenv
-load_dotenv()
 
-host_dbb = (os.getenv('HOST_DBB'))
-user_dbb = (os.getenv('USER_DBB'))
-pass_dbb = (os.getenv('PASSWORD_DBB'))
-dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
+from etl import ExtractDNRPA, TransformDNRPA, LoadDNRPA
+from etl.validate import ValidateDNRPA
+from utils.logger import setup_logger
 
 
-if __name__=='__main__':
-    #df_tota = ExtractHistoricalDnrpa().extraer_tablas()
-    #conexionBaseDatos(host_dbb,user_dbb,pass_dbb,dbb_datalake).cargar_datalake(df_tota)
-    #exit()
-    
-    #Extraccion y TRANSFORMACION de datos
-    df = ExtractLastData().extraer_tablas()
-    #Cargamos al datalake economico
-    instancia_bdd = conexionBaseDatosLast(host_dbb,user_dbb,pass_dbb,dbb_datalake)
-    instancia_bdd.cargar_datalake(df)
+def main():
+    setup_logger("dnrpa_scraper")
+    logger = logging.getLogger(__name__)
+    load_dotenv()
 
+    inicio = datetime.now()
+    logger.info("=== INICIO ETL DNRPA - %s ===", inicio)
+
+    host = os.getenv('HOST_DBB')
+    user = os.getenv('USER_DBB')
+    pwd  = os.getenv('PASSWORD_DBB')
+    db   = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
+
+    faltantes = [k for k, v in {'HOST_DBB': host, 'USER_DBB': user,
+                                 'PASSWORD_DBB': pwd, 'NAME_DBB_DATALAKE_ECONOMICO': db}.items() if not v]
+    if faltantes:
+        raise ValueError(f"Variables de entorno faltantes: {faltantes}")
+
+    loader = None
+    try:
+        df_raw = ExtractDNRPA().extract()
+        df     = TransformDNRPA().transform(df_raw)
+        ValidateDNRPA().validate(df)
+        loader = LoadDNRPA(host, user, pwd, db)
+        loader.load(df)
+        logger.info("=== COMPLETADO - Duración: %s ===", datetime.now() - inicio)
+    except Exception as e:
+        logger.error("[ERROR CRÍTICO] %s", e, exc_info=True)
+        raise
+    finally:
+        if loader:
+            loader.close()
+
+
+if __name__ == '__main__':
+    main()

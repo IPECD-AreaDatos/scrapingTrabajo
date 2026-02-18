@@ -1,172 +1,93 @@
 """
-Main - Orquestador del flujo ETL para CBT/CBA
-
-Este script coordina el proceso completo de:
-1. Extract: Descarga de archivos desde INDEC
-2. Transform: Procesamiento y transformación de datos
-3. Load: Carga a base de datos y envío de correos
-4. Validate: Validación de calidad de datos
+MAIN - Orquestador ETL para CBT/CBA
+Responsabilidad: Coordinar Extract → Transform → Validate → Load
 """
-
 import os
 import sys
+import logging
+import requests
+from datetime import datetime
 from dotenv import load_dotenv
 
-# Importar componentes ETL
 from extract.extractor_cbt import ExtractorCBT
 from extract.extractor_pobreza import ExtractorPobreza
 from transform.transformer_cbt_cba import TransformerCBTCBA
 from load.database_loader import connection_db
 from load.email_sender import MailCBTCBA
 from validate.data_validator import DataValidator
-
-# Cargar variables de entorno
-load_dotenv()
-
-# Configuración de base de datos
-HOST_DBB = os.getenv('HOST_DBB')
-USER_DBB = os.getenv('USER_DBB')
-PASS_DBB = os.getenv('PASSWORD_DBB')
-DBB_DATALAKE = os.getenv('NAME_DBB_DATALAKE_SOCIO')
-DBB_DWH = os.getenv('NAME_DBB_DWH_SOCIO')
+from utils.logger import setup_logger
 
 
 def main():
-    """
-    Función principal que ejecuta el flujo ETL completo.
-    """
-    print("\n" + "="*70)
-    print("INICIO DEL PROCESO ETL - CBT/CBA")
-    print("="*70 + "\n")
-    
+    setup_logger("cbt_scraper")
+    logger = logging.getLogger(__name__)
+    load_dotenv()
+
+    inicio = datetime.now()
+    logger.info("=== INICIO ETL CBT/CBA - %s ===", inicio)
+
+    host     = os.getenv('HOST_DBB')
+    user     = os.getenv('USER_DBB')
+    pwd      = os.getenv('PASSWORD_DBB')
+    db_lake  = os.getenv('NAME_DBB_DATALAKE_SOCIO')
+    db_dwh   = os.getenv('NAME_DBB_DWH_SOCIO')
+
+    faltantes = [k for k, v in {
+        'HOST_DBB': host, 'USER_DBB': user, 'PASSWORD_DBB': pwd,
+        'NAME_DBB_DATALAKE_SOCIO': db_lake, 'NAME_DBB_DWH_SOCIO': db_dwh
+    }.items() if not v]
+    if faltantes:
+        raise ValueError(f"Variables de entorno faltantes: {faltantes}")
+
     try:
-        # ============================================================
-        # FASE 1: EXTRACT - Extracción de datos
-        # ============================================================
-        print("\n[FASE 1/4] EXTRACT - Extracción de datos")
-        print("-" * 70)
-        
-        # Descargar archivo CBT
-        print("\n1.1. Descargando archivo CBT...")
-        extractor_cbt = ExtractorCBT()
-        ruta_cbt = extractor_cbt.descargar_archivo()
-        
-        # Descargar archivo Pobreza
-        print("\n1.2. Descargando archivo Pobreza...")
-        extractor_pobreza = ExtractorPobreza()
-        ruta_pobreza = extractor_pobreza.descargar_archivo()
-        
-        print("\n✓ Fase de extracción completada exitosamente")
-        
-        # ============================================================
-        # FASE 2: TRANSFORM - Transformación de datos
-        # ============================================================
-        print("\n[FASE 2/4] TRANSFORM - Transformación de datos")
-        print("-" * 70)
-        
-        print("\n2.1. Procesando datos de CBT, CBA y NEA...")
-        transformer = TransformerCBTCBA()
-        df_transformado = transformer.transform_datalake()
-        
-        print(f"\n✓ Datos transformados: {len(df_transformado)} registros")
-        print(f"  Columnas: {', '.join(df_transformado.columns.tolist())}")
-        print(f"  Rango de fechas: {df_transformado['Fecha'].min()} a {df_transformado['Fecha'].max()}")
-        
-        # ============================================================
-        # FASE 3: VALIDATE - Validación de datos
-        # ============================================================
-        print("\n[FASE 3/4] VALIDATE - Validación de datos")
-        print("-" * 70)
-        
+        # EXTRACT
+        logger.info("1. [EXTRACT] Descargando archivos CBT y Pobreza...")
+        ExtractorCBT().descargar_archivo()
+        ExtractorPobreza().descargar_archivo()
+
+        # TRANSFORM
+        logger.info("2. [TRANSFORM] Procesando datos CBT/CBA/NEA...")
+        df = TransformerCBTCBA().transform_datalake()
+        logger.info("[OK] %d registros transformados.", len(df))
+
+        # VALIDATE
+        logger.info("3. [VALIDATE] Validando datos...")
         validator = DataValidator()
-        es_valido, errores, advertencias = validator.validar_dataframe(df_transformado)
-        
-        # Mostrar reporte de validación
-        print(validator.generar_reporte())
-        
+        es_valido, errores, advertencias = validator.validar_dataframe(df)
+        logger.info(validator.generar_reporte())
         if not es_valido:
-            print("\n✗ VALIDACIÓN FALLIDA - No se procederá con la carga")
-            print("\nErrores encontrados:")
-            for i, error in enumerate(errores, 1):
-                print(f"  {i}. {error}")
+            logger.error("[VALIDATE] Validación fallida: %s", errores)
             sys.exit(1)
-        
-        print("✓ Validación completada exitosamente")
-        
-        # ============================================================
-        # FASE 4: LOAD - Carga de datos
-        # ============================================================
-        print("\n[FASE 4/4] LOAD - Carga de datos")
-        print("-" * 70)
-        
-        # Cargar a DataLake
-        print("\n4.1. Cargando datos al DataLake...")
-        db_loader = connection_db(HOST_DBB, USER_DBB, PASS_DBB, DBB_DATALAKE)
+
+        # LOAD
+        logger.info("4. [LOAD] Cargando al DataLake...")
+        db_loader = connection_db(host, user, pwd, db_lake)
         db_loader.connect_db()
-        bandera_correo = db_loader.load_datalake(df_transformado)
-        
-        # Enviar correo si se cargaron datos nuevos
-        if bandera_correo:
-            print("\n4.2. Enviando correo de notificación...")
-            email_sender = MailCBTCBA(HOST_DBB, USER_DBB, PASS_DBB, DBB_DWH)
-            email_sender.send_mail_cbt_cba()
-            print("✓ Correo enviado exitosamente")
-            
-            # Llamada a API
-            print("\n4.3. Enviando datos a la API...")
-            import requests
-            
-            # Filtrar la última fila
-            last_row = df_transformado.tail(1).iloc[0]
-            
-            # Extraer los valores necesarios
-            anio = last_row['Fecha'].year
-            mes = last_row['Fecha'].month
-            cbt = last_row['cbt_nea']
-            cba = last_row['cba_nea']
-            
-            # Endpoint
-            url = "https://ecv.corrientes.gob.ar/api/create_cbt"
-            
-            # Datos a enviar
+        bandera = db_loader.load_datalake(df)
+
+        if bandera:
+            logger.info("[LOAD] Datos nuevos cargados. Enviando correo y actualizando API...")
+            MailCBTCBA(host, user, pwd, db_dwh).send_mail_cbt_cba()
+
+            last_row = df.tail(1).iloc[0]
             data = {
-                "anio": anio,
-                "mes": mes,
-                "cbt": int(cbt),
-                "cba": int(cba)
+                "anio": last_row['Fecha'].year,
+                "mes":  last_row['Fecha'].month,
+                "cbt":  int(last_row['cbt_nea']),
+                "cba":  int(last_row['cba_nea']),
             }
-            
-            # Realizar solicitud POST
-            response = requests.post(url, data=data)
-            
-            if response.status_code == 200:
-                print(f"✓ API actualizada exitosamente: {response.json()}")
+            resp = requests.post("https://ecv.corrientes.gob.ar/api/create_cbt", data=data)
+            if resp.status_code == 200:
+                logger.info("[API] Actualizada exitosamente.")
             else:
-                print(f"⚠ Error en la API: {response.status_code}")
-                print(f"  Respuesta: {response.text}")
+                logger.warning("[API] Error %d: %s", resp.status_code, resp.text)
         else:
-            print("\n⚠ No hay datos nuevos para cargar")
-        
-        print("\n✓ Fase de carga completada")
-        
-        # ============================================================
-        # RESUMEN FINAL
-        # ============================================================
-        print("\n" + "="*70)
-        print("PROCESO ETL COMPLETADO EXITOSAMENTE")
-        print("="*70)
-        print(f"\n📊 Resumen:")
-        print(f"  • Registros procesados: {len(df_transformado)}")
-        print(f"  • Última fecha: {df_transformado['Fecha'].max()}")
-        print(f"  • Validaciones: {'✓ Aprobadas' if es_valido else '✗ Fallidas'}")
-        print(f"  • Advertencias: {len(advertencias)}")
-        print(f"  • Datos nuevos cargados: {'Sí' if bandera_correo else 'No'}")
-        print("\n" + "="*70 + "\n")
-        
+            logger.info("[LOAD] Sin datos nuevos para cargar.")
+
+        logger.info("=== COMPLETADO - Duración: %s ===", datetime.now() - inicio)
+
     except Exception as e:
-        print(f"\n✗ ERROR EN EL PROCESO ETL: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.error("[ERROR CRÍTICO] %s", e, exc_info=True)
         sys.exit(1)
 
 

@@ -1,58 +1,49 @@
+"""
+MAIN - Orquestador ETL para EMAE
+"""
 import os
-import sys
 import logging
+from datetime import datetime
 from dotenv import load_dotenv
-from extract import HomePage
-from transform import Transformer
-from load import Load
 
-# Configuración de logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+from etl import ExtractEMAE, TransformEMAE, LoadEMAE
+from etl.validate import ValidateEMAE
+from utils.logger import setup_logger
 
-# Cargar las variables de entorno desde el archivo .env
-load_dotenv()
-
-# Validar variables de entorno
-required_env_vars = ['HOST_DBB', 'USER_DBB', 'PASSWORD_DBB', 'NAME_DBB_DATALAKE_ECONOMICO']
-for var in required_env_vars:
-    if not os.getenv(var):
-        logging.error(f"La variable de entorno {var} no está definida.")
-        sys.exit(1)
-
-host_dbb = os.getenv('HOST_DBB')
-user_dbb = os.getenv('USER_DBB')
-pass_dbb = os.getenv('PASSWORD_DBB')
-dbb_datalake = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
 
 def main():
+    setup_logger("emae_scraper")
+    logger = logging.getLogger(__name__)
+    load_dotenv()
+
+    inicio = datetime.now()
+    logger.info("=== INICIO ETL EMAE - %s ===", inicio)
+
+    host = os.getenv('HOST_DBB')
+    user = os.getenv('USER_DBB')
+    pwd  = os.getenv('PASSWORD_DBB')
+    db   = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
+
+    faltantes = [k for k, v in {'HOST_DBB': host, 'USER_DBB': user,
+                                 'PASSWORD_DBB': pwd, 'NAME_DBB_DATALAKE_ECONOMICO': db}.items() if not v]
+    if faltantes:
+        raise ValueError(f"Variables de entorno faltantes: {faltantes}")
+
+    loader = None
     try:
-        # Obtención del archivo
-        logging.info("Descargando archivos...")
-        HomePage().descargar_archivos()
-
-        # Creación de instancia del transformador y generación de DataFrames
-        logging.info("Transformando datos...")
-        instancia_transformador = Transformer()
-        df_emae_valores = instancia_transformador.construir_df_emae_valores()
-        df_emae_variaciones = instancia_transformador.construir_df_emae_variaciones()
-        
-        # Mostrar información sobre los DataFrames generados
-        print(f"\n📊 EMAE Valores generado: {len(df_emae_valores):,} filas")
-        print(f"📈 EMAE Variaciones generado: {len(df_emae_variaciones):,} filas")
-        print("Muestra de datos EMAE Valores:")
-        print(df_emae_valores.head())
-        print("\nMuestra de datos EMAE Variaciones:")
-        print(df_emae_variaciones.head())
-        # Carga de los DataFrames
-        logging.info("Cargando datos en la base de datos...")
-        instancia_load = Load(host=host_dbb, user=user_dbb, password=pass_dbb, database=dbb_datalake)
-        instancia_load.main_load(df_emae_valores, df_emae_variaciones)
-
-        logging.info("Proceso completado exitosamente.")
-
+        ruta_val, ruta_var = ExtractEMAE().extract()
+        df_val, df_var = TransformEMAE().transform(ruta_val, ruta_var)
+        ValidateEMAE().validate(df_val, df_var)
+        loader = LoadEMAE(host, user, pwd, db)
+        loader.load(df_val, df_var)
+        logger.info("=== COMPLETADO - Duración: %s ===", datetime.now() - inicio)
     except Exception as e:
-        logging.error(f"Error en el proceso principal: {e}")
-        sys.exit(1)
+        logger.error("[ERROR CRÍTICO] %s", e, exc_info=True)
+        raise
+    finally:
+        if loader:
+            loader.close()
+
 
 if __name__ == '__main__':
     main()

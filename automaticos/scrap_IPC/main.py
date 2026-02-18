@@ -1,72 +1,64 @@
 """
 MAIN - Orquestador ETL para IPC
-Responsabilidad: Coordinar Extract → Transform → Load (+ Reporte)
+Responsabilidad: Coordinar Extract → Transform → Validate → Load (+ Reporte)
 """
 import os
 import logging
 from datetime import datetime
 from dotenv import load_dotenv
-from logging.handlers import RotatingFileHandler
 
 from etl import ExtractIPC, TransformIPC, LoadIPC
+from etl.validate import ValidateIPC
+from utils.logger import setup_logger
 
-def configurar_logging():
-    log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'logs')
-    os.makedirs(log_dir, exist_ok=True)
-    log_file = os.path.join(log_dir, 'ipc_scraper.log')
-    
-    log_handler = RotatingFileHandler(log_file, maxBytes=5*1024*1024, backupCount=2)
-    log_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-    
-    logging.basicConfig(level=logging.INFO, handlers=[log_handler, logging.StreamHandler()])
 
 def main():
-    configurar_logging()
+    setup_logger("ipc_scraper")
     logger = logging.getLogger(__name__)
     load_dotenv()
-    
+
     inicio = datetime.now()
-    logger.info(f"=== INICIO ETL IPC - {inicio} ===")
+    logger.info("=== INICIO ETL IPC - %s ===", inicio)
+
+    host = os.getenv('HOST_DBB')
+    user = os.getenv('USER_DBB')
+    pwd  = os.getenv('PASSWORD_DBB')
+    db   = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
+
+    faltantes = [k for k, v in {'HOST_DBB': host, 'USER_DBB': user,
+                                 'PASSWORD_DBB': pwd, 'NAME_DBB_DATALAKE_ECONOMICO': db}.items() if not v]
+    if faltantes:
+        raise ValueError(f"Variables de entorno faltantes: {faltantes}")
 
     try:
-        # Variables de entorno
-        host = os.getenv('HOST_DBB')
-        user = os.getenv('USER_DBB')
-        pwd = os.getenv('PASSWORD_DBB')
-        db = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
-
-        # 1. EXTRACT
+        # EXTRACT
         logger.info("1. [EXTRACT] Iniciando descarga...")
-        extractor = ExtractIPC(headless=True) # True para servidor
-        rutas = extractor.extract()
+        rutas = ExtractIPC(headless=True).extract()
 
-        # 2. TRANSFORM
+        # TRANSFORM
         logger.info("2. [TRANSFORM] Procesando Excels...")
-        transformer = TransformIPC(host, user, pwd, db)
-        df_final = transformer.transform(rutas)
+        df = TransformIPC(host, user, pwd, db).transform(rutas)
 
-        if df_final.empty:
-            logger.warning("DataFrame vacío. Abortando.")
-            return
+        # VALIDATE
+        ValidateIPC().validate(df)
 
-        # 3. LOAD (Carga + Email)
+        # LOAD
         logger.info("3. [LOAD] Cargando a BD...")
         loader = LoadIPC(host, user, pwd, db)
-        
-        datos_nuevos = loader.load_to_db(df_final)
+        datos_nuevos = loader.load_to_db(df)
 
         if datos_nuevos:
             logger.info("4. [REPORT] Datos nuevos detectados. Enviando correo...")
             loader.enviar_reporte()
         else:
-            logger.info("4. [REPORT] No hubo datos nuevos. No se envía correo.")
+            logger.info("4. [REPORT] Sin datos nuevos. No se envía correo.")
 
-        duracion = datetime.now() - inicio
-        logger.info(f"=== PROCESO COMPLETADO EXITOSAMENTE - Duración: {duracion} ===")
+        logger.info("=== COMPLETADO - Duración: %s ===", datetime.now() - inicio)
 
     except Exception as e:
-        logger.error(f"[ERROR CRITICO] {e}", exc_info=True)
+        logger.error("[ERROR CRÍTICO] %s", e, exc_info=True)
         raise
+
 
 if __name__ == "__main__":
     main()

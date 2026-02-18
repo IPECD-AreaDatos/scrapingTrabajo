@@ -1,37 +1,49 @@
-#Importacion de Bibliotecas
+"""
+MAIN - Orquestador ETL para Supermercados
+"""
 import os
-import sys
-from Extraction_homePage import HomePage
-from Transformation_super import Transformation_Data
-from Load_super import conexionBaseDatos
-
+import logging
+from datetime import datetime
 from dotenv import load_dotenv
 
-# Cargar las variables de entorno desde el archivo .env
-load_dotenv()
+from etl import ExtractSupermercados, TransformSupermercados, LoadSupermercados
+from etl.validate import ValidateSupermercados
+from utils.logger import setup_logger
 
-host_dbb = (os.getenv('HOST_DBB'))
-user_dbb = (os.getenv('USER_DBB'))
-pass_dbb = (os.getenv('PASSWORD_DBB'))
-dbb_datalake = (os.getenv('NAME_DBB_DATALAKE_ECONOMICO'))
 
 def main():
+    setup_logger("supermercados_scraper")
+    logger = logging.getLogger(__name__)
+    load_dotenv()
 
-    #Descarga del archivo
-    HomePage().descargar_archivo()
+    inicio = datetime.now()
+    logger.info("=== INICIO ETL SUPERMERCADOS - %s ===", inicio)
 
-    #Obtencion del dataframe con formato solicitado
-    df = Transformation_Data().contruccion_df()
+    host = os.getenv('HOST_DBB')
+    user = os.getenv('USER_DBB')
+    pwd  = os.getenv('PASSWORD_DBB')
+    db   = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
 
-    #Validamos las fechas para conocer estimativamente en que rango de tiemp oestamos
-    print(f"Fecha minima del supermercado: {min(df['fecha'])}")
-    print(f"Fecha maxima del supermercado: {max(df['fecha'])}")
+    faltantes = [k for k, v in {'HOST_DBB': host, 'USER_DBB': user,
+                                 'PASSWORD_DBB': pwd, 'NAME_DBB_DATALAKE_ECONOMICO': db}.items() if not v]
+    if faltantes:
+        raise ValueError(f"Variables de entorno faltantes: {faltantes}")
 
-    #Almacenamos los datos
-    conexionBaseDatos(host_dbb,user_dbb,pass_dbb,dbb_datalake).cargar_datos(df)
+    loader = None
+    try:
+        ruta = ExtractSupermercados().extract()
+        df   = TransformSupermercados().transform(ruta)
+        ValidateSupermercados().validate(df)
+        loader = LoadSupermercados(host, user, pwd, db)
+        loader.load(df)
+        logger.info("=== COMPLETADO - Duración: %s ===", datetime.now() - inicio)
+    except Exception as e:
+        logger.error("[ERROR CRÍTICO] %s", e, exc_info=True)
+        raise
+    finally:
+        if loader:
+            loader.close()
 
 
 if __name__ == '__main__':
-
     main()
-
