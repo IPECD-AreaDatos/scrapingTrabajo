@@ -17,7 +17,6 @@ NOMBRE_ARCHIVO = 'indice_salarios.csv'
 URL = 'https://www.indec.gob.ar/indec/web/Nivel4-Tema-4-31-61'
 XPATH_LINK = "/html/body/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div/div[2]/div/div[2]/div[2]/div[2]/div/div/a"
 
-
 class ExtractIndiceSalarios:
     """Descarga el CSV del Índice de Salarios desde INDEC usando Selenium."""
 
@@ -33,7 +32,7 @@ class ExtractIndiceSalarios:
         try:
             logger.info("[EXTRACT] Navegando a %s", URL)
             driver.get(URL)
-            wait = WebDriverWait(driver, 10)
+            wait = WebDriverWait(driver, 30)
             link = wait.until(EC.presence_of_element_located((By.XPATH, XPATH_LINK)))
             href = link.get_attribute('href')
             logger.info("[EXTRACT] URL del archivo: %s", href)
@@ -52,4 +51,26 @@ class ExtractIndiceSalarios:
     def _crear_driver():
         options = webdriver.ChromeOptions()
         options.add_argument('--headless')
-        return webdriver.Chrome(options=options)
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        
+        # 1. CAMBIO CLAVE: Cambiar el User-Agent (Disfraz de humano)
+        options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
+        
+        # 2. Ocultar que es un automatismo
+        options.add_argument('--disable-blink-features=AutomationControlled')
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option('useAutomationExtension', False)
+        
+        driver = webdriver.Chrome(options=options)
+        
+        # 3. Eliminar la variable 'navigator.webdriver' que nos delata
+        driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
+            "source": """
+                Object.defineProperty(navigator, 'webdriver', {
+                    get: () => undefined
+                })
+            """
+        })
+        
+        return driver
