@@ -4,76 +4,72 @@ import pandas as pd
 import os
 
 class ConexionBase:
-    
-    # definimos variables iniciales para la conexion
     def __init__(self, host, user, password, database):
-
         self.host = host
         self.user = user
         self.password = password
         self.database = database
         self.port = 5432
+        # Creamos el engine una sola vez para reutilizarlo
+        self.engine_url = f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
+        self.engine = create_engine(self.engine_url)
 
-    # realizamos la conexion a la base de datos
     def conectar_bdd(self):
+        """ Establece conexión vía psycopg2 para operaciones manuales/cursores """
+        try:
+            self.conn = psycopg2.connect(
+                host=self.host,
+                user=self.user,
+                password=self.password,
+                database=self.database,
+                port=self.port,
+                connect_timeout=10
+            )
+            self.cursor = self.conn.cursor()
+            return self
+        except Exception as e:
+            print(f"Error al conectar: {e}")
 
-        self.conn = psycopg2.connect(
-            host=self.host,
-            user=self.user,
-            password=self.password,
-            database=self.database,
-            port=self.port,
-            connect_timeout=10
-        )
-        self.cursor = self.conn.cursor()
-        return self
-    
-    def probar(self):
-
+    def probar_y_limpiar(self):
+        """ Lee datos, hace el merge y limpia duplicados """
         self.conectar_bdd()
-        df_cobertura = pd.read_sql("SELECT * FROM cobertura_financiacion", self.conn)
-        df_dicc = pd.read_sql("SELECT * FROM cobertura_financiacion_dicc", self.conn)
+        
+        # Usamos el engine de sqlalchemy para leer (más rápido y compatible)
+        df_cobertura = pd.read_sql("SELECT * FROM cobertura_financiacion", self.engine)
+        df_dicc = pd.read_sql("SELECT * FROM cobertura_financiacion_dicc", self.engine)
 
-        print(df_cobertura)
-        print(df_dicc)
-
-        # Conservar solo una descripción por seccion (puedes cambiar 'first' por 'last' si es necesario)
+        # Limpieza de diccionarios
         df_dicc = df_dicc.drop_duplicates(subset=['ciiu'], keep='first')
 
-        # Hacer el merge para agregar la descripción de la sección
-        df_cobertura = df_cobertura.merge(df_dicc[['ciiu', 'desc_ciiu']], on='ciiu', how='left')
-
-        # Renombrar la columna agregada a 'seccion_descripcion' para mayor claridad
-        df_cobertura.rename(columns={'desc_ciiu': 'ciiu_descripcion'}, inplace=True)
-
-        print(df_cobertura)
-
-    
-    # realizamos la carga a la base de datos
-    def carga_bdd(self,df, tabla):
-
-        print("\n*****************************************************************************")
-        print(f"****************inicio de la tabla {tabla}*******************")
-        print("\n*****************************************************************************")
-
-        engine = create_engine(f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}")
-        df.to_sql(name=tabla, con=engine, if_exists='append', index=False)
-    
-        print(f" == ACTUALIZACION == Nuevos datos en la base de {tabla}")
-
-    def main(self, df):  # <--- Quitamos dicc_seccion, dicc_grupo, dicc_ciiu de los argumentos
+        # Merge
+        df_final = df_cobertura.merge(df_dicc[['ciiu', 'desc_ciiu']], on='ciiu', how='left')
+        df_final.rename(columns={'desc_ciiu': 'ciiu_descripcion'}, inplace=True)
         
+        print("Muestra de datos procesados:")
+        print(df_final.head())
+        return df_final
+
+    def carga_bdd(self, df, tabla, schema='public'):
+        """ Realiza la carga al nuevo servidor """
+        print(f"\n>>> Iniciando carga en tabla: {tabla} ({self.database})")
+        
+        try:
+            # if_exists='append' mantiene los datos y suma los nuevos
+            df.to_sql(name=tabla, con=self.engine, schema=schema, if_exists='append', index=False)
+            print(f"ÉXITO: {len(df)} filas insertadas en {tabla}")
+        except Exception as e:
+            print(f"ERROR en carga: {e}")
+
+    def main(self, df_a_cargar):
+        # 1. Conectar
         self.conectar_bdd()
         
-        # Solo cargamos la tabla principal con los datos del CSV
-        self.carga_bdd(df, 'srt')
-        
-        # BORRAMOS o COMENTAMOS las cargas de diccionarios porque ya existen en BD
-        # self.carga_bdd(dicc_seccion, 'srt_seccion')
-        # self.carga_bdd(dicc_grupo, 'srt_grupo')
-        # self.carga_bdd(dicc_ciiu, 'srt_ciiu')
+        # 2. Cargar la tabla principal (srt según tu ejemplo)
+        # Asegúrate de que las columnas del DF coincidan con la tabla en Postgres
+        self.carga_bdd(df_a_cargar, 'srt')
 
-        # cerramos conexiones
+        # 3. Cerrar conexiones
         self.conn.commit()
-        self.conn.close()
         self.cursor.close()
+        self.conn.close()
+        print("Conexiones cerradas correctamente.")

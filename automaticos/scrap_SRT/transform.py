@@ -100,7 +100,7 @@ class Transform:
         
         print(df.head(80))
         # filtramos el df y generamos sumas
-        df_agrupado = df.groupby(['fecha', 'jurisdiccion_desc', 'seccion', 'grupo', 'ciiu'], as_index=False).agg({
+        df_agrupado = df.groupby(['fecha', 'jurisdiccion_desc', 'seccion', 'grupo', 'ciiu'], as_index=False, dropna=False).agg({
             'cant_personas_trabaj_cp': 'sum', 
             'cant_personas_trabaj_up': 'sum',
             'remuneracion': 'sum'})
@@ -139,6 +139,11 @@ class Transform:
 
         # hacemos una copia del df
         df = df[columnas].copy()
+
+        # CIIU suele ser de 5 dígitos, Grupo de 3.
+        df['ciiu'] = df['ciiu'].astype(str).str.strip().str.zfill(5)
+        df['seccion'] = df['seccion'].astype(str).str.strip().upper()
+        df['grupo'] = df['grupo'].astype(str).str.strip().str.zfill(3)
 
         # convertimos a string algunas columnas
         columnas_str = ['periodo', 'jurisdiccion_desc', 'seccion', 'ciiu']
