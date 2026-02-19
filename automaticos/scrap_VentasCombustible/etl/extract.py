@@ -31,6 +31,8 @@ class ExtractVentasCombustible:
         os.makedirs(FILES_DIR, exist_ok=True)
         options = webdriver.ChromeOptions()
         options.add_argument('--headless')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
         options.add_argument('--disable-gpu')
         driver = webdriver.Chrome(options=options)
 

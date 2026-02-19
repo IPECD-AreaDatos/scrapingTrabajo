@@ -27,19 +27,22 @@ class LoadSIPA:
 
     def load(self, df: pd.DataFrame) -> bool:
         """
-        Carga el DataFrame si hay más filas que en la BD.
+        Carga el DataFrame si la fecha máxima del Excel supera la de la BD.
 
         Returns:
             bool: True si se cargaron datos nuevos
         """
         self._connect()
-        self._cursor.execute(f"SELECT COUNT(*) FROM {TABLA}")
-        count_bdd = self._cursor.fetchone()[0]
-        count_df  = len(df)
-        logger.info("[LOAD] BD: %d | DF: %d", count_bdd, count_df)
 
-        if count_df <= count_bdd:
-            logger.info("[LOAD] Sin datos nuevos en '%s'.", TABLA)
+        # Comparar por fecha máxima (más robusto que por conteo de filas)
+        self._cursor.execute(f"SELECT MAX(fecha) FROM {TABLA}")
+        fecha_bdd = self._cursor.fetchone()[0]
+        fecha_df  = pd.to_datetime(df['fecha']).max()
+
+        logger.info("[LOAD] Última fecha en BD: %s | Última fecha en Excel: %s", fecha_bdd, fecha_df.date())
+
+        if fecha_bdd is not None and pd.to_datetime(fecha_bdd) >= fecha_df:
+            logger.info("[LOAD] Sin datos nuevos en '%s'. La BD ya está actualizada.", TABLA)
             self._close()
             return False
 
@@ -62,10 +65,21 @@ class LoadSIPA:
 
     def _close(self):
         if self._cursor:
-            self._cursor.close()
+            try:
+                self._cursor.close()
+            except Exception:
+                pass
         if self._conn:
-            self._conn.commit()
-            self._conn.close()
+            try:
+                self._conn.commit()
+            except Exception:
+                pass
+            try:
+                self._conn.close()
+            except Exception:
+                pass
+        self._cursor = None
+        self._conn = None
 
     def _get_engine(self, db=None):
         db = db or self.database
@@ -78,7 +92,6 @@ class LoadSIPA:
         df['fecha'] = pd.to_datetime(df['fecha']).dt.date
         engine = self._get_engine('dwh_economico')
         df.to_sql(name="empleo_nacional_porcentajes_variaciones", con=engine, if_exists='replace', index=True)
-        self._conn.commit()
         logger.info("[LOAD] Analytics nacionales actualizados.")
 
     def _get_percentages(self, df):
@@ -113,7 +126,6 @@ class LoadSIPA:
         df['fecha'] = pd.to_datetime(df['fecha']).dt.date
         engine = self._get_engine('dwh_economico')
         df.to_sql(name="empleo_nea_variaciones", con=engine, if_exists='replace', index=True)
-        self._conn.commit()
         logger.info("[LOAD] Analytics NEA actualizados.")
 
     def _get_variances_nea(self, df):

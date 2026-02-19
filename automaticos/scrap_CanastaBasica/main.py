@@ -34,7 +34,7 @@ def main():
     try:
         # EXTRACT
         logger.info("1. [EXTRACT] Inicializando extractor...")
-        extractor = ExtractCanastaBasica(enable_parallel=True, max_workers=3)
+        extractor = ExtractCanastaBasica(enable_parallel=True, max_workers=2)  # 2 workers para no saturar RAM del servidor
         links_list = extractor.read_links_from_db()
         if not links_list:
             logger.error("[ERROR] No se encontraron links activos en la base de datos.")
@@ -57,6 +57,18 @@ def main():
             logger.info("BACKUP guardado: %s", backup_file)
         except Exception as e:
             logger.warning("No se pudo crear backup: %s", e)
+
+        # Limpieza de backups: conservar solo los últimos 3
+        try:
+            archivos_backup = sorted(
+                [f for f in os.listdir(os.path.dirname(backup_file)) if f.startswith('BACKUP_RAW_')],
+                reverse=True
+            )
+            for viejo in archivos_backup[3:]:
+                os.remove(os.path.join(os.path.dirname(backup_file), viejo))
+                logger.info("Backup antiguo eliminado: %s", viejo)
+        except Exception as e:
+            logger.warning("No se pudo limpiar backups: %s", e)
 
         # TRANSFORM
         logger.info("2. [TRANSFORM] Normalizando datos...")
