@@ -1,104 +1,34 @@
-# Archivo destinado a realizar la carga de los cambios del repositorio en el servidor EC2 que usamos en el área.
-# Las variables secretas están configuradas en Settings.
-
-name: Carga de repositorio a la M.V EC2 proporcionada por Telco.
+name: Actualizar Repo en Server
 
 on:
   push:
-    branches:
-      - main  # Ejecutar este workflow en cada push a la rama principal
+    branches: [ main ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_SERVER }}
+          username: ${{ secrets.USER_SERVER }} # Debería ser 'root'
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.PORT_SERVER }}
+          script: |
+            cd ${{ secrets.PATH_FOLDER_SAVE }}
+            
+            # 1. Traer cambios de GitHub
+            git fetch --all
+            git reset --hard origin/main
+            
+            # 2. Asegurar permisos (Cambiado a root)
+            chown -R root:root .
+            chmod -R 755 .
 
-    # Objetivo: añadir la clave SSH al agente que se conectará al servidor.
-    - name: Add SSH key
-      uses: webfactory/ssh-agent@v0.5.3
-      with:
-        ssh-private-key: ${{ secrets.AWS_PEM }}
+            # 3. Crear/Actualizar el .env dinámicamente
+            printf "HOST_DBB=${{ secrets.HOST_DBB }}\nUSER_DBB=${{ secrets.USER_DBB }}\nPASSWORD_DBB=${{ secrets.PASSWORD_DBB }}\nDB_NAME_DBB=${{ secrets.DB_NAME_DBB }}\nPORT_DBB=${{ secrets.PORT_DBB }}\n" > .env
 
-    # Objetivo: Verificar que la conexión se realizó exitosamente.
-    - name: Verify SSH connection
-      env:
-        EC2_IP: ${{ secrets.AWS_HOST }}
-        EC2_USER: ${{ secrets.AWS_USER }}
-      run: |
-        ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_IP "echo 'Conexión exitosa a EC2'"
-
-    # Objetivo: Clonar o actualizar el repositorio en el servidor EC2
-    - name: Deploy to EC2
-      env:
-        EC2_IP: ${{ secrets.AWS_HOST }}
-        EC2_USER: ${{ secrets.AWS_USER }}
-        REPO_URL: ${{ secrets.HTTP_GIT }}
-        DEPLOY_DIR: ${{ secrets.PATH_FOLDER_SAVE }}
-      run: |
-        ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_IP "
-          set -e
-
-          sudo mkdir -p '$DEPLOY_DIR'
-          cd '$DEPLOY_DIR'
-
-          if [ ! -d .git ]; then
-            echo 'No es repo git. Re-clonando...'
-            sudo rm -rf ./*
-            sudo git clone '$REPO_URL' .
-          else
-            echo 'Repo existente. Actualizando...'
-            sudo git fetch --all
-            sudo git reset --hard origin/main
-          fi
-
-          sudo chmod -R 775 '$DEPLOY_DIR'
-          sudo chown -R ubuntu:ubuntu '$DEPLOY_DIR'
-        "
-
-
-#    # Objetivo: Crear el archivo .env en el servidor EC2 con la variable GOOGLE_SHEETS_API_KEY
-#    - name: Create .env file on EC2
-#      env:
-#        EC2_IP: ${{ secrets.AWS_HOST }}
-#        EC2_USER: ${{ secrets.AWS_USER }}
-#        GOOGLE_SHEETS_API_KEY: ${{ secrets.GOOGLE_SHEETS_API_KEY }}
-#        DEPLOY_DIR: ${{ secrets.PATH_FOLDER_SAVE }}
-#        HOST_DBB: ${{secrets.HOST_DBB}}
-#        USER_DBB: ${{secrets.USER_DBB}}
-#        PASSWORD_DBB: ${{secrets.PASSWORD_DBB}}
-#        NAME_DBB_DATALAKE_ECONOMICO: ${{secrets.NAME_DBB_DATALAKE_ECONOMICO}}
-#        NAME_DBB_DWH_ECONOMICO: ${{secrets.NAME_DBB_DWH_ECONOMICO}}
-#        NAME_DBB_DATALAKE_SOCIO: ${{secrets.NAME_DBB_DATALAKE_SOCIO}}
-#        NAME_DBB_DWH_SOCIO: ${{secrets.NAME_DBB_DWH_SOCIO}}
-#        NAME_IPECD_ECONOMICO: ${{secrets.NAME_IPECD_ECONOMICO}}
-#
-#        FOLDER_PROYECTO: scrapingTrabajo
-#      run: |
-#        ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_IP "
-#          echo 'Creando o actualizando archivo .env'
-#  
-#          cd $DEPLOY_DIR
-#  
-#          # Verificar si el archivo .env existe
-#          if [ -f .env ]; then
-#            echo 'El archivo .env existe, limpiando...'
-#            sudo rm .env
-#          fi
-#  
-#          # Crear el archivo .env con las nuevas variables
-#          echo 'GOOGLE_SHEETS_API_KEY=$GOOGLE_SHEETS_API_KEY' >> .env
-#          echo 'HOST_DBB=$HOST_DBB' >> .env
-#          echo 'USER_DBB=$USER_DBB' >> .env
-#          echo 'PASSWORD_DBB=$PASSWORD_DBB' >> .env
-#          echo 'NAME_DBB_DATALAKE_ECONOMICO=$NAME_DBB_DATALAKE_ECONOMICO' >> .env
-#          echo 'NAME_DBB_DWH_ECONOMICO=$NAME_DBB_DWH_ECONOMICO' >> .env
-#          echo 'NAME_DBB_DATALAKE_SOCIO=$NAME_DBB_DATALAKE_SOCIO' >> .env
-#          echo 'NAME_DBB_DWH_SOCIO=$NAME_DBB_DWH_SOCIO' >> .env
-#  
-#          # Mostrar el contenido del archivo .env
-#          cat .env
-#        "
-
+            # 4. Actualizar librerías si hubo cambios en requirements
+            source venv/bin/activate
+            pip install -r requirements.txt
