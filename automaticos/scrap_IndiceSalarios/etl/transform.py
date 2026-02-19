@@ -35,8 +35,9 @@ class TransformIndiceSalarios:
             except Exception:
                 pass
 
-        # Convertir fechas
-        df['periodo'] = pd.to_datetime(df['periodo'], format='%d/%m/%Y')
+        # Convertir fechas y renombrar de 'periodo' a 'fecha'
+        df['fecha'] = pd.to_datetime(df['periodo'], format='%d/%m/%Y')
+        df = df.drop(columns=['periodo']) # Eliminamos el nombre viejo
 
         # Columnas a minúsculas
         df.columns = [c.lower() for c in df.columns]
