@@ -1,4 +1,4 @@
-name: Actualizar Repo en Server
+name: Actualizar Repo en Server Donweb
 
 on:
   push:
@@ -8,27 +8,25 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy via SSH
+      - name: Deploy via SSH a Donweb
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.HOST_SERVER }}
-          username: ${{ secrets.USER_SERVER }} # Debería ser 'root'
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.PORT_SERVER }}
+          host: ${{ secrets.DONWEB_VPS_IP }}
+          username: ${{ secrets.DONWEB_USER }}
+          password: ${{ secrets.DONWEB_PASSWORD }}
+          port: ${{ secrets.DONWEB_PORT }}
           script: |
             cd ${{ secrets.PATH_FOLDER_SAVE }}
             
-            # 1. Traer cambios de GitHub
+            # 1. Sincronizar código
             git fetch --all
             git reset --hard origin/main
             
-            # 2. Asegurar permisos (Cambiado a root)
+            # 2. Permisos para root
             chown -R root:root .
             chmod -R 755 .
 
-            # 3. Crear/Actualizar el .env dinámicamente
-            printf "HOST_DBB=${{ secrets.HOST_DBB }}\nUSER_DBB=${{ secrets.USER_DBB }}\nPASSWORD_DBB=${{ secrets.PASSWORD_DBB }}\nDB_NAME_DBB=${{ secrets.DB_NAME_DBB }}\nPORT_DBB=${{ secrets.PORT_DBB }}\n" > .env
-
-            # 4. Actualizar librerías si hubo cambios en requirements
+            # 3. Actualizar dependencias
             source venv/bin/activate
             pip install -r requirements.txt
+            echo "🚀 Despliegue en Donweb (vía contraseña) finalizado con éxito"
