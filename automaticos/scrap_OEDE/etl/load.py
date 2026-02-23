@@ -1,63 +1,47 @@
 """
 LOAD - Módulo de carga de datos OEDE
-Responsabilidad: Cargar solo filas nuevas a MySQL (append incremental)
+Responsabilidad: Cargar solo filas nuevas a PostgreSQL
 """
 import logging
 import pandas as pd
-import pymysql
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 
 logger = logging.getLogger(__name__)
 
-TABLA = "OEDE_valores"
-
+TABLA = "oede" 
 
 class LoadOEDE:
-    """Carga incrementalmente los datos de OEDE a MySQL."""
-
     def __init__(self, host: str, user: str, password: str, database: str):
-        self.host     = host
-        self.user     = user
-        self.password = password
-        self.database = database
-        self._engine  = None
+        self.url = f"postgresql+psycopg2://{user}:{password}@{host}:5432/{database}"
+        self._engine = create_engine(self.url)
 
     def load(self, df: pd.DataFrame) -> bool:
-        """
-        Carga solo las filas nuevas si el DF tiene más datos que la BD.
-
-        Returns:
-            bool: True si se cargaron datos nuevos
-        """
-        conn = pymysql.connect(
-            host=self.host, user=self.user,
-            password=self.password, database=self.database
-        )
-        with conn.cursor() as cur:
-            cur.execute(f"SELECT COUNT(*) FROM {TABLA}")
-            len_bdd = cur.fetchone()[0]
-        conn.close()
+        # Verificamos cantidad de filas actuales
+        with self._engine.connect() as conn:
+            result = conn.execute(text(f"SELECT COUNT(*) FROM {TABLA}"))
+            len_bdd = result.scalar()
 
         len_df = len(df)
         logger.info("[LOAD] BD: %d filas | DF: %d filas", len_bdd, len_df)
 
         if len_df > len_bdd:
+            # Seleccionamos solo las filas nuevas (cola del dataframe)
             df_nuevos = df.tail(len_df - len_bdd)
-            df_nuevos.to_sql(name=TABLA, con=self._get_engine(), if_exists='append', index=False)
-            logger.info("[LOAD] %d filas nuevas cargadas en '%s'.", len(df_nuevos), TABLA)
-            return True
-        else:
-            logger.info("[LOAD] No hay datos nuevos de OEDE.")
-            return False
-
-    def _get_engine(self):
-        if self._engine is None:
-            self._engine = create_engine(
-                f"mysql+pymysql://{self.user}:{self.password}@{self.host}:3306/{self.database}"
+            
+            # Cargamos a Postgres
+            df_nuevos.to_sql(
+                name=TABLA, 
+                con=self._engine, 
+                if_exists='append', 
+                index=False,
+                method='multi' # Mejora velocidad en Postgres
             )
-        return self._engine
+            logger.info("[LOAD] %d filas nuevas cargadas.", len(df_nuevos))
+            return True
+        
+        logger.info("[LOAD] No hay datos nuevos.")
+        return False
 
     def close(self):
         if self._engine:
             self._engine.dispose()
-            self._engine = None

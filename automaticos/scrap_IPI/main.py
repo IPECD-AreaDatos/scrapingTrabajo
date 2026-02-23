@@ -32,10 +32,14 @@ def main():
     loader = None
     try:
         ruta = ExtractIPI().extract()
-        df_valores, df_variaciones, df_acum = TransformIPI().transform(ruta)
-        ValidateIPI().validate(df_valores, df_variaciones, df_acum)
+        df_unificado = TransformIPI().transform(ruta)
+        
+        # Ajustamos el ValidateIPI para que reciba solo un DF
+        ValidateIPI().validate(df_unificado) 
+        
         loader = LoadIPI(host, user, pwd, db)
-        loader.load(df_valores, df_variaciones, df_acum)
+        loader.load(df_unificado)
+        
         logger.info("=== COMPLETADO - Duración: %s ===", datetime.now() - inicio)
     except Exception as e:
         logger.error("[ERROR CRÍTICO] %s", e, exc_info=True)

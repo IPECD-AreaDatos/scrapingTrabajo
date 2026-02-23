@@ -2,10 +2,14 @@
 LOAD - Módulo de carga de datos IPI
 Responsabilidad: Cargar las 3 tablas del IPI a MySQL (incremental)
 """
+import os
 import logging
 import pandas as pd
-import pymysql
+import psycopg2
 from sqlalchemy import create_engine
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from json import loads
 
 logger = logging.getLogger(__name__)
 
@@ -19,57 +23,46 @@ class LoadIPI:
         'acum': 'ipi_var_interacum',
     }
 
-    def __init__(self, host: str, user: str, password: str, database: str):
-        self.host     = host
-        self.user     = user
-        self.password = password
-        self.database = database
-        self._engine  = None
-        self._conn    = None
+    def __init__(self, host, user, password, database):
+        self.host, self.user, self.password, self.database = host, user, password, database
+        self.port = 5432
+        self.engine = None
+        self.conn = None
 
-    def load(self, df_valores: pd.DataFrame, df_variaciones: pd.DataFrame,
-             df_var_inter_acum: pd.DataFrame) -> bool:
-        """
-        Carga las 3 tablas del IPI de forma incremental.
+    def _conectar(self):
+        if not self.conn:
+            self.conn = psycopg2.connect(host=self.host, user=self.user, password=self.password, database=self.database, port=self.port)
+            url = f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
+            self.engine = create_engine(url)
 
-        Returns:
-            bool: True si se cargó al menos una tabla nueva
-        """
-        self._conn = pymysql.connect(
-            host=self.host, user=self.user,
-            password=self.password, database=self.database
-        )
+    def load(self, df: pd.DataFrame) -> bool:
         try:
-            b1 = self._cargar(df_valores,       self.TABLAS['valores'])
-            b2 = self._cargar(df_variaciones,   self.TABLAS['variaciones'])
-            b3 = self._cargar(df_var_inter_acum, self.TABLAS['acum'])
-            self._conn.commit()
-        finally:
-            self._conn.close()
-        return b1 or b2 or b3
+            self._conectar()
+            cursor = self.conn.cursor()
 
-    def _cargar(self, df: pd.DataFrame, tabla: str) -> bool:
-        with self._conn.cursor() as cur:
-            cur.execute(f"SELECT COUNT(*) FROM {tabla}")
-            len_bdd = cur.fetchone()[0]
-        len_df = len(df)
-        logger.info("[LOAD] %s — BD: %d | DF: %d", tabla, len_bdd, len_df)
-        if len_df > len_bdd:
-            df_nuevos = df.tail(len_df - len_bdd)
-            df_nuevos.to_sql(name=tabla, con=self._get_engine(), if_exists='append', index=False)
-            logger.info("[LOAD] %d filas nuevas en '%s'.", len(df_nuevos), tabla)
+            # 1. Verificar fecha máxima en BD
+            cursor.execute("SELECT MAX(fecha) FROM public.ipi")
+            ultima_fecha_bd = cursor.fetchone()[0]
+
+            df['fecha'] = pd.to_datetime(df['fecha']).dt.date
+            if ultima_fecha_bd:
+                df_nuevos = df[df['fecha'] > ultima_fecha_bd]
+            else:
+                df_nuevos = df
+
+            if df_nuevos.empty:
+                logger.info("[LOAD] IPI: No hay datos nuevos.")
+                return False
+
+            # 2. Carga a Postgres
+            df_nuevos.to_sql('ipi', self.engine, schema='public', if_exists='append', index=False)
+            logger.info(f"[OK] {len(df_nuevos)} meses nuevos cargados en Postgres.")
             return True
-        logger.info("[LOAD] Sin datos nuevos en '%s'.", tabla)
-        return False
-
-    def _get_engine(self):
-        if self._engine is None:
-            self._engine = create_engine(
-                f"mysql+pymysql://{self.user}:{self.password}@{self.host}:3306/{self.database}"
-            )
-        return self._engine
+        except Exception as e:
+            logger.error(f"Error cargando IPI: {e}")
+            raise
 
     def close(self):
-        if self._engine:
-            self._engine.dispose()
-            self._engine = None
+        if self.engine:
+            self.engine.dispose()
+            self.engine = None

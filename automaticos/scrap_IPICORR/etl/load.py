@@ -4,64 +4,70 @@ Responsabilidad: Cargar solo filas nuevas a MySQL (incremental)
 """
 import logging
 import pandas as pd
-import pymysql
+import psycopg2
 from sqlalchemy import create_engine
 
 logger = logging.getLogger(__name__)
 
 TABLA = "ipicorr"
-COLUMNAS_INSERT = [
-    'Fecha', 'Var_ia_Nivel_General', 'Vim_Nivel_General', 'Vim_Alimentos',
-    'Vim_Textil', 'Vim_Maderas', 'Vim_min_nometalicos', 'Vim_metales',
-    'Var_ia_Alimentos', 'Var_ia_Textil', 'Var_ia_Maderas',
-    'Var_ia_min_nometalicos', 'Var_ia_metales'
-]
-
 
 class LoadIPICORR:
-    """Carga los datos del IPICORR a MySQL de forma incremental."""
-
     def __init__(self, host: str, user: str, password: str, database: str):
         self.host     = host
         self.user     = user
         self.password = password
         self.database = database
+        self.port     = 5432 # CAMBIO: Puerto Postgres
         self._engine  = None
 
     def load(self, df: pd.DataFrame) -> bool:
-        """
-        Carga solo las filas nuevas si el DF tiene más datos que la BD.
-
-        Returns:
-            bool: True si se cargaron datos nuevos
-        """
-        conn = pymysql.connect(
+        # 1. Conexión nativa para verificar la base
+        conn = psycopg2.connect(
             host=self.host, user=self.user,
-            password=self.password, database=self.database
+            password=self.password, database=self.database, port=self.port
         )
-        with conn.cursor() as cur:
-            cur.execute(f"SELECT COUNT(*) FROM {TABLA}")
-            len_bdd = cur.fetchone()[0]
-        conn.close()
+        try:
+            with conn.cursor() as cur:
+                # Verificar si la tabla existe en Postgres
+                cur.execute(f"SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = '{TABLA}')")
+                existe = cur.fetchone()[0]
+                
+                if existe:
+                    cur.execute(f"SELECT COUNT(*) FROM public.{TABLA}")
+                    len_bdd = cur.fetchone()[0]
+                else:
+                    len_bdd = 0
+                    logger.info(f"Tabla '{TABLA}' no existe. Se creará en la primera carga.")
+        finally:
+            conn.close()
 
         len_df = len(df)
-        logger.info("[LOAD] BD: %d filas | DF: %d filas", len_bdd, len_df)
+        logger.info("[LOAD] IPICORR - BD: %d filas | DF: %d filas", len_bdd, len_df)
 
-        if len_df != len_bdd:
+        if len_df > len_bdd:
+            # Seleccionamos solo las filas nuevas basándonos en la diferencia de cantidad
             df_nuevos = df.tail(len_df - len_bdd)
-            df_nuevos[COLUMNAS_INSERT].to_sql(
-                name=TABLA, con=self._get_engine(), if_exists='append', index=False
+            
+            # Aseguramos formato de fecha antes de subir
+            df_nuevos['fecha'] = pd.to_datetime(df_nuevos['fecha']).dt.date
+
+            df_nuevos.to_sql(
+                name=TABLA, 
+                con=self._get_engine(), 
+                schema='public', 
+                if_exists='append', 
+                index=False
             )
-            logger.info("[LOAD] %d filas nuevas cargadas en '%s'.", len(df_nuevos), TABLA)
+            logger.info("[LOAD] %d filas nuevas cargadas en PostgreSQL.", len(df_nuevos))
             return True
         else:
-            logger.info("[LOAD] No hay datos nuevos de IPICORR.")
+            logger.info("[LOAD] No hay datos nuevos para IPICORR.")
             return False
 
     def _get_engine(self):
         if self._engine is None:
             self._engine = create_engine(
-                f"mysql+pymysql://{self.user}:{self.password}@{self.host}:3306/{self.database}"
+                f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
             )
         return self._engine
 

@@ -5,6 +5,7 @@ import os
 import logging
 from datetime import datetime
 from dotenv import load_dotenv
+import pandas as pd
 
 from etl import ExtractOEDE, TransformOEDE, LoadOEDE
 from etl.validate import ValidateOEDE
@@ -33,6 +34,8 @@ def main():
     loader = None
     try:
         ruta = ExtractOEDE().extract()
+        xl = pd.ExcelFile(ruta)
+        print(xl.sheet_names)
 
         # TransformOEDE necesita conexión a BD para leer el diccionario
         transformer = TransformOEDE(host, user, pwd, db)

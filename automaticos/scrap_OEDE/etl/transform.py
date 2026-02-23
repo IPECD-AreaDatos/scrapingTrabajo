@@ -14,13 +14,31 @@ FILES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'file
 NOMBRE_ARCHIVO = 'ev_remun_trab_reg_por_sector.xlsx'
 
 PROVINCIAS = {
-    'GBA': 1, 'CABA': 2, 'Resto Pcia. Bs. As.': 6, 'Catamarca': 10,
-    'Córdoba': 14, 'Corrientes': 18, 'Chaco': 22, 'Chubut': 26,
-    'Entre Ríos': 30, 'Formosa': 34, 'Jujuy': 38, 'La Pampa': 42,
-    'La Rioja': 46, 'Mendoza': 50, 'Misiones': 54, 'Neuquén': 58,
-    'Río Negro': 62, 'Salta': 66, 'San Juan': 70, 'San Luis': 74,
-    'Santa Cruz': 78, 'Santa Fe': 82, 'Santiago del Estero': 86,
-    'Tierra del Fuego': 90, 'Tucumán': 94
+    'Partidos de GBA': 1, 
+    'Capital Federal': 2, 
+    'Resto de Buenos Aires': 6, 
+    'Catamarca': 10,
+    'Cordoba': 14, 
+    'Corrientes': 18, 
+    'Chaco': 22, 
+    'Chubut': 26,
+    'Entre Rios': 30, 
+    'Formosa': 34, 
+    'Jujuy': 38, 
+    'La Pampa': 42,
+    'La Rioja': 46, 
+    'Mendoza': 50, 
+    'Misiones': 54, 
+    'Neuquen': 58,
+    'Rio Negro': 62, 
+    'Salta': 66, 
+    'San Juan': 70, 
+    'San Luis': 74,
+    'Santa Cruz': 78, 
+    'Santa Fe': 82, 
+    'Santiago del Estero': 86,
+    'Tierra del Fuego': 90, 
+    'Tucuman': 94
 }
 
 
@@ -29,7 +47,7 @@ class TransformOEDE:
 
     def __init__(self, host: str, user: str, password: str, database: str):
         self._engine = create_engine(
-            f"mysql+pymysql://{user}:{password}@{host}:3306/{database}"
+            f"postgresql+psycopg2://{user}:{password}@{host}:5432/{database}"
         )
         self._diccionario = None
 
@@ -58,7 +76,7 @@ class TransformOEDE:
         return df_final
 
     def _construir_dic(self):
-        tabla = pd.read_sql_query("SELECT * FROM OEDE_diccionario", con=self._engine)
+        tabla = pd.read_sql_query("SELECT * FROM dicc_oede", con=self._engine)
         diccionario = {}
         for _, row in tabla.iterrows():
             clave = self._formatear_key(row['nombre'])
@@ -67,29 +85,63 @@ class TransformOEDE:
         self._diccionario = diccionario
 
     def _construir_df(self, ruta_archivo: str, provincia: str, id_prov: int) -> pd.DataFrame:
+        # 1. Leer el Excel
         df = pd.read_excel(ruta_archivo, sheet_name=provincia, skiprows=3)
-        df = df.iloc[:70]
-        df = df.drop(columns=['Rama de Actividad'])
-        df.rename(columns={'Unnamed: 1': 'claves_listas'}, inplace=True)
-        df['claves_listas'] = df['claves_listas'].apply(self._formatear_key)
+        
+        # 2. Limpieza de columnas iniciales
+        df = df.drop(df.columns[0], axis=1) # Elimina 'Unnamed: 0'
+        df.rename(columns={df.columns[0]: 'claves_listas'}, inplace=True)
+
+        # 3. Mapeo de categorías e IDs
+        df = df.dropna(subset=['claves_listas'])
+        df['claves_listas_limpias'] = df['claves_listas'].astype(str).apply(self._formatear_key)
 
         df[['id_categoria', 'id_subcategoria']] = df.apply(
-            lambda row: pd.Series(self._mapear_clave(row['claves_listas'], row.name)),
+            lambda row: pd.Series(self._mapear_clave(row['claves_listas_limpias'], row.name)),
             axis=1
         )
-        df = df.drop('claves_listas', axis=1)
 
+        # 4. Seleccionar columnas de tiempo
+        # CAMBIO: Ahora buscamos la palabra 'Trim' en el nombre de la columna
+        columnas_tiempo = [c for c in df.columns if 'Trim' in str(c)]
+        cols_finales = ['id_categoria', 'id_subcategoria'] + columnas_tiempo
+        df_reducido = df[cols_finales]
+
+        # 5. MELT
         df_t = pd.melt(
-            df,
+            df_reducido,
             id_vars=['id_categoria', 'id_subcategoria'],
-            var_name='fecha',
+            var_name='trimestre_raw',
             value_name='valor'
         )
-        df_t['fecha']  = pd.to_datetime(df_t['fecha'], errors='coerce')
-        df_t['valor']  = pd.to_numeric(df_t['valor'], errors='coerce')
-        df_t['id_provincia'] = id_prov
-        return df_t[['fecha', 'id_provincia', 'id_categoria', 'id_subcategoria', 'valor']]
 
+        # 6. Función para convertir "1º Trim 1996" a "1996-01-01"
+        def parse_trimestre_texto(x):
+            try:
+                txt = str(x).lower()
+                # Extraer el año (últimos 4 caracteres)
+                ano = txt[-4:]
+                # Mapear el inicio del trimestre
+                mes = '01' # Por defecto
+                if '1' in txt: mes = '01'
+                elif '2' in txt: mes = '04'
+                elif '3' in txt: mes = '07'
+                elif '4' in txt: mes = '10'
+                
+                return pd.to_datetime(f"{ano}-{mes}-01")
+            except:
+                return pd.NaT
+
+        df_t['fecha'] = df_t['trimestre_raw'].apply(parse_trimestre_texto)
+        
+        # 7. Limpieza y formato final para Postgres
+        df_t = df_t.dropna(subset=['fecha'])
+        df_t['valor'] = pd.to_numeric(df_t['valor'], errors='coerce')
+        df_t['id_provincia'] = id_prov
+
+        # Retornamos solo las columnas necesarias
+        return df_t[['fecha', 'id_provincia', 'id_categoria', 'id_subcategoria', 'valor']]
+    
     def _mapear_clave(self, clave: str, index: int) -> list:
         if 'calzado' in clave or 'cuero' in clave:
             return ['D', 19]
@@ -102,7 +154,9 @@ class TransformOEDE:
 
     @staticmethod
     def _formatear_key(key: str) -> str:
-        return unidecode(key.lower()).replace(',', '').replace('.', '').replace(' ', '')
+        if pd.isna(key) or not isinstance(key, (str, bytes)):
+            return ""
+        return unidecode(str(key).lower()).replace(',', '').replace('.', '').replace(' ', '')
 
     def close(self):
         if self._engine:

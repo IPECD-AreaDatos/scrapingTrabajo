@@ -14,10 +14,10 @@ logger = logging.getLogger(__name__)
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 SPREADSHEET_ID = '19rIG_9MBTq3QxCWArnRYnx8O8BYt4uqJTsISYHC02Pg'
 RANGO = '3. Datos para tablero'
-COLUMNAS = ['Fecha', 'Var_ia_Nivel_General', 'Vim_Nivel_General', 'Vim_Alimentos',
-            'Vim_Textil', 'Vim_Maderas', 'Vim_min_nometalicos', 'Vim_metales',
-            'Var_ia_Alimentos', 'Var_ia_Textil', 'Var_ia_Maderas',
-            'Var_ia_min_nometalicos', 'Var_ia_metales', 'Estatus']
+COLUMNAS = ['fecha', 'var_ia_nivel_general', 'vim_nivel_general', 'vim_alimentos',
+            'vim_textil', 'vim_maderas', 'vim_min_nometalicos', 'vim_metales',
+            'var_ia_alimentos', 'var_ia_textil', 'var_ia_maderas',
+            'var_ia_min_nometalicos', 'var_ia_metales', 'estatus']
 MESES = {
     'ene': '01', 'feb': '02', 'mar': '03', 'abr': '04', 'may': '05', 'jun': '06',
     'jul': '07', 'ago': '08', 'sept': '09', 'oct': '10', 'nov': '11', 'dic': '12'
@@ -47,8 +47,8 @@ class ExtractIPICORR:
 
         filas = [row for row in values if len(row) == 14]
         df = pd.DataFrame(filas, columns=COLUMNAS)
-        df['Fecha'] = df['Fecha'].apply(self._convertir_fecha)
-        df = df.drop('Estatus', axis=1)
+        df['fecha'] = df['fecha'].apply(self._convertir_fecha)
+        df = df.drop('estatus', axis=1)
         df = df.iloc[11:].reset_index(drop=True)
 
         logger.info("[EXTRACT] IPICORR: %d filas leídas.", len(df))

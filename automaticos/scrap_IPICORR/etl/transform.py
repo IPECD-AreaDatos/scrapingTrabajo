@@ -8,9 +8,9 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 COLUMNAS_NUMERICAS = [
-    'Var_ia_Nivel_General', 'Vim_Nivel_General', 'Vim_Alimentos', 'Vim_Textil',
-    'Vim_Maderas', 'Vim_min_nometalicos', 'Vim_metales', 'Var_ia_Alimentos',
-    'Var_ia_Textil', 'Var_ia_Maderas', 'Var_ia_min_nometalicos', 'Var_ia_metales'
+    'var_ia_nivel_general', 'vim_nivel_general', 'vim_alimentos', 'vim_textil',
+    'vim_maderas', 'vim_min_nometalicos', 'vim_metales', 'var_ia_alimentos',
+    'var_ia_textil', 'var_ia_maderas', 'var_ia_min_nometalicos', 'var_ia_metales'
 ]
 
 
