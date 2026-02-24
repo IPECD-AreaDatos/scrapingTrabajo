@@ -4,11 +4,10 @@ Responsabilidad: Cargar datos a PostgreSQL y actualizar Google Sheets
 """
 import os
 import logging
-import time
 import pandas as pd
 import psycopg2
+import pymysql  # Necesario para la base vieja si es MySQL
 from sqlalchemy import create_engine
-from datetime import datetime, date
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from json import loads
@@ -16,39 +15,72 @@ from json import loads
 logger = logging.getLogger(__name__)
 
 class LoadANAC:
-    def __init__(self, host, user, password, database):
+    def __init__(self, host, user, password, database, port=None, version="1"):
         self.host = host
         self.user = user
         self.password = password
         self.database = database
-        self.port = 5432
+        self.port = port
+        self.version = str(version)
         self.conn = None
-        self.cursor = None
         self.engine = None
 
     def conectar_bdd(self):
-        """Conecta a la base de datos PostgreSQL"""
+        """Detecta el motor y conecta a la base correspondiente"""
         if not self.conn:
             try:
-                # Conexión nativa para Postgres
-                self.conn = psycopg2.connect(
-                    host=self.host,
-                    user=self.user,
-                    password=self.password,
-                    database=self.database,
-                    port=self.port
-                )
-                self.cursor = self.conn.cursor()
-                
-                # Engine para SQLAlchemy adaptado a Postgres
-                connection_string = f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
-                self.engine = create_engine(connection_string)
-                
-                logger.info("[OK] Conexión a PostgreSQL establecida")
+                if self.version == "1":
+                    # --- LÓGICA PARA MYSQL (Base Vieja) ---
+                    # MySQL usa puerto 3306 por defecto si no se especifica
+                    puerto_mysql = int(self.port) if self.port else 3306
+                    self.conn = pymysql.connect(
+                        host=self.host,
+                        user=self.user,
+                        password=self.password,
+                        database=self.database,
+                        port=puerto_mysql
+                    )
+                    conn_str = f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{puerto_mysql}/{self.database}"
+                    logger.info(f"[OK] Conectado a MySQL (v1) en {self.host}")
+                else:
+                    # --- LÓGICA PARA POSTGRESQL (Base Nueva) ---
+                    puerto_pg = self.port if self.port else 5432
+                    self.conn = psycopg2.connect(
+                        host=self.host,
+                        user=self.user,
+                        password=self.password,
+                        database=self.database,
+                        port=puerto_pg
+                    )
+                    conn_str = f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:{puerto_pg}/{self.database}"
+                    logger.info(f"[OK] Conectado a PostgreSQL (v2) en {self.host}")
+
+                self.engine = create_engine(conn_str)
             except Exception as err:
-                logger.error(f"[ERROR] No se pudo conectar a Postgres: {err}")
+                logger.error(f"[ERROR] No se pudo conectar a la base v{self.version}: {err}")
                 raise
         return self
+
+    def load_to_database(self, df):
+        self.conectar_bdd()
+        df['fecha'] = pd.to_datetime(df['fecha']).dt.date
+        
+        # En MySQL no se usa el esquema 'public.', se usa directo el nombre de la tabla
+        nombre_tabla = 'anac'
+        
+        try:
+            with self.conn.cursor() as cursor:
+                # El placeholder de MySQL es %s, igual que en Postgres, así que esta línea sirve para ambos
+                cursor.execute(f"DELETE FROM {nombre_tabla} WHERE fecha >= %s AND fecha <= %s", 
+                               (df['fecha'].min(), df['fecha'].max()))
+                self.conn.commit()
+
+            # Carga masiva con SQLAlchemy (detecta el motor por la conn_str)
+            df.to_sql(nombre_tabla, self.engine, if_exists='append', index=False)
+            logger.info(f"[OK] Carga finalizada en v{self.version}: {len(df)} registros.")
+        except Exception as e:
+            if self.conn: self.conn.rollback()
+            raise e
 
     def cerrar_conexion(self):
         """Cierra las conexiones"""
@@ -85,43 +117,7 @@ class LoadANAC:
         logger.info(f"Comparando - BD: {ultima_fecha_bd} vs Excel: {ultima_fecha_df}")
         return ultima_fecha_df > ultima_fecha_bd
 
-    def load_to_database(self, df):
-        """Carga el DataFrame a Postgres con limpieza de duplicados"""
-        logger.info("=== VERIFICACIÓN DE DATOS ANTES DE CARGAR ===")
-        filas_corrientes = df[df['aeropuerto'].str.contains('corrientes', case=False, na=False)]
-        logger.info(f"Total filas: {len(df)} | Filas Corrientes: {len(filas_corrientes)}")
-
-        try:
-            self.conectar_bdd()
-            df['fecha'] = pd.to_datetime(df['fecha']).dt.date
-            primera_fecha = df['fecha'].min()
-            ultima_fecha = df['fecha'].max()
-
-            # 1. Crear tabla si no existe (Sintaxis Postgres)
-            create_table_query = """
-                CREATE TABLE IF NOT EXISTS public.anac (
-                    fecha DATE,
-                    aeropuerto VARCHAR(100),
-                    cantidad NUMERIC(15, 2),
-                    PRIMARY KEY (fecha, aeropuerto)
-                );
-            """
-            self.cursor.execute(create_table_query)
-            self.conn.commit()
-
-            # 2. Eliminar datos existentes en el rango para evitar conflictos de Primary Key
-            delete_query = "DELETE FROM public.anac WHERE fecha >= %s AND fecha <= %s"
-            self.cursor.execute(delete_query, (primera_fecha, ultima_fecha))
-            self.conn.commit()
-
-            # 3. Carga masiva eficiente
-            df.to_sql('anac', self.engine, schema='public', if_exists='append', index=False)
-            logger.info(f"[OK] Carga finalizada: {len(df)} registros insertados.")
-
-        except Exception as e:
-            if self.conn: self.conn.rollback()
-            logger.error(f"Error en carga a BD: {e}")
-            raise
+    
 
     def obtener_ultimo_valor_corrientes(self):
         """Recupera el dato más reciente de Corrientes"""
