@@ -208,35 +208,50 @@ class ExtractANAC:
             raise
 
     def _extraer_excel(self, ruta_zip, ruta_excel_final):
-        """Extrae el archivo Excel del ZIP"""
+        """Extrae el archivo Excel más reciente (2023-2026) del ZIP"""
         try:
             with zipfile.ZipFile(ruta_zip, 'r') as zf:
                 contenidos = zf.namelist()
                 logger.debug(f"Archivos en el ZIP: {contenidos}")
                 
-                # Buscar archivo Excel más reciente (2023-2025)
-                archivos_excel = [a for a in contenidos if a.lower().endswith(('.xlsx', '.xls'))]
-                
-                archivo_excel = None
-                for archivo in archivos_excel:
-                    if '2023-2025' in archivo:
-                        archivo_excel = archivo
+                # Buscamos específicamente el archivo que contiene '2023-2026'
+                archivo_objetivo = None
+                for nombre in contenidos:
+                    if '2023-2026' in nombre and nombre.lower().endswith(('.xlsx', '.xls')):
+                        archivo_objetivo = nombre
                         break
                 
-                if archivo_excel is None and archivos_excel:
-                    archivo_excel = archivos_excel[0]
+                # Si no lo encuentra por nombre exacto, buscamos cualquier Excel que no sea el viejo
+                if not archivo_objetivo:
+                    archivos_excel = [a for a in contenidos if a.lower().endswith(('.xlsx', '.xls'))]
+                    # Ordenamos para intentar agarrar el más nuevo o el que no sea '2001-2022'
+                    archivos_excel = [a for a in archivos_excel if '2001-2022' not in a]
+                    if archivos_excel:
+                        archivo_objetivo = archivos_excel[0]
+
+                if not archivo_objetivo:
+                    raise Exception("No se encontró el archivo Excel actual (2023-2026) en el ZIP")
                 
-                if not archivo_excel:
-                    raise Exception("No se encontró ningún archivo Excel en el ZIP")
+                logger.info(f"Archivo Excel detectado para extraer: {archivo_objetivo}")
                 
-                logger.info(f"Archivo Excel encontrado: {archivo_excel}")
-                zf.extract(archivo_excel, self.carpeta_files)
+                # Extraer el archivo seleccionado
+                zf.extract(archivo_objetivo, self.carpeta_files)
                 
-                # Renombrar si es necesario
-                ruta_excel_extraido = os.path.join(self.carpeta_files, archivo_excel)
-                if ruta_excel_extraido != ruta_excel_final:
-                    shutil.move(ruta_excel_extraido, ruta_excel_final)
-                    logger.info(f"Archivo renombrado a: {ruta_excel_final}")
+                # Ruta donde quedó extraído
+                ruta_extraida = os.path.join(self.carpeta_files, archivo_objetivo)
+                
+                # Si el archivo estaba dentro de una subcarpeta en el ZIP, hay que moverlo
+                if not os.path.exists(ruta_extraida):
+                    # Esto maneja casos donde el ZIP tiene carpetas internas
+                    nombre_base = os.path.basename(archivo_objetivo)
+                    ruta_extraida = os.path.join(self.carpeta_files, archivo_objetivo)
+
+                # Renombrar/Mover al nombre final esperado por el resto del script
+                if os.path.exists(ruta_extraida):
+                    shutil.move(ruta_extraida, ruta_excel_final)
+                    logger.info(f"[OK] Archivo renombrado a: {ruta_excel_final}")
+                else:
+                    raise Exception(f"No se pudo localizar el archivo extraído en: {ruta_extraida}")
                     
         except zipfile.BadZipFile as e:
             logger.error(f"Error: El archivo descargado no es un ZIP válido: {e}")

@@ -72,7 +72,8 @@ class TransformEMAE:
         sector_map = {name: i+1 for i, name in enumerate(sectores)}
         df_melted['sector_productivo'] = df_melted['sector'].map(sector_map)
         df_melted = df_melted.dropna(subset=['valor'])
-        df_melted['fecha'] = pd.to_datetime(df_melted['fecha']).dt.strftime('%Y-%m-%d')
+        df_melted['fecha'] = pd.to_datetime(df_melted['fecha'])
+    
         return df_melted[['fecha', 'sector_productivo', 'valor']].sort_values(
             ['fecha', 'sector_productivo']
         ).reset_index(drop=True)
@@ -82,5 +83,5 @@ class TransformEMAE:
         df.columns = ['variacion_interanual', 'variacion_mensual']
         df = df.fillna(0)
         df = df[(df != 0).any(axis=1)]
-        df['fecha'] = pd.date_range(start='2004-02-01', periods=len(df), freq='MS')
+        df['fecha'] = pd.date_range(start='2004-01-01', periods=len(df), freq='MS')
         return df[['fecha', 'variacion_interanual', 'variacion_mensual']]

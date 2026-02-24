@@ -151,49 +151,46 @@ class LoadANAC:
 
             creds = service_account.Credentials.from_service_account_info(key_dict, scopes=SCOPES)
             service = build('sheets', 'v4', credentials=creds)
-            sheet = service.spreadsheets()
-
-            # Formato exacto: dic-25
+            
+            # MESES EN ESPAÑOL (Asegúrate que coincida con tu fila 3 del Sheets)
             meses_es = {1:"ene", 2:"feb", 3:"mar", 4:"abr", 5:"may", 6:"jun",
                         7:"jul", 8:"ago", 9:"sept", 10:"oct", 11:"nov", 12:"dic"}
-            fecha_sheets = f"{meses_es[ultima_fecha.month]}-{str(ultima_fecha.year)[-2:]}"
-            logger.info(f"Buscando columna para: {fecha_sheets}")
+            
+            # Formato esperado: "ene-26"
+            fecha_buscada = f"{meses_es[ultima_fecha.month]}-{str(ultima_fecha.year)[-2:]}"
+            logger.info(f"Buscando columna para: {fecha_buscada}")
 
-            # Leemos la fila 3 para ubicar la columna
-            res = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range="Datos!3:3").execute()
+            res = service.spreadsheets().values().get(spreadsheetId=SPREADSHEET_ID, range="Datos!3:3").execute()
             headers = res.get("values", [[]])[0]
             
-            # Búsqueda exacta para evitar confusiones
             col_idx = None
             for i, h in enumerate(headers):
-                if h and str(h).strip().lower() == fecha_sheets.lower():
+                if h and str(h).strip().lower() == fecha_buscada.lower():
                     col_idx = i
                     break
             
             if col_idx is None:
-                logger.error(f"No se encontró la columna '{fecha_sheets}' en la fila 3")
+                # Si no lo encuentra, tiramos un warning pero no matamos el proceso
+                logger.warning(f"[WARN] No se encontró la columna '{fecha_buscada}' en la fila 3 de Sheets.")
                 return
 
             letra_col = self.num_to_col(col_idx)
-            rango_celda = f"Datos!{letra_col}10"
+            rango_celda = f"Datos!{letra_col}10" # Celda de Corrientes
             
-            # CAMBIO: Usamos USER_ENTERED y forzamos el formato de número
-            valor_final = str(ultimo_valor).replace('.', ',') # Para que el Excel lo tome como número
-            body = {'values': [[valor_final]]}
-            
-            logger.info(f"Intentando escribir {valor_final} en {rango_celda}...")
+            valor_formateado = float(ultimo_valor)
+            body = {'values': [[valor_formateado]]}
             
             service.spreadsheets().values().update(
                 spreadsheetId=SPREADSHEET_ID, 
                 range=rango_celda,
-                valueInputOption='USER_ENTERED', # Cambio aquí
+                valueInputOption='USER_ENTERED',
                 body=body
             ).execute()
             
-            logger.info(f"[OK] Sheets actualizado correctamente en {rango_celda}")
+            logger.info(f"[OK] Sheets actualizado en {rango_celda} con valor {valor_formateado}")
 
         except Exception as e:
-            logger.error(f"Error crítico en Sheets: {e}")
+            logger.error(f"Error en Sheets: {e}")
 
     def num_to_col(self, n):
         res = ""

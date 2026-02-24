@@ -37,7 +37,7 @@ class TransformSIPA:
         Lee el Excel y construye el DataFrame de SIPA.
 
         Returns:
-            pd.DataFrame con columnas: fecha, id_provincia, id_tipo_registro,
+            pd.DataFrame con columnas: fecha, id_provincia, id_registro,
                                        cantidad_con_estacionalidad, cantidad_sin_estacionalidad
         """
         logger.info("[TRANSFORM] Leyendo Excel: %s", ruta)
@@ -49,11 +49,11 @@ class TransformSIPA:
         df = pd.DataFrame({
             'fecha': listas['fechas'],
             'id_provincia': listas['provincias'],
-            'id_tipo_registro': listas['registro'],
+            'id_registro': listas['registro'],
             'cantidad_con_estacionalidad': listas['est'],
             'cantidad_sin_estacionalidad': listas['sin_est'],
         })
-        df = df.sort_values(by=['fecha', 'id_provincia', 'id_tipo_registro'])
+        df = df.sort_values(by=['fecha', 'id_provincia', 'id_registro'])
         logger.info("[TRANSFORM] SIPA: %d filas", len(df))
         return df
 
