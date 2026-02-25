@@ -56,31 +56,39 @@ class LoadANAC:
                     logger.info(f"[OK] Conectado a PostgreSQL (v2) en {self.host}")
 
                 self.engine = create_engine(conn_str)
+                self.cursor = self.conn.cursor()
             except Exception as err:
                 logger.error(f"[ERROR] No se pudo conectar a la base v{self.version}: {err}")
                 raise
         return self
+    
+    def _get_schema_prefix(self):
+        """Retorna el prefijo de esquema solo si es Postgres."""
+        return "public." if self.version == "2" else ""
 
     def load_to_database(self, df):
         self.conectar_bdd()
         df['fecha'] = pd.to_datetime(df['fecha']).dt.date
         
+        tabla = f"{self._get_schema_prefix()}anac"
         # En MySQL no se usa el esquema 'public.', se usa directo el nombre de la tabla
         nombre_tabla = 'anac'
         
         try:
-            with self.conn.cursor() as cursor:
-                # El placeholder de MySQL es %s, igual que en Postgres, así que esta línea sirve para ambos
-                cursor.execute(f"DELETE FROM {nombre_tabla} WHERE fecha >= %s AND fecha <= %s", 
-                               (df['fecha'].min(), df['fecha'].max()))
-                self.conn.commit()
+            # Limpieza incremental (DELETE antes de APPEND)
+            # MySQL y Postgres usan %s para parámetros, pero Postgres prefiere text() en SQLAlchemy
+            sql_delete = f"DELETE FROM {tabla} WHERE fecha >= %s AND fecha <= %s"
+            self.cursor.execute(sql_delete, (df['fecha'].min(), df['fecha'].max()))
+            self.conn.commit()
 
-            # Carga masiva con SQLAlchemy (detecta el motor por la conn_str)
-            df.to_sql(nombre_tabla, self.engine, if_exists='append', index=False)
-            logger.info(f"[OK] Carga finalizada en v{self.version}: {len(df)} registros.")
+            # Carga con SQLAlchemy
+            # 'multi' es óptimo para Postgres, MySQL lo ignora silenciosamente
+            df.to_sql(name='anac', con=self.engine, if_exists='append', index=False, method='multi')
+            logger.info(f"[LOAD] v{self.version} OK: {len(df)} filas.")
         except Exception as e:
             if self.conn: self.conn.rollback()
-            raise e
+            logger.error(f"[LOAD ERROR] v{self.version}: {e}")
+            raise
 
     def cerrar_conexion(self):
         """Cierra las conexiones"""
@@ -116,8 +124,6 @@ class LoadANAC:
         ultima_fecha_df = pd.to_datetime(df['fecha'].max()).date()
         logger.info(f"Comparando - BD: {ultima_fecha_bd} vs Excel: {ultima_fecha_df}")
         return ultima_fecha_df > ultima_fecha_bd
-
-    
 
     def obtener_ultimo_valor_corrientes(self):
         """Recupera el dato más reciente de Corrientes"""
