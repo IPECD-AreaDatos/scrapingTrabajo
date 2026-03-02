@@ -7,7 +7,7 @@ import logging
 import pandas as pd
 import psycopg2
 import pymysql  # Necesario para la base vieja si es MySQL
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from json import loads
@@ -68,25 +68,27 @@ class LoadANAC:
 
     def load_to_database(self, df):
         self.conectar_bdd()
+        # Aseguramos nombres de columnas correctos antes de insertar
+        df = df[['fecha', 'aeropuerto', 'cantidad']]
         df['fecha'] = pd.to_datetime(df['fecha']).dt.date
         
         tabla = f"{self._get_schema_prefix()}anac"
-        # En MySQL no se usa el esquema 'public.', se usa directo el nombre de la tabla
-        nombre_tabla = 'anac'
         
         try:
-            # Limpieza incremental (DELETE antes de APPEND)
-            # MySQL y Postgres usan %s para parámetros, pero Postgres prefiere text() en SQLAlchemy
-            sql_delete = f"DELETE FROM {tabla} WHERE fecha >= %s AND fecha <= %s"
-            self.cursor.execute(sql_delete, (df['fecha'].min(), df['fecha'].max()))
-            self.conn.commit()
-
-            # Carga con SQLAlchemy
-            # 'multi' es óptimo para Postgres, MySQL lo ignora silenciosamente
-            df.to_sql(name='anac', con=self.engine, if_exists='append', index=False, method='multi')
-            logger.info(f"[LOAD] v{self.version} OK: {len(df)} filas.")
+            # 1. Borrado eficiente
+            fecha_min = df['fecha'].min()
+            fecha_max = df['fecha'].max()
+            
+            # Usar sentencias seguras con parámetros
+            sql_delete = text(f"DELETE FROM {tabla} WHERE fecha BETWEEN :fmin AND :fmax")
+            with self.engine.begin() as conn:
+                conn.execute(sql_delete, {"fmin": fecha_min, "fmax": fecha_max})
+                
+                # 2. Inserción limpia
+                df.to_sql(name='anac', con=conn, if_exists='append', index=False, method='multi')
+            
+            logger.info(f"[LOAD] v{self.version} OK: {len(df)} filas cargadas.")
         except Exception as e:
-            if self.conn: self.conn.rollback()
             logger.error(f"[LOAD ERROR] v{self.version}: {e}")
             raise
 
@@ -126,22 +128,21 @@ class LoadANAC:
         return ultima_fecha_df > ultima_fecha_bd
 
     def obtener_ultimo_valor_corrientes(self):
-        """Recupera el dato más reciente de Corrientes"""
-        try:
-            self.conectar_bdd()
-            query = """
-                SELECT cantidad, fecha FROM public.anac 
-                WHERE aeropuerto ILIKE '%corrientes%' 
-                ORDER BY fecha DESC LIMIT 1
-            """
-            self.cursor.execute(query)
-            result = self.cursor.fetchone()
-            if result:
-                return float(result[0]), result[1]
-            return None, None
-        except Exception as e:
-            logger.error(f"Error al obtener valor de Corrientes: {e}")
-            return None, None
+        self.conectar_bdd()
+        # Si es Postgres (v2), usamos public.anac
+        tabla = f"{self._get_schema_prefix()}anac"
+        like_op = "ILIKE" if self.version == "2" else "LIKE"
+        
+        # Filtramos también por la cantidad > 0 para evitar errores
+        query = f"""
+            SELECT cantidad, fecha FROM {tabla} 
+            WHERE aeropuerto {like_op} '%corrientes%' 
+            AND cantidad > 0
+            ORDER BY fecha DESC LIMIT 1
+        """
+        self.cursor.execute(query)
+        result = self.cursor.fetchone()
+        return (float(result[0]), result[1]) if result else (None, None)
 
     def load_to_sheets(self, ultimo_valor, ultima_fecha):
         try:

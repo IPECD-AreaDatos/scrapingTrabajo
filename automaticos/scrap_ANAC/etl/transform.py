@@ -28,74 +28,95 @@ class TransformANAC:
         }
 
     def transform(self, file_path):
-        try:
-            logger.info(f"Leyendo archivo Excel: {file_path}")
-            df_raw = pd.read_excel(file_path, header=None)
-            
-            # 1. Buscar "TABLA 11"
-            idx_tabla = None
-            for i, row in df_raw.iterrows():
-                if any(str(self.target_value).upper() in str(c).upper() for c in row):
-                    idx_tabla = i
+        logger.info(f"Leyendo archivo Excel: {file_path}")
+        # Leemos el archivo cargando todo como texto primero
+        df_raw = pd.read_excel(file_path, header=None, dtype=str)
+        
+        # 1. BUSCAR EL BLOQUE "TABLA 11" y "Pasajeros Totales"
+        # Esto es más seguro porque busca la combinación de ambos títulos
+        start_row = None
+        for i, row in df_raw.iterrows():
+            # Buscamos la fila donde aparece "TABLA 11" y luego la siguiente que dice "Pasajeros Totales"
+            if "TABLA 11" in row.values:
+                # Verificamos si en la siguiente fila dice "Pasajeros Totales"
+                if i + 1 < len(df_raw) and "Pasajeros Totales" in str(df_raw.iloc[i+1].values):
+                    # El bloque de datos empieza 2 filas después de "Pasajeros Totales"
+                    start_row = i + 2 
                     break
+        
+        if start_row is None:
+            raise ValueError("No se pudo encontrar el bloque de la TABLA 11 + Pasajeros Totales")
+
+        # 2. DEFINIR DATOS: Los aeropuertos empiezan inmediatamente después de esa fila
+        df_datos = df_raw.iloc[start_row:].reset_index(drop=True)
+        
+        # 3. EXTRAER ENCABEZADOS DE FECHAS (Los años y meses están en las filas superiores)
+        # Ajustamos para obtener años y meses correctamente de las filas antes de start_row
+        fila_años = df_raw.iloc[start_row - 2]
+        fila_meses = df_raw.iloc[start_row - 1]
+        
+        meses_map = {'Ene':1, 'Feb':2, 'Mar':3, 'Abr':4, 'May':5, 'Jun':6, 
+                     'Jul':7, 'Ago':8, 'Sep':9, 'Oct':10, 'Nov':11, 'Dic':12}
+        
+        fechas_dict = {}
+        ultimo_anio = None
+        for col_idx in range(1, len(fila_meses)):
+            anio_raw = str(fila_años.iloc[col_idx]).strip()
+            mes_raw = str(fila_meses.iloc[col_idx]).strip()
             
-            if idx_tabla is None: raise ValueError("No se encontró TABLA 11")
-
-            # 2. Reconstruir FECHAS usando la fila de años (idx_tabla) y meses (idx_tabla + 1)
-            fila_años = df_raw.iloc[idx_tabla]
-            fila_meses = df_raw.iloc[idx_tabla + 1]
+            if anio_raw.isdigit():
+                ultimo_anio = int(anio_raw)
             
-            meses_map = {'Ene':1, 'Feb':2, 'Mar':3, 'Abr':4, 'May':5, 'Jun':6, 
-                         'Jul':7, 'Ago':8, 'Sep':9, 'Oct':10, 'Nov':11, 'Dic':12}
+            mes_num = meses_map.get(mes_raw)
+            if ultimo_anio and mes_num:
+                fechas_dict[col_idx] = pd.Timestamp(year=ultimo_anio, month=mes_num, day=1)
+
+        # 3. PROCESAR FILAS
+        df_datos = df_raw.iloc[start_row:].reset_index(drop=True)
+        resultados = []
+        
+        for _, row in df_datos.iterrows():
+            aero_name = str(row[0]).strip()
+            if aero_name not in self.column_mapping:
+                continue
             
-            fechas_dict = {}
-            ultimo_anio_valido = None
-
-            for col_idx in range(1, len(fila_meses)):
-                anio_raw = fila_años.iloc[col_idx]
-                mes_raw = str(fila_meses.iloc[col_idx]).strip()
-
-                # El año a veces solo aparece en la primera columna del grupo
-                if pd.notna(anio_raw) and str(anio_raw).isdigit():
-                    ultimo_anio_valido = int(anio_raw)
-                
-                mes_num = meses_map.get(mes_raw)
-                
-                if ultimo_anio_valido and mes_num:
-                    fechas_dict[col_idx] = pd.Timestamp(year=ultimo_anio_valido, month=mes_num, day=1)
-
-            if not fechas_dict:
-                raise ValueError("No se pudieron reconstruir las fechas de las filas 181 y 182")
-
-            # 3. Procesar Aeropuertos (desde idx_tabla + 2 en adelante)
-            resultados = []
-            df_datos = df_raw.iloc[idx_tabla + 2:].copy()
+            nombre_mapeado = self.column_mapping[aero_name]
             
-            for _, row in df_datos.iterrows():
-                aero_raw = str(row.iloc[0]).strip()
-                if "TOTAL" in aero_raw.upper() or "FUENTE" in aero_raw.upper() or aero_raw == "nan":
-                    continue
-                
-                nombre_mapeado = self.column_mapping.get(aero_raw, 'otros')
-                
-                for col_idx, fecha_obj in fechas_dict.items():
-                    val = pd.to_numeric(row.iloc[col_idx], errors='coerce')
-                    if pd.notna(val):
-                        resultados.append({
-                            'fecha': fecha_obj,
-                            'aeropuerto': nombre_mapeado,
-                            'cantidad': val * 1000  # Formato ANAC [000]
-                        })
-
-            df_final = pd.DataFrame(resultados)
-            df_final = self._aplicar_correcciones(df_final)
-            
-            logger.info(f"[OK] Transformación exitosa hasta: {df_final['fecha'].max()}")
-            return df_final
-
-        except Exception as e:
-            logger.error(f"Error en transformación: {e}")
-            raise
+            for col_idx, fecha_obj in fechas_dict.items():
+                    val = row[col_idx]
+                    
+                    # 1. Filtros básicos
+                    if pd.isna(val) or str(val).strip() in ['nan', '-']: continue
+                    
+                    # 2. LIMPIEZA TOTAL: Convertimos a string y quitamos TODO lo que no sea número
+                    # Esto quita el punto de miles: '1.238' -> '1238'
+                    # Esto evita que '1.238' sea interpretado como 1.238
+                    val_str = re.sub(r'[^\d]', '', str(val))
+                    
+                    if not val_str: continue
+                    
+                    # 3. Convertimos a INT directamente (evita la pesadilla de los floats)
+                    cantidad = int(val_str)
+                    
+                    # 4. Escala ANAC: 
+                    # Si el Excel dice 21 (para 21 mil), lo multiplicamos.
+                    # Si dice 1238 (para 1.238 mil), ya viene multiplicado por 1000 en el Excel.
+                    # Como el formato de ANAC es inconsistente, esta lógica es la más segura:
+                    if cantidad < 1000:
+                        cantidad = cantidad * 1000
+                    
+                    resultados.append({
+                        'fecha': fecha_obj,
+                        'aeropuerto': nombre_mapeado,
+                        'cantidad': cantidad
+                    })
+        
+        df_final = pd.DataFrame(resultados)
+        # Consolidar duplicados
+        df_final = df_final.groupby(['fecha', 'aeropuerto'], as_index=False)['cantidad'].sum()
+        
+        logger.info(f"[OK] Transformación lista. Filas: {len(df_final)}")
+        return df_final
 
     def _parse_fecha_anac(self, valor):
         """Convierte 'ene-24' o similar en una fecha de Python"""
@@ -125,7 +146,7 @@ class TransformANAC:
         columnas_aeropuertos = [c for c in df.columns if c != "fecha"]
         
         df_long = df.melt(
-            id_vars=["fecha"],
+            id_vars="fecha",
             value_vars=columnas_aeropuertos,
             var_name="aeropuerto",
             value_name="cantidad"
