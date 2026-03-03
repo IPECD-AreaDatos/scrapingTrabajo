@@ -19,10 +19,16 @@ def main():
     inicio = datetime.now()
     logger.info("=== INICIO ETL SRT - %s ===", inicio)
 
-    host = os.getenv('HOST_DBB')
-    user = os.getenv('USER_DBB')
-    pwd  = os.getenv('PASSWORD_DBB')
-    db   = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
+    # 1. Detectar versión (por defecto '1' para mantener retrocompatibilidad)
+    version_db = os.getenv('DB_VERSION', '1')
+    
+    # 2. Selección de credenciales basada en la versión
+    if version_db == "1":
+        host, user, pwd, port = os.getenv('HOST_DBB1'), os.getenv('USER_DBB1'), os.getenv('PASSWORD_DBB1'), os.getenv('PORT_DBB1')
+    else:
+        host, user, pwd, port = os.getenv('HOST_DBB2'), os.getenv('USER_DBB2'), os.getenv('PASSWORD_DBB2'), os.getenv('PORT_DBB2')
+    
+    db = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
 
     faltantes = [k for k, v in {'HOST_DBB': host, 'USER_DBB': user,
                                  'PASSWORD_DBB': pwd, 'NAME_DBB_DATALAKE_ECONOMICO': db}.items() if not v]
@@ -34,7 +40,7 @@ def main():
         files_dir = ExtractSRT().extract()
         df = TransformSRT().transform(files_dir)
         ValidateSRT().validate(df)
-        loader = LoadSRT(host, user, pwd, db)
+        loader = LoadSRT(host, user, pwd, db, port, version=version_db)
         loader.load(df)
         logger.info("=== COMPLETADO - Duración: %s ===", datetime.now() - inicio)
     except Exception as e:

@@ -29,29 +29,39 @@ class TransformANAC:
 
     def transform(self, file_path):
         logger.info(f"Leyendo archivo Excel: {file_path}")
-        # Leemos el archivo cargando todo como texto primero
         df_raw = pd.read_excel(file_path, header=None, dtype=str)
         
         # 1. BUSCAR EL BLOQUE "TABLA 11" y "Pasajeros Totales"
-        # Esto es más seguro porque busca la combinación de ambos títulos
         start_row = None
         for i, row in df_raw.iterrows():
-            # Buscamos la fila donde aparece "TABLA 11" y luego la siguiente que dice "Pasajeros Totales"
-            if "TABLA 11" in row.values:
-                # Verificamos si en la siguiente fila dice "Pasajeros Totales"
-                if i + 1 < len(df_raw) and "Pasajeros Totales" in str(df_raw.iloc[i+1].values):
-                    # El bloque de datos empieza 2 filas después de "Pasajeros Totales"
-                    start_row = i + 2 
-                    break
+            # Convertimos toda la fila a una lista de strings para buscar sin errores de formato
+            fila_texto = [str(cell).strip().upper() for cell in row.values if pd.notna(cell)]
+            
+            # Buscamos 'TABLA 11' y aseguramos que no sea una tabla menor
+            if "TABLA 11" in fila_texto:
+                # Verificamos que sea la tabla que contiene los datos de pasajeros
+                # Ajusta el texto "PASAJEROS" si en tu Excel dice otra cosa
+                if i + 1 < len(df_raw):
+                    fila_siguiente = str(df_raw.iloc[i+1].values).upper()
+                    if "PASAJEROS" in fila_siguiente:
+                        start_row = i + 2
+                        logger.info(f"TABLA 11 detectada en fila {i}, datos inician en {start_row}")
+                        break
+
+        # 2. BUSCAR EL FIN DE LA TABLA 11 (para no leer las tablas 19, 21, etc.)
+        end_row = len(df_raw)
+        for i in range(start_row, len(df_raw)):
+            fila_texto = str(df_raw.iloc[i].values).upper()
+            # Asumimos que la siguiente tabla empieza con "TABLA"
+            if "TABLA" in fila_texto and i > start_row + 5: # +5 para evitar falsos positivos
+                end_row = i
+                logger.info(f"Fin de Tabla 11 detectado en fila {end_row}")
+                break
         
         if start_row is None:
-            raise ValueError("No se pudo encontrar el bloque de la TABLA 11 + Pasajeros Totales")
-
-        # 2. DEFINIR DATOS: Los aeropuertos empiezan inmediatamente después de esa fila
-        df_datos = df_raw.iloc[start_row:].reset_index(drop=True)
+            raise ValueError("No se encontró el bloque TABLA 11 + Pasajeros")
         
-        # 3. EXTRAER ENCABEZADOS DE FECHAS (Los años y meses están en las filas superiores)
-        # Ajustamos para obtener años y meses correctamente de las filas antes de start_row
+        # 2. EXTRAER ENCABEZADOS DE FECHAS
         fila_años = df_raw.iloc[start_row - 2]
         fila_meses = df_raw.iloc[start_row - 1]
         
@@ -71,45 +81,51 @@ class TransformANAC:
             if ultimo_anio and mes_num:
                 fechas_dict[col_idx] = pd.Timestamp(year=ultimo_anio, month=mes_num, day=1)
 
-        # 3. PROCESAR FILAS
-        df_datos = df_raw.iloc[start_row:].reset_index(drop=True)
+        # 3. PROCESAR FILAS (Filtrado estricto)
+        df_datos = df_raw.iloc[start_row:end_row].reset_index(drop=True)
         resultados = []
+
+        print(f"DEBUG: Procesando filas. start_row={start_row}")
         
         for _, row in df_datos.iterrows():
             aero_name = str(row[0]).strip()
+
+            # --- FILTRO ESTRICTO ---
+            # Solo procesamos si el nombre es EXACTAMENTE "Corrientes"
+            # Esto evita sumar "Aeroparque - Corrientes", "Corrientes - Posadas", etc.
             if aero_name not in self.column_mapping:
                 continue
             
             nombre_mapeado = self.column_mapping[aero_name]
             
             for col_idx, fecha_obj in fechas_dict.items():
-                    val = row[col_idx]
+                val = row[col_idx]
+                if pd.isna(val) or str(val).strip() in ['nan', '-', '']: continue
+                
+                # LIMPIEZA:
+                # 1. Quitamos los puntos de mil (18.578 -> 18578)
+                # 2. Convertimos a float para manejar decimales si existieran
+                # 3. Convertimos a int (Ya tienes 18578, si quieres 18.578.000, 
+                #    entonces mantén el * 1000. Si quieres 18578, quita el * 1000)
+                
+                s_val = str(val).strip().replace('.', '').replace(',', '.')
+                
+                try:
+                    valor_num = float(s_val)
+                    cantidad = int(valor_num) 
                     
-                    # 1. Filtros básicos
-                    if pd.isna(val) or str(val).strip() in ['nan', '-']: continue
-                    
-                    # 2. LIMPIEZA TOTAL: Convertimos a string y quitamos TODO lo que no sea número
-                    # Esto quita el punto de miles: '1.238' -> '1238'
-                    # Esto evita que '1.238' sea interpretado como 1.238
-                    val_str = re.sub(r'[^\d]', '', str(val))
-                    
-                    if not val_str: continue
-                    
-                    # 3. Convertimos a INT directamente (evita la pesadilla de los floats)
-                    cantidad = int(val_str)
-                    
-                    # 4. Escala ANAC: 
-                    # Si el Excel dice 21 (para 21 mil), lo multiplicamos.
-                    # Si dice 1238 (para 1.238 mil), ya viene multiplicado por 1000 en el Excel.
-                    # Como el formato de ANAC es inconsistente, esta lógica es la más segura:
-                    if cantidad < 1000:
-                        cantidad = cantidad * 1000
+                    # CORRECCIÓN DE LOS 12 CEROS:
+                    # Si detectamos números gigantescos, los normalizamos eliminando los 12 ceros extra
+                    if cantidad > 1000000000000: # 10^12
+                        cantidad = cantidad // 1000000000000
                     
                     resultados.append({
                         'fecha': fecha_obj,
                         'aeropuerto': nombre_mapeado,
                         'cantidad': cantidad
                     })
+                except ValueError:
+                    continue
         
         df_final = pd.DataFrame(resultados)
         # Consolidar duplicados

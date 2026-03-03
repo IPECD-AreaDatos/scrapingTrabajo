@@ -5,7 +5,8 @@ import os
 import logging
 import pandas as pd
 import psycopg2
-from sqlalchemy import create_engine
+import pymysql
+from sqlalchemy import create_engine, text
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from json import loads
@@ -15,73 +16,92 @@ logger = logging.getLogger(__name__)
 class LoadVentasCombustible:
     """Carga datos de combustible a PostgreSQL y actualiza Google Sheets."""
 
-    def __init__(self, host, user, password, database):
+    def __init__(self, host, user, password, database, port=None, version="1"):
         self.host = host
         self.user = user
         self.password = password
         self.database = database
-        self.port = 5432
+        self.port = port
+        self.version = version
         self.conn = None
         self.engine = None
 
     def _conectar(self):
-        """Establece conexión con el servidor PostgreSQL."""
         if not self.conn:
             try:
-                self.conn = psycopg2.connect(
-                    host=self.host, user=self.user, 
-                    password=self.password, database=self.database, port=self.port
-                )
-                url = f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
+                if self.version == "1":  # MySQL
+                    puerto = int(self.port) if self.port else 3306
+                    self.conn = pymysql.connect(host=self.host, user=self.user, 
+                                                password=self.password, database=self.database, port=puerto)
+                    url = f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{puerto}/{self.database}"
+                else:  # PostgreSQL (v2)
+                    puerto = int(self.port) if self.port else 5432
+                    self.conn = psycopg2.connect(host=self.host, user=self.user, 
+                                                 password=self.password, database=self.database, port=puerto)
+                    url = f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:{puerto}/{self.database}"
+                
                 self.engine = create_engine(url)
-                logger.info("[OK] Conexión a PostgreSQL establecida")
+                logger.info(f"[OK] Conectado a {'MySQL' if self.version=='1' else 'PostgreSQL'} (v{self.version})")
             except Exception as e:
-                logger.error(f"[ERROR] No se pudo conectar a Postgres: {e}")
+                logger.error(f"[ERROR] Conexión fallida: {e}")
                 raise
 
+    def _get_schema(self):
+        return "public." if self.version == "2" else ""
+
     def load(self, df: pd.DataFrame):
-        """Carga datos a la base de datos y dispara la actualización del Sheets."""
+        """Carga datos simple: solo fecha, id_provincia, producto y cantidad."""
         try:
             self._conectar()
-            cursor = self.conn.cursor()
-
-            # 1. Crear tabla si no existe (Esquema Postgres)
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS public.combustible (
-                    fecha DATE,
-                    provincia INT,
-                    producto VARCHAR(100),
-                    cantidad NUMERIC(15, 2),
-                    PRIMARY KEY (fecha, provincia, producto)
-                );
-            """)
-            self.conn.commit()
-
-            # 2. Verificar datos nuevos (por fecha)
-            cursor.execute("SELECT MAX(fecha) FROM public.combustible")
-            ultima_fecha_bd = cursor.fetchone()[0]
-
+            schema = "public" if self.version == "2" else None
+            
+            # Aseguramos formatos para la comparación en memoria
             df['fecha'] = pd.to_datetime(df['fecha']).dt.date
-            if ultima_fecha_bd:
-                df_nuevos = df[df['fecha'] > ultima_fecha_bd]
-            else:
-                df_nuevos = df
+            df['id_provincia'] = df['id_provincia'].astype(int)
+            
+            # Nombre de tabla para el SQL y para pandas
+            table_name = "combustible"
+            full_table_name = f"{schema}.{table_name}" if schema else table_name
+            
+            # 1. Crear tabla simple (sin PK, sin restricciones)
+            create_sql = f"""
+                CREATE TABLE IF NOT EXISTS {full_table_name} (
+                    fecha DATE,
+                    id_provincia INT,
+                    producto VARCHAR(100),
+                    cantidad DECIMAL(15, 2)
+                );
+            """
+            with self.engine.begin() as conn:
+                conn.execute(text(create_sql))
+
+            # 2. Filtrado simple en memoria (Python hace el trabajo de evitar duplicados)
+            query = f"SELECT fecha, id_provincia, producto FROM {full_table_name}"
+            try:
+                df_bdd = pd.read_sql(query, con=self.engine)
+                df_bdd['fecha'] = pd.to_datetime(df_bdd['fecha']).dt.date
+                df_bdd['id_provincia'] = df_bdd['id_provincia'].astype(int)
+                existentes = set(zip(df_bdd['fecha'], df_bdd['id_provincia'], df_bdd['producto']))
+            except Exception:
+                existentes = set()
+
+            mask = df.apply(lambda x: (x['fecha'], x['id_provincia'], x['producto']) not in existentes, axis=1)
+            df_nuevos = df[mask].copy()
 
             if df_nuevos.empty:
-                logger.info("[LOAD] No hay registros nuevos de combustible para cargar.")
+                logger.info("[LOAD] No hay registros nuevos para cargar.")
                 return
 
-            # 3. Carga a PostgreSQL
-            df_nuevos.to_sql('combustible', self.engine, schema='public', if_exists='append', index=False)
-            logger.info(f"[LOAD] {len(df_nuevos)} registros cargados en PostgreSQL.")
+            # 3. Carga simple
+            df_nuevos.to_sql(table_name, self.engine, schema=schema, if_exists='append', index=False, chunksize=2000)
+            logger.info(f"[LOAD] {len(df_nuevos)} registros cargados.")
 
-            # 4. Actualizar Google Sheets (Usando la suma de la última fecha)
+            # 4. Actualizar Google Sheets
             ultima_fecha = df['fecha'].max()
             suma_total = df[df['fecha'] == ultima_fecha]['cantidad'].sum()
             self._update_sheets(suma_total, ultima_fecha)
 
         except Exception as e:
-            if self.conn: self.conn.rollback()
             logger.error(f"Error en carga de combustible: {e}")
             raise
 

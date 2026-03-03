@@ -31,13 +31,15 @@ class TransformVentasCombustible:
         Lee y transforma el CSV de combustible, filtrando por Corrientes.
 
         Returns:
-            pd.DataFrame con columnas: fecha, provincia, producto, cantidad
+            pd.DataFrame con columnas: fecha, id_provincia, producto, cantidad
         """
         if ruta is None:
             ruta = os.path.join(FILES_DIR, 'ventas_combustible.csv')
 
         logger.info("[TRANSFORM] Leyendo CSV: %s", ruta)
         df = pd.read_csv(ruta)
+
+        df = df.rename(columns={'provincia': 'id_provincia'})
 
         # Eliminar columnas innecesarias
         df = df.drop(columns=[c for c in COLS_ELIMINAR if c in df.columns])
@@ -48,9 +50,9 @@ class TransformVentasCombustible:
         df.insert(0, 'fecha', df.pop('fecha'))
 
         # Filtrar y mapear provincias
-        df = df[~df['provincia'].isin(PROVINCIAS_NO_DESEADAS)]
-        df['provincia'] = df['provincia'].replace(DICT_PROVINCIAS).infer_objects(copy=False)
-        df = df[df['provincia'] == 18]  # Solo Corrientes
+        df = df[~df['id_provincia'].isin(PROVINCIAS_NO_DESEADAS)]
+        df['id_provincia'] = df['id_provincia'].replace(DICT_PROVINCIAS).infer_objects(copy=False)
+        df = df[df['id_provincia'] == 18]  # Solo Corrientes
 
         # Eliminar columna unidad si existe
         if 'unidad' in df.columns:

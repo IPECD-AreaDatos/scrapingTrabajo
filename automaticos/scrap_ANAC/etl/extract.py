@@ -37,7 +37,7 @@ class ExtractANAC:
         self.headless = headless
         self.driver = None
 
-    def extract(self):
+    def extract(self, archivo_historico=False):
         """
         Descarga el archivo comprimido de estadísticas de la ANAC y lo descomprime
         
@@ -73,7 +73,7 @@ class ExtractANAC:
 
             # Extraer archivo Excel
             logger.info("Descomprimiendo archivo...")
-            self._extraer_excel(ruta_zip, ruta_excel)
+            self._extraer_excel(ruta_zip, ruta_excel, archivo_historico)
 
             # Limpiar archivos temporales
             self._limpiar_archivos_temporales(ruta_zip)
@@ -207,30 +207,25 @@ class ExtractANAC:
             logger.error(f"Error en descarga con Selenium: {e}")
             raise
 
-    def _extraer_excel(self, ruta_zip, ruta_excel_final):
+    def _extraer_excel(self, ruta_zip, ruta_excel_final, archivo_historico=False):
         """Extrae el archivo Excel más reciente (2023-2026) del ZIP"""
         try:
             with zipfile.ZipFile(ruta_zip, 'r') as zf:
                 contenidos = zf.namelist()
                 logger.debug(f"Archivos en el ZIP: {contenidos}")
+
+                # Definimos qué buscar
+                busqueda = '2001-2022' if archivo_historico else '2023-2026'
                 
                 # Buscamos específicamente el archivo que contiene '2023-2026'
                 archivo_objetivo = None
                 for nombre in contenidos:
-                    if '2023-2026' in nombre and nombre.lower().endswith(('.xlsx', '.xls')):
+                    if busqueda in nombre and nombre.lower().endswith(('.xlsx', '.xls')):
                         archivo_objetivo = nombre
                         break
                 
-                # Si no lo encuentra por nombre exacto, buscamos cualquier Excel que no sea el viejo
                 if not archivo_objetivo:
-                    archivos_excel = [a for a in contenidos if a.lower().endswith(('.xlsx', '.xls'))]
-                    # Ordenamos para intentar agarrar el más nuevo o el que no sea '2001-2022'
-                    archivos_excel = [a for a in archivos_excel if '2001-2022' not in a]
-                    if archivos_excel:
-                        archivo_objetivo = archivos_excel[0]
-
-                if not archivo_objetivo:
-                    raise Exception("No se encontró el archivo Excel actual (2023-2026) en el ZIP")
+                    raise Exception(f"No se encontró el archivo {busqueda} en el ZIP")
                 
                 logger.info(f"Archivo Excel detectado para extraer: {archivo_objetivo}")
                 

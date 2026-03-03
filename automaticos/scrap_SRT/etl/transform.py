@@ -110,11 +110,13 @@ class TransformSRT:
             # Provincias
             df_agr['jurisdiccion_desc'] = df_agr['jurisdiccion_desc'].replace(DICT_PROVINCIAS)
             df_agr = df_agr.rename(columns={
-                'jurisdiccion_desc': 'provincia_id',
-                'seccion': 'seccion_id',
-                'grupo': 'grupo_id'
+                'periodo': 'fecha',            # Aunque tu código ya reasigna periodo, esto asegura el nombre
+                'jurisdiccion_desc': 'id_provincia',
+                'seccion': 'id_seccion',
+                'ciiu': 'id_ciiu',
+                'grupo': 'id_grupo'
             })
-            df_agr['provincia_id'] = pd.to_numeric(df_agr['provincia_id'], errors='coerce')
+            df_agr['id_provincia'] = pd.to_numeric(df_agr['id_provincia'], errors='coerce')
 
             float_cols = df_agr.select_dtypes(include='float').columns
             df_agr[float_cols] = df_agr[float_cols].round(2)

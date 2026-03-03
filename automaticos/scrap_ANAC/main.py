@@ -40,7 +40,7 @@ def main():
     try:
         # EXTRACT
         logger.info("1. [EXTRACT] Descargando archivo...")
-        file_path = ExtractANAC().extract()
+        file_path = ExtractANAC().extract(archivo_historico=False)
 
         # TRANSFORM
         logger.info("2. [TRANSFORM] Procesando datos...")

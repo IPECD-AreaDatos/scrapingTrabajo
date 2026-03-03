@@ -6,7 +6,7 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-COLUMNAS_REQUERIDAS = ['fecha', 'provincia_id', 'seccion_id', 'grupo_id', 'ciiu',
+COLUMNAS_REQUERIDAS = ['fecha', 'id_provincia', 'id_seccion', 'id_grupo', 'id_ciiu',
                        'cant_personas_trabaj_up', 'remuneracion', 'salario']
 
 
