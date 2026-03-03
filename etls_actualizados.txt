@@ -1,0 +1,28 @@
+✅ Scrapers Aptos para PostgreSQL
+Estos ya incluyen la librería psycopg2, usan cadenas de conexión postgresql+psycopg2:// y, en muchos casos, referencian el esquema public. propio de Postgres.
+
+scrap_ANAC: Implementa una lógica híbrida (versión 1 para MySQL, versión 2 para PostgreSQL).
+scrap_DNRPA: Migrado con soporte para PostgreSQL.
+scrap_EMAE: Migrado con soporte para PostgreSQL.
+scrap_IPI: Migrado con soporte para PostgreSQL.
+scrap_IPICORR: Migrado con soporte para PostgreSQL.
+scrap_IndiceSalarios: Migrado con soporte para PostgreSQL.
+scrap_OEDE: Migrado con soporte para PostgreSQL.
+scrap_SIPA: Migrado con soporte para PostgreSQL.
+scrap_SRT: Migrado y optimizado para PostgreSQL.
+scrap_VentasCombustible: Totalmente adaptado para PostgreSQL.
+
+❌ Scrapers Pendientes (Siguen en MySQL)
+Estos todavía utilizan pymysql y cadenas de conexión mysql+pymysql://, por lo que aún no han sido migrados a la nueva base de datos.
+scrap_CBT
+scrap_CanastaBasica
+scrap_DOLAR
+scrap_IERIC
+scrap_IPC (incluyendo CABA y Online)
+scrap_PuestosTrabajoSP
+scrap_REM
+scrap_RIPTE
+scrap_SalarioMVM
+scrap_SalarioSPTotal
+scrap_Semaforo
+scrap_Supermercados

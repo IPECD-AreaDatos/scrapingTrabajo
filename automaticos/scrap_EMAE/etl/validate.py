@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 class ValidateEMAE:
     def validate(self, df_valores: pd.DataFrame, df_variaciones: pd.DataFrame):
-        self._validar(df_valores,     "valores",     ['fecha', 'sector_productivo', 'valor'])
+        self._validar(df_valores,     "valores",     ['fecha', 'id_sector', 'valor'])
         self._validar(df_variaciones, "variaciones", ['fecha', 'variacion_interanual', 'variacion_mensual'])
         logger.info("[VALIDATE] OK — ambos DataFrames del EMAE son válidos.")
 

@@ -70,12 +70,12 @@ class TransformEMAE:
 
         df_melted = df.melt(id_vars='fecha', var_name='sector', value_name='valor')
         sector_map = {name: i+1 for i, name in enumerate(sectores)}
-        df_melted['sector_productivo'] = df_melted['sector'].map(sector_map)
+        df_melted['id_sector'] = df_melted['sector'].map(sector_map)
         df_melted = df_melted.dropna(subset=['valor'])
         df_melted['fecha'] = pd.to_datetime(df_melted['fecha'])
     
-        return df_melted[['fecha', 'sector_productivo', 'valor']].sort_values(
-            ['fecha', 'sector_productivo']
+        return df_melted[['fecha', 'id_sector', 'valor']].sort_values(
+            ['fecha', 'id_sector']
         ).reset_index(drop=True)
 
     def _construir_df_variaciones(self, ruta: str) -> pd.DataFrame:
