@@ -22,24 +22,11 @@ class TransformIPI:
 
         logger.info(f"[TRANSFORM] Unificando datos del IPI desde: {ruta_archivo}")
         
-        # 1. Obtener los 3 bloques de datos
-        df_val = self._construir_df_valores(ruta_archivo)
-        df_var = self._construir_df_variaciones(ruta_archivo)
-        df_acu = self._construir_df_acum_interanual(ruta_archivo)
-
-        # 2. Unificar (Merge) por fecha
-        # Usamos inner merge para asegurar que solo suban meses que tengan todos los indicadores
-        df_final = pd.merge(df_val, df_var, on='fecha', how='left')
-        df_final = pd.merge(df_final, df_acu, on='fecha', how='left')
-
-        # Redondear todo a 4 decimales para consistencia
-        df_final = df_final.round(6)
-        
-        # Asegurar nombres en minúsculas para Postgres
-        df_final.columns = [c.lower() for c in df_final.columns]
-
-        logger.info(f"[OK] DataFrame unificado: {len(df_final)} filas y {len(df_final.columns)} columnas.")
-        return df_final
+        return {
+            'valores': self._construir_df_valores(ruta_archivo),
+            'variaciones': self._construir_df_variaciones(ruta_archivo),
+            'acumulado': self._construir_df_acum_interanual(ruta_archivo)
+        }
 
     def _construir_df_valores(self, ruta: str) -> pd.DataFrame:
         cols = ['ipi_manufacturero', 'alimentos', 'textil', 'maderas', 'sustancias', 'min_no_metalicos', 'min_metales']

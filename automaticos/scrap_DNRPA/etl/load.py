@@ -5,8 +5,7 @@ Responsabilidad: Cargar datos a PostgreSQL y actualizar Google Sheets (Fila 7 y 
 import os
 import logging
 import pandas as pd
-import psycopg2
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from json import loads
@@ -14,62 +13,61 @@ from json import loads
 logger = logging.getLogger(__name__)
 
 class LoadDNRPA:
-    def __init__(self, host, user, password, database):
+    def __init__(self, host, user, password, database, port=None, version="2"):
         self.host, self.user, self.password, self.database = host, user, password, database
-        self.port = 5432
-        self.conn = None
+        self.port = port or (5432 if version == "2" else 3306)
+        self.version = version  # "1": MySQL, "2": PostgreSQL
         self.engine = None
 
     def _conectar(self):
-        if not self.conn:
-            # Conexión nativa Postgres
-            self.conn = psycopg2.connect(host=self.host, user=self.user, password=self.password, database=self.database, port=self.port)
-            url = f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
+        if not self.engine:
+            if self.version == "2": # PostgreSQL
+                url = f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
+            else: # MySQL
+                url = f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
             self.engine = create_engine(url)
 
     def load(self, df: pd.DataFrame):
         try:
             self._conectar()
-            cursor = self.conn.cursor()
+            schema = self._get_schema()
+            table_name = "dnrpa"
 
-            # 1. Crear tabla si no existe
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS public.dnrpa (
-                    fecha DATE,
-                    id_provincia_indec INT,
-                    id_vehiculo INT,
-                    cantidad INT,
-                    PRIMARY KEY (fecha, id_provincia_indec, id_vehiculo)
-                );
-            """)
-            self.conn.commit()
+            # Si estamos en Postgres, usamos el nombre calificado schema.table
+            full_table_name = f"{schema}.{table_name}" if schema else table_name
 
             # 2. Verificar si hay cambios en el último año
             ultimo_anio = int(df['fecha'].dt.year.max())
             df_anio = df[df['fecha'].dt.year == ultimo_anio]
             
-            # En Postgres usamos EXTRACT
-            cursor.execute("SELECT COUNT(*) FROM public.dnrpa WHERE EXTRACT(YEAR FROM fecha) = %s", (ultimo_anio,))
-            count_bd = cursor.fetchone()[0]
+            # SQL genérico usando EXTRACT (funciona en ambos motores)
+            query_count = text("SELECT COUNT(*) FROM {full_table_name} WHERE EXTRACT(YEAR FROM fecha) = :anio")
+            query_delete = text("DELETE FROM dnrpa WHERE EXTRACT(YEAR FROM fecha) = :anio")
 
-            if count_bd == len(df_anio):
-                logger.info(f"[LOAD] DNRPA: Sin datos nuevos para el año {ultimo_anio}.")
-                return
+            with self.engine.begin() as conn:
+                # 1. Verificar registros existentes
+                count_bd = conn.execute(query_count, {"anio": ultimo_anio}).scalar()
 
-            # 3. Recarga: Borrar e Insertar año actual
-            logger.info(f"[LOAD] Recargando año {ultimo_anio} en Postgres...")
-            cursor.execute("DELETE FROM public.dnrpa WHERE EXTRACT(YEAR FROM fecha) = %s", (ultimo_anio,))
-            self.conn.commit()
+                if count_bd == len(df_anio):
+                    logger.info(f"[LOAD] DNRPA: Sin datos nuevos para {ultimo_anio}.")
+                    return
 
-            df_anio.to_sql('dnrpa', self.engine, schema='public', if_exists='append', index=False)
-            
-            # 4. Actualizar Google Sheets (Filas 7 y 8)
+                # 2. Recargar año actual
+                logger.info(f"[LOAD] Recargando año {ultimo_anio}...")
+                conn.execute(query_delete, {"anio": ultimo_anio})
+                df_anio.to_sql(table_name, con=conn, schema=schema, if_exists='append', index=False)
+                
+            # 3. Actualizar Sheets
             self._update_sheets(df_anio)
 
         except Exception as e:
             if self.conn: self.conn.rollback()
             logger.error(f"Error en Load DNRPA: {e}")
             raise
+
+    def _get_schema(self):
+        """Devuelve 'public' solo si estamos en PostgreSQL (v2)"""
+        return "public" if self.version == "2" else None
 
     def _update_sheets(self, df):
         """Actualiza Patentamiento de Autos (Fila 7) y Motos (Fila 8) para Corrientes (18)"""

@@ -20,7 +20,7 @@ class ExtractDNRPA:
     """Extrae datos de patentamiento del DNRPA (autos y motos del último año)."""
 
     def __init__(self):
-        self.df_total = pd.DataFrame(columns=['fecha', 'id_provincia_indec', 'id_vehiculo', 'cantidad'])
+        self.df_total = pd.DataFrame(columns=['fecha', 'id_provincia', 'id_vehiculo', 'cantidad'])
         self.driver = None
         self.original_window = None
 
@@ -29,7 +29,7 @@ class ExtractDNRPA:
         Extrae los datos de autos y motos del último año disponible.
 
         Returns:
-            pd.DataFrame con columnas: fecha, id_provincia_indec, id_vehiculo, cantidad
+            pd.DataFrame con columnas: fecha, id_provincia, id_vehiculo, cantidad
         """
         options = webdriver.ChromeOptions()
         options.add_argument('--headless')
@@ -96,14 +96,14 @@ class ExtractDNRPA:
         df = pd.DataFrame(datos).iloc[2:26, 0:13]
         df[df.columns[0]] = [6, 2, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50, 54, 58, 62, 66, 70, 74, 78, 82, 86, 90, 94]
         fechas = [datetime(int(valor_opcion), m, 1).strftime("%Y-%m-%d") for m in range(1, 13)]
-        df.columns = ['id_provincia_indec'] + fechas
-        df_melted = df.melt(id_vars=['id_provincia_indec'], var_name='fecha', value_name='cantidad')
+        df.columns = ['id_provincia'] + fechas
+        df_melted = df.melt(id_vars=['id_provincia'], var_name='fecha', value_name='cantidad')
         df_melted['id_vehiculo'] = tipo_vehiculo
         self.df_total = pd.concat([self.df_total, df_melted])
 
     def _transformar_cantidad_vehiculos(self):
         self.df_total['cantidad'] = self.df_total['cantidad'].str.replace(".", "", regex=False)
-        self.df_total['id_provincia_indec'] = self.df_total['id_provincia_indec'].astype(int)
+        self.df_total['id_provincia'] = self.df_total['id_provincia'].astype(int)
         self.df_total['id_vehiculo'] = self.df_total['id_vehiculo'].astype(int)
         self.df_total['cantidad'] = pd.to_numeric(self.df_total['cantidad'], errors='coerce').fillna(0).astype(int)
         self.df_total['fecha'] = pd.to_datetime(self.df_total['fecha'], format='%Y-%m-%d')

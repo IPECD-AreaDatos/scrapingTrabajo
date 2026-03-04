@@ -6,7 +6,7 @@ import os
 import logging
 import pandas as pd
 import psycopg2
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from json import loads
@@ -23,44 +23,61 @@ class LoadIPI:
         'acum': 'ipi_var_interacum',
     }
 
-    def __init__(self, host, user, password, database):
-        self.host, self.user, self.password, self.database = host, user, password, database
-        self.port = 5432
-        self.engine = None
-        self.conn = None
+    def __init__(self, host, user, password, db_datalake, db_dwh, port, version="2"):
+        self.host, self.user, self.pwd, self.port = host, user, password, port
+        self.db_datalake = db_datalake
+        self.db_dwh = db_dwh
+        self.version = version
+        self.engines = {}
 
-    def _conectar(self):
-        if not self.conn:
-            self.conn = psycopg2.connect(host=self.host, user=self.user, password=self.password, database=self.database, port=self.port)
-            url = f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
-            self.engine = create_engine(url)
+    def _get_engine(self, db_name):
+        if db_name not in self.engines:
+            url = f"postgresql+psycopg2://{self.user}:{self.pwd}@{self.host}:{self.port}/{db_name}"
+            self.engines[db_name] = create_engine(url)
+        return self.engines[db_name]
 
-    def load(self, df: pd.DataFrame) -> bool:
-        try:
-            self._conectar()
-            cursor = self.conn.cursor()
+    def load(self, dfs_dict: dict):
+        self._conectar()
+        
+        # 1. Definir destinos según versión
+        if self.version == "1":
+            # En v1 (MySQL), todo va a la misma base (datalake)
+            destinos = {
+                'ipi_valores': self.db_datalake,
+                'ipi_variacion_interanual': self.db_datalake,
+                'ipi_var_interacum': self.db_datalake
+            }
+        else:
+            # En v2 (Postgres), separamos como pediste
+            destinos = {
+                'ipi_valores': self.db_datalake,
+                'ipi_variacion_interanual': self.db_dwh,
+                'ipi_var_interacum': self.db_dwh
+            }
 
-            # 1. Verificar fecha máxima en BD
-            cursor.execute("SELECT MAX(fecha) FROM public.ipi")
-            ultima_fecha_bd = cursor.fetchone()[0]
-
-            df['fecha'] = pd.to_datetime(df['fecha']).dt.date
-            if ultima_fecha_bd:
-                df_nuevos = df[df['fecha'] > ultima_fecha_bd]
-            else:
-                df_nuevos = df
-
-            if df_nuevos.empty:
-                logger.info("[LOAD] IPI: No hay datos nuevos.")
-                return False
-
-            # 2. Carga a Postgres
-            df_nuevos.to_sql('ipi', self.engine, schema='public', if_exists='append', index=False)
-            logger.info(f"[OK] {len(df_nuevos)} meses nuevos cargados en Postgres.")
-            return True
-        except Exception as e:
-            logger.error(f"Error cargando IPI: {e}")
-            raise
+        # 2. Iterar y cargar
+        for tabla, db_name in destinos.items():
+            df = dfs_dict[tabla]
+            engine = self._get_engine(db_name)
+            
+            # Ajuste de esquema para Postgres
+            schema = 'public' if self.version == "2" else None
+            
+            logger.info(f"[LOAD] Cargando tabla {tabla} en base {db_name}...")
+            
+            # Borrado y carga (Estrategia segura para evitar duplicados)
+            with engine.begin() as conn:
+                # Si es MySQL no usamos schema
+                full_table = f"{schema}.{tabla}" if schema else tabla
+                
+                # Borrar datos de las fechas que vienen en el DF para asegurar "upsert"
+                fechas = tuple(pd.to_datetime(df['fecha']).dt.date.tolist())
+                conn.execute(text(f"DELETE FROM {full_table} WHERE fecha IN :fechas"), {"fechas": fechas})
+                
+                # Cargar
+                df.to_sql(tabla, engine, schema=schema, if_exists='append', index=False, method='multi')
+                
+        logger.info("[OK] Las 3 tablas del IPI fueron cargadas exitosamente.")
 
     def close(self):
         if self.engine:
