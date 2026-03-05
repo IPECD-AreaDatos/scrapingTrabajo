@@ -45,11 +45,28 @@ PROVINCIAS = {
 class TransformOEDE:
     """Transforma el Excel de OEDE en un DataFrame consolidado por provincia."""
 
-    def __init__(self, host: str, user: str, password: str, database: str):
-        self._engine = create_engine(
-            f"postgresql+psycopg2://{user}:{password}@{host}:5432/{database}"
-        )
-        self._diccionario = None
+    def __init__(self, host, user, password, database, port, version="1"):
+        self.host = host
+        self.user = user
+        self.password = password
+        self.database = database
+        self.port = port
+        self.version = str(version)
+        self.engine = self._crear_engine()
+
+    def _crear_engine(self):
+        # Si port es None o 'None', asignamos el puerto por defecto según el motor
+        if not self.port or self.port == "None":
+            puerto = 3306 if self.version == "1" else 5432
+        else:
+            puerto = int(self.port)
+
+        if self.version == "1":
+            url = f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{puerto}/{self.database}"
+        else:
+            url = f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:{puerto}/{self.database}"
+        
+        return create_engine(url)
 
     def transform(self, ruta_archivo: str = None) -> pd.DataFrame:
         """
@@ -76,7 +93,7 @@ class TransformOEDE:
         return df_final
 
     def _construir_dic(self):
-        tabla = pd.read_sql_query("SELECT * FROM dicc_oede", con=self._engine)
+        tabla = pd.read_sql_query("SELECT * FROM dicc_oede", con=self.engine)
         diccionario = {}
         for _, row in tabla.iterrows():
             clave = self._formatear_key(row['nombre'])
@@ -159,5 +176,5 @@ class TransformOEDE:
         return unidecode(str(key).lower()).replace(',', '').replace('.', '').replace(' ', '')
 
     def close(self):
-        if self._engine:
-            self._engine.dispose()
+        if self.engine:
+            self.engine.dispose()

@@ -5,79 +5,113 @@ Responsabilidad: Cargar a PostgreSQL con TRUNCATE + INSERT si hay datos nuevos, 
 import logging
 import pandas as pd
 import numpy as np
+import psycopg2
+import pymysql
 from sqlalchemy import create_engine, text
 
 logger = logging.getLogger(__name__)
 
-# Configuración de tablas para Postgres
-TABLA = 'sipa'
-DWH_DB = 'dwh_economico'
-
 class LoadSIPA:
     """Carga los datos de SIPA a PostgreSQL (truncate + replace incremental)."""
 
-    def __init__(self, host: str, user: str, password: str, database: str):
+    def __init__(self, host, user, password, db_datalake, db_dwh, port, version="1"):
         self.host = host
         self.user = user
         self.password = password
-        self.database = database
-        # URL para PostgreSQL
-        self.url = f"postgresql+psycopg2://{user}:{password}@{host}:5432/{database}"
-        self._engine = create_engine(self.url)
+        self.db_datalake = db_datalake
+        self.db_dwh = db_dwh
+        self.port = port
+        self.version = str(version)
+        self.tabla = 'sipa'
+        self.engines = {}
+
+    def _get_engine(self, db_name):
+        """Crea o retorna el motor de conexión dinámico."""
+        if db_name not in self.engines:
+            if self.version == "1":
+                port = int(self.port) if self.port else 3306
+                url = f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{port}/{db_name}"
+            else:
+                port = int(self.port) if self.port else 5432
+                url = f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:{port}/{db_name}"
+            
+            self.engines[db_name] = create_engine(url, echo=False)
+            logger.info(f"[OK] Motor conectado a base '{db_name}' (v{self.version})")
+        return self.engines[db_name]
+    
+    def _get_schema(self):
+        return "public" if self.version == "2" else None
 
     def load(self, df: pd.DataFrame) -> bool:
-        """
-        Carga el DataFrame si la fecha máxima del Excel supera la de la BD.
-        Returns:
-            bool: True si se cargaron datos nuevos
-        """
-        # Comparar por fecha máxima
-        with self._engine.connect() as conn:
-            res = conn.execute(text(f"SELECT MAX(fecha) FROM {TABLA}"))
+        engine = self._get_engine(self.db_datalake)
+        schema = self._get_schema()
+        full_table = f"{schema}.{self.tabla}" if schema else self.tabla
+        
+        # 1. Validación de fechas
+        with engine.connect() as conn:
+            res = conn.execute(text(f"SELECT MAX(fecha) FROM {full_table}"))
             fecha_bdd = res.scalar()
         
         fecha_df = pd.to_datetime(df['fecha']).max()
-
-        logger.info("[LOAD] Última fecha en BD: %s | Última fecha en Excel: %s", fecha_bdd, fecha_df.date())
-
-        if fecha_bdd is not None and pd.to_datetime(fecha_bdd).date() >= fecha_df.date():
-            logger.info("[LOAD] Sin datos nuevos en '%s'. La BD ya está actualizada.", TABLA)
+        if fecha_bdd and pd.to_datetime(fecha_bdd).date() >= fecha_df.date():
+            logger.info("[LOAD] Sin datos nuevos en '%s'.", self.tabla)
             return False
 
-        # TRUNCATE + INSERT usando una transacción (begin)
-        # Se usa CASCADE por si existen Foreign Keys que dependan de esta tabla
-        with self._engine.begin() as conn:
-            conn.execute(text(f"TRUNCATE TABLE {TABLA} CASCADE"))
-            df.to_sql(name=TABLA, con=conn, if_exists='append', index=False, method='multi')
+        # 2. Carga limpia
+        with engine.begin() as conn:
+            # Truncate seguro según motor
+            if self.version == "2":
+                conn.execute(text(f"TRUNCATE TABLE {full_table} CASCADE"))
+            else:
+                conn.execute(text(f"TRUNCATE TABLE {full_table}"))
+            
+            df.to_sql(name=self.tabla, con=conn, schema=schema, if_exists='append', index=False, method='multi')
         
-        logger.info("[LOAD] %d filas cargadas en '%s'.", len(df), TABLA)
-
-        # Analytics
-        self._table_analytics_sipa()
-        self._table_analytics_sipa_nea()
+        logger.info("[LOAD] %d filas cargadas. Iniciando Analytics...", len(df))
+        self._run_analytics()
         return True
+    
+    def _run_analytics(self):
+        """Ejecuta los cálculos y guarda en el DWH."""
+        engine_datalake = self._get_engine(self.db_datalake)
+        engine_dwh = self._get_engine(self.db_dwh)
+        schema_dwh = self._get_schema()
 
-    def _get_engine_dwh(self):
-        # Motor para el Data Warehouse en Postgres
-        url_dwh = f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:5432/{DWH_DB}"
-        return create_engine(url_dwh)
+        # Analytics Nacionales
+        df_ana = pd.DataFrame()
+        self._get_percentages(df_ana, engine_datalake)
+        self._get_variances_nation(df_ana)
+        df_ana['fecha'] = pd.to_datetime(df_ana['fecha']).dt.date
+        df_ana.to_sql(name="empleo_nacional_porcentajes_variaciones", con=engine_dwh, schema=schema_dwh, if_exists='replace', index=False)
+        
+        # Analytics NEA
+        df_nea = pd.DataFrame()
+        self._get_variances_nea(df_nea, engine_datalake)
+        df_nea['fecha'] = pd.to_datetime(df_nea['fecha']).dt.date
+        df_nea.to_sql(name="empleo_nea_variaciones", con=engine_dwh, schema=schema_dwh, if_exists='replace', index=False)
+        
+        logger.info("[LOAD] Analytics actualizados en DWH.")
 
     def _table_analytics_sipa(self):
+        # Usamos los engines configurados en la clase
+        engine_datalake = self._get_engine(self.db_datalake)
+        engine_dwh = self._get_engine(self.db_dwh)
+        schema = self._get_schema()
+        
         df_ana = pd.DataFrame()
-        self._get_percentages(df_ana)
+        self._get_percentages(df_ana, engine_datalake)
         self._get_variances_nation(df_ana)
         
         df_ana['fecha'] = pd.to_datetime(df_ana['fecha']).dt.date
-        engine_dwh = self._get_engine_dwh()
         
-        # En Postgres usamos index=False para evitar columnas 'index' basura
-        df_ana.to_sql(name="empleo_nacional_porcentajes_variaciones", con=engine_dwh, if_exists='replace', index=False)
-        logger.info("[LOAD] Analytics nacionales actualizados en Postgres.")
+        # Guardamos en DWH con el esquema correspondiente
+        df_ana.to_sql(name="empleo_nacional_porcentajes_variaciones", con=engine_dwh, schema=schema, if_exists='replace', index=False)
+        logger.info("[LOAD] Analytics nacionales actualizados en DWH.")
 
-    def _get_percentages(self, df):
-        # id_provincia 1 suele ser Total Nación o GBA según tu script anterior
-        query = f"SELECT * FROM {TABLA} WHERE id_provincia = 1"
-        df_bdd = pd.read_sql(query, con=self._engine)
+    def _get_percentages(self, df, engine_datalake):
+        # Usamos self.tabla y engine_datalake
+        query = f"SELECT * FROM {self.tabla} WHERE id_provincia = 1"
+        df_bdd = pd.read_sql(query, con=engine_datalake)
         
         # Filtramos por id_registro 8 (Total)
         df['fecha'] = list(df_bdd['fecha'][df_bdd['id_registro'] == 8])
@@ -112,26 +146,29 @@ class LoadSIPA:
                     df.loc[mask, f'vacum_{col}'] = ((df[col][mask] / base) - 1) * 100
 
     def _table_analytics_sipa_nea(self):
+        engine_datalake = self._get_engine(self.db_datalake)
+        engine_dwh = self._get_engine(self.db_dwh)
+        schema = self._get_schema()
+
         df_nea = pd.DataFrame()
-        self._get_variances_nea(df_nea)
+        self._get_variances_nea(df_nea, engine_datalake)
         df_nea['fecha'] = pd.to_datetime(df_nea['fecha']).dt.date
         
-        engine_dwh = self._get_engine_dwh()
-        df_nea.to_sql(name="empleo_nea_variaciones", con=engine_dwh, if_exists='replace', index=False)
-        logger.info("[LOAD] Analytics NEA actualizados en Postgres.")
+        # Guardamos en DWH con el esquema correspondiente
+        df_nea.to_sql(name="empleo_nea_variaciones", con=engine_dwh, schema=schema, if_exists='replace', index=False)
+        logger.info("[LOAD] Analytics NEA actualizados en DWH.")
 
-    def _get_variances_nea(self, df):
-        # IDs de provincias para el NEA (Corrientes es 18)
+    def _get_variances_nea(self, df, engine_datalake):
         provincias = {18: 'corrientes', 54: 'misiones', 22: 'chaco', 34: 'formosa'}
         ids_nea = tuple(provincias.keys())
         
-        query = f"SELECT fecha, id_provincia, cantidad_con_estacionalidad FROM {TABLA} WHERE id_provincia IN {ids_nea}"
-        df_bdd = pd.read_sql(query, con=self._engine)
+        # Usamos self.tabla y engine_datalake
+        query = f"SELECT fecha, id_provincia, cantidad_con_estacionalidad FROM {self.tabla} WHERE id_provincia IN {ids_nea}"
+        df_bdd = pd.read_sql(query, con=engine_datalake)
         
         df['fecha'] = sorted(set(pd.to_datetime(df_bdd['fecha'])))
         
         for idp, nombre in provincias.items():
-            # El factor 1000 depende de si el Excel viene expresado en miles
             df[f'total_{nombre}'] = list(df_bdd['cantidad_con_estacionalidad'][df_bdd['id_provincia'] == idp] * 1000)
             
         df['total_nea'] = df[[f'total_{p}' for p in provincias.values()]].sum(axis=1)
@@ -150,5 +187,9 @@ class LoadSIPA:
                     df.loc[mask, f'vacum_{prov}'] = ((df[f'total_{prov}'][mask] / base) - 1) * 100
 
     def close(self):
-        if self._engine:
-            self._engine.dispose()
+        """Cierra todos los motores de conexión abiertos."""
+        for db_name, engine in self.engines.items():
+            if engine:
+                engine.dispose()
+                logger.info(f"[LOAD] Conexión a '{db_name}' cerrada.")
+        self.engines = {}

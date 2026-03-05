@@ -4,13 +4,15 @@ Estos ya incluyen la librería psycopg2, usan cadenas de conexión postgresql+ps
 scrap_ANAC: Implementa una lógica híbrida (versión 1 para MySQL, versión 2 para PostgreSQL).
 scrap_DNRPA: Migrado con soporte para PostgreSQL.
 scrap_EMAE: Implementa una lógica híbrida (versión 1 para MySQL, versión 2 para PostgreSQL).
-scrap_IPI: Migrado con soporte para PostgreSQL.
-scrap_IPICORR: Migrado con soporte para PostgreSQL.
-scrap_IndiceSalarios: Migrado con soporte para PostgreSQL.
-scrap_OEDE: Migrado con soporte para PostgreSQL.
-scrap_SIPA: Migrado con soporte para PostgreSQL.
+scrap_IPI: Implementa una lógica híbrida (versión 1 para MySQL, versión 2 para PostgreSQL).
+scrap_IPICORR: Implementa una lógica híbrida (versión 1 para MySQL, versión 2 para PostgreSQL).
+scrap_IndiceSalarios: Implementa una lógica híbrida (versión 1 para MySQL, versión 2 para PostgreSQL).
+scrap_OEDE: Implementa una lógica híbrida (versión 1 para MySQL, versión 2 para PostgreSQL).
+scrap_SIPA: Implementa una lógica híbrida (versión 1 para MySQL, versión 2 para PostgreSQL).
 scrap_SRT: Implementa una lógica híbrida (versión 1 para MySQL, versión 2 para PostgreSQL).
 scrap_VentasCombustible: Implementa una lógica híbrida (versión 1 para MySQL, versión 2 para PostgreSQL).
+scrap_RIPTE: Implementa una lógica híbrida (versión 1 para MySQL, versión 2 para PostgreSQL).
+
 
 ❌ Scrapers Pendientes (Siguen en MySQL)
 Estos todavía utilizan pymysql y cadenas de conexión mysql+pymysql://, por lo que aún no han sido migrados a la nueva base de datos.
@@ -21,7 +23,6 @@ scrap_IERIC
 scrap_IPC (incluyendo CABA y Online)
 scrap_PuestosTrabajoSP
 scrap_REM
-scrap_RIPTE
 scrap_SalarioMVM
 scrap_SalarioSPTotal
 scrap_Semaforo

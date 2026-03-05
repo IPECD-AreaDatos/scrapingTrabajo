@@ -19,9 +19,14 @@ def main():
     inicio = datetime.now()
     logger.info("=== INICIO ETL ÍNDICE DE SALARIOS - %s ===", inicio)
 
-    host = os.getenv('HOST_DBB')
-    user = os.getenv('USER_DBB')
-    pwd  = os.getenv('PASSWORD_DBB')
+    version_db = os.getenv('DB_VERSION', '1')
+    
+    # Selección de variables según versión
+    if version_db == "1":
+        host, user, pwd, port = os.getenv('HOST_DBB1'), os.getenv('USER_DBB1'), os.getenv('PASSWORD_DBB1'), os.getenv('PORT_DBB1')
+    else:
+        host, user, pwd, port = os.getenv('HOST_DBB2'), os.getenv('USER_DBB2'), os.getenv('PASSWORD_DBB2'), os.getenv('PORT_DBB2')
+
     db   = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
 
     faltantes = [k for k, v in {'HOST_DBB': host, 'USER_DBB': user,
@@ -34,7 +39,7 @@ def main():
         ruta = ExtractIndiceSalarios().extract()
         df   = TransformIndiceSalarios().transform(ruta)
         ValidateIndiceSalarios().validate(df)
-        loader = LoadIndiceSalarios(host, user, pwd, db)
+        loader = LoadIndiceSalarios(host, user, pwd, db, port, version=version_db) 
         hay_nuevos = loader.load(df)
         if hay_nuevos:
             logger.info("[INFO] Nuevos datos cargados correctamente.")

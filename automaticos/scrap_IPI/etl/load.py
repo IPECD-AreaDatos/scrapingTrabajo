@@ -13,73 +13,81 @@ from json import loads
 
 logger = logging.getLogger(__name__)
 
+logging.getLogger('sqlalchemy.engine').setLevel(logging.WARNING)
 
 class LoadIPI:
-    """Carga los 3 DataFrames del IPI a MySQL de forma incremental."""
-
-    TABLAS = {
-        'valores': 'ipi_valores',
-        'variaciones': 'ipi_variacion_interanual',
-        'acum': 'ipi_var_interacum',
-    }
+    """Carga los DataFrames del IPI a PostgreSQL/MySQL de forma incremental."""
 
     def __init__(self, host, user, password, db_datalake, db_dwh, port, version="2"):
-        self.host, self.user, self.pwd, self.port = host, user, password, port
+        self.host = host
+        self.user = user
+        self.password = password
         self.db_datalake = db_datalake
         self.db_dwh = db_dwh
-        self.version = version
+        self.port = port
+        self.version = str(version)
         self.engines = {}
 
     def _get_engine(self, db_name):
+        """Crea o retorna el motor de conexión para una base de datos específica."""
         if db_name not in self.engines:
-            url = f"postgresql+psycopg2://{self.user}:{self.pwd}@{self.host}:{self.port}/{db_name}"
-            self.engines[db_name] = create_engine(url)
+            if self.version == "1":  # MySQL
+                port = int(self.port) if self.port else 3306
+                url = f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{port}/{db_name}"
+            else:  # PostgreSQL
+                port = int(self.port) if self.port else 5432
+                url = f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:{port}/{db_name}"
+            
+            self.engines[db_name] = create_engine(url, echo=False)
+            logger.info(f"[OK] Motor conectado a base '{db_name}' (v{self.version})")
         return self.engines[db_name]
 
+    def _get_schema(self):
+        return "public" if self.version == "2" else None
+
     def load(self, dfs_dict: dict):
-        self._conectar()
+        """Carga el diccionario de DataFrames en sus respectivas bases de datos."""
         
-        # 1. Definir destinos según versión
+        # 1. Definir mapeo: clave del dict -> (base_datos, nombre_tabla_bdd)
         if self.version == "1":
-            # En v1 (MySQL), todo va a la misma base (datalake)
-            destinos = {
-                'ipi_valores': self.db_datalake,
-                'ipi_variacion_interanual': self.db_datalake,
-                'ipi_var_interacum': self.db_datalake
+            # Todo va al datalake
+            configuracion = {
+                'valores': (self.db_datalake, 'ipi'),
+                'variaciones': (self.db_datalake, 'ipi_variacion_interanual'),
+                'acumulado': (self.db_datalake, 'ipi_variacion_interacumulada')
             }
         else:
-            # En v2 (Postgres), separamos como pediste
-            destinos = {
-                'ipi_valores': self.db_datalake,
-                'ipi_variacion_interanual': self.db_dwh,
-                'ipi_var_interacum': self.db_dwh
+            # v2: Separación entre datalake y dwh
+            configuracion = {
+                'valores': (self.db_datalake, 'ipi'),
+                'variaciones': (self.db_dwh, 'ipi_variacion_interanual'),
+                'acumulado': (self.db_dwh, 'ipi_variacion_interacumulada')
             }
 
-        # 2. Iterar y cargar
-        for tabla, db_name in destinos.items():
-            df = dfs_dict[tabla]
+        schema = self._get_schema()
+
+        # 2. Iterar sobre cada tabla
+        for key, (db_name, tabla) in configuracion.items():
+            df = dfs_dict[key]
             engine = self._get_engine(db_name)
             
-            # Ajuste de esquema para Postgres
-            schema = 'public' if self.version == "2" else None
+            logger.info(f"[LOAD] Cargando {key} en base {db_name}...")
             
-            logger.info(f"[LOAD] Cargando tabla {tabla} en base {db_name}...")
-            
-            # Borrado y carga (Estrategia segura para evitar duplicados)
             with engine.begin() as conn:
-                # Si es MySQL no usamos schema
                 full_table = f"{schema}.{tabla}" if schema else tabla
                 
-                # Borrar datos de las fechas que vienen en el DF para asegurar "upsert"
+                # Borrado seguro por fechas para evitar duplicados
                 fechas = tuple(pd.to_datetime(df['fecha']).dt.date.tolist())
                 conn.execute(text(f"DELETE FROM {full_table} WHERE fecha IN :fechas"), {"fechas": fechas})
                 
-                # Cargar
-                df.to_sql(tabla, engine, schema=schema, if_exists='append', index=False, method='multi')
+                # Carga
+                df.to_sql(tabla, conn, schema=schema, if_exists='append', index=False, method='multi')
                 
         logger.info("[OK] Las 3 tablas del IPI fueron cargadas exitosamente.")
 
     def close(self):
-        if self.engine:
-            self.engine.dispose()
-            self.engine = None
+        """Cierra todos los motores de conexión abiertos."""
+        for db_name, engine in self.engines.items():
+            engine.dispose()
+            logger.info(f"[LOAD] Conexión a '{db_name}' cerrada.")
+        self.engines = {}

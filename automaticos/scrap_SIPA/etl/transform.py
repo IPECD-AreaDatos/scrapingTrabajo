@@ -59,7 +59,8 @@ class TransformSIPA:
 
     def _leer_excel(self, ruta, sheet_name, skiprows):
         df = pd.read_excel(ruta, sheet_name=sheet_name, skiprows=skiprows)
-        df = df.replace({np.nan: None}).replace(',', '.', regex=True).infer_objects()
+        df = df.replace({np.nan: None}).replace(',', '.', regex=True)
+        df = df.infer_objects(copy=False)
         df = df[~df.iloc[:, 0].astype(str).str.contains("nota", case=False, na=False)]
         df = df[df.iloc[:, 1:].notnull().any(axis=1)]
         df = df.rename(columns=lambda x: str(x).strip().replace('\n', ' '))

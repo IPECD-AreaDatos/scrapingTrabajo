@@ -5,66 +5,67 @@ Responsabilidad: Cargar solo filas nuevas a MySQL (append incremental)
 import logging
 import pandas as pd
 import psycopg2
-from sqlalchemy import create_engine
+import pymysql
+from sqlalchemy import create_engine, text
 
 logger = logging.getLogger(__name__)
 
-TABLA = "salario" # Nuevo nombre de tabla
-
 class LoadIndiceSalarios:
-    def __init__(self, host: str, user: str, password: str, database: str):
+    def __init__(self, host, user, password, database, port=None, version="1"):
         self.host = host
         self.user = user
         self.password = password
         self.database = database
-        self.port = 5432 # Puerto Postgres
-        self._engine = None
-        self._conn = None
+        self.port = port
+        self.version = str(version)
+        self.engine = None
+        self.tabla = "indice_salario"
 
-    def _conectar_nativo(self):
-        """Conexión directa para consultas de control"""
-        return psycopg2.connect(
-            host=self.host, user=self.user,
-            password=self.password, database=self.database,
-            port=self.port
-        )
+    def _conectar(self):
+        """Crea el motor de conexión según versión (MySQL o PostgreSQL)."""
+        if self.engine is None:
+            if self.version == "1":
+                puerto = int(self.port) if self.port else 3306
+                url = f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{puerto}/{self.database}"
+            else:
+                puerto = int(self.port) if self.port else 5432
+                url = f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:{puerto}/{self.database}"
+            
+            self.engine = create_engine(url, echo=False)
+            logger.info(f"[OK] Motor conectado a '{self.database}' (v{self.version})")
 
     def load(self, df: pd.DataFrame) -> bool:
-        # 1. Verificar cantidad de filas en la nueva base
-        conn = self._conectar_nativo()
-        try:
-            with conn.cursor() as cur:
-                # Verificamos si la tabla existe primero para evitar errores
-                cur.execute(f"SELECT COUNT(*) FROM information_schema.tables WHERE table_name = '{TABLA}'")
-                if cur.fetchone()[0] > 0:
-                    cur.execute(f"SELECT COUNT(*) FROM public.{TABLA}")
-                    len_bdd = cur.fetchone()[0]
-                else:
-                    len_bdd = 0
-        finally:
-            conn.close()
-
-        len_df = len(df)
-        logger.info("[LOAD] %s - BD: %d filas | DF: %d filas", TABLA, len_bdd, len_df)
-
-        if len_df > len_bdd:
-            # Carga incremental de las filas que sobran
-            df_nuevos = df.tail(len_df - len_bdd)
-            df_nuevos.to_sql(name=TABLA, con=self._get_engine(), schema='public', if_exists='append', index=False)
-            logger.info("[LOAD] %d filas nuevas cargadas en '%s'.", len(df_nuevos), TABLA)
-            return True
-        else:
-            logger.info("[LOAD] No hay datos nuevos para la tabla %s.", TABLA)
-            return False
-
-    def _get_engine(self):
-        if self._engine is None:
-            self._engine = create_engine(
-                f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
+        self._conectar()
+        schema = self._get_schema()
+        full_table = f"{schema}.{self.tabla}" if schema else self.tabla
+        
+        # 1. Asegurar formato de fecha
+        df['fecha'] = pd.to_datetime(df['fecha']).dt.date
+        
+        # 2. Lógica incremental: Borrar fechas existentes para evitar duplicados
+        with self.engine.begin() as conn:
+            # Obtener fechas del DF que ya están en la BD para no re-insertarlas
+            fechas = tuple(df['fecha'].unique().tolist())
+            if fechas:
+                conn.execute(text(f"DELETE FROM {full_table} WHERE fecha IN :fechas"), {"fechas": fechas})
+            
+            # 3. Insertar nuevos datos
+            df.to_sql(
+                name=self.tabla, 
+                con=conn, 
+                schema=schema, 
+                if_exists='append', 
+                index=False, 
+                method='multi'
             )
-        return self._engine
+            
+        logger.info(f"[LOAD] {len(df)} registros procesados en '{self.tabla}'.")
+        return True
+
+    def _get_schema(self):
+        return "public" if self.version == "2" else None
 
     def close(self):
-        if self._engine:
-            self._engine.dispose()
-            self._engine = None
+        if self.engine:
+            self.engine.dispose()
+            self.engine = None
