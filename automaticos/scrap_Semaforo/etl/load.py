@@ -3,55 +3,56 @@ LOAD - Módulo de carga de datos Semáforo
 Responsabilidad: Cargar los DataFrames transformados a MySQL
 """
 import logging
-import pandas as pd
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 
 logger = logging.getLogger(__name__)
 
-
 class LoadSemaforo:
-    """Carga los datos del Semáforo a la base de datos MySQL."""
+    """Carga los datos del Semáforo de forma híbrida (MySQL/PostgreSQL)."""
 
-    TABLA_INTERANUAL   = "semaforo_interanual"
-    TABLA_INTERMENSUAL = "semaforo_intermensual"
-
-    def __init__(self, host: str, user: str, password: str, database: str):
-        self.host     = host
-        self.user     = user
+    def __init__(self, host, user, password, database, port=None, version="1"):
+        self.host = host
+        self.user = user
         self.password = password
         self.database = database
-        self._engine  = None
+        self.port = port
+        self.version = str(version)
+        self.engine = None
+        self.tabla_interanual = "semaforo_interanual"
+        self.tabla_intermensual = "semaforo_intermensual"
 
-    def load(self, df_interanual: pd.DataFrame, df_intermensual: pd.DataFrame):
-        """
-        Carga ambos DataFrames a MySQL (replace completo).
+    def _conectar(self):
+        if self.engine is None:
+            if self.version == "1": # MySQL
+                puerto = int(self.port) if self.port else 3306
+                url = f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{puerto}/{self.database}"
+            else: # PostgreSQL
+                puerto = int(self.port) if self.port else 5432
+                url = f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:{puerto}/{self.database}"
+            self.engine = create_engine(url)
+            logger.info(f"[OK] Motor conectado a '{self.database}' (v{self.version})")
 
-        Args:
-            df_interanual: DataFrame con variaciones interanuales
-            df_intermensual: DataFrame con variaciones intermensuales
-        """
-        engine = self._get_engine()
-        self._cargar_tabla(df_interanual,   self.TABLA_INTERANUAL,   engine)
-        self._cargar_tabla(df_intermensual, self.TABLA_INTERMENSUAL, engine)
+    def load(self, df_interanual, df_intermensual):
+        self._conectar()
+        schema = "public" if self.version == "2" else None
+        
+        self._cargar_tabla(df_interanual, self.tabla_interanual, schema)
+        self._cargar_tabla(df_intermensual, self.tabla_intermensual, schema)
 
-    def _cargar_tabla(self, df: pd.DataFrame, tabla: str, engine):
-        """Carga un DataFrame a una tabla MySQL (replace)."""
-        logger.info("[LOAD] Cargando %d filas en tabla '%s'...", len(df), tabla)
-        df.to_sql(name=tabla, con=engine, if_exists='replace', index=False)
-        logger.info("[LOAD] Tabla '%s' actualizada correctamente.", tabla)
-
-    def _get_engine(self):
-        if self._engine is None:
-            conn_str = (
-                f"mysql+pymysql://{self.user}:{self.password}"
-                f"@{self.host}:3306/{self.database}"
-            )
-            self._engine = create_engine(conn_str)
-        return self._engine
+    def _cargar_tabla(self, df, tabla, schema):
+        with self.engine.begin() as conn:
+            full_table = f"{schema}.{tabla}" if schema else tabla
+            
+            # Reemplazo seguro
+            if self.version == "2":
+                conn.execute(text(f"TRUNCATE TABLE {full_table} CASCADE"))
+            else:
+                conn.execute(text(f"TRUNCATE TABLE {full_table}"))
+            
+            df.to_sql(name=tabla, con=conn, schema=schema, if_exists='append', index=False)
+            logger.info("[LOAD] Tabla '%s' actualizada correctamente.", tabla)
 
     def close(self):
-        """Cierra el engine de SQLAlchemy."""
-        if self._engine:
-            self._engine.dispose()
-            self._engine = None
-            logger.info("[LOAD] Conexión a BD cerrada.")
+        if self.engine:
+            self.engine.dispose()
+            self.engine = None

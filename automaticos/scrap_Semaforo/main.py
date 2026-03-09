@@ -20,9 +20,14 @@ def main():
     inicio = datetime.now()
     logger.info("=== INICIO ETL SEMÁFORO - %s ===", inicio)
 
-    host = os.getenv('HOST_DBB')
-    user = os.getenv('USER_DBB')
-    pwd  = os.getenv('PASSWORD_DBB')
+    version_db = os.getenv('DB_VERSION', '1')
+    
+    # Selección de variables según versión
+    if version_db == "1":
+        host, user, pwd, port = os.getenv('HOST_DBB1'), os.getenv('USER_DBB1'), os.getenv('PASSWORD_DBB1'), os.getenv('PORT_DBB1')
+    else:
+        host, user, pwd, port = os.getenv('HOST_DBB2'), os.getenv('USER_DBB2'), os.getenv('PASSWORD_DBB2'), os.getenv('PORT_DBB2')
+
     db   = os.getenv('NAME_DBB_DWH_ECONOMICO')
 
     variables_faltantes = [k for k, v in {
@@ -51,7 +56,7 @@ def main():
 
         # 4. LOAD
         logger.info("4. [LOAD] Cargando datos en BD...")
-        loader = LoadSemaforo(host, user, pwd, db)
+        loader = LoadSemaforo(host, user, pwd, db, port, version=version_db)
         loader.load(df_inter_t, df_interm_t)
 
         duracion = datetime.now() - inicio

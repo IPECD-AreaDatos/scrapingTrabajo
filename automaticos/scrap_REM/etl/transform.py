@@ -29,11 +29,11 @@ class TransformREM:
         Returns:
             tuple: (df_precios_minoristas, df_cambio_nominal)
         """
-        logger.info("[TRANSFORM] Procesando precios minoristas...")
-        df_precios = self._crear_df_precios_minoristas()
+        #logger.info("[TRANSFORM] Procesando precios minoristas...")
+        #df_precios = self._crear_df_precios_minoristas()
         logger.info("[TRANSFORM] Procesando cambio nominal...")
         df_cambio  = self._get_historico_cambio_nominal()
-        return df_precios, df_cambio
+        return  df_cambio
 
     def _crear_df_precios_minoristas(self) -> pd.DataFrame:
         ruta = os.path.join(FILES_DIR, ARCHIVO_REM)

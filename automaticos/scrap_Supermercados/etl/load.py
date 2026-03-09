@@ -5,58 +5,81 @@ Responsabilidad: Cargar datos si hay novedades (incremental por conteo de filas)
 import logging
 import pandas as pd
 import pymysql
-from sqlalchemy import create_engine
+import psycopg2
+from sqlalchemy import create_engine, text
 
 logger = logging.getLogger(__name__)
 
-TABLA = "supermercado_encuesta"
-
-
 class LoadSupermercados:
-    """Carga los datos de supermercados a MySQL (incremental)."""
+    """Carga los datos de supermercados a MySQL/PostgreSQL de forma híbrida."""
 
-    def __init__(self, host: str, user: str, password: str, database: str):
-        self.host     = host
-        self.user     = user
+    def __init__(self, host, user, password, database, port=None, version="1"):
+        self.host = host
+        self.user = user
         self.password = password
         self.database = database
-        self._engine  = None
+        self.port = port
+        self.version = str(version)
+        self.tabla = "supermercado"
+        self.engine = None
+
+    def _conectar(self):
+        """Crea el motor de conexión dinámico según la versión."""
+        if self.engine is None:
+            if self.version == "1":
+                puerto = int(self.port) if self.port else 3306
+                url = f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{puerto}/{self.database}"
+            else:
+                puerto = int(self.port) if self.port else 5432
+                url = f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:{puerto}/{self.database}"
+            
+            self.engine = create_engine(url, echo=False)
+            logger.info(f"[OK] Motor conectado a '{self.database}' (v{self.version})")
+
+    def _get_schema(self):
+        return "public" if self.version == "2" else None
 
     def load(self, df: pd.DataFrame) -> bool:
-        """
-        Carga el DataFrame si tiene más filas que la BD (TRUNCATE + append).
+        """Carga el DataFrame mediante una estrategia de reemplazo incremental."""
+        self._conectar()
+        schema = self._get_schema()
+        full_table = f"{schema}.{self.tabla}" if schema else self.tabla
+        
+        # 1. Comparativa de conteo de filas
+        with self.engine.connect() as conn:
+            try:
+                res = conn.execute(text(f"SELECT COUNT(*) FROM {full_table}"))
+                len_bdd = res.scalar()
+            except Exception:
+                len_bdd = 0
+                logger.info(f"Tabla '{self.tabla}' no existe, se creará al insertar.")
 
-        Returns:
-            bool: True si se cargaron datos nuevos
-        """
-        conn = pymysql.connect(
-            host=self.host, user=self.user,
-            password=self.password, database=self.database
-        )
-        with conn.cursor() as cur:
-            cur.execute(f"SELECT COUNT(*) FROM {TABLA}")
-            len_bdd = cur.fetchone()[0]
-            if len(df) > len_bdd:
-                cur.execute(f"TRUNCATE {TABLA}")
-                conn.commit()
-        conn.close()
-
+        # 2. Carga si hay novedades
         if len(df) > len_bdd:
-            df.to_sql(name=TABLA, con=self._get_engine(), if_exists='append', index=False)
-            logger.info("[LOAD] '%s' actualizada: %d filas.", TABLA, len(df))
+            with self.engine.begin() as conn:
+                # Truncate seguro
+                if self.version == "2":
+                    conn.execute(text(f"TRUNCATE TABLE {full_table} CASCADE"))
+                else:
+                    conn.execute(text(f"TRUNCATE TABLE {full_table}"))
+                
+                # Inserción
+                df.to_sql(
+                    name=self.tabla, 
+                    con=conn, 
+                    schema=schema, 
+                    if_exists='append', 
+                    index=False, 
+                    method='multi'
+                )
+            
+            logger.info("[LOAD] '%s' actualizada: %d filas.", self.tabla, len(df))
             return True
-        else:
-            logger.info("[LOAD] No hay datos nuevos de supermercados.")
-            return False
-
-    def _get_engine(self):
-        if self._engine is None:
-            self._engine = create_engine(
-                f"mysql+pymysql://{self.user}:{self.password}@{self.host}:3306/{self.database}"
-            )
-        return self._engine
+        
+        logger.info("[LOAD] No hay datos nuevos de supermercados.")
+        return False
 
     def close(self):
-        if self._engine:
-            self._engine.dispose()
-            self._engine = None
+        if self.engine:
+            self.engine.dispose()
+            self.engine = None

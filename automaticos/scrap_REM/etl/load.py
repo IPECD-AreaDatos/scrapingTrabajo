@@ -4,61 +4,65 @@ Responsabilidad: Cargar precios minoristas y cambio nominal a MySQL
 """
 import logging
 import pandas as pd
-import pymysql
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 
 logger = logging.getLogger(__name__)
 
-TABLA_PRECIOS = "rem_precios_minoristas"
-TABLA_CAMBIO  = "rem_cambio_nominal"
-TABLA_IPC_REM = "ipc_rem_variaciones"
-
-
 class LoadREM:
-    """Carga los DataFrames del REM a MySQL."""
+    """Carga los datos del REM a MySQL/PostgreSQL de forma híbrida."""
 
-    def __init__(self, host: str, user: str, password: str, database: str):
-        self.host     = host
-        self.user     = user
+    def __init__(self, host, user, password, database, port=None, version="1"):
+        self.host = host
+        self.user = user
         self.password = password
         self.database = database
-        self._engine  = None
+        self.port = port
+        self.version = str(version)
+        self.engine = None
+        self.tabla_cambio = "rem_cambio_nominal"
 
-    def load(self, df_precios: pd.DataFrame, df_cambio: pd.DataFrame):
-        """Carga ambas tablas del REM."""
-        self._cargar_precios_minoristas(df_precios)
-        self._cargar_cambio_nominal(df_cambio)
+    def _conectar(self):
+        """Crea el motor de conexión dinámico."""
+        if self.engine is None:
+            if self.version == "1":
+                puerto = int(self.port) if self.port else 3306
+                url = f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{puerto}/{self.database}"
+            else:
+                puerto = int(self.port) if self.port else 5432
+                url = f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:{puerto}/{self.database}"
+            
+            self.engine = create_engine(url, echo=False)
+            logger.info(f"[OK] Motor conectado a '{self.database}' (v{self.version})")
 
-    def _cargar_precios_minoristas(self, df: pd.DataFrame):
-        """Trunca y recarga la tabla de precios minoristas."""
-        self._truncar(TABLA_PRECIOS)
-        df.to_sql(name=TABLA_PRECIOS, con=self._get_engine(), if_exists='replace', index=False)
-        logger.info("[LOAD] '%s' actualizada: %d filas.", TABLA_PRECIOS, len(df))
+    def _get_schema(self):
+        return "public" if self.version == "2" else None
 
-    def _cargar_cambio_nominal(self, df: pd.DataFrame):
-        """Trunca y recarga la tabla de cambio nominal."""
-        self._truncar(TABLA_CAMBIO)
-        df.to_sql(name=TABLA_CAMBIO, con=self._get_engine(), if_exists='replace', index=False)
-        logger.info("[LOAD] '%s' actualizada: %d filas.", TABLA_CAMBIO, len(df))
+    def load(self, df_cambio: pd.DataFrame):
+        """Carga la tabla de cambio nominal con Truncate + Replace."""
+        self._conectar()
+        schema = self._get_schema()
+        full_table = f"{schema}.{self.tabla_cambio}" if schema else self.tabla_cambio
 
-    def _truncar(self, tabla: str):
-        conn = pymysql.connect(
-            host=self.host, user=self.user,
-            password=self.password, database=self.database
-        )
-        with conn.cursor() as cur:
-            cur.execute(f"TRUNCATE {tabla}")
-        conn.commit()
-        conn.close()
-
-    def _get_engine(self):
-        if self._engine is None:
-            self._engine = create_engine(
-                f"mysql+pymysql://{self.user}:{self.password}@{self.host}:3306/{self.database}"
+        with self.engine.begin() as conn:
+            # Truncate seguro según motor
+            if self.version == "2":
+                conn.execute(text(f"TRUNCATE TABLE {full_table} CASCADE"))
+            else:
+                conn.execute(text(f"TRUNCATE TABLE {full_table}"))
+            
+            # Carga de datos
+            df_cambio.to_sql(
+                name=self.tabla_cambio, 
+                con=conn, 
+                schema=schema, 
+                if_exists='append', 
+                index=False, 
+                method='multi'
             )
-        return self._engine
+            
+        logger.info("[LOAD] '%s' actualizada correctamente con %d filas.", self.tabla_cambio, len(df_cambio))
 
     def close(self):
-        if self._engine:
-            self._engine.dispose()
-            self._engine = None
+        if self.engine:
+            self.engine.dispose()
+            self.engine = None

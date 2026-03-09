@@ -19,9 +19,14 @@ def main():
     inicio = datetime.now()
     logger.info("=== INICIO ETL REM - %s ===", inicio)
 
-    host = os.getenv('HOST_DBB')
-    user = os.getenv('USER_DBB')
-    pwd  = os.getenv('PASSWORD_DBB')
+    version_db = os.getenv('DB_VERSION', '1')
+    
+    # Selección de variables según versión
+    if version_db == "1":
+        host, user, pwd, port = os.getenv('HOST_DBB1'), os.getenv('USER_DBB1'), os.getenv('PASSWORD_DBB1'), os.getenv('PORT_DBB1')
+    else:
+        host, user, pwd, port = os.getenv('HOST_DBB2'), os.getenv('USER_DBB2'), os.getenv('PASSWORD_DBB2'), os.getenv('PORT_DBB2')
+
     db   = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
 
     faltantes = [k for k, v in {'HOST_DBB': host, 'USER_DBB': user,
@@ -32,10 +37,10 @@ def main():
     loader = None
     try:
         ExtractREM().extract()
-        df_precios, df_cambio = TransformREM().transform()
-        ValidateREM().validate(df_precios, df_cambio)
-        loader = LoadREM(host, user, pwd, db)
-        loader.load(df_precios, df_cambio)
+        df_cambio_nominal = TransformREM().transform()
+        ValidateREM().validate(df_cambio_nominal)
+        loader = LoadREM(host, user, pwd, db, port, version=version_db)
+        loader.load(df_cambio_nominal)
         logger.info("=== COMPLETADO - Duración: %s ===", datetime.now() - inicio)
     except Exception as e:
         logger.error("[ERROR CRÍTICO] %s", e, exc_info=True)

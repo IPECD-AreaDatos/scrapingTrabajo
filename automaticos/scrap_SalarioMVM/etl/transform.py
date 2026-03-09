@@ -27,8 +27,15 @@ class TransformSalarioMVM:
 
         logger.info("[TRANSFORM] Leyendo CSV: %s", ruta)
         df = pd.read_csv(ruta)
-        df['indice_tiempo'] = df['indice_tiempo'].apply(
-            lambda f: datetime.strptime(f, '%Y-%m-%d').date()
-        )
+        # 1. Renombra las columnas al nombre exacto de la base de datos
+        df = df.rename(columns={
+            'indice_tiempo': 'fecha',
+            'salario_minimo_vital_movil_mensual': 'salario_mvm_mensual', # Asegura que coincidan
+            'salario_minimo_vital_movil_diario': 'salario_mvm_diario',
+            'salario_minimo_vital_movil_hora': 'salario_mvm_hora'
+        })
+        
+        # 2. Asegura el formato de fecha
+        df['fecha'] = pd.to_datetime(df['fecha']).dt.date
         logger.info("[TRANSFORM] SalarioMVM: %d filas", len(df))
         return df
