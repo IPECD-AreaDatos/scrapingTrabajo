@@ -29,27 +29,25 @@ class TransformREM:
         Returns:
             tuple: (df_precios_minoristas, df_cambio_nominal)
         """
-        #logger.info("[TRANSFORM] Procesando precios minoristas...")
-        #df_precios = self._crear_df_precios_minoristas()
-        logger.info("[TRANSFORM] Procesando cambio nominal...")
-        df_cambio  = self._get_historico_cambio_nominal()
-        return  df_cambio
+        logger.info("[TRANSFORM] Procesando precios minoristas...")
+        df_precios = self._crear_df_precios_minoristas()
+        #logger.info("[TRANSFORM] Procesando cambio nominal...")
+        #df_cambio  = self._get_historico_cambio_nominal()
+        return  df_precios
 
     def _crear_df_precios_minoristas(self) -> pd.DataFrame:
         ruta = os.path.join(FILES_DIR, ARCHIVO_REM)
         df = pd.read_excel(ruta, skiprows=5)
         df = df.drop(COLUMNAS_ELIMINAR, axis=1)
-        df = df.iloc[:-94]
-        df = df.rename(columns={'Período': 'fecha_resguardo', 'Mediana': 'mediana'})
-        df.insert(1, 'fecha', df['fecha_resguardo'])
-        df.insert(0, 'id', range(1, len(df) + 1))
-        df['fecha_resguardo'] = df['fecha_resguardo'].astype(str)
+        df = df.iloc[:-99]
+
+        df = df.rename(columns={'Período': 'fecha', 'Mediana': 'mediana'})
+
         df['mediana'] = df['mediana'].astype(float)
-        df.loc[len(df)-5:, 'fecha'] = [
-            '2025-04-30 00:00:00', '2026-04-30 00:00:00',
-            '2024-01-30 00:00:00', '2025-01-30 00:00:00', '2026-01-30 00:00:00'
-        ]
         df['fecha'] = pd.to_datetime(df['fecha'])
+
+        df['fecha_consulta'] = pd.Timestamp.now().normalize()
+
         logger.info("[TRANSFORM] Precios minoristas: %d filas", len(df))
         return df
 

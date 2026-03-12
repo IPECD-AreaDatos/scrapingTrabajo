@@ -14,8 +14,7 @@ logger = logging.getLogger(__name__)
 
 FILES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'files')
 URL = 'https://www.bcra.gob.ar/PublicacionesEstadisticas/Relevamiento_Expectativas_de_Mercado.asp'
-XPATH_ULTIMO   = "/html/body/div/div[3]/div/div[1]/div[2]/p[2]/a[2]"
-XPATH_HISTORICO = "/html/body/div/div[3]/div/div[1]/div[2]/p[7]/a"
+XPATH_PRECIOS_MINORISTAS   = "/html/body/div[1]/div/div/div/article/div/div/div/div[3]/div/div/div[2]/div/p/a[2]"
 
 
 class ExtractREM:
@@ -35,17 +34,14 @@ class ExtractREM:
             driver.get(URL)
             wait = WebDriverWait(driver, 10)
 
-            link_ultimo = wait.until(EC.presence_of_element_located((By.XPATH, XPATH_ULTIMO)))
+            link_ultimo = wait.until(EC.presence_of_element_located((By.XPATH, XPATH_PRECIOS_MINORISTAS)))
             url_ultimo = link_ultimo.get_attribute('href')
 
-            link_hist = wait.until(EC.presence_of_element_located((By.XPATH, XPATH_HISTORICO)))
-            url_hist = link_hist.get_attribute('href')
         finally:
             driver.quit()
 
         ruta_ultimo = self._descargar(url_ultimo, 'relevamiento_expectativas_mercado.xlsx')
-        ruta_hist   = self._descargar(url_hist,   'historico_rem.xlsx')
-        return ruta_ultimo, ruta_hist
+        return ruta_ultimo
 
     def _descargar(self, url: str, nombre: str) -> str:
         ruta = os.path.join(FILES_DIR, nombre)

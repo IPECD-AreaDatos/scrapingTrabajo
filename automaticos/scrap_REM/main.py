@@ -37,10 +37,10 @@ def main():
     loader = None
     try:
         ExtractREM().extract()
-        df_cambio_nominal = TransformREM().transform()
-        ValidateREM().validate(df_cambio_nominal)
+        df_precios_minoristas = TransformREM().transform()
+        ValidateREM().validate(df_precios_minoristas)
         loader = LoadREM(host, user, pwd, db, port, version=version_db)
-        loader.load(df_cambio_nominal)
+        loader.load(df_precios_minoristas)
         logger.info("=== COMPLETADO - Duración: %s ===", datetime.now() - inicio)
     except Exception as e:
         logger.error("[ERROR CRÍTICO] %s", e, exc_info=True)

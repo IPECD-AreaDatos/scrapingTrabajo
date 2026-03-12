@@ -8,9 +8,9 @@ logger = logging.getLogger(__name__)
 
 
 class ValidateREM:
-    def validate(self,  df_cambio: pd.DataFrame):
-        #self._validar(df_precios, "precios_minoristas", ['fecha', 'mediana'])
-        self._validar(df_cambio,  "cambio_nominal",     ['fecha', 'cambio_nominal'])
+    def validate(self,  df_precios: pd.DataFrame):
+        self._validar(df_precios, "precios_minoristas", ['fecha', 'mediana'])
+        #self._validar(df_cambio,  "cambio_nominal",     ['fecha', 'cambio_nominal'])
         logger.info("[VALIDATE] OK — ambos DataFrames del REM son válidos.")
 
     def _validar(self, df: pd.DataFrame, nombre: str, cols: list):
