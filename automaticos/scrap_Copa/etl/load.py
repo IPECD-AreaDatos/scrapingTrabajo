@@ -49,7 +49,8 @@ COLUMN_MAPPING = {
     "Reg.Simplif. p/Pequenos Contribuyentes (Ley N.24.977)": "reg_simplif_monotributo",
     "TOTAL Recursos Origen Nacional (1)": "total_recursos_origen_nacional",
     "Compensacion Consenso Fiscal (2)": "compensacion_consenso_fiscal",
-    "Total - (1)+(2)": "total_general"
+    "Total - (1)+(2)": "total_general",
+    "Punto Estadistico": "punto_estadistico"
 }
 
 def get_engine():
