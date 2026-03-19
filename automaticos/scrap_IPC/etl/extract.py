@@ -84,6 +84,7 @@ class ExtractIPC:
             chrome_options.add_argument('--disable-gpu')
             chrome_options.add_argument('user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36')
             chrome_options.add_argument('--window-size=1920,1080')
+            
         
         # Intentar encontrar chromedriver en rutas comunes
         rutas_posibles = [

@@ -29,7 +29,7 @@ LISTA_PROVINCIAS = [
 ]
 
 NOMBRES_COLUMNAS = [
-    'id_provincia_indec', 'fecha', 'total_facturacion', 'bebidas', 'almacen',
+    'id_provincia', 'fecha', 'total_facturacion', 'bebidas', 'almacen',
     'panaderia', 'lacteos', 'carnes', 'verduleria_fruteria',
     'alimentos_preparados_rostiseria', 'articulos_limpieza_perfumeria',
     'indumentaria_calzado_textiles_hogar', 'electronica_hogar', 'otros'
@@ -69,8 +69,8 @@ class TransformSupermercados:
                 fila, _ = df[df == provincia[0]].stack().index[0]
                 fila += 1
                 df_prov = df.iloc[fila: fila + tamaño].copy()
-                df_prov['id_provincia_indec'] = provincia[1]
-                df_prov['id_region_indec'] = int(provincia[2])
+                df_prov['id_provincia'] = provincia[1]
+                df_prov['id_region'] = int(provincia[2])
                 df_prov['fecha'] = lista_fechas
                 dfs.append(df_prov)
             except IndexError:

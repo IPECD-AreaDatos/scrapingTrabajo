@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 
 from etl import ExtractSupermercados, TransformSupermercados, LoadSupermercados
 from etl.validate import ValidateSupermercados
+from etl.deflate import DeflateSupermercados
 from utils.logger import setup_logger
 
 
@@ -28,6 +29,8 @@ def main():
         host, user, pwd, port = os.getenv('HOST_DBB2'), os.getenv('USER_DBB2'), os.getenv('PASSWORD_DBB2'), os.getenv('PORT_DBB2')
 
     db   = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
+    db_dwh   = os.getenv('NAME_DBB_DWH_ECONOMICO')
+
 
     faltantes = [k for k, v in {'HOST_DBB': host, 'USER_DBB': user,
                                  'PASSWORD_DBB': pwd, 'NAME_DBB_DATALAKE_ECONOMICO': db}.items() if not v]
@@ -40,7 +43,17 @@ def main():
         df   = TransformSupermercados().transform(ruta)
         ValidateSupermercados().validate(df)
         loader = LoadSupermercados(host, user, pwd, db, port, version=version_db)
-        loader.load(df)
+        hay_novedad = loader.load(df)
+
+        # 5. DEFLATE (Solo si hay datos nuevos para procesar)
+        if hay_novedad:
+            logger.info("5. [DEFLATE] Iniciando proceso de deflactación...")
+            # Pasamos db_dwh que es donde se guarda el resultado
+            deflator = DeflateSupermercados(host, user, pwd, db_datalake=db ,db_dwh=db_dwh, port=port, version=version_db)
+            deflator.run(df)
+        else:
+            logger.info("5. [DEFLATE] Salteado: No se detectaron novedades en la carga.")
+
         logger.info("=== COMPLETADO - Duración: %s ===", datetime.now() - inicio)
     except Exception as e:
         logger.error("[ERROR CRÍTICO] %s", e, exc_info=True)

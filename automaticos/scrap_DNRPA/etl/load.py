@@ -41,8 +41,8 @@ class LoadDNRPA:
             df_anio = df[df['fecha'].dt.year == ultimo_anio]
             
             # SQL genérico usando EXTRACT (funciona en ambos motores)
-            query_count = text("SELECT COUNT(*) FROM {full_table_name} WHERE EXTRACT(YEAR FROM fecha) = :anio")
-            query_delete = text("DELETE FROM dnrpa WHERE EXTRACT(YEAR FROM fecha) = :anio")
+            query_count = text(f"SELECT COUNT(*) FROM {full_table_name} WHERE EXTRACT(YEAR FROM fecha) = :anio")
+            query_delete = text(f"DELETE FROM {full_table_name} WHERE EXTRACT(YEAR FROM fecha) = :anio")
 
             with self.engine.begin() as conn:
                 # 1. Verificar registros existentes
@@ -61,7 +61,6 @@ class LoadDNRPA:
             self._update_sheets(df_anio)
 
         except Exception as e:
-            if self.conn: self.conn.rollback()
             logger.error(f"Error en Load DNRPA: {e}")
             raise
 
@@ -74,7 +73,7 @@ class LoadDNRPA:
         try:
             # Filtrar Corrientes y última fecha
             ultima_fecha = df['fecha'].max()
-            df_corr = df[(df['id_provincia_indec'] == 18) & (df['fecha'] == ultima_fecha)]
+            df_corr = df[(df['id_provincia'] == 18) & (df['fecha'] == ultima_fecha)]
             
             # id_vehiculo: 1 -> Autos, 2 -> Motos
             val_autos = df_corr[df_corr['id_vehiculo'] == 1]['cantidad'].sum()
@@ -116,5 +115,5 @@ class LoadDNRPA:
         return res
 
     def close(self):
-        if self.conn: self.conn.close()
-        if self.engine: self.engine.dispose()
+        if self.engine:
+            self.engine.dispose()

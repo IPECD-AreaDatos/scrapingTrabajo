@@ -6,6 +6,7 @@ import os
 import sys
 import logging
 import requests
+import pandas as pd
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -13,7 +14,6 @@ from extract.extractor_cbt import ExtractorCBT
 from extract.extractor_pobreza import ExtractorPobreza
 from transform.transformer_cbt_cba import TransformerCBTCBA
 from load.database_loader import connection_db
-from load.email_sender import MailCBTCBA
 from validate.data_validator import DataValidator
 from utils.logger import setup_logger
 
@@ -26,18 +26,18 @@ def main():
     inicio = datetime.now()
     logger.info("=== INICIO ETL CBT/CBA - %s ===", inicio)
 
-    host     = os.getenv('HOST_DBB')
-    user     = os.getenv('USER_DBB')
-    pwd      = os.getenv('PASSWORD_DBB')
-    db_lake  = os.getenv('NAME_DBB_DATALAKE_SOCIO')
-    db_dwh   = os.getenv('NAME_DBB_DWH_SOCIO')
+    version_db = os.getenv('DB_VERSION', '1')
+    
+    # Selección de variables según versión
+    if version_db == "1":
+        host, user, pwd, port, db_lake = os.getenv('HOST_DBB1'), os.getenv('USER_DBB1'), os.getenv('PASSWORD_DBB1'), os.getenv('PORT_DBB1'), os.getenv('NAME_DBB_DATALAKE_SOCIO')
+    else:
+        host, user, pwd, port, db_lake = os.getenv('HOST_DBB2'), os.getenv('USER_DBB2'), os.getenv('PASSWORD_DBB2'), os.getenv('PORT_DBB2'), os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
 
-    faltantes = [k for k, v in {
-        'HOST_DBB': host, 'USER_DBB': user, 'PASSWORD_DBB': pwd,
-        'NAME_DBB_DATALAKE_SOCIO': db_lake, 'NAME_DBB_DWH_SOCIO': db_dwh
-    }.items() if not v]
-    if faltantes:
-        raise ValueError(f"Variables de entorno faltantes: {faltantes}")
+
+    if not all([host, user, pwd, db_lake]):
+        logger.error("Faltan variables de entorno críticas.")
+        sys.exit(1)
 
     try:
         # EXTRACT
@@ -61,35 +61,37 @@ def main():
 
         # LOAD
         logger.info("4. [LOAD] Cargando al DataLake...")
-        db_loader = connection_db(host, user, pwd, db_lake)
-        db_loader.connect_db()
+        db_loader = connection_db(host, user, pwd, db_lake, port=port, version=version_db)
         bandera = db_loader.load_datalake(df)
 
         if bandera:
             logger.info("[LOAD] Datos nuevos cargados. Enviando correo y actualizando API...")
-            MailCBTCBA(host, user, pwd, db_dwh).send_mail_cbt_cba()
 
+            df['fecha'] = pd.to_datetime(df['fecha'])
             last_row = df.tail(1).iloc[0]
             data = {
-                "anio": last_row['Fecha'].year,
-                "mes":  last_row['Fecha'].month,
+                "anio": last_row['fecha'].year,
+                "mes":  last_row['fecha'].month,
                 "cbt":  int(last_row['cbt_nea']),
                 "cba":  int(last_row['cba_nea']),
             }
-            resp = requests.post("https://ecv.corrientes.gob.ar/api/create_cbt", data=data)
-            if resp.status_code == 200:
-                logger.info("[API] Actualizada exitosamente.")
-            else:
-                logger.warning("[API] Error %d: %s", resp.status_code, resp.text)
+            try:
+                resp = requests.post("https://ecv.corrientes.gob.ar/api/create_cbt", data=data, timeout=10)
+                if resp.status_code == 200:
+                    logger.info("[API] Actualizada exitosamente.")
+                else:
+                    logger.warning("[API] Error %d: %s", resp.status_code, resp.text)
+            except Exception as e:
+                logger.error("[API] Error de conexión: %s", e)
         else:
             logger.info("[LOAD] Sin datos nuevos para cargar.")
 
+        db_loader.close()
         logger.info("=== COMPLETADO - Duración: %s ===", datetime.now() - inicio)
 
     except Exception as e:
         logger.error("[ERROR CRÍTICO] %s", e, exc_info=True)
         sys.exit(1)
-
 
 if __name__ == '__main__':
     main()

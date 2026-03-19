@@ -13,8 +13,20 @@ logger = logging.getLogger(__name__)
 
 class TransformIPC:
     
-    def __init__(self, host, user, password, database):
-        self.connection_string = f"mysql+pymysql://{user}:{password}@{host}:3306/{database}"
+    def __init__(self, host, user, password, database, port=None, version="1"):
+        # Detectamos el motor según la versión para leer el diccionario
+        self.version = str(version)
+        if self.version == "1":
+            # MySQL
+            puerto = port if port else 3306
+            self.connection_string = f"mysql+pymysql://{user}:{password}@{host}:{puerto}/{database}"
+            logger.info(f"[TRANSFORM] Configurado para leer diccionario desde MySQL ({host})")
+        else:
+            # PostgreSQL
+            puerto = port if port else 5432
+            self.connection_string = f"postgresql+psycopg2://{user}:{password}@{host}:{puerto}/{database}"
+            logger.info(f"[TRANSFORM] Configurado para leer diccionario desde PostgreSQL ({host})")
+            
         self.diccionario = None
 
     def transform(self, rutas_archivos):
@@ -24,7 +36,7 @@ class TransformIPC:
             rutas_archivos (dict): Diccionario con paths 'nacional', 'aperturas', etc.
         """
         try:
-            logger.info("Iniciando transformación de datos IPC...")
+            logger.info(f"Iniciando transformación de datos IPC usando base v{self.version}...")
             
             # 1. Construir diccionario desde BD
             self._construir_diccionario()
@@ -90,16 +102,27 @@ class TransformIPC:
             raise
 
     def _construir_diccionario(self):
+        """Lee el diccionario unificado (dicc_ipc) de la base de datos activa"""
         engine = create_engine(self.connection_string)
-        tabla_subdivision = pd.read_sql_query("SELECT * FROM ipc_subdivision", con=engine) 
-        
-        tabla_subdivision['codigo'] = tabla_subdivision.apply(
-            lambda row: [int(row['id_categoria']), int(row['id_division']), int(row['id_subdivision'])], axis=1
-        )
-        
-        self.diccionario = dict(zip(tabla_subdivision['nombre'], tabla_subdivision['codigo']))
-        self.diccionario = {self._formatear_key(key): value for key, value in self.diccionario.items()}
-        engine.dispose()
+        try:
+            # Ahora lee de dicc_ipc, que es el nombre unificado que acordamos
+            query = "SELECT id_categoria, id_division, id_subdivision, nombre FROM dicc_ipc"
+            tabla_dicc = pd.read_sql_query(query, con=engine) 
+            
+            self.diccionario = {}
+            for _, row in tabla_dicc.iterrows():
+                key = self._formatear_key(row['nombre'])
+                self.diccionario[key] = [
+                    int(row['id_categoria']), 
+                    int(row['id_division']), 
+                    int(row['id_subdivision'])
+                ]
+            logger.info(f"[TRANSFORM] Diccionario cargado desde v{self.version}: {len(self.diccionario)} entradas.")
+        except Exception as e:
+            logger.error(f"[ERROR] No se pudo cargar el diccionario desde la base v{self.version}: {e}")
+            raise
+        finally:
+            engine.dispose()
 
     def _formatear_key(self, key):
         key = unidecode(str(key).lower())

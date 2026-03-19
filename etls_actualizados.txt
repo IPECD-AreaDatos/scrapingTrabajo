@@ -16,15 +16,15 @@ scrap_Supermercados: Implementa una lógica híbrida (versión 1 para MySQL, ver
 scrap_Semaforo: Implementa una lógica híbrida (versión 1 para MySQL, versión 2 para PostgreSQL).
 scrap_SalarioMVM: Implementa una lógica híbrida (versión 1 para MySQL, versión 2 para PostgreSQL).
 scrap_REM: Implementa una lógica híbrida (versión 1 para MySQL, versión 2 para PostgreSQL).
+scrap_IPC: Implementa una lógica híbrida (versión 1 para MySQL, versión 2 para PostgreSQL).
+scrap_CBT: Implementa una lógica híbrida (versión 1 para MySQL, versión 2 para PostgreSQL).
 
 
 
 ❌ Scrapers Pendientes (Siguen en MySQL)
 Estos todavía utilizan pymysql y cadenas de conexión mysql+pymysql://, por lo que aún no han sido migrados a la nueva base de datos.
-scrap_CBT
 scrap_CanastaBasica
 scrap_DOLAR
 scrap_IERIC
-scrap_IPC (incluyendo CABA y Online)
 scrap_PuestosTrabajoSP
 scrap_SalarioSPTotal

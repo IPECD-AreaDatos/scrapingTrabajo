@@ -44,6 +44,8 @@ class LoadSupermercados:
         self._conectar()
         schema = self._get_schema()
         full_table = f"{schema}.{self.tabla}" if schema else self.tabla
+
+        
         
         # 1. Comparativa de conteo de filas
         with self.engine.connect() as conn:
@@ -53,7 +55,7 @@ class LoadSupermercados:
             except Exception:
                 len_bdd = 0
                 logger.info(f"Tabla '{self.tabla}' no existe, se creará al insertar.")
-
+        
         # 2. Carga si hay novedades
         if len(df) > len_bdd:
             with self.engine.begin() as conn:
