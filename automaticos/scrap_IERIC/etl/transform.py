@@ -64,17 +64,19 @@ class TransformIERIC:
                 df = df.dropna(subset=[df.columns[0]])
                 row = pd.DataFrame({
                     'fecha': pd.to_datetime(df.iloc[:, 0], errors='coerce').dt.date,
+                    'id_provincia': id_prov,
                     'cant_empresas': pd.to_numeric(df.iloc[:, 1], errors='coerce'),
                     'porcentaje_var_interanual': pd.to_numeric(df.iloc[:, 3], errors='coerce') / 100,
-                    'id_provincia': id_prov,
+                    
                 })
                 dfs.append(row)
                 if not total_cargado:
                     row_total = pd.DataFrame({
                         'fecha': pd.to_datetime(df.iloc[:, 0], errors='coerce').dt.date,
+                        'id_provincia': 1,
                         'cant_empresas': pd.to_numeric(df.iloc[:, 2], errors='coerce'),
                         'porcentaje_var_interanual': pd.to_numeric(df.iloc[:, 4], errors='coerce') / 100,
-                        'id_provincia': 1,
+                        
                     })
                     dfs.append(row_total)
                     total_cargado = True
@@ -102,21 +104,23 @@ class TransformIERIC:
                 col_a = 7 if prov == "Buenos Aires" else 5
                 row = pd.DataFrame({
                     'fecha': pd.to_datetime(df.iloc[:, 0], errors='coerce').dt.date,
+                    'id_provincia': id_prov,
                     'puestos_de_trabajo': pd.to_numeric(df.iloc[:, 1], errors='coerce'),
                     'porcentaje_var_mensual': (pd.to_numeric(df.iloc[:, col_m], errors='coerce') / 100).round(5),
                     'porcentaje_var_interanual': (pd.to_numeric(df.iloc[:, col_i], errors='coerce') / 100).round(5),
                     'porcentaje_var_acumulada': (pd.to_numeric(df.iloc[:, col_a], errors='coerce') / 100).round(5),
-                    'id_provincia': id_prov,
+                    
                 })
                 dfs.append(row)
                 if not total_cargado and df.shape[1] >= 11:
                     row_total = pd.DataFrame({
                         'fecha': pd.to_datetime(df.iloc[:, 0], errors='coerce').dt.date,
+                        'id_provincia': 1,
                         'puestos_de_trabajo': pd.to_numeric(df.iloc[:, 4], errors='coerce'),
                         'porcentaje_var_mensual': (pd.to_numeric(df.iloc[:, 8], errors='coerce') / 100).round(5),
                         'porcentaje_var_interanual': (pd.to_numeric(df.iloc[:, 9], errors='coerce') / 100).round(5),
                         'porcentaje_var_acumulada': (pd.to_numeric(df.iloc[:, 10], errors='coerce') / 100).round(5),
-                        'id_provincia': 1,
+                        
                     })
                     dfs.append(row_total)
                     total_cargado = True
@@ -139,8 +143,9 @@ class TransformIERIC:
                 df = df.dropna(subset=[df.columns[0]])
                 row = pd.DataFrame({
                     'fecha': pd.to_datetime(df.iloc[:, 0], errors='coerce').dt.date,
-                    'salario_promedio': pd.to_numeric(df.iloc[:, 1], errors='coerce'),
                     'id_provincia': id_prov,
+                    'salario_promedio': pd.to_numeric(df.iloc[:, 1], errors='coerce'),
+                    
                 })
                 dfs.append(row)
             except Exception as e:
