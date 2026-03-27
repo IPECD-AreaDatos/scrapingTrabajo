@@ -31,7 +31,7 @@ class LoadCanastaBasica:
             host=os.getenv('HOST_DBB2'),
             user=os.getenv('USER_DBB2'),
             password=os.getenv('PASSWORD_DBB2'),
-            database=os.getenv('NAME_DB_CANASTA', 'canasta_basica_supermercados'),
+            database=os.getenv('NAME_DB_CANASTA', 'canasta_basica_super'),
             port=os.getenv('PORT_DBB2', 5432)
         )
 
