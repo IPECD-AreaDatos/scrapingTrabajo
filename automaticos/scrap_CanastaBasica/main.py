@@ -95,10 +95,13 @@ def main():
         logger.error("[ERROR CRÍTICO] %s", e, exc_info=True)
         raise
     finally:
-        if extractor and hasattr(extractor, 'cleanup'):
-            extractor.cleanup()
-        if loader and hasattr(loader, 'db'):
-            loader.db.close_connections()
+        if extractor and hasattr(extractor, 'db') and extractor.db:
+            extractor.db.close_connections()
+        if loader:
+            if hasattr(loader, 'db_v1') and loader.db_v1:
+                loader.db_v1.close_connections()
+            if hasattr(loader, 'db_v2') and loader.db_v2:
+                loader.db_v2.close_connections()
         duracion = (datetime.now() - inicio).total_seconds()
         logger.info("=== FIN EJECUCIÓN - Duración total: %.2f segundos ===", duracion)
         logger.info("=" * 80)
