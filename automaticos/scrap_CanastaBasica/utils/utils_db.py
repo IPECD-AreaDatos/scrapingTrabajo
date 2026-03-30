@@ -11,31 +11,52 @@ logger = logging.getLogger(__name__)
 class ConexionBaseDatos:
     """Clase para manejar conexiones a base de datos MySQL"""
     
-    def __init__(self, host, user, password, database):
+    def __init__(self, host, user, password, database, port=None):
         self.host = host
         self.user = user
         self.password = password
         self.database = database
+        self.port = port
         self.connection = None
         self.engine = None
         
     def connect_db(self):
-        """Establece conexión con la base de datos"""
+        """Establece conexión con la base de datos (Soporta MySQL y Postgres via port)"""
         try:
-            # Conexión directa con pymysql
-            self.connection = pymysql.connect(
-                host=self.host,
-                user=self.user,
-                password=self.password,
-                database=self.database,
-                charset='utf8mb4'
-            )
+            # Determinamos si es Postgres o MySQL basado en el puerto
+            # default mysql: 3306, postgres: 5432
+            is_postgres = str(self.port) == '5432'
             
-            # Engine de SQLAlchemy para operaciones con pandas
-            connection_string = f"mysql+pymysql://{self.user}:{self.password}@{self.host}/{self.database}"
+            if is_postgres:
+                import psycopg2
+                # Conexión directa con psycopg2
+                self.connection = psycopg2.connect(
+                    host=self.host,
+                    user=self.user,
+                    password=self.password,
+                    database=self.database,
+                    port=self.port
+                )
+                # Engine de SQLAlchemy para Postgres
+                connection_string = f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
+            else:
+                # Conexión directa con pymysql
+                self.connection = pymysql.connect(
+                    host=self.host,
+                    user=self.user,
+                    password=self.password,
+                    database=self.database,
+                    port=int(self.port) if self.port else 3306,
+                    charset='utf8mb4'
+                )
+                # Engine de SQLAlchemy para MySQL
+                port_str = f":{self.port}" if self.port else ""
+                connection_string = f"mysql+pymysql://{self.user}:{self.password}@{self.host}{port_str}/{self.database}"
+            
             self.engine = create_engine(connection_string)
             
-            logger.info("Conexión a base de datos establecida correctamente")
+            db_type = "PostgreSQL" if is_postgres else "MySQL"
+            logger.info(f"Conexión a base de datos {db_type} establecida correctamente")
             return True
             
         except Exception as e:
