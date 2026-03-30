@@ -54,13 +54,14 @@ class ExtractCanastaBasica:
             user = os.getenv('USER_DBB1')
             password = os.getenv('PASSWORD_DBB1')
             port = os.getenv('PORT_DBB1')
+            # Para MySQL la base suele ser super_mercados (con s)
+            database = os.getenv('NAME_DB_CANASTA_V1', 'canasta_basica_supermercados')
         else:
             host = os.getenv('HOST_DBB2')
             user = os.getenv('USER_DBB2')
             password = os.getenv('PASSWORD_DBB2')
             port = os.getenv('PORT_DBB2')
-
-        database = os.getenv('NAME_DB_CANASTA', 'canasta_basica_super')
+            database = os.getenv('NAME_DB_CANASTA', 'canasta_basica_super')
 
         self.db = ConexionBaseDatos(
             host=host,
