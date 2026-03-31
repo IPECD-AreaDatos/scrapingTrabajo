@@ -19,6 +19,7 @@ scrap_REM: Implementa una lógica híbrida (versión 1 para MySQL, versión 2 pa
 scrap_IPC: Implementa una lógica híbrida (versión 1 para MySQL, versión 2 para PostgreSQL).
 scrap_CBT: Implementa una lógica híbrida (versión 1 para MySQL, versión 2 para PostgreSQL).
 scrap_IERIC: Implementa una lógica híbrida (versión 1 para MySQL, versión 2 para PostgreSQL).
+scrap_PuestosTrabajoSP: Implementa una lógica híbrida (versión 1 para MySQL, versión 2 para PostgreSQL).
 
 scrap_CanastaBasica: Implementa una lógica híbrida carga en ambas (versión 1 para MySQL, versión 2 para PostgreSQL).
 
@@ -26,5 +27,4 @@ scrap_CanastaBasica: Implementa una lógica híbrida carga en ambas (versión 1 
 ❌ Scrapers Pendientes (Siguen en MySQL)
 Estos todavía utilizan pymysql y cadenas de conexión mysql+pymysql://, por lo que aún no han sido migrados a la nueva base de datos.
 scrap_DOLAR
-scrap_PuestosTrabajoSP
 scrap_SalarioSPTotal

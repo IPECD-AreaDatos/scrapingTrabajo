@@ -26,31 +26,21 @@ class LoadANAC:
         self.engine = None
 
     def conectar_bdd(self):
-        """Detecta el motor y conecta a la base correspondiente"""
         if not self.conn:
             try:
                 if self.version == "1":
-                    # --- LÓGICA PARA MYSQL (Base Vieja) ---
-                    # MySQL usa puerto 3306 por defecto si no se especifica
                     puerto_mysql = int(self.port) if self.port else 3306
                     self.conn = pymysql.connect(
-                        host=self.host,
-                        user=self.user,
-                        password=self.password,
-                        database=self.database,
-                        port=puerto_mysql
+                        host=self.host, user=self.user, password=self.password,
+                        database=self.database, port=puerto_mysql
                     )
                     conn_str = f"mysql+pymysql://{self.user}:{self.password}@{self.host}:{puerto_mysql}/{self.database}"
                     logger.info(f"[OK] Conectado a MySQL (v1) en {self.host}")
                 else:
-                    # --- LÓGICA PARA POSTGRESQL (Base Nueva) ---
                     puerto_pg = self.port if self.port else 5432
                     self.conn = psycopg2.connect(
-                        host=self.host,
-                        user=self.user,
-                        password=self.password,
-                        database=self.database,
-                        port=puerto_pg
+                        host=self.host, user=self.user, password=self.password,
+                        database=self.database, port=puerto_pg
                     )
                     conn_str = f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:{puerto_pg}/{self.database}"
                     logger.info(f"[OK] Conectado a PostgreSQL (v2) en {self.host}")
@@ -68,24 +58,24 @@ class LoadANAC:
 
     def load_to_database(self, df):
         self.conectar_bdd()
-        # Aseguramos nombres de columnas correctos antes de insertar
-        df = df[['fecha', 'aeropuerto', 'cantidad']]
+        df = df[['fecha', 'aeropuerto', 'cantidad']].copy()
         df['fecha'] = pd.to_datetime(df['fecha']).dt.date
         
-        tabla = f"{self._get_schema_prefix()}anac"
+        prefix = self._get_schema_prefix()
+        tabla_completa = f"{prefix}anac"
         
         try:
-            # 1. Borrado eficiente
             fecha_min = df['fecha'].min()
             fecha_max = df['fecha'].max()
             
-            # Usar sentencias seguras con parámetros
-            sql_delete = text(f"DELETE FROM {tabla} WHERE fecha BETWEEN :fmin AND :fmax")
+            # 1. Borrado eficiente (SQLAlchemy maneja el prefijo según el motor)
+            sql_delete = text(f"DELETE FROM {tabla_completa} WHERE fecha BETWEEN :fmin AND :fmax")
             with self.engine.begin() as conn:
                 conn.execute(sql_delete, {"fmin": fecha_min, "fmax": fecha_max})
-                
-                # 2. Inserción limpia
-                df.to_sql(name='anac', con=conn, if_exists='append', index=False, method='multi')
+                # 2. Inserción (Usamos solo el nombre de la tabla sin prefijo para to_sql si pasamos el schema aparte)
+                # En MySQL el schema es None, en Postgres es 'public'
+                schema_name = "public" if self.version == "2" else None
+                df.to_sql(name='anac', con=conn, schema=schema_name, if_exists='append', index=False, method='multi')
             
             logger.info(f"[LOAD] v{self.version} OK: {len(df)} filas cargadas.")
         except Exception as e:
@@ -103,20 +93,7 @@ class LoadANAC:
         except Exception as e:
             logger.warning(f"Error al cerrar conexión: {e}")
 
-    def _obtener_ultima_fecha_bd(self):
-        """Obtiene la fecha más reciente en la BD"""
-        self.conectar_bdd()
-        try:
-            # En Postgres el esquema suele ser 'public' a menos que hayas creado 'datalake_economico' específicamente
-            query = "SELECT MAX(fecha) FROM public.anac"
-            self.cursor.execute(query)
-            result = self.cursor.fetchone()
-            if result and result[0]:
-                return pd.to_datetime(result[0]).date()
-            return None
-        except Exception as e:
-            logger.info(f"Tabla no encontrada o vacía: {e}")
-            return None
+    
 
     def hay_datos_nuevos(self, df):
         """Compara fechas entre Excel y BD"""
@@ -144,53 +121,71 @@ class LoadANAC:
         result = self.cursor.fetchone()
         return (float(result[0]), result[1]) if result else (None, None)
 
+    def _obtener_ultima_fecha_bd(self):
+        self.conectar_bdd()
+        prefix = self._get_schema_prefix()
+        try:
+            # Quitamos el 'public.' hardcodeado que tenías para que use el prefijo dinámico
+            query = f"SELECT MAX(fecha) FROM {prefix}anac"
+            self.cursor.execute(query)
+            result = self.cursor.fetchone()
+            if result and result[0]:
+                return pd.to_datetime(result[0]).date()
+            return None
+        except Exception as e:
+            logger.info(f"Tabla no encontrada o vacía: {e}")
+            return None
+
     def load_to_sheets(self, ultimo_valor, ultima_fecha):
         try:
             if ultimo_valor is None: return
             
-            SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-            key_dict = loads(os.getenv('GOOGLE_SHEETS_API_KEY'))
-            SPREADSHEET_ID = '1L_EzJNED7MdmXw_rarjhhX8DpL7HtaKpJoRwyxhxHGI'
-
-            creds = service_account.Credentials.from_service_account_info(key_dict, scopes=SCOPES)
-            service = build('sheets', 'v4', credentials=creds)
+            key_raw = os.getenv('GOOGLE_SHEETS_API_KEY')
+            key_dict = loads(key_raw)
             
-            # MESES EN ESPAÑOL (Asegúrate que coincida con tu fila 3 del Sheets)
+            # --- EL PARCHE PARA EL ERROR JWT ---
+            if "\\n" in key_dict['private_key']:
+                key_dict['private_key'] = key_dict['private_key'].replace("\\n", "\n")
+            # ------------------------------------
+
+            SPREADSHEET_ID = '1L_EzJNED7MdmXw_rarjhhX8DpL7HtaKpJoRwyxhxHGI'
+            creds = service_account.Credentials.from_service_account_info(
+                key_dict, scopes=['https://www.googleapis.com/auth/spreadsheets']
+            )
+            
+            # Forzar actualización de token por si el reloj de la oficina está desfasado
+            from google.auth.transport.requests import Request
+            creds.refresh(Request())
+
+            service = build('sheets', 'v4', credentials=creds, cache_discovery=False)
+            
             meses_es = {1:"ene", 2:"feb", 3:"mar", 4:"abr", 5:"may", 6:"jun",
                         7:"jul", 8:"ago", 9:"sept", 10:"oct", 11:"nov", 12:"dic"}
             
-            # Formato esperado: "ene-26"
             fecha_buscada = f"{meses_es[ultima_fecha.month]}-{str(ultima_fecha.year)[-2:]}"
             logger.info(f"Buscando columna para: {fecha_buscada}")
 
             res = service.spreadsheets().values().get(spreadsheetId=SPREADSHEET_ID, range="Datos!3:3").execute()
             headers = res.get("values", [[]])[0]
             
-            col_idx = None
-            for i, h in enumerate(headers):
-                if h and str(h).strip().lower() == fecha_buscada.lower():
-                    col_idx = i
-                    break
+            col_idx = next((i for i, h in enumerate(headers) if h and str(h).strip().lower() == fecha_buscada.lower()), None)
             
             if col_idx is None:
-                # Si no lo encuentra, tiramos un warning pero no matamos el proceso
-                logger.warning(f"[WARN] No se encontró la columna '{fecha_buscada}' en la fila 3 de Sheets.")
+                logger.warning(f"[WARN] No se encontró la columna '{fecha_buscada}'.")
                 return
 
             letra_col = self.num_to_col(col_idx)
-            rango_celda = f"Datos!{letra_col}10" # Celda de Corrientes
+            rango_celda = f"Datos!{letra_col}10" 
             
-            valor_formateado = float(ultimo_valor)
-            body = {'values': [[valor_formateado]]}
+            # Formato local (cambiar . por , si el Sheets está en español)
+            val_str = str(float(ultimo_valor)).replace('.', ',')
             
             service.spreadsheets().values().update(
-                spreadsheetId=SPREADSHEET_ID, 
-                range=rango_celda,
-                valueInputOption='USER_ENTERED',
-                body=body
+                spreadsheetId=SPREADSHEET_ID, range=rango_celda,
+                valueInputOption='USER_ENTERED', body={'values': [[val_str]]}
             ).execute()
             
-            logger.info(f"[OK] Sheets actualizado en {rango_celda} con valor {valor_formateado}")
+            logger.info(f"[OK] Sheets (ANAC) actualizado en {rango_celda}")
 
         except Exception as e:
             logger.error(f"Error en Sheets: {e}")

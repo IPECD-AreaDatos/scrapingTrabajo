@@ -57,6 +57,11 @@ def main():
         # 4. LOAD
         logger.info("4. [LOAD] Cargando datos en BD...")
         loader = LoadSemaforo(host, user, pwd, db, port, version=version_db)
+        # Solo cargamos si el DataFrame tiene datos
+        if not df_inter_t.empty or not df_interm_t.empty:
+            loader.load(df_inter_t, df_interm_t)
+        else:
+            logger.warning("[LOAD] No hay datos nuevos para cargar en ninguna de las tablas.")
         loader.load(df_inter_t, df_interm_t)
 
         duracion = datetime.now() - inicio

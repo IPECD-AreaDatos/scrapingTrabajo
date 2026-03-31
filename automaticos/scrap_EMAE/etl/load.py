@@ -79,16 +79,25 @@ class LoadEMAE:
         
         full_table_name = f"{schema}.{tabla}" if schema else tabla
         
-        with self.engine.connect() as conn:
-            # Usamos text() para consultas SQL crudas
-            result = conn.execute(text(f"SELECT COUNT(*) FROM {full_table_name}"))
-            len_bdd = result.scalar()
-            
-        if len(df) > len_bdd:
-            df_tail = df.tail(len(df) - len_bdd)
-            df_tail.to_sql(name=tabla, con=self.engine, schema=schema, if_exists='append', index=False, method='multi')
-            logger.info("[LOAD] EMAE variaciones: %d registros cargados.", len(df_tail))
+        try:
+            # 1. Leemos qué fechas ya tenemos para no duplicar por accidente
+            query = f"SELECT fecha FROM {full_table_name}"
+            df_bdd = pd.read_sql(query, con=self.engine)
+            fechas_existentes = set(pd.to_datetime(df_bdd['fecha']).dt.date)
+        except Exception:
+            fechas_existentes = set()
+
+            # 2. Solo filtramos lo que REALMENTE no está en la base de datos
+        df['fecha_dt'] = pd.to_datetime(df['fecha']).dt.date
+        df_nuevos = df[~df['fecha_dt'].isin(fechas_existentes)].copy()
+        df_nuevos = df_nuevos.drop(columns=['fecha_dt']) # Limpiamos la columna auxiliar
+
+        if not df_nuevos.empty:
+            df_nuevos.to_sql(name=tabla, con=self.engine, schema=schema, if_exists='append', index=False, method='multi')
+            logger.info(f"[LOAD] EMAE variaciones: {len(df_nuevos)} registros nuevos cargados.")
             return True
+        
+        logger.info("[LOAD] EMAE variaciones: No hay fechas nuevas para cargar.")
         return False
 
     def close(self):

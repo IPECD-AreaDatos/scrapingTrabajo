@@ -34,4 +34,24 @@ class TransformIPICORR:
 
     @staticmethod
     def _format_value(value) -> float:
-        return (float(str(value).replace(',', '').replace('%', '')) / 10) / 100
+        """
+        Convierte valores de Google Sheets a float, manejando errores de formato
+        y textos no numéricos como 'n.a'.
+        """
+        try:
+            # 1. Limpieza básica: pasar a string, quitar espacios y minúsculas
+            val_str = str(value).strip().lower()
+
+            # 2. Manejo de casos conocidos de datos faltantes
+            if val_str in ['n.a', 'na', '', 'nan', 'none', '-', 'null']:
+                return 0.0  # Retorna 0.0 para evitar errores en cálculos posteriores
+
+            # 3. Limpieza de símbolos y conversión
+            # Reemplazamos comas y porcentajes para poder convertir a float
+            clean_val = val_str.replace(',', '').replace('%', '')
+            
+            return (float(clean_val) / 10) / 100
+
+        except (ValueError, TypeError):
+            # Si algo falla (ej: un texto largo inesperado), devuelve 0.0 y no rompe el script
+            return 0.0

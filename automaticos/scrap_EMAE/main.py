@@ -49,13 +49,7 @@ def main():
         loader = LoadEMAE(host, user, pwd, db, port, version=version_db)
         actualizado = loader.load(df_val, df_var)
         
-        # 5. Reporting (optional, if something new was loaded)
-        if actualizado:
-            logger.info("[MAIN] Datos nuevos detectados. Preparando envío de correo...")
-            mailer = EmailEMAE(host, user, pwd, db, port, version=version_db)
-            mailer.main_correo()
-        else:
-            logger.info("[MAIN] No hay datos nuevos para reportar.")
+        
 
         logger.info("=== COMPLETADO - Duración: %s ===", datetime.now() - inicio)
     except Exception as e:

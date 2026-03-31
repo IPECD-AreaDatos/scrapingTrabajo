@@ -25,7 +25,7 @@ COLUMNAS_SEMAFORO = [
     'exportaciones_aduana_corrientes_dolares',
     'exportaciones_aduana_corrientes_toneladas',
     'empleo_privado_registrado_sipa',
-    'ipicorr',
+
 ]
 
 
@@ -65,16 +65,26 @@ class ExtractSemaforo:
         fechas = filas[0]
         filas_indicadores = filas[1:]
 
-        max_length = max(len(f) for f in filas_indicadores)
+        max_length = max(len(f) for f in filas_indicadores) if filas_indicadores else 0
+        
+        # Rellenamos nulos en horizontal (columnas faltantes en una fila)
         filas_indicadores = self._rellenar_nulos(filas_indicadores, max_length)
+
         fechas_truncadas = fechas[:max_length]
 
         df = DataFrame()
         df['fecha'] = fechas_truncadas
-        for i, col in enumerate(COLUMNAS_SEMAFORO[1:]):  # skip 'fecha'
-            df[col] = filas_indicadores[i]
+        for i, col in enumerate(COLUMNAS_SEMAFORO[1:]):
+            # Verificamos si existe la fila correspondiente en lo que bajó de Google
+            if i < len(filas_indicadores):
+                # Si la fila existe, la asignamos
+                df[col] = filas_indicadores[i]
+            else:
+                # Si la fila no existe en el Sheets, rellenamos con None (Nulos)
+                df[col] = [None] * len(fechas_truncadas)
+                logger.warning(f"[EXTRACT] Indicador '{col}' no encontrado en el Sheets. Rellenando con nulos.")
 
-        logger.info("[EXTRACT] Hoja '%s' leída: %d filas", rango, len(df))
+        logger.info("[EXTRACT] Hoja '%s' leída con %d columnas y %d periodos.", rango, len(df.columns), len(df))
         return df
 
     @staticmethod

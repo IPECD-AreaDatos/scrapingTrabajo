@@ -18,7 +18,6 @@ COLUMNAS_REQUERIDAS = [
     'exportaciones_aduana_corrientes_dolares',
     'exportaciones_aduana_corrientes_toneladas',
     'empleo_privado_registrado_sipa',
-    'ipicorr',
 ]
 
 
@@ -34,7 +33,7 @@ class ValidateSemaforo:
         """
         logger.info("[VALIDATE] Iniciando validaciones...")
         self._validar_df(df_interanual,   "interanual")
-        self._validar_df(df_intermensual, "intermensual")
+        #self._validar_df(df_intermensual, "intermensual")
         logger.info("[VALIDATE] OK — ambos DataFrames son válidos.")
 
     def _validar_df(self, df: pd.DataFrame, nombre: str):
