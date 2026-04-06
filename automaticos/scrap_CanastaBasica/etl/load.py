@@ -23,7 +23,7 @@ class LoadCanastaBasica:
             host=os.getenv('HOST_DBB1'),
             user=os.getenv('USER_DBB1'),
             password=os.getenv('PASSWORD_DBB1'),
-            database=os.getenv('NAME_DB_CANASTA', 'canasta_basica_supermercados')
+            database=os.getenv('NAME_DB_CANASTA_V1', 'canasta_basica_supermercados')
         )
 
         # 2. Configuración Base Nueva (PostgreSQL)
@@ -50,25 +50,35 @@ class LoadCanastaBasica:
                 db_instancia.connection.commit()
                 
                 # Intentar obtener el ID (funciona directo en MySQL)
-                if hasattr(cursor, 'lastrowid'):
+                if hasattr(cursor, 'lastrowid') and cursor.lastrowid:
                     return cursor.lastrowid
                 else:
                     # Alternativa para PostgreSQL si el cursor no tiene lastrowid
                     cursor.execute("SELECT LASTVAL()")
-                    return cursor.fetchone()[0]
+                    result = cursor.fetchone()
+                    return result[0] if result else None
         except Exception as e:
             logger.error(f"[LOAD] Error registrando extracción en {nombre_log}: {e}")
             return None
         finally:
             db_instancia.close_connections()
 
-    def _ejecutar_carga_por_instancia(self, db_instancia, df, nombre_log):
+    def _ejecutar_carga_por_instancia(self, db_instancia, df, nombre_log, id_extraccion_propuesto=None):
         """Lógica interna de carga para evitar repetir código"""
         total_productos = len(df)
-        id_extraccion = self.registrar_inicio_extraccion(db_instancia, nombre_log)
+        
+        # Si se propone un ID (ej: capturado de MySQL), intentamos usarlo en Postgres
+        if id_extraccion_propuesto:
+            id_extraccion = id_extraccion_propuesto
+            # Se debe asegurar que este ID exista en la tabla extracciones de la nueva base
+            if not self._registrar_id_especifico_extraccion(db_instancia, id_extraccion, nombre_log):
+                return False, None
+        else:
+            id_extraccion = self.registrar_inicio_extraccion(db_instancia, nombre_log)
         
         if not id_extraccion:
-            return False
+            logger.error(f"[LOAD] No se pudo obtener id_extraccion para {nombre_log}")
+            return False, None
 
         # Preparar DF para esta base
         df_local = df.copy()
@@ -93,13 +103,37 @@ class LoadCanastaBasica:
                     db_instancia.connection.commit()
                 
                 logger.info(f"[OK] Carga finalizada en {nombre_log}. ID: {id_extraccion}")
-                return success
+                return success, id_extraccion
             except Exception as e:
                 logger.error(f"[ERROR] Carga fallida en {nombre_log}: {e}")
-                return False
+                return False, id_extraccion
             finally:
                 db_instancia.close_connections()
-        return False
+        return False, None
+
+    def _registrar_id_especifico_extraccion(self, db_instancia, id_extraccion, nombre_log):
+        """Intenta registrar un ID específico en la tabla extracciones (para mantener simetría)"""
+        if not db_instancia.connect_db():
+            return False
+        try:
+            # Primero verificamos si ya existe (para evitar errores si ya se registró)
+            query_check = f"SELECT id_extraccion FROM extracciones WHERE id_extraccion = {id_extraccion}"
+            with db_instancia.connection.cursor() as cursor:
+                cursor.execute(query_check)
+                if cursor.fetchone():
+                    return True
+                
+                # Si no existe, lo insertamos
+                # Si es SERIAL en Postgres, esto puede requerir OVERRIDING SYSTEM VALUE pero usualmente INSERT directo funciona si no choca
+                query_insert = f"INSERT INTO extracciones (id_extraccion, fecha_inicio, estado) VALUES ({id_extraccion}, NOW(), 'procesando')"
+                cursor.execute(query_insert)
+                db_instancia.connection.commit()
+                return True
+        except Exception as e:
+            logger.error(f"[LOAD] Error registrando ID específico en {nombre_log}: {e}")
+            return False
+        finally:
+            db_instancia.close_connections()
 
     def load(self, df: pd.DataFrame) -> bool:
         if df.empty:
@@ -126,7 +160,15 @@ class LoadCanastaBasica:
         # --- CARGA DUAL ---
         logger.info("Iniciando carga dual en Base Vieja y Base Nueva...")
         
-        exito_v1 = self._ejecutar_carga_por_instancia(self.db_v1, df, "BASE VIEJA (MySQL)")
-        exito_v2 = self._ejecutar_carga_por_instancia(self.db_v2, df, "BASE NUEVA (Postgres)")
+        # 1. Carga en Base Vieja (MySQL) - OBLIGATORIA
+        exito_v1, id_extraccion = self._ejecutar_carga_por_instancia(self.db_v1, df, "BASE VIEJA (MySQL)")
+        
+        if not exito_v1 or not id_extraccion:
+            logger.error("[GUARD] Carga en Base Vieja falló o no generó ID. ABORTANDO Postgres.")
+            return False
+
+        # 2. Carga en Base Nueva (Postgres) - Solo si la primera fue exitosa
+        # Pasamos el mismo id_extraccion capturado de MySQL
+        exito_v2, _ = self._ejecutar_carga_por_instancia(self.db_v2, df, "BASE NUEVA (Postgres)", id_extraccion_propuesto=id_extraccion)
 
         return exito_v1 and exito_v2
