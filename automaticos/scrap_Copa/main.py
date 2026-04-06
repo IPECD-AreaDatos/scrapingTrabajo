@@ -6,16 +6,45 @@ from etl.transform import main as transform_main
 from etl.load import load_to_postgres
 
 def extract_date_from_url(url):
+    import requests
+    from bs4 import BeautifulSoup
+    import datetime
+
     # internet_diario_mar26_7.xls
-    match = re.search(r'internet_diario_([a-z]{3})(\d{2})_', url.lower())
+    match = re.search(r'internet_diario_?([a-z]{3})(\d{2})', url.lower())
+    month_map = {
+        'ene': 1, 'feb': 2, 'mar': 3, 'abr': 4, 'may': 5, 'jun': 6,
+        'jul': 7, 'ago': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dic': 12
+    }
+    
     if match:
         month_str = match.group(1)
         year_short = match.group(2)
-        month_map = {
-            'ene': 1, 'feb': 2, 'mar': 3, 'abr': 4, 'may': 5, 'jun': 6,
-            'jul': 7, 'ago': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dic': 12
-        }
         return 2000 + int(year_short), month_map.get(month_str)
+        
+    # Example missing month: internet_diario26_17.xls
+    match2 = re.search(r'internet_diario(\d{2})', url.lower())
+    if match2:
+        year_short = match2.group(1)
+        year = 2000 + int(year_short)
+        
+        # Try to find the month by scraping the index page and finding the link text
+        try:
+            r = requests.get("https://www.argentina.gob.ar/economia/sechacienda/asuntosprovinciales/ron")
+            soup = BeautifulSoup(r.content, 'html.parser')
+            for a in soup.find_all('a', href=True):
+                href = a['href'].replace('blank:#', '')
+                if href in url or url.endswith(href):
+                    t = a.text.strip().upper()
+                    m_map = {k.upper(): v for k, v in month_map.items()}
+                    if t in m_map:
+                        return year, m_map[t]
+        except Exception as e:
+            print("Warning: Could not fetch page to deduce month:", e)
+            
+        # Fallback to current month if we couldn't find the link
+        return year, datetime.datetime.now().month
+
     return None, None
 
 def main():

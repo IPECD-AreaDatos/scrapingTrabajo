@@ -54,7 +54,7 @@ def parse_date_from_filename(filename, year_hint=None):
     """
     Tries to extract month from filename like 'internet_diario_mar26_7.xls'
     """
-    match = re.search(r'_([a-z]{3})(\d{2})_', filename.lower())
+    match = re.search(r'_([a-z]{3})(\d{2})', filename.lower())
     if match:
         month_str = match.group(1)
         year_short = match.group(2)
