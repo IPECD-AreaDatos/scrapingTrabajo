@@ -1,62 +1,54 @@
-import pandas as pd
-from sqlalchemy import create_engine
 import os
+import logging
 from dotenv import load_dotenv
-load_dotenv()
+from etl.extract import extract_sisper_range
+from etl.load import CargadorSelector, load_to_dest
 
-# Cargar variables de entorno desde el archivo .env
-host_dbb = os.getenv('HOST_DBB')
-user_dbb = os.getenv('USER_DBB')
-pass_dbb = os.getenv('PASSWORD_DBB')
-dbb_datalake = os.getenv('NAME_DBB_DWH_SOCIO')
+# Configuración de logs
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
-# Obtener la ruta de ejecución del script (directorio actual)
-current_dir = os.getcwd()
-
-# Construir la ruta del archivo CSV desde el directorio actual (sin barra inicial antes de 'files')
-csv_file_path = os.path.join(current_dir, 'scrap_SISPER', 'files', 'datos_sisper.csv')  # Ruta al archivo CSV
-
-# Parámetros de la conexión MySQL
-host_mysql = host_dbb
-user_mysql = user_dbb
-password_mysql = pass_dbb
-database_mysql = dbb_datalake
-table_mysql = 'datos_sisper'
-
-# Leer el CSV
-df = pd.read_csv(csv_file_path)
-
-# Asegurarse de que las columnas coincidan con las de la tabla MySQL
-required_columns = [
-    'agente_codigo', 'agente_cuil', 'agente_dni', 'cantidad_hijos', 'cargo_codigo',
-    'cargo_descripcion', 'categoria_codigo', 'categoria_descripcion', 'clase_codigo',
-    'clase_descripcion', 'codigo_estado_puesto', 'codigo_periodo_liquidacion', 
-    'descripcion_periodo_liquidacion', 'estado_civil_codigo', 'estado_civil_descripcion',
-    'fecha_ingreso', 'fecha_nacimiento', 'fecha_posesion', 'jurisdiccion_codigo', 
-    'jurisdiccion_descripcion', 'localidad_codigo', 'localidad_descripcion', 
-    'lugar_pago_codigo', 'lugar_pago_descripcion', 'organizacion_codigo', 
-    'organizacion_descripcion', 'partida_presupuestaria_codigo', 
-    'partida_presupuestaria_descripcion', 'puesto_laboral_codigo', 'salario_familiar', 
-    'sexo', 'sueldo_bruto', 'sueldo_neto'
-]
-
-# Filtrar el DataFrame para que contenga solo las columnas necesarias
-df = df[required_columns]
-
-# Verificar si hay alguna columna faltante o no válida
-missing_columns = set(required_columns) - set(df.columns)
-if missing_columns:
-    print(f"Advertencia: Las siguientes columnas faltan en el DataFrame: {missing_columns}")
-
-# Función para guardar el DataFrame en MySQL usando SQLAlchemy
-def saveToMySQL(df, host, user, password, database, table):
-    # Crear conexión a MySQL con SQLAlchemy y pymysql
-    engine_mysql = create_engine(f'mysql+pymysql://{user}:{password}@{host}:3306/{database}')
+def run_etl():
+    # 1. Cargar configuración de entorno (Busca el .env de la raíz)
+    load_dotenv(os.path.join(os.path.dirname(__file__), '..', '..', '.env'))
     
-    # Guardar el DataFrame en la tabla de MySQL (añadiendo los datos)
-    df.to_sql(table, engine_mysql, index=False, if_exists='append')  # 'append' para agregar datos a la tabla
+    # Parámetros de destino
+    version = os.getenv('DB_VERSION', '1') # v1 por defecto (Base Vieja)
+    host_dest = os.getenv('HOST_DBB1') if version == '1' else os.getenv('HOST_DBB2')
+    user_dest = os.getenv('USER_DBB1') if version == '1' else os.getenv('USER_DBB2')
+    pass_dest = os.getenv('PASSWORD_DBB1') if version == '1' else os.getenv('PASSWORD_DBB2')
+    db_dest = 'conexiones_externas'
+    tabla_destino = 'sisper'
+    
+    loader = None
+    try:
+        # 2. Conectar al destino
+        loader = CargadorSelector(host_dest, user_dest, pass_dest, db_dest, version=version)
+        loader.conectar()
+        
+        # 3. Iniciar Extracción and Carga por chunks
+        logger.info("=== INICIANDO ETL MODULAR DE SISPER (Optimizado) ===")
+        extractor = extract_sisper_range(tanda_size=10000)
+        
+        total_filas = 0
+        primera_tanda = True
+        
+        for df_chunk in extractor:
+            # 4. Cargar tanda
+            load_to_dest(df_chunk, loader, tabla_destino, primera_tanda=primera_tanda)
+            
+            # Contadores
+            total_filas += len(df_chunk)
+            primera_tanda = False
+            logger.info(f"==> Total procesado hasta el momento: {total_filas} registros.")
+            
+        logger.info(f"=== ETL COMPLETADO: {total_filas} registros en total ===")
+        
+    except Exception as e:
+        logger.error(f"Error crítico en el ETL de SISPER: {e}")
+    finally:
+        if loader:
+            loader.cerrar()
 
-# Guardar el DataFrame en MySQL
-saveToMySQL(df, host_mysql, user_mysql, password_mysql, database_mysql, table_mysql)
-
-print("Datos guardados en MySQL exitosamente.")
+if __name__ == "__main__":
+    run_etl()
