@@ -54,11 +54,19 @@ class TransformSupermercados:
             ruta_archivo = os.path.join(FILES_DIR, NOMBRE_ARCHIVO)
 
         logger.info("[TRANSFORM] Leyendo archivo: %s", ruta_archivo)
-        df_aux = pd.read_excel(ruta_archivo, sheet_name=5, skiprows=5, usecols='c', names=['fecha'])
-        tamaño = self._calcular_tamaño(df_aux['fecha'])
+        
+        # 1. Calculamos tamaño mirando la columna B (Ventas Totales) que es más estable
+        # Usamos usecols=[1] (Columna B) y saltamos las primeras filas de títulos
+        df_aux = pd.read_excel(ruta_archivo, sheet_name=5, skiprows=6, usecols=[1], header=None)
+        
+        # Nueva lógica de tamaño: contamos cuántos valores numéricos reales hay
+        # Esto ignora el "ene-26*" con asterisco y las notas al pie automáticamente
+        tamaño = len(pd.to_numeric(df_aux.iloc[:, 0].astype(str).str.replace('.', '', regex=False), errors='coerce').dropna())
+        
+        logger.info(f"[TRANSFORM] Meses detectados: {tamaño}")
 
-        df = pd.read_excel(ruta_archivo, sheet_name=5, skiprows=2,
-                           usecols='a,c,d,e,f,g,h,i,j,k,l,m,n,o', names=NOMBRES_COLUMNAS)
+        # 2. Cargamos el DF completo para buscar horizontalmente en la fila 3
+        df = pd.read_excel(ruta_archivo, sheet_name=5, header=None)
 
         fecha_inicio = date(2017, 1, 1)
         lista_fechas = [fecha_inicio + relativedelta(months=i) for i in range(tamaño)]
@@ -66,29 +74,40 @@ class TransformSupermercados:
         dfs = []
         for provincia in LISTA_PROVINCIAS:
             try:
-                fila, _ = df[df == provincia[0]].stack().index[0]
-                fila += 1
-                df_prov = df.iloc[fila: fila + tamaño].copy()
-                df_prov['id_provincia'] = provincia[1]
+                nombre_buscado = provincia[0].strip().lower()
+                if nombre_buscado == 'total': nombre_buscado = 'total del país'
+                
+                col_idx = -1
+                for i, valor_celda in enumerate(df.iloc[2, :]):
+                    valor_limpio = str(valor_celda).strip().lower()
+                    if nombre_buscado in valor_limpio:
+                        col_idx = i
+                        break
+                
+                if col_idx == -1:
+                    continue
+
+                # 3. Extraemos el bloque de datos: Fila 7 (índice 6) + cantidad de meses
+                df_prov = df.iloc[6 : 6 + tamaño, col_idx : col_idx + 12].copy()
+                
+                df_prov.columns = NOMBRES_COLUMNAS[2:]
+                df_prov.insert(0, 'id_provincia', provincia[1])
+                df_prov.insert(1, 'fecha', lista_fechas)
                 df_prov['id_region'] = int(provincia[2])
-                df_prov['fecha'] = lista_fechas
+                
                 dfs.append(df_prov)
-            except IndexError:
-                logger.warning("[TRANSFORM] Provincia no encontrada: %s", provincia[0])
+
+            except Exception as e:
+                logger.error(f"[TRANSFORM] Error en {provincia[0]}: {e}")
 
         df_final = pd.concat(dfs, ignore_index=True)
-        df_final[COLUMNAS_ESTIMATIVAS] = df_final[COLUMNAS_ESTIMATIVAS].replace('s', None)
-        df_final[COLUMNAS_ESTIMATIVAS] = df_final[COLUMNAS_ESTIMATIVAS].apply(
-            lambda col: col.apply(lambda x: float(x) if pd.notnull(x) else None)
-        )
+
+        # Limpieza final de números
+        for col in NOMBRES_COLUMNAS[2:]:
+            df_final[col] = (df_final[col].astype(str)
+                             .str.replace('.', '', regex=False)
+                             .replace('s', None))
+            df_final[col] = pd.to_numeric(df_final[col], errors='coerce')
+
         logger.info("[TRANSFORM] DataFrame final: %d filas", len(df_final))
         return df_final
-
-    @staticmethod
-    def _calcular_tamaño(serie: pd.Series) -> int:
-        count = 0
-        for val in serie:
-            if str(val) == 'nan':
-                break
-            count += 1
-        return count
