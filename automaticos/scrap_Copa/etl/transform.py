@@ -52,26 +52,33 @@ MESES = {
 
 def parse_date_from_filename(filename, year_hint=None):
     """
-    Tries to extract month from filename like 'internet_diario_mar26_7.xls'
+    Tries to extract month and year from filename.
     """
-    match = re.search(r'_([a-z]{3})(\d{2})', filename.lower())
+    filename_lower = filename.lower()
+    month_map = {
+        'ene': 1, 'feb': 2, 'mar': 3, 'abr': 4, 'may': 5, 'jun': 6,
+        'jul': 7, 'ago': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dic': 12
+    }
+    
+    # Try Month + Year
+    match = re.search(r'_?([a-z]+)_?(\d{2})', filename_lower)
     if match:
-        month_str = match.group(1)
+        month_str = match.group(1)[:3]
         year_short = match.group(2)
-        
-        # Map 3-char month to full month name
-        month_map = {
-            'ene': 'enero', 'feb': 'febrero', 'mar': 'marzo', 'abr': 'abril',
-            'may': 'mayo', 'jun': 'junio', 'jul': 'julio', 'ago': 'agosto',
-            'sep': 'septiembre', 'oct': 'octubre', 'nov': 'noviembre', 'dic': 'diciembre'
-        }
-        
-        full_month = month_map.get(month_str)
-        if full_month in MESES:
-            month = MESES[full_month]
-            year = 2000 + int(year_short)
-            return year, month
+        month = month_map.get(month_str)
+        if month:
+            return 2000 + int(year_short), month
             
+    # Try only Year
+    match2 = re.search(r'_?(\d{2})', filename_lower)
+    if match2:
+        year = 2000 + int(match2.group(1))
+        # Search for month abbreviation anywhere
+        for k, v in month_map.items():
+            if k in filename_lower:
+                return year, v
+        return year, None
+
     return year_hint, None
 
 def process_file(filepath, year=None, month=None):

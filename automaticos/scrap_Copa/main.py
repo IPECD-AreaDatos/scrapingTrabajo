@@ -10,24 +10,35 @@ def extract_date_from_url(url):
     from bs4 import BeautifulSoup
     import datetime
 
-    # internet_diario_mar26_7.xls
-    match = re.search(r'internet_diario_?([a-z]{3})(\d{2})', url.lower())
+    url_lower = url.lower()
     month_map = {
         'ene': 1, 'feb': 2, 'mar': 3, 'abr': 4, 'may': 5, 'jun': 6,
         'jul': 7, 'ago': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dic': 12
     }
     
+    # Pattern 1: internet_diario_?([a-z]+)_?(\d{2})
+    # Handles: internet_diario_abr26, internet_diario_abril26, internet_diarioabril26, internet_diario_abril_26
+    match = re.search(r'internet_diario_?([a-z]+)_?(\d{2})', url_lower)
     if match:
-        month_str = match.group(1)
+        month_str = match.group(1)[:3]
         year_short = match.group(2)
-        return 2000 + int(year_short), month_map.get(month_str)
-        
-    # Example missing month: internet_diario26_17.xls
-    match2 = re.search(r'internet_diario(\d{2})', url.lower())
+        month = month_map.get(month_str)
+        if month:
+            return 2000 + int(year_short), month
+            
+    # Pattern 2: internet_diario_?(\d{2})
+    # Handles: internet_diario26, internet_diario_26
+    match2 = re.search(r'internet_diario_?(\d{2})', url_lower)
     if match2:
         year_short = match2.group(1)
         year = 2000 + int(year_short)
         
+        # If we have year but no month from URL, try to find month by scraping or searching elsewhere
+        # Try to find abbreviation anywhere in the URL (not just after diario)
+        for k, v in month_map.items():
+            if k in url_lower:
+                return year, v
+
         # Try to find the month by scraping the index page and finding the link text
         try:
             r = requests.get("https://www.argentina.gob.ar/economia/sechacienda/asuntosprovinciales/ron")
