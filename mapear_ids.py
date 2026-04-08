@@ -1,38 +1,47 @@
 import pandas as pd
 from sqlalchemy import create_engine, text
+import time
 
 def find_range_ids_fast():
-    engine = create_engine('postgresql+psycopg2://estadistica:c3ns0$2026@10.1.90.2:5432/sisper')
+    conn_str = 'postgresql+psycopg2://estadistica:c3ns0$2026@10.1.90.2:5432/sisper'
+    print("Connecting to 10.1.90.2 (deyc.personal)...", flush=True)
+    engine = create_engine(conn_str, connect_args={'connect_timeout': 10})
     
-    # Obtenemos los últimos 100 periodos registrados (suponiendo que son cronológicos por ID)
-    query = text("""
-        SELECT DISTINCT codigo_periodo_liquidacion, descripcion_periodo_liquidacion 
-        FROM deyc.personal 
-        ORDER BY codigo_periodo_liquidacion DESC 
-        LIMIT 100
-    """)
+    meses_a_buscar = [
+        ('DICIEMBRE 2024', '%DICIEMBRE%2024%'),
+        ('ENERO 2025', '%ENERO%2025%'), ('FEBRERO 2025', '%FEBRERO%2025%'), ('MARZO 2025', '%MARZO%2025%'),
+        ('ABRIL 2025', '%ABRIL%2025%'), ('MAYO 2025', '%MAYO%2025%'), ('JUNIO 2025', '%JUNIO%2025%'),
+        ('JULIO 2025', '%JULIO%2025%'), ('AGOSTO 2025', '%AGOSTO%2025%'), ('SEPTIEMBRE 2025', '%SEPTIEMBRE%2025%'),
+        ('OCTUBRE 2025', '%OCTUBRE%2025%'), ('NOVIEMBRE 2025', '%NOVIEMBRE%2025%'), ('DICIEMBRE 2025', '%DICIEMBRE%2025%'),
+        ('ENERO 2026', '%ENERO%2026%'), ('FEBRERO 2026', '%FEBRERO%2026%'), ('MARZO 2026', '%MARZO%2026%')
+    ]
+
+    print("\nIniciando descubrimiento secuencial de IDs...", flush=True)
+    mapping = []
     
-    print("Escaneando los 100 periodos más recientes por ID...")
     try:
-        df = pd.read_sql(query, engine)
-        print("Mapeo encontrado:")
-        pd.set_option('display.max_rows', None)
-        print(df.to_string(index=False))
-        
-        # Filtramos en Pandas los que nos interesan para el WHERE IN
-        meses = ["Diciembre", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre"]
-        anios = [2024, 2025, 2026]
-        
-        subset = df[
-            (df['descripcion_periodo_liquidacion'].str.contains('|'.join(meses), case=False, na=False)) &
-            (df['descripcion_periodo_liquidacion'].str.contains('|'.join(map(str, anios)), case=False, na=False))
-        ]
-        
-        print("\n=== IDs SUGERIDOS PARA LA EXTRACCIÓN (2024-2026) ===")
-        print(subset['codigo_periodo_liquidacion'].tolist())
-        
+        with engine.connect() as conn:
+            for label, pattern in meses_a_buscar:
+                start_time = time.time()
+                print("Querying structure for one row...", flush=True)
+                res = conn.execute(text("SELECT * FROM deyc.personal LIMIT 1")).fetchone()
+                print("Row data to see valid values:", res)
+                
+                print("Finding MAX ID to orient ranges...", flush=True)
+                res = conn.execute(text("SELECT MAX(codigo_periodo_liquidacion) FROM deyc.personal")).scalar()
+                print(f"REAL MAX ID: {res}")
+                return
+
+
+        print("\n=== RESULTADO DEL MAPEADO ===")
+        for mid, mlabel in mapping:
+            print(f"ID {mid}: {mlabel}")
+            
+        print("\nLista de IDs para extract.py:")
+        print([m[0] for m in mapping])
+
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"\nError: {e}", flush=True)
 
 if __name__ == "__main__":
     find_range_ids_fast()
