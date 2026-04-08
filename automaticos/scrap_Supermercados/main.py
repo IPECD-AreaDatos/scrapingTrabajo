@@ -42,6 +42,7 @@ def main():
         ruta = ExtractSupermercados().extract()
         df   = TransformSupermercados().transform(ruta)
         ValidateSupermercados().validate(df)
+        
         loader = LoadSupermercados(host, user, pwd, db, port, version=version_db)
         hay_novedad = loader.load(df)
 

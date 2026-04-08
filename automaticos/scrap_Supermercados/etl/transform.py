@@ -104,10 +104,19 @@ class TransformSupermercados:
 
         # Limpieza final de números
         for col in NOMBRES_COLUMNAS[2:]:
-            df_final[col] = (df_final[col].astype(str)
-                             .str.replace('.', '', regex=False)
-                             .replace('s', None))
+            # 1. Convertimos a string y quitamos espacios
+            df_final[col] = df_final[col].astype(str).str.strip()
+            
+            # 2. Reemplazamos la 's' (secreto estadístico) por NaN
+            df_final[col] = df_final[col].replace(['s', 'S', 'nan', 'None'], pd.NA)
+            
+            # 3. Convertimos a numérico 
+            # Si el Excel tiene puntos como miles, pandas suele leerlo bien.
+            # Si el punto está molestando, lo tratamos como flotante.
             df_final[col] = pd.to_numeric(df_final[col], errors='coerce')
+            
+            # 4. Redondeamos a 5 decimales
+            df_final[col] = df_final[col].round(5)
 
         logger.info("[TRANSFORM] DataFrame final: %d filas", len(df_final))
         return df_final
