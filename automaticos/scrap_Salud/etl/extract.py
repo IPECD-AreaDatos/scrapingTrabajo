@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 # ID de la nueva hoja de Salud - Embarazo
-SPREADSHEET_ID = os.getenv('SPREADSHEET_ID_SALUD') 
+SPREADSHEET_ID = '18KkMS1B3iIQ6ItcuwE3m5035-xskKi4gOXxHU5FQMS4' 
 RANGO = 'EmbarazadasAR!A:AZ' 
 
 class Extract:

@@ -6,7 +6,9 @@ import logging
 from datetime import datetime
 from dotenv import load_dotenv
 
-from etl import Extract, Transform, Load
+from etl.extract import Extract
+from etl.transform import Transform
+from etl.load import Load
 from etl.validate import Validate
 from utils.logger import setup_logger
 
@@ -19,10 +21,10 @@ def main():
     logger.info("=== INICIO ETL SALUD: EMBARAZO - %s ===", inicio)
 
     # Variables para PostgreSQL (Base Nueva)
-    host = os.getenv('HOST_POSTGRES')
-    user = os.getenv('USER_POSTGRES')
-    pwd  = os.getenv('PASS_POSTGRES')
-    port = os.getenv('PORT_POSTGRES', '5432')
+    host = os.getenv('HOST_DBB2')
+    user = os.getenv('USER_DBB2')
+    pwd  = os.getenv('PASSWORD_DBB2')
+    port = os.getenv('PORT_DBB2', '5432')
     db   = os.getenv('DB_NAME_SALUD')
 
     # Validación de variables críticas
@@ -37,6 +39,8 @@ def main():
     try:
         logger.info("Extrayendo datos desde Google Sheets...")
         df_raw = Extract().extract()
+
+        exit()
         
         logger.info("Transformando datos...")
         df = Transform().transform(df_raw)
