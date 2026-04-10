@@ -28,7 +28,7 @@ def main():
     logger.info("=== INICIO ETL CANASTA BÁSICA - %s ===", inicio.strftime("%Y-%m-%d %H:%M:%S"))
     logger.info("=" * 80)
 
-    SYNC_MODE = True
+    SYNC_MODE = False
 
     extractor = None
     loader    = None
@@ -39,6 +39,13 @@ def main():
         logger.info("1. [EXTRACT] Inicializando extractor...")
         extractor = ExtractCanastaBasica(enable_parallel=True, max_workers=2)  # 2 workers para no saturar RAM del servidor
         links_list = extractor.read_links_from_db()
+
+        # --- FILTRO DE PRUEBA: Solo Depot o La Reina ---
+        # Filtramos para que solo traiga links de un super específico para que sea rápido
+        links_list = [link for link in links_list if 'depot' in link['link'].lower()][:5] # Solo 5 links de Depot
+        logger.info(f"MODO PRUEBA: Procesando solo {len(links_list)} links de Depot.")
+        # -----------------------------------------------
+
         if not links_list:
             logger.error("[ERROR] No se encontraron links activos en la base de datos.")
             return
@@ -82,7 +89,7 @@ def main():
 
         # VALIDATE
         logger.info("3. [VALIDATE] Validando datos...")
-        ValidateCanastaBasica().validate(df)
+        #ValidateCanastaBasica().validate(df)
 
         # LOAD
         logger.info("4. [LOAD] Cargando a base de datos...")

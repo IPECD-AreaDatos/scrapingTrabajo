@@ -37,9 +37,6 @@ def main():
     loader = None
     try:
         df_raw = ExtractDNRPA().extract()
-        df = df_raw[df_raw['id_provincia']==1]
-        print(df)
-        exit()
         df     = TransformDNRPA().transform(df_raw)
         ValidateDNRPA().validate(df)
         loader = LoadDNRPA(host, user, pwd, db, port, version=version_db)

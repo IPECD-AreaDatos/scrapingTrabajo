@@ -91,23 +91,57 @@ class ExtractDNRPA:
         self.driver.switch_to.window(self.original_window)
 
     def _construir_tabla(self, tabla, valor_opcion: str, tipo_vehiculo: int):
+        # 1. Capturar todas las filas de la tabla
         filas = tabla.find_elements(By.TAG_NAME, "tr")
-        datos = [[c.text for c in f.find_elements(By.TAG_NAME, "td")] for f in filas]
         
-        df_provs = pd.DataFrame(datos).iloc[2:27, 0:13]
-        df_provs[df_provs.columns[0]] = [6, 2, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50, 54, 58, 62, 66, 70, 74, 78, 82, 86, 90, 94, 1]
+        datos = []
+        for f in filas:
+            # CAMBIO CLAVE: Capturar td y th para que no se desplacen las columnas
+            celdas = f.find_elements(By.XPATH, ".//*[self::td or self::th]")
+            fila_texto = [c.text.strip() for c in celdas]
+            # Solo agregar si la fila tiene datos (evita filas vacías de diseño)
+            if len(fila_texto) >= 13:
+                datos.append(fila_texto)
+
+        # 2. Identificar filas de provincias y fila de total
+        # Buscamos las filas que tienen nombres de provincias conocidos o el TOTAL
+        lista_final = []
         
-        logger.info(f"[EXTRACT] Se cargaron {len(df_provs)} filas (Provincias + Nación)")
+        # Mapeo fijo de provincias para asegurar el orden de los IDs
+        # (Asegúrate de que este orden coincida con el de la tabla del DNRPA)
+        ids_provincias = [
+            6, 2, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 
+            50, 54, 58, 62, 66, 70, 74, 78, 82, 86, 90, 94
+        ]
 
+        # Tomamos las filas de las provincias (suelen ser las primeras 24 con datos)
+        # Y buscamos específicamente la que dice TOTAL
+        df_temp = pd.DataFrame(datos)
+        
+        # Filtramos las provincias (filas 1 a 24 de los datos limpios)
+        df_provs = df_temp.iloc[1:25, 0:13].copy()
+        df_provs.iloc[:, 0] = ids_provincias
 
+        # Buscamos la fila que contiene el texto "TOTAL"
+        idx_total = df_temp[df_temp[0].str.contains("TOTAL", na=False)].index[0]
+        df_nacion = df_temp.iloc[[idx_total], 0:13].copy()
+        df_nacion.iloc[:, 0] = 1 # ID 1 para Nación
+
+        # Unimos
+        df_unificado = pd.concat([df_provs, df_nacion])
+        
+        logger.info(f"[EXTRACT] Se cargaron {len(df_unificado)} filas (Provincias + Nación)")
+
+        # 3. Preparar columnas de fecha
         fechas = [datetime(int(valor_opcion), m, 1).strftime("%Y-%m-%d") for m in range(1, 13)]
-        df_provs.columns = ['id_provincia'] + fechas
+        df_unificado.columns = ['id_provincia'] + fechas
 
-        df_melted = df_provs.melt(id_vars=['id_provincia'], var_name='fecha', value_name='cantidad')
+        # 4. Melt
+        df_melted = df_unificado.melt(id_vars=['id_provincia'], var_name='fecha', value_name='cantidad')
         df_melted['id_vehiculo'] = tipo_vehiculo
 
         self.df_total = pd.concat([self.df_total, df_melted])
-
+        
     def _transformar_cantidad_vehiculos(self):
         self.df_total['cantidad'] = self.df_total['cantidad'].str.replace(".", "", regex=False)
         self.df_total['id_provincia'] = self.df_total['id_provincia'].astype(int)

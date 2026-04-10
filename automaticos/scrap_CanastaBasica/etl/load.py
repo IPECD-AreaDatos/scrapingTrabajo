@@ -37,27 +37,31 @@ class LoadCanastaBasica:
         )
 
     def registrar_inicio_extraccion(self, db_instancia, nombre_log):
-        """Crea un registro en la tabla extracciones y devuelve el ID"""
         if not db_instancia.connect_db():
-            logger.error(f"No se pudo conectar a {nombre_log} para registrar extracción")
             return None
 
         try:
-            # Asumiendo tabla extracciones: id_extraccion, fecha_inicio, estado
-            query = "INSERT INTO extracciones (fecha_inicio, estado) VALUES (NOW(), 'procesando')"
+            # Definimos las columnas que Postgres exige que no sean NULL
+            columnas = "(fecha_inicio, estado, productos_extraidos, productos_exitosos, productos_fallidos, duracion_segundos, created_at)"
+            valores = "(NOW(), 'procesando', 0, 0, 0, 0, NOW())"
+
+            if db_instancia.engine.name == 'postgresql':
+                # Query para Postgres con RETURNING
+                query = f"INSERT INTO extracciones {columnas} VALUES {valores} RETURNING id_extraccion"
+            else:
+                # Query para MySQL (normal)
+                query = f"INSERT INTO extracciones {columnas} VALUES {valores}"
             
             with db_instancia.connection.cursor() as cursor:
                 cursor.execute(query)
-                db_instancia.connection.commit()
                 
-                # Intentar obtener el ID (funciona directo en MySQL)
-                if hasattr(cursor, 'lastrowid') and cursor.lastrowid:
-                    return cursor.lastrowid
+                if db_instancia.engine.name == 'postgresql':
+                    id_generado = cursor.fetchone()[0] # El ID viene del RETURNING
                 else:
-                    # Alternativa para PostgreSQL si el cursor no tiene lastrowid
-                    cursor.execute("SELECT LASTVAL()")
-                    result = cursor.fetchone()
-                    return result[0] if result else None
+                    id_generado = cursor.lastrowid # Clásico de MySQL
+                
+                db_instancia.connection.commit()
+                return id_generado
         except Exception as e:
             logger.error(f"[LOAD] Error registrando extracción en {nombre_log}: {e}")
             return None
@@ -113,20 +117,24 @@ class LoadCanastaBasica:
         return False, None
 
     def _registrar_id_especifico_extraccion(self, db_instancia, id_extraccion, nombre_log):
-        """Intenta registrar un ID específico en la tabla extracciones (para mantener simetría)"""
+        """Intenta registrar un ID específico en la tabla extracciones para mantener simetría"""
         if not db_instancia.connect_db():
             return False
         try:
-            # Primero verificamos si ya existe (para evitar errores si ya se registró)
+            # 1. Verificamos si ya existe
             query_check = f"SELECT id_extraccion FROM extracciones WHERE id_extraccion = {id_extraccion}"
             with db_instancia.connection.cursor() as cursor:
                 cursor.execute(query_check)
                 if cursor.fetchone():
                     return True
                 
-                # Si no existe, lo insertamos
-                # Si es SERIAL en Postgres, esto puede requerir OVERRIDING SYSTEM VALUE pero usualmente INSERT directo funciona si no choca
-                query_insert = f"INSERT INTO extracciones (id_extraccion, fecha_inicio, estado) VALUES ({id_extraccion}, NOW(), 'procesando')"
+                # 2. Si no existe, lo insertamos con todos los campos obligatorios
+                # Agregamos los ceros y NOW() para que Postgres no rebote
+                columnas = "(id_extraccion, fecha_inicio, estado, productos_extraidos, productos_exitosos, productos_fallidos, duracion_segundos, created_at)"
+                valores = f"({id_extraccion}, NOW(), 'procesando', 0, 0, 0, 0, NOW())"
+                
+                query_insert = f"INSERT INTO extracciones {columnas} VALUES {valores}"
+                
                 cursor.execute(query_insert)
                 db_instancia.connection.commit()
                 return True
@@ -156,7 +164,9 @@ class LoadCanastaBasica:
             return False
 
         # Agregar fecha de extracción una sola vez para ambas
-        df['fecha_extraccion'] = datetime.now()
+        ahora = datetime.now()
+        df['fecha_extraccion'] = ahora.date() # Lo que ya tenías
+        df['created_at'] = ahora
 
         # --- CARGA DUAL ---
         logger.info("Iniciando carga dual en Base Vieja y Base Nueva...")
