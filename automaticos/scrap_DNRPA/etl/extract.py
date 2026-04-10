@@ -93,12 +93,19 @@ class ExtractDNRPA:
     def _construir_tabla(self, tabla, valor_opcion: str, tipo_vehiculo: int):
         filas = tabla.find_elements(By.TAG_NAME, "tr")
         datos = [[c.text for c in f.find_elements(By.TAG_NAME, "td")] for f in filas]
-        df = pd.DataFrame(datos).iloc[2:26, 0:13]
-        df[df.columns[0]] = [6, 2, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50, 54, 58, 62, 66, 70, 74, 78, 82, 86, 90, 94]
+        
+        df_provs = pd.DataFrame(datos).iloc[2:27, 0:13]
+        df_provs[df_provs.columns[0]] = [6, 2, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50, 54, 58, 62, 66, 70, 74, 78, 82, 86, 90, 94, 1]
+        
+        logger.info(f"[EXTRACT] Se cargaron {len(df_provs)} filas (Provincias + Nación)")
+
+
         fechas = [datetime(int(valor_opcion), m, 1).strftime("%Y-%m-%d") for m in range(1, 13)]
-        df.columns = ['id_provincia'] + fechas
-        df_melted = df.melt(id_vars=['id_provincia'], var_name='fecha', value_name='cantidad')
+        df_provs.columns = ['id_provincia'] + fechas
+
+        df_melted = df_provs.melt(id_vars=['id_provincia'], var_name='fecha', value_name='cantidad')
         df_melted['id_vehiculo'] = tipo_vehiculo
+
         self.df_total = pd.concat([self.df_total, df_melted])
 
     def _transformar_cantidad_vehiculos(self):

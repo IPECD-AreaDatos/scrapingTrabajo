@@ -28,10 +28,13 @@ def main():
     logger.info("=== INICIO ETL CANASTA BÁSICA - %s ===", inicio.strftime("%Y-%m-%d %H:%M:%S"))
     logger.info("=" * 80)
 
+    SYNC_MODE = True
+
     extractor = None
     loader    = None
 
     try:
+
         # EXTRACT
         logger.info("1. [EXTRACT] Inicializando extractor...")
         extractor = ExtractCanastaBasica(enable_parallel=True, max_workers=2)  # 2 workers para no saturar RAM del servidor
@@ -85,6 +88,16 @@ def main():
         logger.info("4. [LOAD] Cargando a base de datos...")
         loader = LoadCanastaBasica()
         exito = loader.load(df)
+
+        # --- NUEVA SECCIÓN DE SINCRONIZACIÓN ---
+        if SYNC_MODE:
+            logger.info(">>> MODO SINCRONIZACIÓN ACTIVADO <<<")
+            extractor = LoadCanastaBasica()
+            # Suponiendo que metiste la función en el extractor
+            registros = extractor.sync_mysql_to_postgres()
+            logger.info(f"Proceso de sincronización finalizado. Registros: {registros}")
+            return # Terminamos aquí para no correr el scraper normal
+        # ---------------------------------------
 
         if exito:
             logger.info("=== Proceso ETL completado EXITOSAMENTE ===")

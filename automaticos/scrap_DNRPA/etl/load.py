@@ -69,41 +69,64 @@ class LoadDNRPA:
         return "public" if self.version == "2" else None
 
     def _update_sheets(self, df):
-        """Actualiza Patentamiento de Autos (Fila 7) y Motos (Fila 8) para Corrientes (18)"""
+        """Actualiza Datos de Corrientes y Matrices de NEA + Nación (Autos y Motos)"""
         try:
-            # Filtrar Corrientes y última fecha
+            # 1. Identificar última fecha y preparar tags
             ultima_fecha = df['fecha'].max()
-            df_corr = df[(df['id_provincia'] == 18) & (df['fecha'] == ultima_fecha)]
-            
-            # id_vehiculo: 1 -> Autos, 2 -> Motos
-            val_autos = df_corr[df_corr['id_vehiculo'] == 1]['cantidad'].sum()
-            val_motos = df_corr[df_corr['id_vehiculo'] == 2]['cantidad'].sum()
+            meses_es = {1:"ene", 2:"feb", 3:"mar", 4:"abr", 5:"may", 6:"jun", 7:"jul", 8:"ago", 9:"sept", 10:"oct", 11:"nov", 12:"dic"}
+            tag_fecha_datos = f"{meses_es[ultima_fecha.month]}-{str(ultima_fecha.year)[-2:]}" # "mar-26"
+            tag_fecha_matriz = f"{meses_es[ultima_fecha.month]}-{ultima_fecha.year}"      # "mar-2026"
 
+            # 2. Filtrar datos necesarios (Corrientes, NEA y Nación)
+            df_mes = df[df['fecha'] == ultima_fecha]
+            
+            # id_provincia: 18=Ctes, 6=Chaco, 54=Misiones, 34=Formosa, 1=Nacion
+            map_filas_matriz = {6: 2, 54: 3, 34: 4, 1: 5} 
+
+            # 3. Preparar conexión a Google Sheets
             key_dict = loads(os.getenv('GOOGLE_SHEETS_API_KEY'))
             SPREADSHEET_ID = '1L_EzJNED7MdmXw_rarjhhX8DpL7HtaKpJoRwyxhxHGI'
             creds = service_account.Credentials.from_service_account_info(key_dict, scopes=['https://www.googleapis.com/auth/spreadsheets'])
             service = build('sheets', 'v4', credentials=creds)
 
-            meses_es = {1:"ene", 2:"feb", 3:"mar", 4:"abr", 5:"may", 6:"jun", 7:"jul", 8:"ago", 9:"sept", 10:"oct", 11:"nov", 12:"dic"}
-            tag_fecha = f"{meses_es[ultima_fecha.month]}-{str(ultima_fecha.year)[-2:]}"
+            batch_data = []
 
-            # Buscar columna en Fila 3
-            res = service.spreadsheets().values().get(spreadsheetId=SPREADSHEET_ID, range="Datos!3:3").execute()
-            headers = res.get("values", [[]])[0]
-            col_idx = next((i for i, h in enumerate(headers) if h and tag_fecha in h.lower()), None)
-            
-            if col_idx is not None:
-                letra = self._num_to_col(col_idx)
-                # Fila 7: Autos, Fila 8: Motos
-                batch_data = [
-                    {'range': f"Datos!{letra}7", 'values': [[str(val_autos)]]},
-                    {'range': f"Datos!{letra}8", 'values': [[str(val_motos)]]}
-                ]
+            # --- A. ACTUALIZAR HOJA "DATOS" (Corrientes Fila 7 y 8) ---
+            res_datos = service.spreadsheets().values().get(spreadsheetId=SPREADSHEET_ID, range="Datos!3:3").execute()
+            headers_datos = res_datos.get("values", [[]])[0]
+            col_datos_idx = next((i for i, h in enumerate(headers_datos) if h and tag_fecha_datos in h.lower()), None)
+
+            if col_datos_idx is not None:
+                letra_datos = self._num_to_col(col_datos_idx)
+                val_autos_ctes = df_mes[(df_mes['id_provincia'] == 18) & (df_mes['id_vehiculo'] == 1)]['cantidad'].sum()
+                val_motos_ctes = df_mes[(df_mes['id_provincia'] == 18) & (df_mes['id_vehiculo'] == 2)]['cantidad'].sum()
+                batch_data.append({'range': f"Datos!{letra_datos}7", 'values': [[str(val_autos_ctes)]]})
+                batch_data.append({'range': f"Datos!{letra_datos}8", 'values': [[str(val_motos_ctes)]]})
+
+            # --- B. ACTUALIZAR MATRICES NEA + NACIÓN ---
+            # Procesamos Hoja "Patentamiento Autos" (id_vehiculo 1) y "Patentamiento Motos" (id_vehiculo 2)
+            for hoja, vehiculo_id in [("Patentamiento Autos", 1), ("Patentamiento Motos", 2)]:
+                res_matriz = service.spreadsheets().values().get(spreadsheetId=SPREADSHEET_ID, range=f"'{hoja}'!1:1").execute()
+                headers_matriz = res_matriz.get("values", [[]])[0]
+                col_matriz_idx = next((i for i, h in enumerate(headers_matriz) if h and tag_fecha_matriz in h.lower()), None)
+
+                if col_matriz_idx is not None:
+                    letra_matriz = self._num_to_col(col_matriz_idx)
+                    for prov_id, fila in map_filas_matriz.items():
+                        valor = df_mes[(df_mes['id_provincia'] == prov_id) & (df_mes['id_vehiculo'] == vehiculo_id)]['cantidad'].sum()
+                        batch_data.append({
+                            'range': f"'{hoja}'!{letra_matriz}{fila}",
+                            'values': [[str(int(valor))]]
+                        })
+
+            # 4. Ejecutar toda la actualización en un solo viaje
+            if batch_data:
                 service.spreadsheets().values().batchUpdate(
                     spreadsheetId=SPREADSHEET_ID, 
                     body={'valueInputOption': 'USER_ENTERED', 'data': batch_data}
                 ).execute()
-                logger.info(f"[OK] Sheets actualizado para {tag_fecha}: Autos ({val_autos}), Motos ({val_motos})")
+                logger.info(f"[OK] Sheets actualizado para {tag_fecha_matriz} (Corrientes, NEA y Nación)")
+
         except Exception as e:
             logger.error(f"Error actualizando Sheets DNRPA: {e}")
 

@@ -6,6 +6,7 @@ import os
 import sys
 import pandas as pd
 import logging
+from sqlalchemy import text
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -172,3 +173,48 @@ class LoadCanastaBasica:
         exito_v2, _ = self._ejecutar_carga_por_instancia(self.db_v2, df, "BASE NUEVA (Postgres)", id_extraccion_propuesto=id_extraccion)
 
         return exito_v1 and exito_v2
+    
+    def sync_mysql_to_postgres(self):
+        """
+        Sincroniza registros de precios_productos desde MySQL a Postgres
+        basado en el ID máximo (Estrategia 1).
+        """
+        # --- AGREGÁ ESTO PARA INICIALIZAR LOS ENGINES ---
+        self.db_v1.connect_db() # Inicializa MySQL
+        self.db_v2.connect_db() # Inicializa Postgres
+        # ------------------------------------------------
+        logger.info("Iniciando sincronización incremental MySQL -> Postgres...")
+        
+        try:
+            # --- 1. SINCRONIZAR TABLA 'extracciones' PRIMERO ---
+            with self.db_v2.engine.connect() as conn:
+                last_ext_id = conn.execute(text("SELECT MAX(id_extraccion) FROM extracciones")).scalar() or 0
+            
+            df_ext_nuevas = pd.read_sql(f"SELECT * FROM extracciones WHERE id_extraccion > {last_ext_id}", self.db_v1.engine)
+            
+            if not df_ext_nuevas.empty:
+                logger.info(f"Sincronizando {len(df_ext_nuevas)} registros en tabla 'extracciones'...")
+                df_ext_nuevas.to_sql('extracciones', self.db_v2.engine, if_exists='append', index=False)
+
+            # --- 2. SINCRONIZAR TABLA 'precios_productos' ---
+            with self.db_v2.engine.connect() as conn:
+                last_precio_id = conn.execute(text("SELECT MAX(id_precio_producto) FROM precios_productos")).scalar() or 0
+            
+            df_precios_nuevos = pd.read_sql(f"SELECT * FROM precios_productos WHERE id_precio_producto > {last_precio_id}", self.db_v1.engine)
+            
+            if df_precios_nuevos.empty:
+                logger.info("No hay precios nuevos para sincronizar.")
+                return 0
+
+            logger.info(f"Sincronizando {len(df_precios_nuevos)} registros en tabla 'precios_productos'...")
+            df_precios_nuevos.to_sql('precios_productos', self.db_v2.engine, if_exists='append', index=False)
+            
+            logger.info("Sincronización completada exitosamente.")
+            return len(df_precios_nuevos)
+
+        except Exception as e:
+            logger.error(f"Error en la sincronización incremental: {e}")
+            return 0
+        finally:
+            self.db_v1.close_connections()
+            self.db_v2.close_connections()
