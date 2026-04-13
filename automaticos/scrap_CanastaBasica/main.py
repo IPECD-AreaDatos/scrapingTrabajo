@@ -6,7 +6,7 @@ import os
 import logging
 from datetime import datetime
 from dotenv import load_dotenv
-
+import random
 from etl.extract import ExtractCanastaBasica
 from etl.transform import TransformCanastaBasica
 from etl.load import LoadCanastaBasica
@@ -40,15 +40,6 @@ def main():
         extractor = ExtractCanastaBasica(enable_parallel=True, max_workers=2)  # 2 workers para no saturar RAM del servidor
         links_list = extractor.read_links_from_db()
 
-        # --- FILTRO PARA EJECUTAR SOLO DELIMART ---
-        logger.info("Filtrando links: Ejecutando únicamente productos de Delimart")
-        
-        # Filtramos usando la columna 'nombre_super' que es la que viene de la DB
-        links_list = [
-            link for link in links_list 
-            if str(link.get('nombre_super', '')).strip().lower() == 'delimart'
-        ]
-        # ------------------------------------------
         if not links_list:
             logger.error("[ERROR] No se encontraron links activos en la base de datos.")
             return
@@ -92,7 +83,7 @@ def main():
 
         # VALIDATE
         logger.info("3. [VALIDATE] Validando datos...")
-        #ValidateCanastaBasica().validate(df)
+        ValidateCanastaBasica().validate(df)
 
         # LOAD
         logger.info("4. [LOAD] Cargando a base de datos...")

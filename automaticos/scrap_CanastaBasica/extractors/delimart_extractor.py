@@ -42,12 +42,20 @@ class DelimartExtractor:
         'name': [
             ".product-detail h1",
             ".product-name",
+            "h1.name",             # Selector específico para lo que pasaste
+            ".product-name h1",
             "h1", 
             "[class*='product-name']",
             "h1 .vtex-store-components-3-x-productBrand"
         ],
         'price_actual': [  # El precio que pagás (Naranja/Grande)
+            "h5.product-price",
+            "h4.product-price",
+            ".product-price h4",   # El nuevo ganador según tu HTML
+            ".product-price h5",
             ".product-detail .product-price h5",
+
+            ".product-info-main .product-price",
             "main .product-price h5",
             ".product-price h5"
         ],
@@ -172,8 +180,16 @@ class DelimartExtractor:
             logger.info(f"Navegando a: {url}")
             self.driver.set_page_load_timeout(15)  # OPTIMIZADO: Reducido de 30 a 15
             self.driver.get(url)
-            SmartWait.wait_minimal(0.5)  # OPTIMIZADO: Reducido de 2s a 0.5s
-            logger.info(f"Pagina cargada: {self.driver.title}")
+
+            # 1. ESPERA ACTIVA: Esperamos a que el nombre sea visible
+            # Esto evita que leamos la página anterior (como la Pepsi)
+            WebDriverWait(self.driver, 10).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, self.SELECTORS['name'][0]))
+            )
+            
+            # 2. SCROLL DINÁMICO: Forzamos a la página a renderizar el precio
+            self.driver.execute_script("window.scrollBy(0, 300);")
+            time.sleep(1) # Un segundo real para que el JS de la página calcule el precio
             
             name = self._extract_name()
             if not name:
@@ -184,6 +200,13 @@ class DelimartExtractor:
             
             # CAMBIO AQUÍ: Ahora recibimos el diccionario de precios
             prices_dict = self._extract_price()
+
+            if not prices_dict['actual']:
+                # Último intento: un scroll más profundo por si acaso
+                self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight/4);")
+                time.sleep(1)
+                prices_dict = self._extract_price()
+
             if not prices_dict['actual']:
                 logger.warning(f"No se pudo extraer precio de {url}")
                 return {"error_type": "no_price", "url": url}
@@ -200,76 +223,84 @@ class DelimartExtractor:
             return {"error_type": "exception", "url": url, "titulo": str(e)}
     
     def _extract_name(self):
-        """Extrae y limpia el nombre del producto"""
-        for i, selector in enumerate(self.SELECTORS['name'], 1):
+        """Extrae el nombre con reintentos y scrolls"""
+        for selector in self.SELECTORS['name']:
             try:
-                logger.debug(f"Probando selector de nombre {i}: {selector}")
-                element = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, selector)))
+                # Espera explícita de hasta 5 segundos por cada selector
+                element = WebDriverWait(self.driver, 5).until(
+                    EC.visibility_of_element_located((By.CSS_SELECTOR, selector))
+                )
                 raw_name = element.text.strip()
                 
                 if raw_name:
-                    logger.debug(f"Nombre encontrado con selector {i}: {raw_name}")
-                    clean_name = self._clean_name(raw_name)
-                    logger.debug(f"Nombre limpio: {clean_name}")
-                    return clean_name
-                    
-            except Exception as e:
-                logger.debug(f"Selector {i} fallo: {str(e)}")
+                    return self._clean_name(raw_name)
+            except:
                 continue
-        
-        logger.error("No se pudo encontrar el nombre con ningun selector")
         return None
 
     def _clean_name(self, raw_name):
         """Limpia el nombre del producto eliminando marca y eslogan"""
         try:
-            lines = raw_name.split('\n')
+            if not raw_name:
+                return None
             
+            # Limpiar saltos de línea y espacios múltiples
+            lines = [l.strip() for l in raw_name.split('\n') if l.strip()]
+            
+            # Si el nombre viene en varias líneas (Marca \n Producto \n Peso)
+            # Intentamos reconstruirlo o elegir la línea más descriptiva
             if len(lines) >= 2:
-                # Buscar línea con palabras clave del producto
-                for line in lines:
-                    clean_line = line.strip()
-                    if clean_line and any(keyword in clean_line for keyword in ['Leche', 'LT', '1 LT']):
-                        return clean_line
-                
-                # Si no encuentra patrones, tomar segunda línea
-                return lines[1].strip()
-            else:
-                return raw_name
+                # Si la primera línea es muy corta (posible marca como "Don Juan") 
+                # y la segunda es el producto, las unimos o tomamos la segunda.
+                if len(lines[0]) < 10:
+                    return f"{lines[0]} {lines[1]}".strip()
+                return lines[0]
+            
+            return lines[0] if lines else raw_name
                 
         except Exception as e:
-            logger.warning(f"Error al limpiar nombre: {str(e)}, usando nombre original")
+            logger.warning(f"Error al limpiar nombre: {str(e)}")
             return raw_name
     
     def _extract_price(self):
         """Extrae el precio actual y el regular si existe"""
         prices = {'actual': "", 'regular': ""}
         
+        # Intentamos esperar específicamente a que el h5 tenga un "$"
         try:
+                # Esperamos hasta 5 segundos a que aparezca el símbolo de moneda
+                element = WebDriverWait(self.driver, 5).until(
+                    lambda d: "$" in d.find_element(By.CSS_SELECTOR, "h5.product-price").text
+                )
+        except:
+            pass
+        
+        try:
+
             # 1. Buscar precio de oferta/actual (el naranja grande)
             for selector in self.SELECTORS['price_actual']:
                 try:
-                    element = self.driver.find_element(By.CSS_SELECTOR, selector)
-                    if element.is_displayed():
-                        prices['actual'] = element.text.strip()
+                    el = self.driver.find_element(By.CSS_SELECTOR, selector)
+                    text = el.text.strip()
+                    if "$" in text:
+                        prices['actual'] = text
                         break
                 except: continue
 
-            # 2. Buscar precio regular (el tachado)
+            # 2. Buscar precio regular
             for selector in self.SELECTORS['price_regular']:
                 try:
-                    element = self.driver.find_element(By.CSS_SELECTOR, selector)
-                    if element.is_displayed():
-                        prices['regular'] = element.text.strip()
+                    el = self.driver.find_element(By.CSS_SELECTOR, selector)
+                    if el.is_displayed():
+                        prices['regular'] = el.text.strip()
                         break
                 except: continue
-            
-            # Si no hay precio regular, el normal es el mismo que el actual
+                
             if not prices['regular']:
                 prices['regular'] = prices['actual']
                 
         except Exception as e:
-            logger.warning(f"Error en la extracción de bloque de precios: {e}")
+            logger.warning(f"Error en bloque de precios: {e}")
             
         return prices
     
@@ -364,24 +395,18 @@ class DelimartExtractor:
     
     def _select_best_price(self, prices_found):
         """Selecciona el precio más probable"""
+        if not prices_found:
+            return ""
+
+        # Intentamos primero los que el script cree que son principales
         main_prices = [p for p in prices_found if p['context'] == 'producto_principal']
-        
         if main_prices:
-            selected_price = main_prices[0]['text']
-            logger.debug(f"Precio principal seleccionado: '{selected_price}'")
-            return selected_price
+            return main_prices[0]['text']
         
-        # Heurísticas para selección
-        sorted_prices = sorted(prices_found, 
-                             key=lambda x: (
-                                 0 if 'product-price' in x['selector'] else 1,
-                                 0 if 'col-md-5' in str(x['element'].get_attribute('outerHTML')) else 1,
-                                 len(x['text']),
-                             ))
-        
-        selected_price = sorted_prices[0]['text']
-        logger.debug(f"Precio seleccionado por heuristicas: '{selected_price}'")
-        return selected_price
+        # SI NO HAY PRINCIPALES: No devolvemos vacío, devolvemos el primero encontrado
+        # Esto es lo que estaba fallando en la carne.
+        logger.info(f"Usando precio de respaldo (no detectado como principal): {prices_found[0]['text']}")
+        return prices_found[0]['text']
     
     def _is_valid_price(self, text):
         """Determina si un texto es un precio válido"""
