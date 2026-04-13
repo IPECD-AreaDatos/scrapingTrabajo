@@ -40,18 +40,21 @@ class DelimartExtractor:
     # Selectores centralizados para fácil mantenimiento
     SELECTORS = {
         'name': [
+            ".product-detail h1",
             ".product-name",
             "h1", 
             "[class*='product-name']",
             "h1 .vtex-store-components-3-x-productBrand"
         ],
-        'price': [  # JUNTAMOS TODOS LOS PRECIOS EN UN SOLO SELECTOR
-            ".product-price",
-            ".price", ".precio", ".selling-price", ".current-price",
-            "[class*='price']", "[class*='precio']",
-            "span[data-testid*='price']", "div[data-testid*='price']",
-            ".original-price", ".old-price", ".list-price",
-            ".price--old", ".price-before", ".was-price"
+        'price_actual': [  # El precio que pagás (Naranja/Grande)
+            ".product-detail .product-price h5",
+            "main .product-price h5",
+            ".product-price h5"
+        ],
+        'price_regular': [  # El precio tachado (Gris/Chico)
+            ".product-detail .product-price-regular",
+            ".product-price-regular",
+            "p.product-price-regular"
         ],
         'unit_price': [
             ".price-per-unit", ".unit-price", ".price-by-weight",
@@ -179,18 +182,19 @@ class DelimartExtractor:
             
             logger.info(f"Nombre encontrado: {name}")
             
-            price = self._extract_price()
-            if not price:
-                logger.warning("No se pudo extraer precio de %s", url)
-                return {"error_type": "no_price", "url": url, "titulo": self.driver.title}
+            # CAMBIO AQUÍ: Ahora recibimos el diccionario de precios
+            prices_dict = self._extract_price()
+            if not prices_dict['actual']:
+                logger.warning(f"No se pudo extraer precio de {url}")
+                return {"error_type": "no_price", "url": url}
             
-            logger.info("Precio encontrado: %s", price)
-            
+            logger.info("Precio encontrado: %s", prices_dict)
+
             discounts = self._extract_discounts()
-            logger.info(f"Descuentos encontrados: {len(discounts)}")
             
-            return self._build_product_data(name, price, discounts, url)
-            
+            # CAMBIO AQUÍ: Pasamos el diccionario a la construcción final
+            return self._build_product_data(name, prices_dict, discounts, url)
+        
         except Exception as e:
             logger.error("Error extrayendo %s: %s", url, str(e))
             return {"error_type": "exception", "url": url, "titulo": str(e)}
@@ -238,8 +242,36 @@ class DelimartExtractor:
             return raw_name
     
     def _extract_price(self):
-        """Extrae el precio principal - MÉTODO SIMPLIFICADO"""
-        return self._search_price(self.SELECTORS['price'])
+        """Extrae el precio actual y el regular si existe"""
+        prices = {'actual': "", 'regular': ""}
+        
+        try:
+            # 1. Buscar precio de oferta/actual (el naranja grande)
+            for selector in self.SELECTORS['price_actual']:
+                try:
+                    element = self.driver.find_element(By.CSS_SELECTOR, selector)
+                    if element.is_displayed():
+                        prices['actual'] = element.text.strip()
+                        break
+                except: continue
+
+            # 2. Buscar precio regular (el tachado)
+            for selector in self.SELECTORS['price_regular']:
+                try:
+                    element = self.driver.find_element(By.CSS_SELECTOR, selector)
+                    if element.is_displayed():
+                        prices['regular'] = element.text.strip()
+                        break
+                except: continue
+            
+            # Si no hay precio regular, el normal es el mismo que el actual
+            if not prices['regular']:
+                prices['regular'] = prices['actual']
+                
+        except Exception as e:
+            logger.warning(f"Error en la extracción de bloque de precios: {e}")
+            
+        return prices
     
     def _extract_discounts(self):
         """Extrae descuentos aplicables"""
@@ -377,25 +409,30 @@ class DelimartExtractor:
     def _get_price_context(self, element):
         """Obtiene el contexto del precio"""
         try:
-            parent = element.find_element(By.XPATH, "./..")
-            grandparent = parent.find_element(By.XPATH, "./..")
-            context_html = grandparent.get_attribute('outerHTML').lower()
+            # Subimos varios niveles para ver en qué sección estamos
+            parent_text = self.driver.execute_script(
+                "return arguments[0].closest('section, div[class*=\"related\"], div[id*=\"related\"], .frecuently-bought') ? 'secundario' : 'principal';", 
+                element
+            )
             
-            if any(word in context_html for word in ['relacionado', 'recomendado', 'visto', 'frecuente', 'juntos']):
-                return "producto_secundario"
-            elif 'product-detail' in context_html or 'col-md-5' in context_html:
+            # Verificamos si el elemento está dentro de .product-detail (donde está la carne)
+            is_in_main = self.driver.execute_script(
+                "return arguments[0].closest('.product-detail') !== null;", 
+                element
+            )
+
+            if is_in_main:
                 return "producto_principal"
-            else:
-                return "desconocido"
+            return "producto_secundario"
         except:
             return "desconocido"
     
-    def _build_product_data(self, name, price, discounts, url):
+    def _build_product_data(self, name, prices_dict, discounts, url):
         """Construye el diccionario de datos del producto"""
         return {
             "nombre": name,
-            "precio_normal": self._clean_price(price),
-            "precio_descuento": self._clean_price(price),
+            "precio_normal": self._clean_price(prices_dict['regular']),
+            "precio_descuento": self._clean_price(prices_dict['actual']),
             "precio_por_unidad": "0",
             "unidad": "",
             "descuentos": " | ".join(discounts) if discounts else "Ninguno",

@@ -40,12 +40,15 @@ def main():
         extractor = ExtractCanastaBasica(enable_parallel=True, max_workers=2)  # 2 workers para no saturar RAM del servidor
         links_list = extractor.read_links_from_db()
 
-        # --- FILTRO DE PRUEBA: Solo Depot o La Reina ---
-        # Filtramos para que solo traiga links de un super específico para que sea rápido
-        links_list = [link for link in links_list if 'depot' in link['link'].lower()][:5] # Solo 5 links de Depot
-        logger.info(f"MODO PRUEBA: Procesando solo {len(links_list)} links de Depot.")
-        # -----------------------------------------------
-
+        # --- FILTRO PARA EJECUTAR SOLO DELIMART ---
+        logger.info("Filtrando links: Ejecutando únicamente productos de Delimart")
+        
+        # Filtramos usando la columna 'nombre_super' que es la que viene de la DB
+        links_list = [
+            link for link in links_list 
+            if str(link.get('nombre_super', '')).strip().lower() == 'delimart'
+        ]
+        # ------------------------------------------
         if not links_list:
             logger.error("[ERROR] No se encontraron links activos en la base de datos.")
             return
