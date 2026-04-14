@@ -3,6 +3,7 @@ MAIN - Orquestador ETL para Salud (Embarazo)
 """
 import os
 import logging
+import pandas as pd
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -40,6 +41,25 @@ def main():
         logger.info("Extrayendo datos desde Google Sheets...")
         df_raw = Extract().extract()
 
+        print("\n" + "="*50)
+        print("REPORTE TÉCNICO PRE-TRANSFORMACIÓN")
+        print("="*50)
+        print(f"Total de registros: {len(df_raw)}")
+        print(f"Total de columnas: {len(df_raw.columns)}")
+        
+        print("\n--- ANÁLISIS DE COLUMNAS ---")
+        # Esto arma una tablita con nombre, tipo de dato y cuántos nulos hay
+        info_columnas = pd.DataFrame({
+            'Tipo': df_raw.dtypes,
+            'No Nulos': df_raw.count(),
+            'Nulos': df_raw.isnull().sum(),
+            '% Completitud': (df_raw.count() / len(df_raw) * 100).round(2)
+        })
+        print(info_columnas)
+
+        print("\n--- PRIMEROS 5 REGISTROS (VISTA PREVIA) ---")
+        print(df_raw.head())
+        print("="*50 + "\n")
         exit()
         
         logger.info("Transformando datos...")
