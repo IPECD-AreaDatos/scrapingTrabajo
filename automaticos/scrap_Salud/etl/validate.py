@@ -11,7 +11,7 @@ class Validate:
 
         # Columnas críticas para el tablero de salud
         # (Usamos los nombres ya normalizados por el Transform)
-        columnas_criticas = ['dni', 'fecha_notificacion']
+        columnas_criticas = ['dni', 'fecha']
         
         for col in columnas_criticas:
             if col not in df.columns:

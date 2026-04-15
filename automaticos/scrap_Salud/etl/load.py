@@ -13,7 +13,7 @@ class Load:
         self.database = database
         self.port = port
         self.engine = None
-        self.tabla = "seguimiento_embarazo" # Nombre de la tabla en Postgres
+        self.tabla = "derivaciones_red_obstetricia" # Nombre de la tabla en Postgres
 
     def conectar_bdd(self):
         """Establece la conexión a PostgreSQL."""

@@ -7,36 +7,70 @@ from googleapiclient.discovery import build
 
 logger = logging.getLogger(__name__)
 
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-# ID de la nueva hoja de Salud - Embarazo
-SPREADSHEET_ID = '18KkMS1B3iIQ6ItcuwE3m5035-xskKi4gOXxHU5FQMS4' 
-RANGO = 'EmbarazadasAR!A:AZ' 
-
 class Extract:
-    """Lee los datos de embarazo desde Google Sheets."""
+    def __init__(self):
+        self.scopes = ['https://www.googleapis.com/auth/spreadsheets']
+        self.key_dict = loads(os.getenv('GOOGLE_SHEETS_API_KEY'))
+        self.creds = service_account.Credentials.from_service_account_info(self.key_dict, scopes=self.scopes)
+        self.service = build('sheets', 'v4', credentials=self.creds)
+        self.sheet = self.service.spreadsheets()
 
-    def extract(self) -> pd.DataFrame:
-        logger.info("[EXTRACT] Conectando a Google Sheets (Salud)...")
-        
-        key_dict = loads(os.getenv('GOOGLE_SHEETS_API_KEY'))
-        creds = service_account.Credentials.from_service_account_info(key_dict, scopes=SCOPES)
-        service = build('sheets', 'v4', credentials=creds)
-        sheet = service.spreadsheets()
+    def extract_derivaciones(self, spreadsheet_id, meses_map) -> pd.DataFrame:
+        """Extrae datos de la Red de Obstetricia (Multi-hoja)."""
+        logger.info("[EXTRACT] Extrayendo Derivaciones Red Obstetricia...")
 
-        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=RANGO).execute()
-        values = result.get('values', [])
+        all_dfs = []
 
-        if not values:
-            logger.warning("[EXTRACT] No se encontraron datos en la hoja.")
+        for mes_nombre, fecha_valor in meses_map.items():
+            try:
+                rango = f"'{mes_nombre}'!A:O"
+                result = self.sheet.values().get(spreadsheetId=spreadsheet_id, range=rango).execute()
+                values = result.get('values', [])
+
+                if not values:
+                    logger.warning(f"[EXTRACT] Hoja {mes_nombre} vacía.")
+                    continue
+
+                # Crear DataFrame de la hoja actual
+                headers = values[0]
+                df_mes = pd.DataFrame(values[1:], columns=headers)
+                
+                # Limpieza rápida de filas vacías antes de juntar
+                df_mes = df_mes[df_mes['DNI'].notna() & (df_mes['DNI'] != '')]
+                
+                # AGREGAMOS LA COLUMNA MÁGICA
+                df_mes['fecha_proceso_mes'] = fecha_valor
+                df_mes['nombre_mes_tab'] = mes_nombre
+                
+                all_dfs.append(df_mes)
+                logger.info(f"[EXTRACT] {mes_nombre}: {len(df_mes)} filas leídas.")
+
+            except Exception as e:
+                # Si una hoja no existe todavía (ej. MAYO), que no rompa todo el script
+                logger.error(f"[EXTRACT] Error leyendo {mes_nombre}: {e}")
+
+        if not all_dfs:
             return pd.DataFrame()
 
-        # Usamos la primera fila como encabezados
-        headers = values[0]
-        data = values[1:]
+        # Concatenamos todo en un solo DF
+        df_final = pd.concat(all_dfs, ignore_index=True)
+        logger.info(f"[EXTRACT] TOTAL ACUMULADO: {len(df_final)} filas.")
         
-        # Filtramos filas vacías (chequeamos que tengan al menos el DNI o Apellido)
-        df = pd.DataFrame(data, columns=headers)
-        df = df[df['DNI'].notna() & (df['DNI'] != '')]
+        return df_final
+    
+    def extract_sumar(self, spreadsheet_id, fecha_proceso) -> pd.DataFrame:
+        """Extrae datos del Padrón SUMAR (Hoja única)."""
+        logger.info(f"[EXTRACT] Extrayendo Padrón SUMAR (Mes: {fecha_proceso})...")
 
-        logger.info("[EXTRACT] Salud: %d filas leídas.", len(df))
+        rango = "Embarazadas!A:AQ" 
+        result = self.sheet.values().get(spreadsheetId=spreadsheet_id, range=rango).execute()
+        values = result.get('values', [])
+        
+        if not values: return pd.DataFrame()
+        
+        df = pd.DataFrame(values[1:], columns=values[0])
+
+        df['fecha_proceso_sumar'] = fecha_proceso
+        
+        logger.info(f"[EXTRACT] SUMAR: {len(df)} filas leídas.")
         return df
