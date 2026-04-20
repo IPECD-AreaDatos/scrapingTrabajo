@@ -171,8 +171,8 @@ class CarrefourExtractor:
                     return None
                 
             self.driver.get(url)
-            # OPTIMIZADO: Espera mínima, usar WebDriverWait cuando sea necesario
-            SmartWait.wait_minimal(0.3)  # Reducido de 2s a 0.3s
+            # AUMENTADO: Dar más tiempo para que VTEX hidrate los precios (crítico en AWS)
+            SmartWait.wait_minimal(2.0) 
             logger.info(f"[EXTRACT] Página cargada: {self.driver.title}")
             
             self._cerrar_popups_molestos()
@@ -505,15 +505,18 @@ class CarrefourExtractor:
                 logger.info(f"   Selector {i+1}: '{selector}' - Elementos: {len(elementos)}")
                 
                 for j, elem in enumerate(elementos):
+                    # FLEXIBILIZADO: Intentar obtener texto incluso si Selenium duda de la visibilidad
                     texto = elem.text.strip()
+                    if not texto:
+                        texto = elem.get_attribute("textContent").strip()
+                    
                     is_visible = elem.is_displayed()
                     logger.info(f"     Elemento {j+1}: '{texto}' - Visible: {is_visible}")
                     
-                    if is_visible and texto and any(c.isdigit() for c in texto):
-                        logger.info(f"     [OK] PRECIO VÁLIDO ENCONTRADO: '{texto}'")
+                    # Si tiene números y $ o solo números, lo consideramos válido
+                    if texto and any(c.isdigit() for c in texto):
+                        logger.info(f"     [OK] PRECIO ENCONTRADO: '{texto}'")
                         return texto
-                    else:
-                        logger.info(f"     [ERROR] Elemento descartado - Texto: '{texto}', Visible: {is_visible}")
                         
             except Exception as e:
                 logger.debug(f"   Error en selector {selector}: {e}")

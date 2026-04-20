@@ -166,11 +166,12 @@ class DiaExtractor:
 
         try:
             self.driver.get(url)
-            # Espera inteligente: o carga el precio o pasa el timeout
+            # Espera inteligente: o carga el precio o espera un tiempo prudencial
             try:
                 self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "[class*='sellingPriceValue']")))
+                SmartWait.wait_minimal(1.5) # Tiempo extra para hidratación de precios
             except:
-                time.sleep(2) # Espera fija si falla la dinámica
+                SmartWait.wait_minimal(3.0) # Espera mayor si no detecta el elemento rápido
 
             if "404" in self.driver.title or "Pagina no encontrada" in self.driver.title:
                 logger.warning(f"[DIA] 404 No encontrado: {url}")

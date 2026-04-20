@@ -154,7 +154,7 @@ class MasonlineExtractor:
             # ═══════════════════════════════════════════════════════════
             # PASO 2: Verificar disponibilidad del producto
             # ═══════════════════════════════════════════════════════════
-            SmartWait.wait_minimal(0.3)  # OPTIMIZADO: Reducido de 1s a 0.3s 
+            SmartWait.wait_minimal(2.0)  # AUMENTADO: Crítico para carga de precios en VTEX
             disponibilidad = self._verificar_disponibilidad_detallada()
             
             if disponibilidad["estado"] == "no_disponible":
