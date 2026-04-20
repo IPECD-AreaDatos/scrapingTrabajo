@@ -282,9 +282,11 @@ class CarrefourExtractor:
     def _extraer_precio_descuento(self, driver):
         """Extrae precio con descuento"""
         selectores = [
+            ".vtex-product-price-1-x-sellingPriceValue",
             "span.valtech-carrefourar-product-price-0-x-sellingPriceValue",
             "span.valtech-carrefourar-product-price-0-x-currencyInteger",
             "span.valtech-carrefourar-product-price-0-x-currencyContainer",
+            "span[class*='sellingPrice']",
             "[data-testid='price-value']"
         ]
         
@@ -293,7 +295,9 @@ class CarrefourExtractor:
     def _extraer_precio_normal(self, driver, precio_desc):
         """Extrae precio normal"""
         selectores = [
+            ".vtex-product-price-1-x-listPriceValue",
             "span.valtech-carrefourar-product-price-0-x-listPriceValue",
+            "span[class*='listPrice']",
             ".list-price",
             ".original-price"
         ]

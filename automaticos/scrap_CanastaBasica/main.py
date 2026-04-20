@@ -11,6 +11,7 @@ from etl.extract import ExtractCanastaBasica
 from etl.transform import TransformCanastaBasica
 from etl.load import LoadCanastaBasica
 from etl.validate import ValidateCanastaBasica
+from etl.report import ReportCanastaBasica
 from utils.logger import setup_logger
 from utils.optimization import cleanup_environment
 
@@ -49,6 +50,17 @@ def main():
             logger.error("[ERROR] La extracción no generó datos. Abortando.")
             return
         logger.info("[OK] Extracción finalizada: %d filas.", len(df_raw))
+
+        # --- GENERAR REPORTE DE LINKS FALLIDOS ---
+        try:
+            report_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'files')
+            reporter = ReportCanastaBasica(report_dir)
+            report_file = reporter.generate_broken_links_report(df_raw)
+            if report_file:
+                logger.warning(f"!!! ATENCIÓN: Se detectaron links con problemas. Reporte generado en: {report_file}")
+            reporter.clean_old_reports()
+        except Exception as e:
+            logger.error(f"Error generando reporte de links fallidos: {e}")
 
         # Backup
         backup_file = os.path.join(

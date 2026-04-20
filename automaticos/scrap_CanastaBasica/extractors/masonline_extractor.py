@@ -424,20 +424,29 @@ class MasonlineExtractor:
                 
                 # Buscar precio principal
                 precio_principal = None
-                try:
-                    precio_elem = contenedor.find_element(By.CSS_SELECTOR,
-                        ".valtech-gdn-dynamic-product-1-x-currencyContainer")
-                    
-                    if precio_elem.is_displayed():
-                        texto_precio = self._extraer_precio_de_contenedor(precio_elem)
-                        logger.info(f"   Texto precio crudo: '{texto_precio}'")
-                        
-                        if texto_precio:
-                            texto_limpio = self._limpiar_texto_precio(texto_precio)
-                            precio_principal = self._parsear_precio(texto_limpio)
-                            logger.info(f"   Precio principal parseado: {precio_principal}")
-                except Exception as e:
-                    logger.warning(f"   [ERROR] Error extrayendo precio principal: {e}")
+                
+                # LISTA PRIORIZADA DE SELECTORES (Nuevos de VTEX + Custom Masonline)
+                selectores_valor = [
+                    ".vtex-product-price-1-x-sellingPriceValue",
+                    ".valtech-gdn-dynamic-product-1-x-currencyContainer",
+                    ".vtex-product-price-1-x-sellingPrice .vtex-product-price-1-x-currencyContainer",
+                    "span[class*='sellingPrice']",
+                    "[data-testid='product-price']"
+                ]
+
+                for sel in selectores_valor:
+                    try:
+                        precio_elem = contenedor.find_element(By.CSS_SELECTOR, sel)
+                        if precio_elem.is_displayed():
+                            texto_precio = self._extraer_precio_de_contenedor(precio_elem)
+                            if texto_precio:
+                                texto_limpio = self._limpiar_texto_precio(texto_precio)
+                                precio_principal = self._parsear_precio(texto_limpio)
+                                if precio_principal and precio_principal > 0:
+                                    logger.info(f"   [OK] Precio encontrado con '{sel}': {precio_principal}")
+                                    break
+                    except:
+                        continue
                 
                 # Si no hay precio principal, usar fallback
                 if not precio_principal or precio_principal == 0:
@@ -452,8 +461,16 @@ class MasonlineExtractor:
                 # Buscar precio de lista (precio anterior)
                 precio_lista = None
                 try:
-                    elementos_lista = self.driver.find_elements(By.CSS_SELECTOR,
-                        "span.valtech-gdn-dynamic-product-1-x-weighableListPrice")
+                    selectores_lista = [
+                        ".vtex-product-price-1-x-listPriceValue",
+                        "span.valtech-gdn-dynamic-product-1-x-weighableListPrice",
+                        "span[class*='listPrice']"
+                    ]
+                    
+                    elementos_lista = []
+                    for sel_l in selectores_lista:
+                        elementos_lista = self.driver.find_elements(By.CSS_SELECTOR, sel_l)
+                        if elementos_lista: break
                     
                     logger.info(f"   Encontrados {len(elementos_lista)} elementos de precio lista")
                     
