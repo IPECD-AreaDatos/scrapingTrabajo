@@ -72,30 +72,9 @@ def main():
         
         logger.info("Transformando datos de sumar...")
         df_sumar_clean = transformer.transform_sumar(df_sumar_raw)
-
-        print("\n" + "="*50)
-        print("REPORTE TÉCNICO PRE-TRANSFORMACIÓN")
-        print("="*50)
-        print(f"Total de registros: {len(df_sumar_clean)}")        
-        print(f"Total de columnas: {len(df_sumar_clean.columns)}")
-            
-        print("\n--- ANÁLISIS DE COLUMNAS ---")
-            # Esto arma una tablita con nombre, tipo de dato y cuántos nulos hay
-        info_columnas = pd.DataFrame({
-                'Tipo': df_sumar_clean.dtypes,
-                'No Nulos': df_sumar_clean.count(),
-                'Nulos': df_sumar_clean.isnull().sum(),
-                '% Completitud': (df_sumar_clean.count() / len(df_sumar_clean) * 100).round(2)
-            })
-        print(info_columnas)
-
-        print("\n--- PRIMEROS 5 REGISTROS (VISTA PREVIA) ---")
-        print(df_sumar_clean.head(15))
-        print(df_sumar_clean.tail(15))
-        print("="*50 + "\n")
         
         logger.info("Validando calidad de datos...")
-        #validator.validate(df_sumar_clean)
+        validator.validate(df_sumar_clean)
         
         logger.info("Cargando datos en PostgreSQL...")
         loader_sumar = Load(host, user, pwd, db)
@@ -108,6 +87,29 @@ def main():
     except Exception as e:
         logger.error(f"Error en Fuente SUMAR: {e}")
 
+    # --- FLUJO 3: HOSPITALES (VIDAL Y LLANO) ---
+    try:
+        ID_HOSPITALES = '1pVSGXUN0XPXLsY3ijt6FjnMNwTD_6sqyBrF8G-Zd2sc'
+        
+        logger.info("Extrayendo datos de Hospitales...")
+        df_hosp_raw = extracter.extract_alto_riesgo_caps(ID_HOSPITALES)
+        
+        logger.info("Transformando datos de Hospitales...")
+        df_hosp_clean = transformer.transform_alto_riesgo_caps(df_hosp_raw)
+        
+        # Validamos (usamos la misma lógica que ya tenés)
+        validator.validate(df_hosp_clean)
+        
+        logger.info("Cargando datos de Hospitales en PostgreSQL...")
+        loader_hosp = Load(host, user, pwd, db)
+        loader_hosp.tabla = "embarazadas_derivadas_alto_riesgo_caps" 
+        loader_hosp.load(df_hosp_clean)
+        loader_hosp.close()
+        
+        logger.info("=== FLUJO HOSPITALES COMPLETADO ===")
+        
+    except Exception as e:
+        logger.error(f"Error en Fuente Hospitales: {e}")
     
 
 if __name__ == '__main__':

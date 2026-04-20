@@ -162,3 +162,83 @@ class Transform:
 
         logger.info("[TRANSFORM] SUMAR: %d columnas listas.", len(df.columns))
         return df
+    
+    def transform_alto_riesgo_caps(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Normaliza y unifica columnas con lógica de fechas híbrida."""
+        if df.empty: return df
+        df = df.copy()
+        
+        # 1. Normalización inicial de nombres
+        df.columns = [
+            col.strip().lower()
+            .replace(' ', '_').replace('°', '').replace('.', '').replace('/', '_')
+            .replace('á', 'a').replace('é', 'e').replace('í', 'i').replace('ó', 'o').replace('ú', 'u')
+            for col in df.columns
+        ]
+
+        # 2. UNIFICACIÓN DE COLUMNAS (Mismo mapeo que tenías)
+        mapeo_unificacion = {
+            'fecha_de_derivacion': ['fecha_de_derivacio', 'f_de_derivacion'],
+            'sem_gest': ['sema_gest', 'semana_gest', 'semana_gestacional'],
+            'observaciones_rn': ['observaciones___rn', 'observaciones']
+        }
+
+        for principal, variantes in mapeo_unificacion.items():
+            if principal not in df.columns:
+                df[principal] = np.nan
+            for var in variantes:
+                if var in df.columns:
+                    df[principal] = df[principal].fillna(df[var])
+                    df = df.drop(columns=[var])
+
+        df = df.loc[:, ~df.columns.duplicated()]
+
+        # --- LÓGICA DE FECHAS INTELIGENTE ---
+        def parsear_fecha_hibrida(val):
+            val = str(val).strip().replace('#', '')
+            if val.lower() in ['nan', 'none', '', 'sin dato']: return pd.NaT
+            
+            try:
+                # Intentamos primero el formato estándar (Día/Mes/Año)
+                # 'dayfirst=True' es vital para Corrientes
+                return pd.to_datetime(val, dayfirst=True, errors='raise')
+            except:
+                try:
+                    # Si falla (ej: 4/25/2026), probamos el formato yanqui (Mes/Día/Año)
+                    return pd.to_datetime(val, dayfirst=False, errors='coerce')
+                except:
+                    return pd.NaT
+
+        # Aplicamos a las columnas de fecha
+        cols_fechas = ['fecha_de_notif', 'fecha_de_derivacion', 'f_de_nac']
+        for col in cols_fechas:
+            if col in df.columns:
+                df[col] = df[col].apply(parsear_fecha_hibrida)
+
+        # 4. Conversión de NUMÉRICOS
+        cols_int = ['n_orden', 'caps', 'dni']
+        for col in cols_int:
+            if col in df.columns:
+                s = df[col].astype(str).str.replace('.', '', regex=False).str.strip()
+                df[col] = pd.to_numeric(s, errors='coerce').fillna(0).astype('int64')
+
+        # 5. Selección y Limpieza de STRINGS
+        columnas_finales = [
+            'n_orden', 'fecha_de_notif', 'fecha_de_derivacion', 'caps', 
+            'nombre_y_apellido', 'dni', 'f_de_nac', 'sem_gest', 
+            'fum_fpp', 'fp_tpo', 'motivo_de_derivacion', 'observaciones_rn', 
+            'anticoncepcion', 'seguimiento', 'hospital_origen'
+        ]
+        
+        for col in columnas_finales:
+            if col not in df.columns:
+                df[col] = "SIN DATO"
+
+        df = df[columnas_finales]
+
+        for col in df.columns:
+            if df[col].dtype == 'object' or df[col].dtype.name == 'object':
+                df[col] = df[col].astype(str).str.upper().str.strip().replace(['NAN', 'NONE', 'NAT', ''], 'SIN DATO')
+
+        logger.info("[TRANSFORM] Alto Riesgo CAPS: %d columnas listas (fechas corregidas).", len(df.columns))
+        return df

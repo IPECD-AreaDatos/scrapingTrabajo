@@ -74,3 +74,54 @@ class Extract:
         
         logger.info(f"[EXTRACT] SUMAR: {len(df)} filas leídas.")
         return df
+    
+    def extract_alto_riesgo_caps(self, spreadsheet_id) -> pd.DataFrame:
+        logger.info("[EXTRACT] Leyendo Embarazadas Derivadas de Alto Riesgo CAPS...")
+        hojas = ["HOSPITAL VIDAL", "HOSPITAL LLANO"]
+        all_dfs = []
+
+        for hoja in hojas:
+            try:
+                # Traemos un rango amplio para no perder nada
+                rango = f"'{hoja}'!A1:Z100" 
+                result = self.sheet.values().get(spreadsheetId=spreadsheet_id, range=rango).execute()
+                values = result.get('values', [])
+
+                if not values: continue
+
+                # BUSCAMOS LA FILA DE ENCABEZADOS (la que tiene 'DNI' o 'N° orden')
+                header_idx = 0
+                for i, row in enumerate(values):
+                    # Buscamos 'DNI' en cualquier parte de la fila i
+                    if any('DNI' in str(cell).upper() for cell in row):
+                        header_idx = i
+                        break
+                
+                headers = values[header_idx]
+                data = values[header_idx + 1:]
+
+                # Limpiamos headers (quitamos espacios y saltos de línea)
+                headers = [str(h).strip().replace('\n', ' ') for h in headers]
+
+                # Creamos el DF. Si hay discrepancia de columnas, usamos solo las que coinciden
+                df_temp = pd.DataFrame(data)
+                
+                # Cortamos o rellenamos columnas para que coincidan con headers
+                df_temp = df_temp.iloc[:, :len(headers)]
+                df_temp.columns = headers
+
+                # Normalizamos nombres para filtrar
+                df_temp.columns = [c.upper() for c in df_temp.columns]
+                
+                # Filtramos: Solo filas donde DNI tenga algo
+                if 'DNI' in df_temp.columns:
+                    df_temp = df_temp[df_temp['DNI'].notna() & (df_temp['DNI'] != '')]
+                
+                df_temp['hospital_origen'] = hoja
+                all_dfs.append(df_temp)
+                logger.info(f"[EXTRACT] {hoja}: {len(df_temp)} filas obtenidas.")
+
+            except Exception as e:
+                logger.error(f"[EXTRACT] Error crítico en hoja {hoja}: {e}")
+
+        return pd.concat(all_dfs, ignore_index=True) if all_dfs else pd.DataFrame()
