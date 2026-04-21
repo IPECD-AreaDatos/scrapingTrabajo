@@ -106,8 +106,14 @@ class LoadCanastaBasica:
                 with db_instancia.connection.cursor() as cursor:
                     cursor.execute(query_update)
                     db_instancia.connection.commit()
-                
-                logger.info(f"[OK] Carga finalizada en {nombre_log}. ID: {id_extraccion}")
+
+                if success:
+                    logger.info(f"[OK] Carga finalizada en {nombre_log}. ID: {id_extraccion}")
+                else:
+                    logger.error(
+                        f"[ERROR] Inserción rechazada o incompleta en {nombre_log}. "
+                        f"ID extracción: {id_extraccion}. Revisar logs de insert_append."
+                    )
                 return success, id_extraccion
             except Exception as e:
                 logger.error(f"[ERROR] Carga fallida en {nombre_log}: {e}")
@@ -162,6 +168,17 @@ class LoadCanastaBasica:
 
         if df.empty:
             return False
+
+        # Un registro por id_link_producto por extracción (listados p. ej. Parada Canga duplican el mismo link)
+        if 'id_link_producto' in df.columns:
+            antes = len(df)
+            df = df.drop_duplicates(subset=['id_link_producto'], keep='last').copy()
+            if len(df) < antes:
+                logger.warning(
+                    "[LOAD] Eliminadas %d filas duplicadas (mismo id_link_producto); quedan %d.",
+                    antes - len(df),
+                    len(df),
+                )
 
         # Agregar fecha de extracción una sola vez para ambas
         ahora = datetime.now()

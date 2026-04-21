@@ -168,7 +168,7 @@ class CarrefourExtractor:
             if not self.sesion_iniciada:
                 if not self.asegurar_sesion_activa():
                     logger.error("[ERROR] No se pudo establecer sesión")
-                    return None
+                    return {"error_type": "no_session", "url": url, "titulo": "No se pudo establecer sesión"}
                 
             self.driver.get(url)
             # AUMENTADO: Dar más tiempo para que VTEX hidrate los precios (crítico en AWS)
@@ -234,7 +234,7 @@ class CarrefourExtractor:
         except Exception as e:
             logger.error(f"ERROR crítico extrayendo {url}: {str(e)}")
             # NO resetear sesión automáticamente - solo en casos muy específicos
-            return None
+            return {"error_type": "exception", "url": url, "titulo": str(e)}
         
     def extract_products(self, urls):
         """Extrae múltiples productos manteniendo la misma sesión"""

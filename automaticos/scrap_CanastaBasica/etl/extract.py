@@ -218,6 +218,27 @@ class ExtractCanastaBasica:
             # Desactivar modo paralelo al terminar
             set_parallel_mode(False)
 
+    def _raw_extract_to_dataframe(self, raw_data) -> pd.DataFrame:
+        """
+        Normaliza la salida de extraer_producto a un DataFrame.
+        Varios extractores devuelven dict; Parada Canga devuelve list[dict];
+        Carrefour devolvía None ante excepciones (antes se marcaba todo como SIN_DATOS).
+        """
+        if raw_data is None:
+            return pd.DataFrame([{'error_type': 'SIN_DATOS'}])
+        if isinstance(raw_data, pd.DataFrame):
+            return raw_data if not raw_data.empty else pd.DataFrame([{'error_type': 'SIN_DATOS'}])
+        if isinstance(raw_data, dict):
+            return pd.DataFrame([raw_data])
+        if isinstance(raw_data, list):
+            if not raw_data:
+                return pd.DataFrame([{'error_type': 'SIN_DATOS'}])
+            rows = [r for r in raw_data if isinstance(r, dict)]
+            if not rows:
+                return pd.DataFrame([{'error_type': 'SIN_DATOS'}])
+            return pd.DataFrame(rows)
+        return pd.DataFrame([{'error_type': 'SIN_DATOS'}])
+
     def _process_single_task(self, extractor, task) -> pd.DataFrame:
         url = task['url']
         
@@ -227,16 +248,16 @@ class ExtractCanastaBasica:
         except Exception as e:
             raw_data = {'error_type': str(e)}
 
-        # Convertir a DataFrame
-        if isinstance(raw_data, dict):
-            df = pd.DataFrame([raw_data])
-        else:
-            df = pd.DataFrame([{'error_type': 'SIN_DATOS'}])
+        df = self._raw_extract_to_dataframe(raw_data)
 
         if df.empty: return df
 
         # INYECTAR DATOS DE LA BASE (CLAVE FORÁNEA)
         df['id_link_producto'] = task['id_link_producto']
+
+        # DIA (y similares) pueden devolver 'unidad_medida'; transform espera 'unidad' → unidad_medida
+        if 'unidad' not in df.columns and 'unidad_medida' in df.columns:
+            df = df.rename(columns={'unidad_medida': 'unidad'})
         
         # Prioridad de datos: Si el scraper no trae peso, usar el de la DB
         if 'peso' not in df.columns or not df['peso'].iloc[0]:

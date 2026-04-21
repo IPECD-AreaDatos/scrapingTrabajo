@@ -36,6 +36,10 @@ class MasonlineExtractor:
         'supermarket_name': 'Masonline',
         'base_url': 'https://www.masonline.com.ar'
     }
+
+    # VTEX/Valtech embeben un índice en las clases (p. ej. …-1-x-… → …-2-x-… al redeployar).
+    # Usar subcadenas evita que falle la toma de precio masivamente.
+    _SEL_DYNAMIC_PRODUCT_PRICE = "div[class*='dynamicProductPrice']"
     
     def __init__(self):
         self.nombre_super = self.CONFIG['supermarket_name']
@@ -104,7 +108,7 @@ class MasonlineExtractor:
             if not self.sesion_iniciada:
                 if not self.asegurar_sesion_activa():
                     logger.error("No se pudo establecer sesión en Masonline")
-                    return None
+                    return {"error_type": "no_session", "url": url, "titulo": "No se pudo establecer sesión"}
             
             logger.info(f"[SEARCH] Navegando a: {url}")
             self.driver.get(url)
@@ -130,7 +134,7 @@ class MasonlineExtractor:
             try:
                 # Esperar contenedor de precio principal
                 self.wait.until(EC.presence_of_element_located(
-                    (By.CSS_SELECTOR, "div.valtech-gdn-dynamic-product-1-x-dynamicProductPrice")
+                    (By.CSS_SELECTOR, self._SEL_DYNAMIC_PRODUCT_PRICE)
                 ))
                 logger.info("[OK] Contenedor de precio cargado")
                 
@@ -212,7 +216,7 @@ class MasonlineExtractor:
             import traceback
             logger.error(f"Traceback: {traceback.format_exc()}")
             self.sesion_iniciada = False
-            return None
+            return {"error_type": "exception", "url": url, "titulo": str(e)}
         
     def _extract_name(self):
         """Extrae el nombre del producto"""
@@ -390,7 +394,7 @@ class MasonlineExtractor:
             # 4. Verificar estructura de precios (si no hay precios, probablemente no disponible)
             try:
                 contenedor_precio = self.driver.find_elements(By.CSS_SELECTOR, 
-                    "div.valtech-gdn-dynamic-product-1-x-dynamicProductPrice")
+                    self._SEL_DYNAMIC_PRODUCT_PRICE)
                 
                 if not contenedor_precio:
                     logger.warning("   [WARNING] No se encontró contenedor de precio")
@@ -419,7 +423,7 @@ class MasonlineExtractor:
             # Buscar contenedor principal de precio
             try:
                 contenedor = self.driver.find_element(By.CSS_SELECTOR, 
-                    "div.valtech-gdn-dynamic-product-1-x-dynamicProductPrice")
+                    self._SEL_DYNAMIC_PRODUCT_PRICE)
                 logger.info("[OK] Contenedor principal de precio encontrado")
                 
                 # Buscar precio principal
@@ -427,9 +431,9 @@ class MasonlineExtractor:
                 
                 # LISTA PRIORIZADA DE SELECTORES (Nuevos de VTEX + Custom Masonline)
                 selectores_valor = [
-                    ".vtex-product-price-1-x-sellingPriceValue",
-                    ".valtech-gdn-dynamic-product-1-x-currencyContainer",
-                    ".vtex-product-price-1-x-sellingPrice .vtex-product-price-1-x-currencyContainer",
+                    "[class*='sellingPriceValue']",
+                    "[class*='currencyContainer']",
+                    "[class*='sellingPrice'] [class*='currencyContainer']",
                     "span[class*='sellingPrice']",
                     "[data-testid='product-price']"
                 ]
@@ -462,8 +466,8 @@ class MasonlineExtractor:
                 precio_lista = None
                 try:
                     selectores_lista = [
-                        ".vtex-product-price-1-x-listPriceValue",
-                        "span.valtech-gdn-dynamic-product-1-x-weighableListPrice",
+                        "[class*='listPriceValue']",
+                        "span[class*='weighableListPrice']",
                         "span[class*='listPrice']"
                     ]
                     
@@ -478,7 +482,7 @@ class MasonlineExtractor:
                         if elem_lista.is_displayed():
                             try:
                                 precio_elem_lista = elem_lista.find_element(By.CSS_SELECTOR,
-                                    ".valtech-gdn-dynamic-product-1-x-currencyContainer")
+                                    "[class*='currencyContainer']")
                                 
                                 texto_precio_lista = self._extraer_precio_de_contenedor(precio_elem_lista)
                                 logger.info(f"   Precio lista {i+1}: '{texto_precio_lista}'")
@@ -568,8 +572,8 @@ class MasonlineExtractor:
                 "span[style*='font-size']",
                 "div[style*='font-size']",
                 # Selectores generales
-                ".vtex-product-price-1-x-sellingPrice .vtex-product-price-1-x-currencyContainer",
-                ".valtech-gdn-dynamic-product-1-x-dynamicProductPrice .vtex-product-price-1-x-currencyContainer"
+                "[class*='sellingPrice'] [class*='currencyContainer']",
+                "div[class*='dynamicProductPrice'] [class*='currencyContainer']"
             ]
             
             for selector in selectores_precio_final:
@@ -624,8 +628,8 @@ class MasonlineExtractor:
             selectores_precio_lista = [
                 "span[class*='listPrice']",
                 "div[class*='listPrice'] span", 
-                ".vtex-product-price-1-x-listPrice .vtex-product-price-1-x-currencyContainer",
-                ".valtech-gdn-dynamic-product-1-x-weighableListPrice .valtech-gdn-dynamic-product-1-x-currencyContainer"
+                "[class*='listPrice'] [class*='currencyContainer']",
+                "span[class*='weighableListPrice'] [class*='currencyContainer']"
             ]
             
             for selector in selectores_precio_lista:
@@ -670,7 +674,7 @@ class MasonlineExtractor:
             # 1. Símbolo $
             try:
                 signo = elemento.find_element(By.CSS_SELECTOR, 
-                    ".valtech-gdn-dynamic-product-1-x-currencyCode")
+                    "[class*='currencyCode']")
                 partes.append(signo.text.strip() or '$')
             except:
                 partes.append('$')
@@ -682,7 +686,7 @@ class MasonlineExtractor:
             enteros = []
             try:
                 elementos_enteros = elemento.find_elements(By.CSS_SELECTOR, 
-                    ".valtech-gdn-dynamic-product-1-x-currencyInteger")
+                    "[class*='currencyInteger']")
                 
                 for entero in elementos_enteros:
                     # Usar textContent porque .text puede fallar
@@ -709,7 +713,7 @@ class MasonlineExtractor:
             tiene_coma = False
             try:
                 decimal = elemento.find_element(By.CSS_SELECTOR, 
-                    ".valtech-gdn-dynamic-product-1-x-currencyDecimal")
+                    "[class*='currencyDecimal']")
                 
                 # ✨ CLAVE: Usar textContent en lugar de .text
                 texto_decimal = decimal.get_attribute('textContent') or decimal.text
@@ -735,7 +739,7 @@ class MasonlineExtractor:
             if tiene_coma:
                 try:
                     fraccion = elemento.find_element(By.CSS_SELECTOR, 
-                        ".valtech-gdn-dynamic-product-1-x-currencyFraction")
+                        "[class*='currencyFraction']")
                     
                     # ✨ CLAVE: Usar textContent
                     texto_fraccion = fraccion.get_attribute('textContent') or fraccion.text

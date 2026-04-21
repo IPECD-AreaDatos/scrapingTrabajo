@@ -69,19 +69,23 @@ class ConexionBaseDatos:
             if self.engine is None:
                 logger.error("No hay conexión activa a la base de datos")
                 return False
-                
-            # Insertar datos
+
+            # method='multi' junta varias filas por INSERT; sin chunksize (~2500 filas) una sola
+            # sentencia supera el límite de placeholders del driver (error gkpj / truncated params).
+            chunk_size = 400
+
             df.to_sql(
                 name=table_name,
                 con=self.engine,
                 if_exists='append',
                 index=False,
-                method='multi'
+                method='multi',
+                chunksize=chunk_size,
             )
-            
+
             logger.info(f"Datos insertados correctamente en {table_name}: {len(df)} registros")
             return True
-            
+
         except Exception as e:
             logger.error(f"Error insertando datos: {e}")
             return False
