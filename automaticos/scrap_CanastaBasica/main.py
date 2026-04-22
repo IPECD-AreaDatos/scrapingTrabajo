@@ -6,7 +6,6 @@ import os
 import logging
 from datetime import datetime
 from dotenv import load_dotenv
-import random
 from etl.extract import ExtractCanastaBasica
 from etl.transform import TransformCanastaBasica
 from etl.load import LoadCanastaBasica
@@ -28,8 +27,6 @@ def main():
     logger.info("=" * 80)
     logger.info("=== INICIO ETL CANASTA BÁSICA - %s ===", inicio.strftime("%Y-%m-%d %H:%M:%S"))
     logger.info("=" * 80)
-
-    SYNC_MODE = False
 
     extractor = None
     loader    = None
@@ -69,7 +66,7 @@ def main():
         )
         os.makedirs(os.path.dirname(backup_file), exist_ok=True)
         try:
-            df_raw.to_csv(backup_file, index=False)
+            df_raw.to_csv(backup_file, index=False, quoting=1, encoding='utf-8-sig') # QUOTE_ALL (1) para evitar errores de comas
             logger.info("BACKUP guardado: %s", backup_file)
         except Exception as e:
             logger.warning("No se pudo crear backup: %s", e)
@@ -101,16 +98,6 @@ def main():
         logger.info("4. [LOAD] Cargando a base de datos...")
         loader = LoadCanastaBasica()
         exito = loader.load(df)
-
-        # --- NUEVA SECCIÓN DE SINCRONIZACIÓN ---
-        if SYNC_MODE:
-            logger.info(">>> MODO SINCRONIZACIÓN ACTIVADO <<<")
-            extractor = LoadCanastaBasica()
-            # Suponiendo que metiste la función en el extractor
-            registros = extractor.sync_mysql_to_postgres()
-            logger.info(f"Proceso de sincronización finalizado. Registros: {registros}")
-            return # Terminamos aquí para no correr el scraper normal
-        # ---------------------------------------
 
         if exito:
             logger.info("=== Proceso ETL completado EXITOSAMENTE ===")

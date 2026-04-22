@@ -119,7 +119,7 @@ class MasonlineExtractor:
             
             # OPTIMIZADO: Espera mínima para carga de página
             logger.info("Esperando carga completa de la página...")
-            SmartWait.wait_minimal(0.5)  # Reducido de 2s a 0.5s
+            SmartWait.wait_minimal(2.0)  # AUMENTADO de 0.5s a 2.0s para hidratación en AWS
             
             # Espera 2: Esperar elementos críticos
             try:
@@ -139,7 +139,7 @@ class MasonlineExtractor:
                 logger.info("[OK] Contenedor de precio cargado")
                 
                 # OPTIMIZADO: Espera mínima para precios dinámicos
-                SmartWait.wait_minimal(0.5)  # Reducido de 1.5s a 0.5s
+                SmartWait.wait_minimal(1.0)  # AUMENTADO de 0.5s a 1.0s
                 
             except Exception as e:
                 logger.warning(f"[WARNING] Contenedor de precio no encontrado: {e}")
@@ -666,16 +666,28 @@ class MasonlineExtractor:
         
     def _extraer_precio_de_contenedor(self, elemento):
         """
-        Extrae precio usando textContent para capturar elementos invisibles
+        Extrae precio usando una estrategia multinivel:
+        1. Intento por sub-elementos (VTEX standard)
+        2. Intento por texto directo (Regex)
         """
         try:
+            # ESTRATEGIA 1: Regex sobre textContent (MÁS ROBUSTA)
+            texto_completo = elemento.get_attribute('textContent')
+            if texto_completo:
+                # Buscar patrón $ 1.234,56 o similar
+                match = re.search(r'\$\s*([\d\.,]+)', texto_completo)
+                if match:
+                    precio_str = match.group(0)
+                    logger.debug(f"[OK] Precio extraído con regex: {precio_str}")
+                    return precio_str
+
+            # ESTRATEGIA 2: Reconstrucción manual (MÉTODO ORIGINAL MEJORADO)
             partes = []
             
             # 1. Símbolo $
             try:
-                signo = elemento.find_element(By.CSS_SELECTOR, 
-                    "[class*='currencyCode']")
-                partes.append(signo.text.strip() or '$')
+                signo = elemento.find_element(By.CSS_SELECTOR, "[class*='currencyCode']")
+                partes.append(signo.get_attribute('textContent').strip() or '$')
             except:
                 partes.append('$')
             
