@@ -79,9 +79,36 @@ class TransformEMAE:
         ).reset_index(drop=True)
 
     def _construir_df_variaciones(self, ruta: str) -> pd.DataFrame:
-        df = pd.read_excel(ruta, sheet_name=0, skiprows=4, usecols="D,F")
-        df.columns = ['variacion_interanual', 'variacion_mensual']
-        df = df.fillna(0)
-        df = df[(df != 0).any(axis=1)]
-        df['fecha'] = pd.date_range(start='2004-01-01', periods=len(df), freq='MS')
-        return df[['fecha', 'variacion_interanual', 'variacion_mensual']]
+        df = pd.read_excel(ruta, sheet_name=0, skiprows=4, usecols="A,B,D,F")
+        df.columns = ['anio', 'mes', 'variacion_interanual', 'variacion_mensual']
+        
+        # 0. Eliminar filas con "Fuente" o vacías en columnas críticas
+        mask_fuente = df.astype(str).apply(lambda x: x.str.contains('Fuente', na=False)).any(axis=1)
+        df = df[~mask_fuente]
+        
+        # 1. Reconstruir fechas (similar a _construir_df_valores)
+        df['anio'] = df['anio'].ffill()
+        df['anio_str'] = df['anio'].fillna(0).astype(str).str.split('.').str[0].replace('0', '')
+        df['mes_num'] = df['mes'].map(MESES)
+        
+        mask_valid = (
+            df['anio'].notna() &
+            df['mes'].notna() &
+            df['mes_num'].notna() &
+            (df['anio_str'] != '') &
+            (df['anio_str'].str.isnumeric())
+        )
+        
+        df.loc[mask_valid, 'fecha'] = pd.to_datetime(
+            df.loc[mask_valid, 'anio_str'] + '-' + df.loc[mask_valid, 'mes_num'],
+            format='%Y-%m', errors='coerce'
+        )
+        
+        # 2. Limpiar y filtrar
+        df = df[df['fecha'].notna()].copy()
+        df[['variacion_interanual', 'variacion_mensual']] = df[['variacion_interanual', 'variacion_mensual']].fillna(0)
+        
+        # Solo conservamos si alguna de las dos variaciones es distinta de cero
+        df = df[(df['variacion_interanual'] != 0) | (df['variacion_mensual'] != 0)]
+        
+        return df[['fecha', 'variacion_interanual', 'variacion_mensual']].sort_values('fecha').reset_index(drop=True)
