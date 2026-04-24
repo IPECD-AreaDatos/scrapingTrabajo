@@ -31,12 +31,15 @@ def extract_ron_file(base_url, xpath_info):
         # XPath provided by user
         xpath = "/html/body/main/div[2]/div/section/div/div/article/div[7]/div/div/p[1]"
         paragraphs = tree.xpath(xpath)
-        
         if not paragraphs:
             # Fallback: maybe the index changed? Let's try to be a bit more flexible
-            # but still targeting the same area.
+            # searching for the year container
             print("XPath not found precisely, trying flexible search...")
-            paragraphs = tree.xpath("//article//p[contains(., 'MAR') and contains(., 'ENE')]")
+            import datetime
+            current_year = str(datetime.datetime.now().year)
+            paragraphs = tree.xpath(f"//article//p[contains(., '{current_year}')]")
+            if not paragraphs:
+                paragraphs = tree.xpath("//article//p[contains(., 'ENE') or contains(., 'MAR') or contains(., 'DIC')]")
 
         if paragraphs:
             target_p = paragraphs[0]
@@ -54,9 +57,10 @@ def extract_ron_file(base_url, xpath_info):
     except ImportError:
         print("lxml not found, falling back to BeautifulSoup traversal...")
         # Finding the paragraph by content or structure
+        months_to_search = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
         for p in soup.find_all('p'):
             a_tags = p.find_all('a')
-            if a_tags and any(month in p.get_text() for month in ['ENE', 'FEB', 'MAR']):
+            if a_tags and any(month in p.get_text().upper() for month in months_to_search):
                 latest_link = a_tags[0]['href']
                 print(f"Found href via BS4: {latest_link}")
                 if latest_link.startswith('blank:#'):

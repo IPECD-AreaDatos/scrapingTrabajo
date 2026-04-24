@@ -15,12 +15,12 @@ DB_PORT = os.getenv("PORT_DBB2", "5432")
 DB_USER = os.getenv("USER_DBB2")
 DB_PASS = os.getenv("PASSWORD_DBB2")
 
-# The .env file has 'NAME_DBB_DATOS_TABLERO = datos_tablero'
+# The .env file has 'NAME_DB_DATOS_TABLERO = datos_tablero'
 # We'll try to get it, and fallback if needed.
-DB_NAME = os.getenv("NAME_DBB_DATOS_TABLERO")
+DB_NAME = os.getenv("NAME_DB_DATOS_TABLERO")
 if not DB_NAME:
     # Try with space if needed or use default
-    DB_NAME = os.getenv("NAME_DBB_DATOS_TABLERO ") or "datos_tablero"
+    DB_NAME = os.getenv("NAME_DB_DATOS_TABLERO ") or "datos_tablero"
 
 # Strip in case it picked up spaces
 DB_NAME = DB_NAME.strip()

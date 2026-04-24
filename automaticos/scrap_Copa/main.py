@@ -16,22 +16,23 @@ def extract_date_from_url(url):
         'jul': 7, 'ago': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dic': 12
     }
     
-    # Pattern 1: internet_diario_?([a-z]+)_?(\d{2})
-    # Handles: internet_diario_abr26, internet_diario_abril26, internet_diarioabril26, internet_diario_abril_26
-    match = re.search(r'internet_diario_?([a-z]+)_?(\d{2})', url_lower)
+    # Pattern 1: internet_diario_?([a-z]+)_?(\d{2,4})
+    # Handles: internet_diario_abr26, internet_diario_abril26, internet_diarioabril26, internet_diario_abril_26, internet_diario_abril_2026
+    match = re.search(r'internet_diario_?([a-z]+)_?(\d{2,4})', url_lower)
     if match:
         month_str = match.group(1)[:3]
-        year_short = match.group(2)
+        year_val = int(match.group(2))
+        if year_val < 100: year_val += 2000
         month = month_map.get(month_str)
         if month:
-            return 2000 + int(year_short), month
+            return year_val, month
             
-    # Pattern 2: internet_diario_?(\d{2})
-    # Handles: internet_diario26, internet_diario_26
-    match2 = re.search(r'internet_diario_?(\d{2})', url_lower)
+    # Pattern 2: internet_diario_?(\d{2,4})
+    # Handles: internet_diario26, internet_diario_26, internet_diario_2026
+    match2 = re.search(r'internet_diario_?(\d{2,4})', url_lower)
     if match2:
-        year_short = match2.group(1)
-        year = 2000 + int(year_short)
+        year_val = int(match2.group(1))
+        if year_val < 100: year_val += 2000
         
         # If we have year but no month from URL, try to find month by scraping or searching elsewhere
         # Try to find abbreviation anywhere in the URL (not just after diario)
