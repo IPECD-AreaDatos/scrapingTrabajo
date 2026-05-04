@@ -31,36 +31,29 @@ class Load:
         """Carga solo las filas nuevas de forma incremental."""
         self.conectar_bdd()
         
-        # 1. Obtener cuántas filas ya existen en la base
         try:
-            with self.engine.connect() as conn:
-                res = conn.execute(text(f"SELECT COUNT(*) FROM {self.tabla}"))
-                len_bdd = res.scalar()
-        except Exception:
-            len_bdd = 0
-            logger.info(f"Tabla '{self.tabla}' no encontrada. Se creará al insertar.")
-
-        len_df = len(df)
-        logger.info("[LOAD] BD: %d filas | DataFrame: %d filas", len_bdd, len_df)
-
-        # 2. Si el Sheets tiene más filas que la BD, subimos la diferencia
-        if len_df > len_bdd:
-            df_nuevos = df.tail(len_df - len_bdd).copy()
+            logger.info("[LOAD] Iniciando reemplazo de tabla '%s' con %d filas.", self.tabla, len(df))
             
-            # Inserción en esquema public
-            df_nuevos.to_sql(
+            # El parámetro 'replace' se encarga de: 
+            # 1. DROP TABLE IF EXISTS
+            # 2. CREATE TABLE
+            # 3. INSERT
+            df.to_sql(
                 name=self.tabla, 
                 con=self.engine, 
                 schema='public', 
-                if_exists='append', 
+                if_exists='replace', 
                 index=False,
-                method='multi'
+                method='multi',
+                chunksize=1000 # Opcional: mejora el rendimiento en cargas grandes
             )
-            logger.info("[LOAD] %d filas nuevas cargadas en salud.", len(df_nuevos))
+            
+            logger.info("[LOAD] Tabla '%s' reemplazada con éxito.", self.tabla)
             return True
-        
-        logger.info("[LOAD] No hay registros nuevos para procesar.")
-        return False
+            
+        except Exception as e:
+            logger.error(f"[ERROR] Falló la carga por reemplazo: {e}")
+            return False
 
     def close(self):
         """Cierra el engine de SQLAlchemy."""

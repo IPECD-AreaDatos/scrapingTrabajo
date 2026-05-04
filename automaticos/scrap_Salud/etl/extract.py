@@ -31,12 +31,12 @@ class Extract:
                     logger.warning(f"[EXTRACT] Hoja {mes_nombre} vacía.")
                     continue
 
+                # DEBUG: Esto te dirá cuántas filas crudas mandó Google
+                logger.info(f"[DEBUG] {mes_nombre} - Filas crudas recibidas de Google: {len(values)}")
+
                 # Crear DataFrame de la hoja actual
                 headers = values[0]
                 df_mes = pd.DataFrame(values[1:], columns=headers)
-                
-                # Limpieza rápida de filas vacías antes de juntar
-                df_mes = df_mes[df_mes['DNI'].notna() & (df_mes['DNI'] != '')]
                 
                 # AGREGAMOS LA COLUMNA MÁGICA
                 df_mes['fecha_proceso_mes'] = fecha_valor

@@ -12,6 +12,7 @@ from etl.transform import Transform
 from etl.load import Load
 from etl.validate import Validate
 from utils.logger import setup_logger
+from etl.orchestrator import run_gold_consolidation
 
 def main():
     setup_logger("salud_embarazo_etl")
@@ -25,7 +26,7 @@ def main():
     host, user, pwd, db = os.getenv('HOST_DBB2'), os.getenv('USER_DBB2'), os.getenv('PASSWORD_DBB2'), os.getenv('DB_NAME_SALUD')
 
     # Configuraciones de fuentes
-    ID_DERIVACIONES = '1z4Z9-WWR9LF50xVQ4ALEU_VymVmSWQxFFDhAe8ZMDV8'
+    ID_DERIVACIONES = '1h3vLA6n51iRnWIZqa8L0oDaZuK6hrJD2uecOrhsyIGY'
     ID_SUMAR = '10tBeHgb5ExBY62rdGM3uvmyd62gcDDS1XHbNr5u070E' 
     
     MESES_MAP = {'ENERO': '2026-01-01', 'FEBRERO': '2026-02-01', 'MARZO': '2026-03-01', 'ABRIL': '2026-04-01'}
@@ -110,6 +111,17 @@ def main():
         
     except Exception as e:
         logger.error(f"Error en Fuente Hospitales: {e}")
+
+    # --- FASE 4: CONSOLIDACIÓN CAPA GOLD ---
+    try:
+        logger.info("Iniciando consolidación de Pacientes Gold (Cruce de fuentes)...")
+        # Llamamos a la lógica de Tony que procesa las tablas que acabás de cargar
+        run_gold_consolidation() 
+        logger.info("=== CAPA GOLD COMPLETADA CON ÉXITO ===")
+    except Exception as e:
+        logger.error(f"Error en la consolidación Gold: {e}")
+
+    logger.info("=== FIN DEL PROCESO - Duración: %s ===", datetime.now() - inicio)
     
 
 if __name__ == '__main__':
