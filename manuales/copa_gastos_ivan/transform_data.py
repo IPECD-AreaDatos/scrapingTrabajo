@@ -12,9 +12,18 @@ class TransformData:
         }
 
     def parse_periodo(self, filename):
-        """Extrae el periodo del nombre del archivo (ej: rf604m-ene25.xls)."""
+        """Extrae el periodo del nombre del archivo (ej: 012025.xls o rf604m-ene25.xls)."""
         filename_lower = filename.lower()
-        # Buscar mes y año
+        
+        # 1. Soporte para formato MMYYYY.xls (ej: 012025.xls)
+        match_numeric = re.search(r'^(\d{2})(\d{4})\.xls', filename_lower)
+        if match_numeric:
+            month = int(match_numeric.group(1))
+            year = match_numeric.group(2)
+            if 1 <= month <= 12:
+                return f"{year}-{month:02d}-01"
+
+        # 2. Buscar mes y año con guion (ej: rf604m-ene25.xls)
         match = re.search(r'-([a-z]+)(\d{2})', filename_lower)
         if match:
             month_str = match.group(1)
@@ -23,7 +32,7 @@ class TransformData:
             if month:
                 return f"20{year_short}-{month:02d}-01"
         
-        # Fallback para nombres largos (enero, etc)
+        # 3. Fallback para nombres largos (enero, etc)
         for m_name, m_num in self.month_map.items():
             if m_name in filename_lower:
                 # Buscar año despues del mes
