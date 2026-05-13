@@ -8,6 +8,12 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 
 import shutil
+from dotenv import load_dotenv
+from selenium_stealth import stealth
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.service import Service
+
+load_dotenv()
 
 def wait_for_download(download_dir, timeout=60):
     """
@@ -27,11 +33,12 @@ def login_and_extract():
     Handles the login process and extracts the raw data.
     """
     LOGIN_URL = "https://siif.cgpc.gob.ar/mainSiif/faces/login.jspx"
-    USERNAME = "boscof"
-    PASSWORD = "IPECD2026"
+    USERNAME = os.getenv("SIIF_USERNAME", "boscof")
+    PASSWORD = os.getenv("SIIF_PASSWORD", "IPECD2026")
+    SLEEP_TIME = int(os.getenv("SIIF_SLEEP_BEFORE_LOGIN", "5"))
     
-    print("Waiting 2 minutes before login to avoid session conflicts...")
-    time.sleep(120)
+    print(f"Waiting {SLEEP_TIME} seconds before login...")
+    time.sleep(SLEEP_TIME)
     
     print(f"Starting extraction from {LOGIN_URL}")
     
@@ -42,7 +49,8 @@ def login_and_extract():
     options.add_argument("--window-size=1920,1080")
     
     # Configure download directory
-    download_dir = os.path.abspath("files/raw")
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    download_dir = os.path.join(BASE_DIR, "files/raw")
     os.makedirs(download_dir, exist_ok=True)
     prefs = {
         "download.default_directory": download_dir,
@@ -52,7 +60,17 @@ def login_and_extract():
     }
     options.add_experimental_option("prefs", prefs)
     
-    driver = webdriver.Chrome(options=options)
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=options)
+    
+    stealth(driver,
+        languages=["en-US", "en"],
+        vendor="Google Inc.",
+        platform="Win32",
+        webgl_vendor="Intel Inc.",
+        renderer="Intel Iris OpenGL Engine",
+        fix_hairline=True,
+    )
     
     try:
         driver.get(LOGIN_URL)
@@ -66,6 +84,8 @@ def login_and_extract():
             print("Login field found.")
         except Exception as e:
             print(f"Login field not found. Current URL: {driver.current_url}")
+            os.makedirs(download_dir, exist_ok=True)
+            driver.save_screenshot(os.path.join(download_dir, "login_error.png"))
             # Check if we are already logged in or in an error page
             if "mainSiif" in driver.current_url and "login" not in driver.current_url:
                 print("Already logged in?")
@@ -114,24 +134,42 @@ def login_and_extract():
             pass
             
         # Wait for menu to load
-        wait.until(EC.presence_of_element_located((By.ID, "pt1:cb12")))
+        print("Waiting for Main Menu (timeout 60s)...")
+        driver.save_screenshot(os.path.join(download_dir, "pre_menu_wait.png"))
+        try:
+            WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.ID, "pt1:cb12")))
+        except:
+            print("Menu ID not found, trying by text...")
+            WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, "//span[contains(text(), 'REPORTES')] | //a[contains(text(), 'REPORTES')]")))
+        
         print("Successfully reached Main Menu!")
 
         # 2. Navigate to REPORTES -> Reportes
-        wait.until(EC.element_to_be_clickable((By.ID, "pt1:cb12"))).click() # REPORTES
+        try:
+            wait.until(EC.element_to_be_clickable((By.ID, "pt1:cb12"))).click() # REPORTES
+        except:
+            wait.until(EC.element_to_be_clickable((By.XPATH, "//span[contains(text(), 'REPORTES')] | //a[contains(text(), 'REPORTES')]"))).click()
+            
         wait.until(EC.element_to_be_clickable((By.ID, "pt1:cb14"))).click() # Reportes sub-menu
+        time.sleep(2)
         
         # 3. Handle Popup
         main_window = driver.current_window_handle
         wait.until(lambda d: len(d.window_handles) > 1)
         
+        print(f"Window handles found: {driver.window_handles}")
         for handle in driver.window_handles:
             if handle != main_window:
                 driver.switch_to.window(handle)
+                print(f"Switched to window: {handle} | Title: {driver.title} | URL: {driver.current_url}")
                 break
         
         print("Switched to report popup.")
         time.sleep(5) # Wait for popup to settle
+        
+        # Debug: Save screenshot of the popup
+        os.makedirs(download_dir, exist_ok=True)
+        driver.save_screenshot(os.path.join(download_dir, "popup_debug.png"))
         popup_window = driver.current_window_handle
         
         # 4. Select Module and Report
@@ -163,10 +201,15 @@ def login_and_extract():
                 print("Clicked Siguiente.")
                 break
             except Exception as e:
-                if i == 4: raise e
+                if i == 4: 
+                    driver.save_screenshot(os.path.join(download_dir, f"report_selection_error_{i}.png"))
+                    print(f"Page source of popup: {driver.page_source[:1000]}")
+                    raise e
                 print(f"Retrying report selection (attempt {i+1}) due to: {type(e).__name__}")
                 time.sleep(3)
-                driver.switch_to.window(driver.window_handles[-1])
+                # Try to find the correct window again in case it changed
+                if len(driver.window_handles) > 1:
+                    driver.switch_to.window(driver.window_handles[-1])
         
         # 5. Set Parameters and Download (Loop through entities and months)
         wait.until(EC.presence_of_element_located((By.ID, "pt1:txtAnioEjercicio::content"))).clear()
@@ -188,10 +231,11 @@ def login_and_extract():
         entidad_select = Select(entidad_select_el)
         entities = [opt.text for opt in entidad_select.options if opt.text.strip() and opt.get_attribute("value")]
         
-        log_file = "files/raw/scraping_log.txt"
+        log_file = os.path.join(download_dir, "scraping_log.txt")
         with open(log_file, "a") as log:
             log.write(f"\n--- Starting Scraping Session: {time.ctime()} ---\n")
 
+        # Process all entities
         for entity in entities:
             print(f"Processing Entity: {entity}")
             
@@ -278,13 +322,16 @@ def login_and_extract():
                                 os.makedirs(dest_folder, exist_ok=True)
                                 
                                 clean_entity = "".join([c for c in entity if c.isalnum() or c in (" ", "_")]).strip()
-                                dest_path = os.path.join(dest_folder, f"{clean_entity}.xls")
+                                # Filename format: YYYYMM_Entity.xls
+                                filename = f"{year}{month}_{clean_entity}.xls"
+                                dest_path = os.path.join(dest_folder, filename)
                                 
                                 shutil.move(latest_file, dest_path)
                                 print(f"  - Downloaded: {dest_path}")
                             else:
                                 print(f"  - Download timeout for {entity} - {year}/{month}")
-                                driver.save_screenshot(f"files/raw/timeout_{year}_{month}.png")
+                                timeout_screenshot = os.path.join(download_dir, f"timeout_{year}_{month}.png")
+                                driver.save_screenshot(timeout_screenshot)
                                 with open(log_file, "a") as log:
                                     log.write(f"TIMEOUT: {entity} | {year}-{month}\n")
                             
@@ -310,7 +357,9 @@ def login_and_extract():
 
     except Exception as e:
         print(f"An error occurred: {e}")
-        driver.save_screenshot("files/raw/error_screenshot.png")
+        try:
+            driver.save_screenshot(os.path.join(download_dir, "error_screenshot.png"))
+        except: pass
         raise e
     finally:
         driver.quit()

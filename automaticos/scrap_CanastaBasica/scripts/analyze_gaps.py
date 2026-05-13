@@ -2,8 +2,8 @@ import os
 import sys
 from dotenv import load_dotenv
 
-# Agregar directorio padre para imports
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Agregar directorio raíz del proyecto para imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from etl.load import LoadCanastaBasica
 
 def main():

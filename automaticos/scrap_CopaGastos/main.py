@@ -1,15 +1,16 @@
 import os
 import sys
 from etl.extract import login_and_extract
-from etl.transform import transform_data
-from etl.load import load_to_postgres
+from etl.transform import transform_all_files
+from etl.load import load_to_db
 
 def main():
     print("--- Starting Copa Gastos ETL Process ---")
     
     # Configuration
-    RAW_DIR = "files/raw"
-    PROCESSED_DIR = "files/processed"
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    RAW_DIR = os.path.join(BASE_DIR, "files/raw")
+    PROCESSED_DIR = os.path.join(BASE_DIR, "files/processed")
     os.makedirs(RAW_DIR, exist_ok=True)
     os.makedirs(PROCESSED_DIR, exist_ok=True)
     
@@ -26,11 +27,11 @@ def main():
         
         # 2. Transform
         print("[2/3] Transformation phase...")
-        # transform_data(RAW_FILE, PROCESSED_FILE)
+        transform_all_files()
         
         # 3. Load
         print("[3/3] Load phase...")
-        # success = load_to_postgres(PROCESSED_FILE)
+        load_to_db()
         
         print("--- ETL Process Finished ---")
         

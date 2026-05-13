@@ -3,10 +3,15 @@ Script para reintentar la extracción de links que fallaron en la ejecución ant
 Lee el reporte de links fallidos más reciente y procesa solo esos.
 """
 import os
+import sys
 import logging
 import pandas as pd
 from datetime import datetime
 from dotenv import load_dotenv
+
+# Agregar directorio raíz del proyecto para imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from etl.extract import ExtractCanastaBasica
 from etl.transform import TransformCanastaBasica
 from etl.load import LoadCanastaBasica
@@ -16,10 +21,11 @@ from utils.logger import setup_logger
 from utils.optimization import cleanup_environment
 
 # CONFIGURACIÓN
-CSV_FALLIDOS = 'files/LINKS_FALLIDOS_20260508_1539.csv'
 MAX_WORKERS = 2
 
 def get_latest_failed_report(report_dir):
+    if not os.path.exists(report_dir):
+        return None
     files = [f for f in os.listdir(report_dir) if f.startswith('LINKS_FALLIDOS_') and f.endswith('.csv')]
     if not files:
         return None
@@ -39,7 +45,9 @@ def main():
     logger.info("=== INICIO REINTENTO FALLIDOS CANASTA BÁSICA - %s ===", inicio.strftime("%Y-%m-%d %H:%M:%S"))
     logger.info("=" * 80)
 
-    report_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'files')
+    # Ajuste de base para scripts en subcarpeta
+    base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    report_dir = os.path.join(base, 'files')
     failed_report = get_latest_failed_report(report_dir)
 
     if not failed_report:
@@ -65,8 +73,6 @@ def main():
         
         if not links_to_retry:
             logger.warning("No se encontraron links en la DB que coincidan con las URLs del reporte de fallos.")
-            # Tal vez las URLs en el reporte tienen alguna diferencia mínima? 
-            # Vamos a intentar un match más flexible si es necesario, pero por ahora exacto.
             return
 
         logger.info("Se procesarán %d links (filtrados de %d totales).", len(links_to_retry), len(all_links))
@@ -98,9 +104,6 @@ def main():
 
         # 3. VALIDATE
         logger.info("3. [VALIDATE] Validando datos...")
-        # Nota: ValidateCanastaBasica tiene un umbral mínimo de filas, 
-        # para un reintento pequeño podría fallar la validación si el umbral es alto.
-        # Podríamos saltar la validación o ajustarla.
         try:
             ValidateCanastaBasica().validate(df)
         except Exception as e:

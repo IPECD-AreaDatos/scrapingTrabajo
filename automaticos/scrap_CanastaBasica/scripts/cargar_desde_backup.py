@@ -3,9 +3,9 @@ Carga en BD a partir de un BACKUP_RAW_*.csv ya generado (sin volver a scrapear).
 
 Uso:
   cd automaticos/scrap_CanastaBasica
-  python cargar_desde_backup.py
-  python cargar_desde_backup.py --csv files/BACKUP_RAW_20260420_1951.csv
-  python cargar_desde_backup.py --skip-validate   # solo si VALIDATE bloquea por umbral
+  python scripts/cargar_desde_backup.py
+  python scripts/cargar_desde_backup.py --csv files/BACKUP_RAW_20260420_1951.csv
+  python scripts/cargar_desde_backup.py --skip-validate   # solo si VALIDATE bloquea por umbral
 
 Requiere .env con credenciales igual que main.py.
 """
@@ -17,7 +17,8 @@ import sys
 
 from dotenv import load_dotenv
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Agregar directorio raíz del proyecto para imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from etl.transform import TransformCanastaBasica
 from etl.load import LoadCanastaBasica
@@ -26,6 +27,8 @@ from utils.logger import setup_logger
 
 
 def _latest_backup(files_dir: str) -> str | None:
+    if not os.path.exists(files_dir):
+        return None
     candidates = [
         f for f in os.listdir(files_dir)
         if f.startswith("BACKUP_RAW_") and f.endswith(".csv")
@@ -37,7 +40,8 @@ def _latest_backup(files_dir: str) -> str | None:
 
 
 def main() -> None:
-    base = os.path.dirname(os.path.abspath(__file__))
+    # Ajuste de base para scripts en subcarpeta
+    base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     files_dir = os.path.join(base, "files")
 
     parser = argparse.ArgumentParser(description="Cargar BD desde CSV BACKUP_RAW (sin extract).")
