@@ -43,9 +43,9 @@ class DataValidator:
         es_valido = len(self.errores) == 0
         
         if es_valido:
-            print(f"[VALIDATE] ✓ Validación exitosa. {len(self.advertencias)} advertencias.")
+            print(f"[VALIDATE] OK: Validacion exitosa. {len(self.advertencias)} advertencias.")
         else:
-            print(f"[VALIDATE] ✗ Validación fallida. {len(self.errores)} errores, {len(self.advertencias)} advertencias.")
+            print(f"[VALIDATE] ERROR: Validacion fallida. {len(self.errores)} errores, {len(self.advertencias)} advertencias.")
         
         return es_valido, self.errores, self.advertencias
     

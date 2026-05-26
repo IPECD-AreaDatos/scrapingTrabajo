@@ -56,8 +56,48 @@ class connection_db:
                 len_bdd = 0
                 logger.info(f"Tabla '{self.tabla}' no existe, se creará.")
 
-        # 3. Carga si hay novedades
+        # 3. Carga si hay novedades (más filas o diferencias en el último registro)
+        novedades = False
         if len(df) > len_bdd:
+            novedades = True
+        elif len(df) == len_bdd and len_bdd > 0:
+            with self.engine.connect() as conn:
+                try:
+                    # 1. Comparamos la fecha del último registro
+                    res_db = conn.execute(text(f"SELECT fecha FROM {full_table} ORDER BY fecha DESC LIMIT 1")).fetchone()
+                    if res_db:
+                        db_fecha = res_db[0]
+                        last_df = df.sort_values(by='fecha').iloc[-1]
+                        df_fecha = pd.to_datetime(last_df['fecha']).date()
+                        if isinstance(db_fecha, str):
+                            db_fecha = pd.to_datetime(db_fecha).date()
+                        elif hasattr(db_fecha, 'date'):
+                            db_fecha = db_fecha.date()
+                        
+                        if df_fecha != db_fecha:
+                            novedades = True
+                            logger.info("[LOAD] Difiere la fecha del último registro. Actualizando...")
+                    
+                    # 2. Comparamos la suma total de valores para detectar correcciones históricas
+                    res_sum = conn.execute(text(f"SELECT SUM(cba_nea), SUM(cbt_nea) FROM {full_table}")).fetchone()
+                    if res_sum:
+                        db_sum_cba, db_sum_cbt = res_sum
+                        df_sum_cba = df['cba_nea'].sum()
+                        df_sum_cbt = df['cbt_nea'].sum()
+                        
+                        val_db_sum_cba = float(db_sum_cba) if db_sum_cba is not None else 0.0
+                        val_df_sum_cba = float(df_sum_cba) if pd.notna(df_sum_cba) else 0.0
+                        val_db_sum_cbt = float(db_sum_cbt) if db_sum_cbt is not None else 0.0
+                        val_df_sum_cbt = float(df_sum_cbt) if pd.notna(df_sum_cbt) else 0.0
+                        
+                        if abs(val_df_sum_cba - val_db_sum_cba) > 1.0 or abs(val_df_sum_cbt - val_db_sum_cbt) > 1.0:
+                            novedades = True
+                            logger.info("[LOAD] Se detectaron correcciones en los datos históricos del NEA. Actualizando base de datos...")
+                            
+                except Exception as e:
+                    logger.warning(f"Error comparando registros históricos: {e}")
+
+        if novedades:
             # Ordenamos por fecha antes de insertar
             df = df.sort_values(by='fecha', ascending=True)
             
