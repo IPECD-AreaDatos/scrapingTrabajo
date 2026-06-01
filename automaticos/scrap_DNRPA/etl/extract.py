@@ -20,7 +20,13 @@ class ExtractDNRPA:
     """Extrae datos de patentamiento del DNRPA (autos y motos del último año)."""
 
     def __init__(self):
-        self.df_total = pd.DataFrame(columns=['fecha', 'id_provincia', 'id_vehiculo', 'cantidad'])
+        # Inicializamos con dtypes específicos para evitar el FutureWarning de concatenación
+        self.df_total = pd.DataFrame({
+            'fecha': pd.Series(dtype='datetime64[ns]'),
+            'id_provincia': pd.Series(dtype='int64'),
+            'id_vehiculo': pd.Series(dtype='int64'),
+            'cantidad': pd.Series(dtype='int64')
+        })
         self.driver = None
         self.original_window = None
 
@@ -103,49 +109,90 @@ class ExtractDNRPA:
             if len(fila_texto) >= 13:
                 datos.append(fila_texto)
 
-        # 2. Identificar filas de provincias y fila de total
-        # Buscamos las filas que tienen nombres de provincias conocidos o el TOTAL
-        lista_final = []
-        
-        # Mapeo fijo de provincias para asegurar el orden de los IDs
-        # (Asegúrate de que este orden coincida con el de la tabla del DNRPA)
-        ids_provincias = [
-            6, 2, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 
-            50, 54, 58, 62, 66, 70, 74, 78, 82, 86, 90, 94
-        ]
+        if not datos:
+            logger.warning(f"[EXTRACT] No se encontraron datos en la tabla para tipo: {tipo_vehiculo}")
+            return
 
         # Tomamos las filas de las provincias (suelen ser las primeras 24 con datos)
         # Y buscamos específicamente la que dice TOTAL
         df_temp = pd.DataFrame(datos)
-        
-        # Filtramos las provincias (filas 1 a 24 de los datos limpios)
-        df_provs = df_temp.iloc[1:25, 0:13].copy()
-        df_provs.iloc[:, 0] = ids_provincias
 
-        # Buscamos la fila que contiene el texto "TOTAL"
-        idx_total = df_temp[df_temp[0].str.contains("TOTAL", na=False)].index[0]
-        df_nacion = df_temp.iloc[[idx_total], 0:13].copy()
-        df_nacion.iloc[:, 0] = 1 # ID 1 para Nación
+        # 2. Diccionario de Mapeo de Provincias (Normalizado a minúsculas y sin puntos/espacios extra)
+        MAPEO_PROVINCIAS = {
+            "nacion": 1, "total": 1,
+            "cautonomadebsas": 2, "caba": 2,
+            "buenosaires": 6,
+            "catamarca": 10,
+            "cordoba": 14,
+            "corrientes": 18,
+            "chaco": 22,
+            "chubut": 26,
+            "entrerios": 30,
+            "formosa": 34,
+            "jujuy": 38,
+            "lapampa": 42,
+            "larioja": 46,
+            "mendoza": 50,
+            "misiones": 54,
+            "neuquen": 58,
+            "rionegro": 62,
+            "salta": 66,
+            "sanjuan": 70,
+            "sanluis": 74,
+            "santacruz": 78,
+            "santafe": 82,
+            "santiagodelestero": 86, "sgodelestero": 86,
+            "tucuman": 90,
+            "tierradelfuego": 94, "tdelfuego": 94
+        }
 
-        # Unimos
-        df_unificado = pd.concat([df_provs, df_nacion])
-        
-        logger.info(f"[EXTRACT] Se cargaron {len(df_unificado)} filas (Provincias + Nación)")
+        # Función local para normalizar los strings de las provincias de la web
+        def normalizar_nombre(texto):
+            if not texto:
+                return ""
+            return "".join(texto.lower().split()).replace(".", "").replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u")
 
-        # 3. Preparar columnas de fecha
+       
+        # Aplicamos la normalización a la columna de nombres de provincia
+        df_temp['nombre_normalizado'] = df_temp[0].apply(normalizar_nombre)
+
+        # Mapeamos los nombres para obtener el id_provincia real
+        df_temp['id_provincia'] = df_temp['nombre_normalizado'].map(MAPEO_PROVINCIAS)
+
+        # 3. Filtrado y Limpieza
+        # Nos quedamos únicamente con las filas que logramos mapear exitosamente
+        df_filtrado = df_temp[df_temp['id_provincia'].notna()].copy()
+
+        # [MANEJO DE FILA FANTASMA DE CABA / DUPLICADOS]
+        # Si hay filas duplicadas apuntando al mismo ID (como pasa en Motos con CABA), 
+        # agrupamos por id_provincia sumando mes a mes para consolidar el dato real o descartar basura.
+        # Primero convertimos las columnas de meses (1 a 12) a strings limpios para poder operar
+        for col in range(1, 13):
+            df_filtrado[col] = df_filtrado[col].str.replace(".", "", regex=False)
+            df_filtrado[col] = pd.to_numeric(df_filtrado[col], errors='coerce').fillna(0).astype(int)
+
+        # Agrupamos por id_provincia para consolidar filas repetidas si las hubiera
+        df_consolidado = df_filtrado.groupby('id_provincia')[list(range(1, 13))].sum().reset_index()
+
+        logger.info(f"[EXTRACT] Se procesaron y mapearon {len(df_consolidado)} entidades geográficas con éxito.")
+
+        # 4. Preparar columnas de fecha para el Melt
         fechas = [datetime(int(valor_opcion), m, 1).strftime("%Y-%m-%d") for m in range(1, 13)]
-        df_unificado.columns = ['id_provincia'] + fechas
+        df_consolidado.columns = ['id_provincia'] + fechas
 
-        # 4. Melt
-        df_melted = df_unificado.melt(id_vars=['id_provincia'], var_name='fecha', value_name='cantidad')
+        # 5. Melt a formato transaccional
+        df_melted = df_consolidado.melt(id_vars=['id_provincia'], var_name='fecha', value_name='cantidad')
         df_melted['id_vehiculo'] = tipo_vehiculo
 
-        self.df_total = pd.concat([self.df_total, df_melted])
+        # Concatenamos al dataframe histórico de la instancia
+        self.df_total = pd.concat([self.df_total, df_melted], ignore_index=True)
         
     def _transformar_cantidad_vehiculos(self):
-        self.df_total['cantidad'] = self.df_total['cantidad'].str.replace(".", "", regex=False)
+        # Como 'cantidad' ya es entera, removemos el .str.replace y forzamos a numérico directamente
         self.df_total['id_provincia'] = self.df_total['id_provincia'].astype(int)
         self.df_total['id_vehiculo'] = self.df_total['id_vehiculo'].astype(int)
         self.df_total['cantidad'] = pd.to_numeric(self.df_total['cantidad'], errors='coerce').fillna(0).astype(int)
         self.df_total['fecha'] = pd.to_datetime(self.df_total['fecha'], format='%Y-%m-%d')
-        self.df_total = self.df_total[self.df_total['cantidad'] > 0]
+        
+        # Mantener solo registros con movimientos
+        self.df_total = self.df_total[self.df_total['cantidad'] > 0].reset_index(drop=True)
