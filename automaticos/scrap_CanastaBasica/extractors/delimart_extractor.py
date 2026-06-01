@@ -181,6 +181,11 @@ class DelimartExtractor:
             self.driver.set_page_load_timeout(15)  # OPTIMIZADO: Reducido de 30 a 15
             self.driver.get(url)
 
+            # Verificar página de error inmediatamente antes de esperar
+            if self._es_pagina_error():
+                logger.warning(f"Página no encontrada (404): {url}")
+                return {"error_type": "404", "url": url, "titulo": self.driver.title}
+
             # 1. ESPERA ACTIVA: Esperamos a que el nombre sea visible
             # Esto evita que leamos la página anterior (como la Pepsi)
             WebDriverWait(self.driver, 10).until(
@@ -493,6 +498,27 @@ class DelimartExtractor:
             print(f"Error limpiando precio {price_text}: {e}")
             return ""
     
+    def _es_pagina_error(self):
+        """Detecta si la página actual es una página de error 404"""
+        try:
+            titulo = self.driver.title.strip()
+            # Si el título es exactamente "DeliMart -" o vacío, y hay un h2 de página no encontrada
+            if titulo == "DeliMart -" or titulo == "DeliMart":
+                try:
+                    h2_text = self.driver.find_element(By.TAG_NAME, "h2").text.lower()
+                    if "no se puede encontrar" in h2_text or "lo sentimos" in h2_text:
+                        return True
+                except:
+                    pass
+            
+            body_text = self.driver.find_element(By.TAG_NAME, "body").text.lower()
+            if "no se puede encontrar la página solicitada" in body_text:
+                return True
+                
+            return False
+        except:
+            return False
+
     def cleanup_driver(self):
         """Limpia recursos del driver"""
         if self.driver:
@@ -535,7 +561,7 @@ class DelimartExtractor:
                     continue
                 
                 # Verificar si es página de error
-                if any(word in titulo.lower() for word in ['error', 'not found', '404']):
+                if self._es_pagina_error() or any(word in titulo.lower() for word in ['error', 'not found', '404']):
                     resultados[url] = {
                         'valido': False,
                         'estado': 'PAGINA_ERROR',

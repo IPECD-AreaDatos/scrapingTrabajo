@@ -46,10 +46,39 @@ class ReportCanastaBasica:
             cols_to_keep = ['url', 'supermercado', 'nombre', 'error_type', 'precio_normal']
             cols_present = [c for c in cols_to_keep if c in df_broken.columns]
             df_broken[cols_present].to_csv(report_path, index=False)
-            return report_path
         except Exception as e:
-            logger.error(f"[REPORT] Error guardando reporte: {e}")
-            return None
+            logger.error(f"[REPORT] Error guardando reporte individual: {e}")
+
+        # 3. Guardar en histórico acumulado sin duplicados
+        try:
+            historico_path = os.path.join(self.output_dir, "links_a_modificar.csv")
+            
+            # Preparar datos a guardar
+            cols_historico = ['url', 'supermercado', 'nombre', 'error_type']
+            cols_presentes = [c for c in cols_historico if c in df_broken.columns]
+            df_nuevo = df_broken[cols_presentes].copy()
+            df_nuevo['fecha_deteccion'] = datetime.now().strftime("%Y-%m-%d %H:%M")
+            
+            if os.path.exists(historico_path):
+                try:
+                    df_existente = pd.read_csv(historico_path)
+                    # Combinar ambos
+                    df_comb = pd.concat([df_existente, df_nuevo], ignore_index=True)
+                except Exception as read_err:
+                    logger.warning(f"[REPORT] No se pudo leer histórico existente: {read_err}. Recreando.")
+                    df_comb = df_nuevo
+            else:
+                df_comb = df_nuevo
+                
+            # Eliminar duplicados por URL, conservando el último registro (el más reciente)
+            if not df_comb.empty:
+                df_comb = df_comb.drop_duplicates(subset=['url'], keep='last')
+                df_comb.to_csv(historico_path, index=False, encoding='utf-8-sig')
+                logger.info(f"[REPORT] Historial acumulado de links a modificar actualizado en: {historico_path} (Total links: {len(df_comb)})")
+        except Exception as e:
+            logger.error(f"[REPORT] Error actualizando historial acumulado: {e}")
+
+        return report_path
 
     def _log_broken_links_to_console(self, df_broken: pd.DataFrame):
         """Imprime los links fallidos en el log de manera estructurada"""

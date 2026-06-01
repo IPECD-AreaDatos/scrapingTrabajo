@@ -1063,6 +1063,11 @@ class CarrefourExtractor:
             for indicador in indicadores_error:
                 if indicador.lower() in titulo or indicador.lower() in body_text:
                     return True
+            
+            # Si la URL contiene /p pero el título es el de la Home, es un error (redirección oculta)
+            if "/p" in self.driver.current_url.lower() and "las mejores ofertas en supermercados" in titulo:
+                logger.info(" Detectado redireccionamiento a Home (404 oculto)")
+                return True
                     
             # Verificar si hay elementos específicos de error de Carrefour
             try:
@@ -1359,6 +1364,12 @@ class CarrefourExtractor:
         CON SELECTORES ESPECÍFICOS DE LAS FOTOS
         """
         try:
+            # Si la URL contiene /p pero el título es el de la Home, es un error (redirección oculta)
+            titulo = self.driver.title.lower()
+            if "/p" in self.driver.current_url.lower() and "las mejores ofertas en supermercados" in titulo:
+                logger.info(" Detectado redireccionamiento a Home (404 oculto)")
+                return True
+
             # SELECTORES ESPECÍFICOS de la foto que me enviaste
             selectores_error_especificos = [
                 # Selector del texto "¡Ups!"

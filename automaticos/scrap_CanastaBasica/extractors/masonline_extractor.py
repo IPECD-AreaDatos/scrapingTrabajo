@@ -282,7 +282,7 @@ class MasonlineExtractor:
             # PRIMERA VERIFICACIÓN: Buscar botón "Agregar" habilitado
             try:
                 botones_agregar = self.driver.find_elements(By.XPATH, 
-                    "//button[contains(., 'Agregar') or contains(., 'AGREGAR')]")
+                    "//button[(contains(., 'Agregar') or contains(., 'AGREGAR')) and not(contains(., 'lista'))]")
                 
                 for boton in botones_agregar:
                     if boton.is_displayed() and boton.is_enabled():
@@ -335,7 +335,7 @@ class MasonlineExtractor:
         try:
             # 1. Buscar botón "Agregar" habilitado
             botones_agregar = self.driver.find_elements(By.XPATH, 
-                "//button[contains(., 'Agregar') or contains(., 'AGREGAR')]")
+                "//button[(contains(., 'Agregar') or contains(., 'AGREGAR')) and not(contains(., 'lista'))]")
             
             logger.info(f"   Encontrados {len(botones_agregar)} botones 'Agregar'")
             
@@ -1472,12 +1472,19 @@ class MasonlineExtractor:
     def _es_pagina_error(self):
         """Detecta si la página actual es una página de error"""
         try:
-            indicadores_error = ["404", "página no encontrada", "error", "no existe", "not found"]
+            indicadores_error = ["404", "página no encontrada", "error", "no existe", "not found", "oops!", "productlinknotfound"]
             titulo = self.driver.title.lower()
+            current_url = self.driver.current_url.lower()
             body_text = self.driver.find_element(By.TAG_NAME, "body").text.lower()
             
+            if "productlinknotfound" in current_url:
+                return True
+                
+            if "oops!" in body_text and "no encontramos" in body_text:
+                return True
+
             for indicador in indicadores_error:
-                if indicador in titulo or indicador in body_text:
+                if indicador in titulo or indicador in body_text or indicador in current_url:
                     return True
                     
             return False
