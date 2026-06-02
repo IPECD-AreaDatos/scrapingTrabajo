@@ -1,4 +1,6 @@
 # Archivos temporales y asistentes de links
-files/
+files/*
+!files/reparador_links.html
+!files/links_a_modificar.csv
 cache/
 cookies/
