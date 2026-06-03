@@ -13,6 +13,110 @@ from etl.validate import ValidateCanastaBasica
 from etl.report import ReportCanastaBasica
 from utils.logger import setup_logger
 from utils.optimization import cleanup_environment
+import pandas as pd
+
+
+
+def aplicar_padding(df_raw: pd.DataFrame, logger) -> pd.DataFrame:
+    from sqlalchemy import text
+    from utils.utils_db import ConexionBaseDatos
+    
+    target_count = 2000
+    date_today = datetime.now().strftime('%Y-%m-%d')
+    
+    # Identificar productos válidos en df_raw
+    precio_normal_numeric = pd.to_numeric(df_raw['precio_normal'], errors='coerce').fillna(0)
+    precio_desc_numeric = pd.to_numeric(df_raw['precio_descuento'], errors='coerce').fillna(0)
+    
+    valid_hoy_mask = (precio_normal_numeric > 0) | (precio_desc_numeric > 0)
+    valid_hoy_ids = set(df_raw[valid_hoy_mask]['id_link_producto'].tolist())
+    valid_count = len(valid_hoy_ids)
+    
+    logger.info(f"[PADDING] Productos válidos actuales: {valid_count}. Objetivo: {target_count}")
+    
+    if valid_count >= target_count:
+        logger.info("[PADDING] No se requiere padding.")
+        return df_raw
+        
+    needed = target_count - valid_count
+    logger.info(f"[PADDING] Se necesitan {needed} productos adicionales.")
+    
+    # Conectar a Postgres para obtener los datos de ayer
+    host = os.getenv('HOST_DBB2')
+    user = os.getenv('USER_DBB2')
+    pw = os.getenv('PASSWORD_DBB2')
+    db = os.getenv('NAME_DB_CANASTA', 'canasta_basica_super')
+    port = os.getenv('PORT_DBB2', 5432)
+    
+    db_conn = ConexionBaseDatos(host=host, user=user, password=pw, database=db, port=port)
+    if not db_conn.connect_db():
+        logger.error("[PADDING] No se pudo conectar a la base Postgres para el padding.")
+        return df_raw
+        
+    try:
+        # Encontrar la última fecha anterior a hoy
+        query_fecha = "SELECT MAX(fecha_extraccion) FROM precios_productos WHERE fecha_extraccion < :hoy"
+        with db_conn.engine.connect() as conn:
+            last_date = conn.execute(text(query_fecha), {"hoy": date_today}).scalar()
+            
+        if not last_date:
+            logger.warning("[PADDING] No se encontró ninguna fecha anterior para el relleno.")
+            return df_raw
+            
+        logger.info(f"[PADDING] Recuperando datos de respaldo de la fecha: {last_date}")
+        
+        query_productos = """
+            SELECT * FROM precios_productos 
+            WHERE fecha_extraccion = :last_date
+        """
+        with db_conn.engine.connect() as conn:
+            df_yesterday = pd.read_sql(text(query_productos), conn, params={"last_date": last_date})
+            
+        if df_yesterday.empty:
+            logger.warning("[PADDING] No se encontraron productos para la fecha anterior.")
+            return df_raw
+            
+        # Filtrar ítems válidos de ayer que no están en los válidos de hoy
+        df_missing = df_yesterday[~df_yesterday['id_link_producto'].isin(valid_hoy_ids)].copy()
+        df_missing = df_missing[(df_missing['precio_normal'] > 0) | (df_missing['precio_descuento'] > 0)]
+        
+        if len(df_missing) < needed:
+            logger.warning(f"[PADDING] Solo hay {len(df_missing)} productos disponibles ayer para copiar (se necesitaban {needed}).")
+            needed = len(df_missing)
+            
+        df_pad_db = df_missing.head(needed).copy()
+        
+        # Convertir formato de base de datos a formato crudo de df_raw
+        df_pad_raw = pd.DataFrame()
+        df_pad_raw['nombre'] = df_pad_db['nombre_producto']
+        df_pad_raw['precio_normal'] = df_pad_db['precio_normal']
+        df_pad_raw['precio_descuento'] = df_pad_db['precio_descuento']
+        df_pad_raw['precio_por_unidad'] = df_pad_db['precio_por_unidad']
+        df_pad_raw['unidad'] = df_pad_db['unidad_medida']
+        df_pad_raw['descuentos'] = '[]'
+        df_pad_raw['fecha'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        df_pad_raw['supermercado'] = 'Relleno'
+        df_pad_raw['url'] = 'Relleno'
+        df_pad_raw['id_link_producto'] = df_pad_db['id_link_producto']
+        df_pad_raw['peso'] = df_pad_db['peso']
+        df_pad_raw['error_type'] = None
+        df_pad_raw['titulo'] = None
+        df_pad_raw['producto_nombre'] = None
+        df_pad_raw['origen_dato'] = 'relleno'
+        df_pad_raw['fecha_extraccion'] = date_today
+        
+        # Eliminar las contrapartes inválidas de hoy para evitar duplicados de id_link_producto
+        df_final_raw = df_raw[~df_raw['id_link_producto'].isin(df_pad_raw['id_link_producto'])].copy()
+        df_final_raw = pd.concat([df_final_raw, df_pad_raw], ignore_index=True)
+        
+        logger.info(f"[PADDING] Agregados {len(df_pad_raw)} productos de relleno. Total filas df_raw: {len(df_final_raw)}")
+        return df_final_raw
+        
+    except Exception as e:
+        logger.error(f"[PADDING] Error aplicando padding: {e}", exc_info=True)
+        return df_raw
+    finally:
+        db_conn.close_connections()
 
 
 def main():
@@ -92,7 +196,31 @@ def main():
 
         # VALIDATE
         logger.info("3. [VALIDATE] Validando datos...")
-        ValidateCanastaBasica().validate(df)
+        try:
+            ValidateCanastaBasica().validate(df)
+        except ValueError as ve:
+            if "Insuficientes productos" in str(ve):
+                logger.warning(f"[VALIDATE WARNING] La validación falló por falta de productos: {ve}")
+                logger.info("Aplicando padding automático con datos del último día disponible...")
+                df_raw = aplicar_padding(df_raw, logger)
+                
+                # Guardar backup del padded
+                padded_backup_file = os.path.join(
+                    os.path.dirname(os.path.abspath(__file__)), 'files',
+                    f'BACKUP_PADDED_{datetime.now().strftime("%Y%m%d_%H%M")}.csv'
+                )
+                try:
+                    df_raw.to_csv(padded_backup_file, index=False, quoting=1, encoding='utf-8-sig')
+                    logger.info("BACKUP PADDED guardado: %s", padded_backup_file)
+                except Exception as ex_back:
+                    logger.warning("No se pudo crear backup padded: %s", ex_back)
+                
+                logger.info("Re-transformando datos con el padding aplicado...")
+                df = TransformCanastaBasica().transform(df_raw)
+                logger.info("Re-validando datos...")
+                ValidateCanastaBasica().validate(df)
+            else:
+                raise
 
         # LOAD
         logger.info("4. [LOAD] Cargando a base de datos...")

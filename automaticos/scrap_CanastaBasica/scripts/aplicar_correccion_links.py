@@ -43,10 +43,49 @@ def main():
     
     print("Iniciando actualización de URLs en las bases de datos...")
     
+    def procesar_link_db(conn, viejo, nuevo):
+        if viejo == nuevo:
+            return False, "sin_cambios"
+            
+        q_find = text("SELECT id_link_producto, activo FROM link_productos WHERE link = :link")
+        res_nuevo = conn.execute(q_find, {"link": nuevo}).fetchone()
+        res_viejo = conn.execute(q_find, {"link": viejo}).fetchone()
+        
+        if res_nuevo is None:
+            if res_viejo is not None:
+                id_viejo = res_viejo[0]
+                conn.execute(
+                    text("UPDATE link_productos SET link = :nuevo WHERE id_link_producto = :id"),
+                    {"nuevo": nuevo, "id": id_viejo}
+                )
+                return True, "renombrado"
+        else:
+            id_nuevo, activo_nuevo = res_nuevo[0], res_nuevo[1]
+            changed = False
+            action = []
+            if res_viejo is not None:
+                id_viejo = res_viejo[0]
+                conn.execute(
+                    text("UPDATE link_productos SET activo = 0 WHERE id_link_producto = :id"),
+                    {"id": id_viejo}
+                )
+                changed = True
+                action.append("desactivado_viejo")
+            if activo_nuevo != 1:
+                conn.execute(
+                    text("UPDATE link_productos SET activo = 1 WHERE id_link_producto = :id"),
+                    {"id": id_nuevo}
+                )
+                changed = True
+                action.append("activado_nuevo")
+                
+            if changed:
+                return True, "+".join(action)
+                
+        return False, "nada"
+
     try:
         with engine_v1.begin() as conn1, engine_v2.begin() as conn2:
-            query = text("UPDATE link_productos SET link = :nuevo WHERE link = :viejo")
-            
             for _, row in df_correcciones.iterrows():
                 viejo = str(row['viejo_link']).strip()
                 nuevo = str(row['nuevo_link']).strip()
@@ -55,13 +94,13 @@ def main():
                     continue
                     
                 # Ejecutar en MySQL
-                res1 = conn1.execute(query, {"nuevo": nuevo, "viejo": viejo})
+                changed1, act1 = procesar_link_db(conn1, viejo, nuevo)
                 # Ejecutar en Postgres
-                res2 = conn2.execute(query, {"nuevo": nuevo, "viejo": viejo})
+                changed2, act2 = procesar_link_db(conn2, viejo, nuevo)
                 
-                if res1.rowcount > 0 or res2.rowcount > 0:
+                if changed1 or changed2:
                     total_arreglados += 1
-                    print(f"[OK] {viejo.split('/')[-1][:20]}... -> {nuevo.split('/')[-1][:20]}...")
+                    print(f"[OK] {viejo.split('/')[-1][:20]}... -> {nuevo.split('/')[-1][:20]}... (DB1: {act1}, DB2: {act2})")
                     
     except Exception as e:
         print(f"[ERROR] Error fatal al actualizar las bases de datos: {e}")
