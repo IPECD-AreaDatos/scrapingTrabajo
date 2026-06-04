@@ -80,8 +80,12 @@ class LoadDNRPA:
             # 2. Filtrar datos necesarios (Corrientes, NEA y Nación)
             df_mes = df[df['fecha'] == ultima_fecha]
             
-            # id_provincia: 18=Ctes, 6=Chaco, 54=Misiones, 34=Formosa, 1=Nacion
-            map_filas_matriz = {6: 2, 54: 3, 34: 4, 1: 5} 
+            map_filas_matriz = {
+                22: 2,  # 22 es CHACO (Fila 2 en la matriz de Sheets)
+                54: 3,  # 54 es MISIONES (Fila 3)
+                34: 4,  # 34 es FORMOSA (Fila 4)
+                1: 5    # 1 es NACION/TOTAL (Fila 5)
+            }
 
             # 3. Preparar conexión a Google Sheets
             key_dict = loads(os.getenv('GOOGLE_SHEETS_API_KEY'))
