@@ -33,11 +33,12 @@ LOG_FILE="/var/log/backup_salud.log"
 
 # --- INICIO ------------------------------------------------------------------
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-FECHA_LEGIBLE=$(date "+%d/%m/%Y %H:%M:%S")
 BACKUP_FILE="${LOCAL_BACKUP_DIR}/salud_tablas_${TIMESTAMP}.dump"
 
 log() {
-    echo "[${FECHA_LEGIBLE}] $1" | tee -a "$LOG_FILE"
+    local fecha_actual
+    fecha_actual=$(date "+%d/%m/%Y %H:%M:%S")
+    echo "[${fecha_actual}] $1" | tee -a "$LOG_FILE"
 }
 
 log "========================================================"
@@ -57,7 +58,7 @@ done
 # --- EJECUTAR pg_dump --------------------------------------------------------
 log "Ejecutando pg_dump..."
 
-PGPASSFILE=~/.pgpass pg_dump \
+PGPASSFILE="$HOME/.pgpass" pg_dump \
     -h "$DB_HOST" \
     -p "$DB_PORT" \
     -U "$DB_USER" \
