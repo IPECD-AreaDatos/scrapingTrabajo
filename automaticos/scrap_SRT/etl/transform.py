@@ -89,12 +89,12 @@ class TransformSRT:
             df['cant_personas_trabaj_up'] = pd.to_numeric(df['cant_personas_trabaj_up'], errors='coerce')
             df['cant_personas_trabaj_cp'] = pd.to_numeric(df['cant_personas_trabaj_cp'], errors='coerce')
 
-            # Fecha
-            año = int(df['periodo'].iloc[5][:4])
-            mes = int(df['periodo'].iloc[5][4:6])
-            fecha = pd.Timestamp(year=año, month=mes, day=1).date()
-            df['fecha'] = pd.to_datetime(fecha)
-            df['periodo'] = df['fecha']
+            # Fecha - Extraer de cada fila, no solo de la fila 5
+            df['periodo'] = df['periodo'].astype(str)
+            df['año'] = df['periodo'].str[:4].astype(int)
+            df['mes'] = df['periodo'].str[4:6].astype(int)
+            df['fecha'] = pd.to_datetime(df[['año', 'mes']].rename(columns={'año': 'year', 'mes': 'month'}).assign(day=1))
+            df = df.drop(columns=['año', 'mes'])
 
             # Agrupar
             df_agr = df.groupby(
