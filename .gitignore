@@ -34,7 +34,6 @@ test_*.py
 # Carpetas de versiones antiguas
 version_anterior/
 old/
-backup/
 
 # Archivos de bloqueo de LibreOffice/OpenOffice
 .~lock.*
