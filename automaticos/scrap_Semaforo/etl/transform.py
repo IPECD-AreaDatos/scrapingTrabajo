@@ -38,14 +38,16 @@ class TransformSemaforo:
         for col in df.columns:
             if col == 'fecha':
                 continue
-            if df[col].dtype == 'object':
+            if not pd.api.types.is_numeric_dtype(df[col]):
                 try:
-                    df[col] = (
+                    s = (
                         df[col]
+                        .astype(str)
                         .str.replace('%', '', regex=False)
                         .str.replace(',', '.', regex=False)
                     )
-                    df[col] = pd.to_numeric(df[col], errors='coerce') / 100
+                    s = s.replace(['None', 'nan', '<NA>', ''], pd.NA)
+                    df[col] = pd.to_numeric(s, errors='coerce') / 100
                     df[col] = df[col].apply(
                         lambda x: self._truncar_float(x, 3) if pd.notnull(x) else x
                     )

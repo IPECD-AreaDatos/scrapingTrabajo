@@ -49,13 +49,25 @@ class LoadSIPA:
         
         # 1. Validación de fechas
         with engine.connect() as conn:
-            res = conn.execute(text(f"SELECT MAX(fecha) FROM {full_table}"))
-            fecha_bdd = res.scalar()
+            try:
+                res = conn.execute(text(f"SELECT MAX(fecha) FROM {full_table}"))
+                fecha_bdd = res.scalar()
+            except Exception:
+                fecha_bdd = None
         
         fecha_df = pd.to_datetime(df['fecha']).max()
-        if fecha_bdd and pd.to_datetime(fecha_bdd).date() >= fecha_df.date():
-            logger.info("[LOAD] Sin datos nuevos en '%s'.", self.tabla)
+        fecha_bdd_dt = pd.to_datetime(fecha_bdd) if fecha_bdd else None
+        
+        fecha_db_str = fecha_bdd_dt.strftime('%Y-%m-%d') if fecha_bdd_dt else 'Ninguna (Tabla vacía)'
+        fecha_ext_str = fecha_df.strftime('%Y-%m-%d') if hasattr(fecha_df, 'strftime') else str(fecha_df)
+
+        logger.info(f"[LOAD] Comparación de fechas -> Base: {fecha_db_str} | Extraído: {fecha_ext_str}")
+
+        if fecha_bdd_dt and fecha_bdd_dt.date() >= fecha_df.date():
+            logger.info(f"[LOAD] No hay datos nuevos. La base llega hasta {fecha_db_str} y se extrajo hasta {fecha_ext_str}. No se sube a la base ni al Sheets.")
             return False
+
+        logger.info("[LOAD] ¡Datos nuevos detectados! Se reemplazarán los registros actuales.")
 
         # 2. Carga limpia
         with engine.begin() as conn:
@@ -67,7 +79,7 @@ class LoadSIPA:
             
             df.to_sql(name=self.tabla, con=conn, schema=schema, if_exists='append', index=False, method='multi')
         
-        logger.info("[LOAD] %d filas cargadas. Iniciando Analytics...", len(df))
+        logger.info("[LOAD] Carga a la base completada. %d filas cargadas. Iniciando Analytics...", len(df))
         self._run_analytics()
         return True
     

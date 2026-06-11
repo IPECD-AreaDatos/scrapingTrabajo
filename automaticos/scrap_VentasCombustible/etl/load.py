@@ -79,27 +79,42 @@ class LoadVentasCombustible:
             query = f"SELECT fecha, id_provincia, producto FROM {full_table_name}"
             try:
                 df_bdd = pd.read_sql(query, con=self.engine)
-                df_bdd['fecha'] = pd.to_datetime(df_bdd['fecha']).dt.date
-                df_bdd['id_provincia'] = df_bdd['id_provincia'].astype(int)
-                existentes = set(zip(df_bdd['fecha'], df_bdd['id_provincia'], df_bdd['producto']))
+                if not df_bdd.empty:
+                    df_bdd['fecha'] = pd.to_datetime(df_bdd['fecha']).dt.date
+                    df_bdd['id_provincia'] = df_bdd['id_provincia'].astype(int)
+                    existentes = set(zip(df_bdd['fecha'], df_bdd['id_provincia'], df_bdd['producto']))
+                    fecha_max_db = df_bdd['fecha'].max()
+                else:
+                    existentes = set()
+                    fecha_max_db = None
             except Exception:
                 existentes = set()
+                fecha_max_db = None
+
+            fecha_max_extract = df['fecha'].max()
+            fecha_db_str = fecha_max_db.strftime('%Y-%m-%d') if hasattr(fecha_max_db, 'strftime') else 'Ninguna (Tabla vacía)'
+            fecha_ext_str = fecha_max_extract.strftime('%Y-%m-%d') if hasattr(fecha_max_extract, 'strftime') else str(fecha_max_extract)
+
+            logger.info(f"[LOAD] Comparación de fechas -> Base: {fecha_db_str} | Extraído: {fecha_ext_str}")
 
             mask = df.apply(lambda x: (x['fecha'], x['id_provincia'], x['producto']) not in existentes, axis=1)
             df_nuevos = df[mask].copy()
 
             if df_nuevos.empty:
-                logger.info("[LOAD] No hay registros nuevos para cargar.")
+                logger.info(f"[LOAD] No hay datos nuevos. La base llega hasta {fecha_db_str} y se extrajo hasta {fecha_ext_str}. No se sube a la base ni al Sheets.")
                 return
+
+            logger.info(f"[LOAD] ¡Datos nuevos detectados! Se cargarán {len(df_nuevos)} registros.")
 
             # 3. Carga simple
             df_nuevos.to_sql(table_name, self.engine, schema=schema, if_exists='append', index=False, chunksize=2000)
-            logger.info(f"[LOAD] {len(df_nuevos)} registros cargados.")
+            logger.info("[LOAD] Carga a la base completada.")
 
             # 4. Actualizar Google Sheets
             ultima_fecha = df['fecha'].max()
             suma_total = df[df['fecha'] == ultima_fecha]['cantidad'].sum()
             self._update_sheets(suma_total, ultima_fecha)
+            logger.info("[LOAD] Carga al sheets completado.")
 
         except Exception as e:
             logger.error(f"Error en carga de combustible: {e}")

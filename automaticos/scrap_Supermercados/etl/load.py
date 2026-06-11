@@ -50,14 +50,23 @@ class LoadSupermercados:
         # 1. Comparativa de conteo de filas
         with self.engine.connect() as conn:
             try:
-                res = conn.execute(text(f"SELECT COUNT(*) FROM {full_table}"))
-                len_bdd = res.scalar()
+                res = conn.execute(text(f"SELECT COUNT(*), MAX(fecha) FROM {full_table}")).fetchone()
+                len_bdd = res[0]
+                fecha_max_db = res[1]
             except Exception:
                 len_bdd = 0
+                fecha_max_db = None
                 logger.info(f"Tabla '{self.tabla}' no existe, se creará al insertar.")
+
+        fecha_max_extract = pd.to_datetime(df['fecha']).max()
+        fecha_db_str = fecha_max_db.strftime('%Y-%m-%d') if hasattr(fecha_max_db, 'strftime') else 'Ninguna (Tabla vacía)'
+        fecha_ext_str = fecha_max_extract.strftime('%Y-%m-%d') if hasattr(fecha_max_extract, 'strftime') else str(fecha_max_extract)
+
+        logger.info(f"[LOAD] Comparación de fechas -> Base: {fecha_db_str} | Extraído: {fecha_ext_str}")
         
         # 2. Carga si hay novedades
         if len(df) > len_bdd:
+            logger.info("[LOAD] ¡Datos nuevos detectados! Se reemplazarán los registros actuales.")
             with self.engine.begin() as conn:
                 # Truncate seguro
                 if self.version == "2":
@@ -75,10 +84,10 @@ class LoadSupermercados:
                     method='multi'
                 )
             
-            logger.info("[LOAD] '%s' actualizada: %d filas.", self.tabla, len(df))
+            logger.info("[LOAD] Carga a la base completada.")
             return True
         
-        logger.info("[LOAD] No hay datos nuevos de supermercados.")
+        logger.info(f"[LOAD] No hay datos nuevos. La base llega hasta {fecha_db_str} y se extrajo hasta {fecha_ext_str}. No se sube a la base ni al Sheets.")
         return False
 
     def close(self):

@@ -62,7 +62,6 @@ def main():
             loader.load(df_inter_t, df_interm_t)
         else:
             logger.warning("[LOAD] No hay datos nuevos para cargar en ninguna de las tablas.")
-        loader.load(df_inter_t, df_interm_t)
 
         duracion = datetime.now() - inicio
         logger.info("=== PROCESO COMPLETADO EXITOSAMENTE - Duración: %s ===", duracion)

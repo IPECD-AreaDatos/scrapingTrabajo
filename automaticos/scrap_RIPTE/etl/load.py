@@ -51,27 +51,35 @@ class LoadRIPTE:
             
             if row:
                 ultima_fecha, ultimo_ripte = row
-                logger.info("[LOAD] Último RIPTE en BD: %s = %s", ultima_fecha, ultimo_ripte)
+                fecha_db_str = pd.to_datetime(ultima_fecha).strftime('%Y-%m-%d')
                 
                 # 2. Validar cambio significativo
                 if abs(valor - float(ultimo_ripte)) < self.tolerancia:
-                    logger.info("[LOAD] RIPTE sin cambios significativos. Skip.")
+                    logger.info(f"[LOAD] Comparación -> Base: {fecha_db_str} (Valor: {ultimo_ripte}) | Extraído: (Valor: {valor})")
+                    logger.info(f"[LOAD] No hay datos nuevos. La base llega hasta {fecha_db_str}. No se sube a la base ni al Sheets.")
                     return False
                 
                 # 3. Calcular nueva fecha
                 fecha_base = pd.to_datetime(ultima_fecha)
                 _, dias_mes = calendar.monthrange(fecha_base.year, fecha_base.month)
                 nueva_fecha = fecha_base + timedelta(days=dias_mes)
+                fecha_ext_str = nueva_fecha.strftime('%Y-%m-%d')
+                
+                logger.info(f"[LOAD] Comparación de fechas -> Base: {fecha_db_str} | Extraído (Nuevo período): {fecha_ext_str}")
+                logger.info(f"[LOAD] ¡Datos nuevos detectados! Valor base: {ultimo_ripte} -> Nuevo valor: {valor}")
             else:
                 # Si tabla vacía, usamos fecha actual o inicio de año
                 nueva_fecha = datetime.now().replace(day=1)
+                fecha_ext_str = nueva_fecha.strftime('%Y-%m-%d')
+                logger.info(f"[LOAD] Comparación de fechas -> Base: Ninguna (Tabla vacía) | Extraído: {fecha_ext_str}")
+                logger.info("[LOAD] ¡Datos nuevos detectados! Se insertará el primer registro.")
 
             # 4. Insertar nuevo valor
             conn.execute(
                 text(f"INSERT INTO {full_table} (fecha, valor) VALUES (:f, :v)"),
                 {"f": nueva_fecha, "v": valor}
             )
-            logger.info("[LOAD] Nuevo RIPTE insertado: %s = %s", nueva_fecha, valor)
+            logger.info("[LOAD] Carga a la base completada.")
             return True
 
     def close(self):
