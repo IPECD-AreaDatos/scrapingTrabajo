@@ -2,8 +2,9 @@ name: Preparar fuente ANAC
 
 on:
   schedule:
-    # 17:30 de Argentina, antes del DAG de Airflow de las 19:30.
-    - cron: "30 20 * * *"
+    # 12:30 de Argentina: deja margen amplio ante demoras del scheduler de
+    # GitHub Actions antes del DAG de Airflow de las 19:30.
+    - cron: "30 15 * * *"
   workflow_dispatch:
 
 concurrency:

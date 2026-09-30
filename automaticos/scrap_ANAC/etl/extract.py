@@ -20,7 +20,9 @@ class ExtractANAC:
     """Clase para extraer datos de ANAC"""
 
     MAX_EDAD_CACHE_SEGUNDOS = 45 * 24 * 60 * 60
-    MAX_EDAD_ZIP_PREDESCARGADO_SEGUNDOS = 2 * 60 * 60
+    # Debe coincidir con la tolerancia del DAG: GitHub Actions puede iniciar
+    # los workflows programados varias horas tarde y ANAC actualiza mensual.
+    MAX_EDAD_ZIP_PREDESCARGADO_SEGUNDOS = 48 * 60 * 60
     
     def __init__(self, use_selenium=False, headless=True):
         """
