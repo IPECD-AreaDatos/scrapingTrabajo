@@ -70,6 +70,14 @@ class DeflateSupermercados:
             df_pivot = df_raw.pivot_table(index=['fecha', 'id_region'], 
                                          columns='id_subdivision', 
                                          values='valor').reset_index()
+
+            # La apertura 38 (equipos audiovisuales) solo está publicada para GBA.
+            # La serie histórica de supermercados usaba ese índice como proxy para
+            # las demás regiones; conservarla evita dejar electrónica a valores nominales.
+            df_electronica_gba = df_raw[
+                (df_raw['id_region'] == 2) & (df_raw['id_subdivision'] == 38)
+            ][['fecha', 'valor']].rename(columns={'valor': 'elec_gba'})
+            df_pivot = df_pivot.merge(df_electronica_gba, on='fecha', how='left')
             
             nombres = {
                 1: 'gen', 13: 'aguas', 15: 'alc', 4: 'pan', 6: 'lact', 5: 'carn', 
@@ -87,24 +95,76 @@ class DeflateSupermercados:
         df_d['id_region'] = df['id_region']
         df_d['id_provincia'] = df['id_provincia']
 
-        # Lógica de ponderación (Aseguramos que no haya división por cero)
-        # Usamos fillna(100) por si falta algún dato de IPC para que no explote
-        gen = df['gen'].fillna(100)
+        # Un índice faltante no equivale a IPC=100: eso dejaba la venta nominal.
+        # Para Nación, las aperturas no disponibles usan el IPC general nacional.
+        gen = pd.to_numeric(df['gen'], errors='coerce')
+        if gen.isna().any() or (gen <= 0).any():
+            faltantes = int((gen.isna() | (gen <= 0)).sum())
+            raise ValueError(
+                f"IPC general faltante o inválido para {faltantes} filas; "
+                "se cancela la actualización para preservar la tabla actual."
+            )
+
+        es_nacion = df['id_region'].eq(1)
+
+        def indice_con_respaldo(columna, respaldo=None):
+            """Usa la apertura disponible, luego un respaldo y finalmente IPC general nacional."""
+            if columna in df:
+                indice = pd.to_numeric(df[columna], errors='coerce')
+            else:
+                indice = pd.Series(float('nan'), index=df.index)
+
+            if respaldo is not None:
+                indice = indice.fillna(respaldo)
+
+            # En Nación faltan aperturas desagregadas en la fuente IPC; deflactar
+            # con el índice general es preferible a dejar esos rubros nominales.
+            indice = indice.mask(indice.isna() & es_nacion, gen)
+
+            invalido = indice.isna() | (indice <= 0)
+            if invalido.any():
+                filas = int(invalido.sum())
+                raise ValueError(
+                    f"IPC {columna} faltante o inválido para {filas} filas "
+                    "fuera de Nación; se cancela la actualización."
+                )
+            return indice
+
+        aguas = indice_con_respaldo('aguas')
+        alcohol = indice_con_respaldo('alc')
+        pan = indice_con_respaldo('pan')
+        aceite = indice_con_respaldo('aceit')
+        azucar = indice_con_respaldo('azu')
+        lacteos = indice_con_respaldo('lact')
+        carnes = indice_con_respaldo('carn')
+        verduras = indice_con_respaldo('verd')
+        alimentos = indice_con_respaldo('alim')
+        limpieza = indice_con_respaldo('limp')
+        personal = indice_con_respaldo('pers')
+        ropa = indice_con_respaldo('ropa')
+
+        # IPC no publica la apertura 38 para las demás regiones: usar la serie GBA,
+        # como hacía la deflactación histórica. Nación usa su índice general si falta.
+        respaldo_electronica = (
+            pd.to_numeric(df['elec_gba'], errors='coerce').mask(es_nacion)
+            if 'elec_gba' in df else None
+        )
+        electronica = indice_con_respaldo('elec', respaldo=respaldo_electronica)
         
         df_d['total_facturacion'] = df['total_facturacion'] / (gen / 100)
-        df_d['bebidas'] = df['bebidas'] / (((df['aguas'].fillna(100) * 0.5) + (df['alc'].fillna(100) * 0.5)) / 100)
-        df_d['almacen'] = df['almacen'] / (((df['pan'].fillna(100) * 0.33) + (df['aceit'].fillna(100) * 0.33) + (df['azu'].fillna(100) * 0.33)) / 100)
-        df_d['panaderia'] = df['panaderia'] / (df['pan'].fillna(100) / 100)
-        df_d['lacteos'] = df['lacteos'] / (df['lact'].fillna(100) / 100)
-        df_d['carnes'] = df['carnes'] / (df['carn'].fillna(100) / 100)
-        df_d['verduleria_fruteria'] = df['verduleria_fruteria'] / (df['verd'].fillna(100) / 100)
+        df_d['bebidas'] = df['bebidas'] / (((aguas * 0.5) + (alcohol * 0.5)) / 100)
+        df_d['almacen'] = df['almacen'] / (((pan * 0.33) + (aceite * 0.33) + (azucar * 0.33)) / 100)
+        df_d['panaderia'] = df['panaderia'] / (pan / 100)
+        df_d['lacteos'] = df['lacteos'] / (lacteos / 100)
+        df_d['carnes'] = df['carnes'] / (carnes / 100)
+        df_d['verduleria_fruteria'] = df['verduleria_fruteria'] / (verduras / 100)
         
         # Rostisería usa Restaurantes (id 31 o similar, chequear si 'alim' es correcto)
-        df_d['alimentos_preparados_rostiseria'] = df['alimentos_preparados_rostiseria'] / (df['alim'].fillna(100) / 100)
+        df_d['alimentos_preparados_rostiseria'] = df['alimentos_preparados_rostiseria'] / (alimentos / 100)
         
-        df_d['articulos_limpieza_perfumeria'] = df['articulos_limpieza_perfumeria'] / (((df['limp'].fillna(100) * 0.5) + (df['pers'].fillna(100) * 0.5)) / 100)
-        df_d['indumentaria_calzado_textiles_hogar'] = df['indumentaria_calzado_textiles_hogar'] / (df['ropa'].fillna(100) / 100)
-        df_d['electronica_hogar'] = df['electronica_hogar'] / (df['elec'].fillna(100) / 100)
+        df_d['articulos_limpieza_perfumeria'] = df['articulos_limpieza_perfumeria'] / (((limpieza * 0.5) + (personal * 0.5)) / 100)
+        df_d['indumentaria_calzado_textiles_hogar'] = df['indumentaria_calzado_textiles_hogar'] / (ropa / 100)
+        df_d['electronica_hogar'] = df['electronica_hogar'] / (electronica / 100)
         df_d['otros'] = df['otros'] / (gen / 100)
         
         # Reemplazar NaN por 0 para que Postgres no se queje si la columna es NOT NULL
