@@ -76,14 +76,12 @@ class LoadCanastaBasica:
         finally:
             db_instancia.close_connections()
 
-    def _ejecutar_carga_por_instancia(self, db_instancia, df, nombre_log, id_extraccion_propuesto=None):
+    def _ejecutar_carga_por_instancia(self, db_instancia, df, nombre_log, id_extraccion_propuesto=None, observaciones=None):
         """Lógica interna de carga para evitar repetir código"""
         total_productos = len(df)
         
-        # Si se propone un ID (ej: capturado de MySQL), intentamos usarlo en Postgres
         if id_extraccion_propuesto:
             id_extraccion = id_extraccion_propuesto
-            # Se debe asegurar que este ID exista en la tabla extracciones de la nueva base
             if not self._registrar_id_especifico_extraccion(db_instancia, id_extraccion, nombre_log):
                 return False, None
         else:
@@ -93,30 +91,25 @@ class LoadCanastaBasica:
             logger.error(f"[LOAD] No se pudo obtener id_extraccion para {nombre_log}")
             return False, None
 
-        # Preparar DF para esta base
         df_local = df.copy()
         df_local['id_extraccion'] = id_extraccion
 
         if db_instancia.connect_db():
             try:
-                # Inserción masiva
                 success = db_instancia.insert_append('precios_productos', df_local)
-                try:
-                    is_pg = (db_instancia.engine.name == 'postgresql')
-                    alter_query = "ALTER TABLE precios_productos ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;" if is_pg else "ALTER TABLE precios_productos ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;"
-                    with db_instancia.connection.cursor() as cursor_alter:
-                        cursor_alter.execute(alter_query)
-                    db_instancia.connection.commit()
-                except Exception as e:
-                    logger.warning(f"[LOAD] No se pudo agregar la columna updated_at a precios_productos: {e}")
                 estado = 'completada' if success else 'error'
                 
-                # Actualizar estado
+                # Manejo seguro del texto de observaciones para SQL
+                obs_sql = f"'{observaciones.replace("'", "''")}'" if observaciones else "NULL"
+                
+                # Actualizar estado y observaciones
                 query_update = f"""
                     UPDATE extracciones 
                     SET estado = '{estado}', 
                         fecha_fin = NOW(),
-                        productos_extraidos = {total_productos}
+                        productos_extraidos = {total_productos},
+                        productos_exitosos = {total_productos if success else 0},
+                        observaciones = {obs_sql}
                     WHERE id_extraccion = {id_extraccion}
                 """
                 with db_instancia.connection.cursor() as cursor:
@@ -126,10 +119,8 @@ class LoadCanastaBasica:
                 if success:
                     logger.info(f"[OK] Carga finalizada en {nombre_log}. ID: {id_extraccion}")
                 else:
-                    logger.error(
-                        f"[ERROR] Inserción rechazada o incompleta en {nombre_log}. "
-                        f"ID extracción: {id_extraccion}. Revisar logs de insert_append."
-                    )
+                    logger.error(f"[ERROR] Inserción rechazada o incompleta en {nombre_log}. ID: {id_extraccion}")
+                    
                 return success, id_extraccion
             except Exception as e:
                 logger.error(f"[ERROR] Carga fallida en {nombre_log}: {e}")
@@ -174,54 +165,54 @@ class LoadCanastaBasica:
         finally:
             db_instancia.close_connections()
 
-    def load(self, df: pd.DataFrame) -> bool:
+    def load(self, df: pd.DataFrame, observaciones: str = None) -> bool:
         if df.empty:
             logger.warning("[LOAD] DataFrame vacío, nada que cargar.")
             return False
 
-        # --- Filtrado de precios 0 ---
+        # --- Filtrado de precios 0 corregido ---
         total_inicial = len(df)
-        col_precio_1, col_precio_2 = 'precio_lista', 'precio_promo'
+        if 'precio_normal' in df.columns and 'precio_descuento' in df.columns:
+            df = df[~((df['precio_normal'] <= 0) & (df['precio_descuento'] <= 0))].copy()
+        elif 'precio_normal' in df.columns:
+            df = df[df['precio_normal'] > 0].copy()
 
-        if col_precio_1 in df.columns and col_precio_2 in df.columns:
-            df = df[~((df[col_precio_1] == 0) & (df[col_precio_2] == 0))].copy()
-        elif 'precio' in df.columns:
-            df = df[df['precio'] > 0].copy()
-            
-        logger.info(f"[LOAD] Filtrado: {total_inicial - len(df)} productos eliminados.")
+        eliminados = total_inicial - len(df)
+        if eliminados > 0:
+            logger.info(f"[LOAD] Filtrado de ceros: {eliminados} productos eliminados.")
 
         if df.empty:
             return False
 
-        # Un registro por id_link_producto por extracción (listados p. ej. Parada Canga duplican el mismo link)
+        # Desduplicación por link
         if 'id_link_producto' in df.columns:
             antes = len(df)
             df = df.drop_duplicates(subset=['id_link_producto'], keep='last').copy()
             if len(df) < antes:
-                logger.warning(
-                    "[LOAD] Eliminadas %d filas duplicadas (mismo id_link_producto); quedan %d.",
-                    antes - len(df),
-                    len(df),
-                )
+                logger.warning("[LOAD] Eliminadas %d filas duplicadas (mismo id_link_producto); quedan %d.", antes - len(df), len(df))
 
-        # Agregar fecha de extracción una sola vez para ambas
+        # Fechas
         ahora = datetime.now()
-        df['fecha_extraccion'] = ahora.date() # Lo que ya tenías
+        df['fecha_extraccion'] = ahora.date()
         df['created_at'] = ahora
 
         # --- CARGA DUAL ---
         logger.info("Iniciando carga dual en Base Vieja y Base Nueva...")
         
-        # 1. Carga en Base Vieja (MySQL) - OBLIGATORIA
-        exito_v1, id_extraccion = self._ejecutar_carga_por_instancia(self.db_v1, df, "BASE VIEJA (MySQL)")
-        
+        # 1. Base Vieja (MySQL)
+        exito_v1, id_extraccion = self._ejecutar_carga_por_instancia(
+            self.db_v1, df, "BASE VIEJA (MySQL)", observaciones=observaciones
+        )
         if not exito_v1 or not id_extraccion:
-            logger.error("[GUARD] Carga en Base Vieja falló o no generó ID. ABORTANDO Postgres.")
+            logger.error("[GUARD] Carga en Base Vieja falló. ABORTANDO Postgres.")
             return False
 
-        # 2. Carga en Base Nueva (Postgres) - Solo si la primera fue exitosa
-        # Pasamos el mismo id_extraccion capturado de MySQL
-        exito_v2, _ = self._ejecutar_carga_por_instancia(self.db_v2, df, "BASE NUEVA (Postgres)", id_extraccion_propuesto=id_extraccion)
+        # 2. Base Nueva (Postgres)
+        exito_v2, _ = self._ejecutar_carga_por_instancia(
+            self.db_v2, df, "BASE NUEVA (Postgres)", 
+            id_extraccion_propuesto=id_extraccion, 
+            observaciones=observaciones
+        )
 
         return exito_v1 and exito_v2
     

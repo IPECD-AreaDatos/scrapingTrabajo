@@ -14,6 +14,7 @@ from etl.transform import TransformCanastaBasica
 from etl.load import LoadCanastaBasica
 from etl.validate import ValidateCanastaBasica
 from etl.report import ReportCanastaBasica
+from etl.pre_check import PreCheckCanastaBasica
 from utils.logger import setup_logger
 from utils.optimization import cleanup_environment
 
@@ -44,21 +45,12 @@ def main():
             logger.error("[ERROR] No se encontraron links activos en la base de datos.")
             return
 
-        # --- EXCLUSIÓN TEMPORAL DE DEPOT (Sitio web fuera de servicio) ---
-        links_sin_depot = []
-        for l in links_list:
-            super_name = str(l.get('supermercado', l.get('nombre_super', ''))).lower()
-            url_val = str(l.get('url', '')).lower()
-            if 'depot' not in super_name and 'depot' not in url_val:
-                links_sin_depot.append(l)
-
-        excluidos = len(links_list) - len(links_sin_depot)
-        if excluidos > 0:
-            logger.warning("[EXTRACT] Se excluyeron %d links correspondientes a Depot.", excluidos)
-        links_list = links_sin_depot
+        # --- PRE-CHECK: HEALTH CHECK CON EXCLUSIÓN DINÁMICA ---
+        pre_checker = PreCheckCanastaBasica(sample_size=10, timeout=8)
+        links_list, supers_caidos, observaciones = pre_checker.validate_sources(links_list)
 
         if not links_list:
-            logger.error("[ERROR] No quedaron links activos tras excluir Depot.")
+            logger.critical("[ERROR CRÍTICO] Ningún supermercado pasó el pre-check. Abortando corrida.")
             return
 
         # MODO PRUEBA
@@ -131,7 +123,7 @@ def main():
         # 4. LOAD
         logger.info("4. [LOAD] Cargando a base de datos...")
         loader = LoadCanastaBasica()
-        exito = loader.load(df)
+        exito = loader.load(df, observaciones=observaciones)
 
         if exito:
             logger.info("=== Proceso ETL completado EXITOSAMENTE ===")
