@@ -49,3 +49,6 @@ siif/files/raw/_staging/
 # Archivos de bloqueo de LibreOffice/OpenOffice
 .~lock.*
 *~
+
+# Estado local de entregas ECV/EPH
+*.sqlite3

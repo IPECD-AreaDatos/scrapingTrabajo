@@ -5,13 +5,12 @@ Responsabilidad: Coordinar Extract → Transform → Validate → Load
 import os
 import sys
 import logging
-import requests
-import pandas as pd
 from datetime import datetime
 from dotenv import load_dotenv
 
 from etl import ExtractorCBT, TransformerCBTCBA, connection_db, DataValidator
 from utils.logger import setup_logger
+from etl.api_sync import sync_api
 
 
 def main():
@@ -85,28 +84,9 @@ def main():
             logger.error("[LOAD ERROR] Error cargando en Base v2 (PostgreSQL): %s", e)
             raise
 
-        # Si se cargó información nueva en cualquiera de las bases, actualizamos la API
-        if cargado_v1 or cargado_v2:
-            logger.info("[LOAD] Datos nuevos cargados. Enviando correo y actualizando API...")
-
-            df['fecha'] = pd.to_datetime(df['fecha'])
-            last_row = df.tail(1).iloc[0]
-            data = {
-                "anio": last_row['fecha'].year,
-                "mes":  last_row['fecha'].month,
-                "cbt":  int(last_row['cbt_nea']),
-                "cba":  int(last_row['cba_nea']),
-            }
-            try:
-                resp = requests.post("https://ecv.corrientes.gob.ar/api/create_cbt", data=data, timeout=10)
-                if resp.status_code == 200:
-                    logger.info("[API] Actualizada exitosamente.")
-                else:
-                    logger.warning("[API] Error %d: %s", resp.status_code, resp.text)
-            except Exception as e:
-                logger.error("[API] Error de conexión: %s", e)
-        else:
-            logger.info("[LOAD] Sin datos nuevos para cargar.")
+        # La entrega tiene estado propio: también recupera meses previamente fallidos.
+        logger.info("5. [API] Sincronizando ECV y EPH...")
+        sync_api(df)
 
         logger.info("=== COMPLETADO - Duración: %s ===", datetime.now() - inicio)
 

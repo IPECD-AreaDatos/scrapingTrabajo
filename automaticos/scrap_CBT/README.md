@@ -41,6 +41,13 @@ scrap_CBT/
    * Conecta a la base de datos MySQL (`datalake_sociodemografico`) o PostgreSQL (`datalake_economico`) según la variable `DB_VERSION`.
    * **Control inteligente de cambios:** Compara la última fecha de registro y la **suma total histórica de los importes del NEA** (`SUM`). Si hay registros nuevos o se corrigió algún dato del pasado, la tabla se actualiza por completo de forma automática.
 
+5. **ECV y EPH:**
+   * La entrega se registra por mes en `files/data/envios_ecv.sqlite3`; conservar este archivo entre despliegues para evitar envíos duplicados.
+   * Se recuperan desde agosto de 2026, primer mes cuyo envío falló por el certificado TLS. Julio fue confirmado por la API.
+   * La conexión mantiene la verificación TLS y agrega el certificado intermedio de Sectigo faltante en el servidor remoto.
+   * Un error TLS queda pendiente para la próxima ejecución. Una interrupción, timeout o respuesta no confirmada queda en `revision`: verificar ambos destinos antes de decidir un reintento.
+   * HTTP 200 o 201 se consideran confirmados cuando la respuesta indica inserción en ambos destinos.
+
 ---
 
 ## 🚀 Uso e Instalación
