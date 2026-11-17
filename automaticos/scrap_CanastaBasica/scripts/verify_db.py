@@ -14,8 +14,7 @@ def main():
     fecha_hoy = datetime.now().strftime('%Y-%m-%d')
     
     bases = [
-        (loader.db_v1, "BASE VIEJA (MySQL)"),
-        (loader.db_v2, "BASE NUEVA (Postgres)")
+        (loader.db_v2, "PostgreSQL")
     ]
     
     print(f"=== VERIFICACIÓN DE CARGA - FECHA: {fecha_hoy} ===")

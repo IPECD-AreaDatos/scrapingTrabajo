@@ -99,8 +99,6 @@ def main() -> None:
     try:
         exito = loader.load(df)
     finally:
-        if hasattr(loader, "db_v1") and loader.db_v1:
-            loader.db_v1.close_connections()
         if hasattr(loader, "db_v2") and loader.db_v2:
             loader.db_v2.close_connections()
 

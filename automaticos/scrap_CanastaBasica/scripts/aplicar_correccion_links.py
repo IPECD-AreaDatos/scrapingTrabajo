@@ -43,9 +43,8 @@ def main():
         if prefix == 'DBB2':
             return f"postgresql+psycopg2://{user}:{pw}@{host}:{port}/{db}"
         else:
-            return f"mysql+pymysql://{user}:{pw}@{host}:{port}/{db}"
+            raise ValueError("Solo se admite PostgreSQL (DBB2): la base MySQL fue retirada")
 
-    engine_v1 = create_engine(get_url('DBB1'))
     engine_v2 = create_engine(get_url('DBB2'))
     
     total_arreglados = 0
@@ -110,7 +109,7 @@ def main():
         return False, "nada"
 
     try:
-        with engine_v1.begin() as conn1, engine_v2.begin() as conn2:
+        with engine_v2.begin() as conn2:
             for _, row in df_correcciones.iterrows():
                 viejo = str(row['viejo_link']).strip()
                 nuevo = str(row['nuevo_link']).strip()
@@ -118,14 +117,12 @@ def main():
                 if not viejo or not nuevo or viejo == 'nan' or nuevo == 'nan':
                     continue
                     
-                # Ejecutar en MySQL
-                changed1, act1 = procesar_link_db(conn1, viejo, nuevo)
                 # Ejecutar en Postgres
                 changed2, act2 = procesar_link_db(conn2, viejo, nuevo)
                 
-                if changed1 or changed2:
+                if changed2:
                     total_arreglados += 1
-                    print(f"[OK] {viejo.split('/')[-1][:20]}... -> {nuevo[:20]}... (DB1: {act1}, DB2: {act2})")
+                    print(f"[OK] {viejo.split('/')[-1][:20]}... -> {nuevo[:20]}... ({act2})")
                     
     except Exception as e:
         print(f"[ERROR] Error fatal al actualizar las bases de datos: {e}")
@@ -133,7 +130,6 @@ def main():
         traceback.print_exc()
         return
     finally:
-        engine_v1.dispose()
         engine_v2.dispose()
         
     print(f"\n[ÉXITO] Se procesaron {total_arreglados} correcciones en ambas bases de datos.")
