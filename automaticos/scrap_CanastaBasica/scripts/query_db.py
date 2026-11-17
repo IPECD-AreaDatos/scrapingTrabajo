@@ -7,12 +7,13 @@ from dotenv import load_dotenv
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 load_dotenv()
 
-host = os.getenv('HOST_DBB1')
-user = os.getenv('USER_DBB1')
-pw = os.getenv('PASSWORD_DBB1')
-db = os.getenv('NAME_DB_CANASTA_V1', 'canasta_basica_supermercados')
+host = os.getenv('HOST_DBB2')
+user = os.getenv('USER_DBB2')
+pw = os.getenv('PASSWORD_DBB2')
+port = os.getenv('PORT_DBB2', '5432')
+db = os.getenv('NAME_DB_CANASTA', 'canasta_basica_super')
 
-engine = create_engine(f"mysql+pymysql://{user}:{pw}@{host}:3306/{db}")
+engine = create_engine(f"postgresql+psycopg2://{user}:{pw}@{host}:{port}/{db}")
 
 q = text("SELECT * FROM link_productos LIMIT 5")
 with engine.connect() as conn:

@@ -21,17 +21,13 @@ def main():
         if prefix == 'DBB2':
             return f"postgresql+psycopg2://{user}:{pw}@{host}:{port}/{db}"
         else:
-            return f"mysql+pymysql://{user}:{pw}@{host}:{port}/{db}"
+            raise ValueError("Solo se admite PostgreSQL (DBB2): la base MySQL fue retirada")
 
-    engine_v1 = create_engine(get_url('DBB1'))
     engine_v2 = create_engine(get_url('DBB2'))
     
     # PASO 1: Corregir 2026-06-01 a 2026-05-31
     print("=== PASO 1: Renombrando 2026-06-01 a 2026-05-31 ===")
     try:
-        with engine_v1.begin() as conn:
-            res = conn.execute(text("UPDATE precios_productos SET fecha_extraccion = '2026-05-31' WHERE fecha_extraccion = '2026-06-01'"))
-            print(f"MySQL actualizados: {res.rowcount}")
         with engine_v2.begin() as conn:
             res = conn.execute(text("UPDATE precios_productos SET fecha_extraccion = '2026-05-31' WHERE fecha_extraccion = '2026-06-01'"))
             print(f"Postgres actualizados: {res.rowcount}")
@@ -44,8 +40,6 @@ def main():
         # 1. Limpiar datos previos en missing_dates
         for m_date in missing_dates:
             print(f"Limpiando basura en {m_date}...")
-            with engine_v1.begin() as conn:
-                conn.execute(text(f"DELETE FROM precios_productos WHERE fecha_extraccion = '{m_date}'"))
             with engine_v2.begin() as conn:
                 conn.execute(text(f"DELETE FROM precios_productos WHERE fecha_extraccion = '{m_date}'"))
 
@@ -67,13 +61,10 @@ def main():
             print(f"Generando interpolación para {m_date}...")
             
             # Crear nueva extraccion
-            with engine_v1.begin() as conn:
-                conn.execute(text("INSERT INTO extracciones (fecha_inicio, fecha_fin, estado, productos_extraidos, productos_exitosos, productos_fallidos, duracion_segundos, created_at) VALUES (NOW(), NOW(), 'completada', :total, :total, 0, 0, NOW())"), {"total": len(merged)})
-                res = conn.execute(text("SELECT LAST_INSERT_ID()"))
-                id_ext = res.scalar()
             
             with engine_v2.begin() as conn:
-                conn.execute(text("INSERT INTO extracciones (id_extraccion, fecha_inicio, fecha_fin, estado, productos_extraidos, productos_exitosos, productos_fallidos, duracion_segundos, created_at) VALUES (:id, NOW(), NOW(), 'completada', :total, :total, 0, 0, NOW())"), {"id": id_ext, "total": len(merged)})
+                res = conn.execute(text("INSERT INTO extracciones (id_extraccion, fecha_inicio, fecha_fin, estado, productos_extraidos, productos_exitosos, productos_fallidos, duracion_segundos, created_at) VALUES ((SELECT COALESCE(MAX(id_extraccion), 0) + 1 FROM extracciones), NOW(), NOW(), 'completada', :total, :total, 0, 0, NOW()) RETURNING id_extraccion"), {"total": len(merged)})
+                id_ext = res.scalar()
 
             df_i = merged.copy()
             for col in ['precio_normal', 'precio_descuento', 'precio_por_unidad']:
@@ -95,8 +86,6 @@ def main():
             batch_size = 500
             for start in range(0, len(df_final), batch_size):
                 batch = df_final.iloc[start:start+batch_size]
-                with engine_v1.begin() as conn:
-                    batch.to_sql('precios_productos', conn, if_exists='append', index=False)
                 with engine_v2.begin() as conn:
                     batch.to_sql('precios_productos', conn, if_exists='append', index=False)
 
@@ -114,7 +103,6 @@ def main():
     except Exception as e:
         print(f"Error en interpolación: {e}")
     finally:
-        engine_v1.dispose()
         engine_v2.dispose()
 
 if __name__ == "__main__":

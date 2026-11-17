@@ -22,9 +22,8 @@ def main():
         if prefix == 'DBB2':
             return f"postgresql+psycopg2://{user}:{pw}@{host}:{port}/{db}"
         else:
-            return f"mysql+pymysql://{user}:{pw}@{host}:{port}/{db}"
+            raise ValueError("Solo se admite PostgreSQL (DBB2): la base MySQL fue retirada")
 
-    engine_v1 = create_engine(get_url('DBB1'))
     engine_v2 = create_engine(get_url('DBB2'))
     
     date_start = '2026-07-02'
@@ -37,8 +36,6 @@ def main():
         # 1. Limpiar datos previos
         for m_date in missing_dates:
             print(f"Limpiando {m_date}...")
-            with engine_v1.begin() as conn:
-                conn.execute(text(f"DELETE FROM precios_productos WHERE fecha_extraccion = '{m_date}'"))
             with engine_v2.begin() as conn:
                 conn.execute(text(f"DELETE FROM precios_productos WHERE fecha_extraccion = '{m_date}'"))
 
@@ -59,15 +56,10 @@ def main():
             day_num = i + 1 
             print(f"Procesando {m_date}...")
             
-            # MySQL
-            with engine_v1.begin() as conn:
-                conn.execute(text("INSERT INTO extracciones (fecha_inicio, fecha_fin, estado, productos_extraidos, productos_exitosos, productos_fallidos, duracion_segundos, created_at) VALUES (NOW(), NOW(), 'completada', :total, :total, 0, 0, NOW())"), {"total": len(merged)})
-                res = conn.execute(text("SELECT LAST_INSERT_ID()"))
-                id_ext = res.scalar()
             
-            # Postgres
             with engine_v2.begin() as conn:
-                conn.execute(text("INSERT INTO extracciones (id_extraccion, fecha_inicio, fecha_fin, estado, productos_extraidos, productos_exitosos, productos_fallidos, duracion_segundos, created_at) VALUES (:id, NOW(), NOW(), 'completada', :total, :total, 0, 0, NOW())"), {"id": id_ext, "total": len(merged)})
+                res = conn.execute(text("INSERT INTO extracciones (id_extraccion, fecha_inicio, fecha_fin, estado, productos_extraidos, productos_exitosos, productos_fallidos, duracion_segundos, created_at) VALUES ((SELECT COALESCE(MAX(id_extraccion), 0) + 1 FROM extracciones), NOW(), NOW(), 'completada', :total, :total, 0, 0, NOW()) RETURNING id_extraccion"), {"total": len(merged)})
+                id_ext = res.scalar()
 
             df_i = merged.copy()
             for col in ['precio_normal', 'precio_descuento', 'precio_por_unidad']:
@@ -89,8 +81,6 @@ def main():
             batch_size = 500
             for start in range(0, len(df_final), batch_size):
                 batch = df_final.iloc[start:start+batch_size]
-                with engine_v1.begin() as conn:
-                    batch.to_sql('precios_productos', conn, if_exists='append', index=False)
                 with engine_v2.begin() as conn:
                     batch.to_sql('precios_productos', conn, if_exists='append', index=False)
             
@@ -99,7 +89,6 @@ def main():
     except Exception as e:
         print(f"Error: {e}")
     finally:
-        engine_v1.dispose()
         engine_v2.dispose()
 
 if __name__ == "__main__":

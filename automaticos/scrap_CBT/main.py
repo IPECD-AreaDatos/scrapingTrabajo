@@ -21,23 +21,16 @@ def main():
     inicio = datetime.now()
     logger.info("=== INICIO ETL CBT/CBA - %s ===", inicio)
 
-    # Obtener variables de conexión para Base 1 (MySQL)
-    host1 = os.getenv('HOST_DBB1')
-    user1 = os.getenv('USER_DBB1')
-    pwd1  = os.getenv('PASSWORD_DBB1')
-    port1 = os.getenv('PORT_DBB1')
-    db_lake1 = os.getenv('NAME_DBB_DATALAKE_SOCIO')
+    # Variables de conexión: PostgreSQL (la base MySQL anterior fue retirada)
+    host = os.getenv('HOST_DBB2')
+    user = os.getenv('USER_DBB2')
+    pwd  = os.getenv('PASSWORD_DBB2')
+    port = os.getenv('PORT_DBB2')
+    db_lake = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
 
-    # Obtener variables de conexión para Base 2 (PostgreSQL)
-    host2 = os.getenv('HOST_DBB2')
-    user2 = os.getenv('USER_DBB2')
-    pwd2  = os.getenv('PASSWORD_DBB2')
-    port2 = os.getenv('PORT_DBB2')
-    db_lake2 = os.getenv('NAME_DBB_DATALAKE_ECONOMICO')
-
-    # Validar que ambas bases estén configuradas
-    if not (all([host1, user1, pwd1, db_lake1]) and all([host2, user2, pwd2, db_lake2])):
-        logger.error("Faltan variables de entorno críticas para una o ambas bases de datos. Deben estar configuradas ambas bases (v1 y v2).")
+    # Validar que la base esté configurada
+    if not all([host, user, pwd, db_lake]):
+        logger.error("Faltan variables de entorno críticas de la base de datos (HOST_DBB2, USER_DBB2, PASSWORD_DBB2, NAME_DBB_DATALAKE_ECONOMICO).")
         sys.exit(1)
 
     try:
@@ -61,27 +54,13 @@ def main():
 
         # LOAD
         logger.info("4. [LOAD] Cargando datos a los DataLakes...")
-        cargado_v1 = False
-        cargado_v2 = False
-
-        # Cargar Base 1 (MySQL)
         try:
-            logger.info("[LOAD] Conectando y cargando a Base v1 (MySQL)...")
-            db_loader1 = connection_db(host1, user1, pwd1, db_lake1, port=port1, version="1")
-            cargado_v1 = db_loader1.load_datalake(df)
-            db_loader1.close()
+            logger.info("[LOAD] Conectando y cargando a PostgreSQL...")
+            db_loader = connection_db(host, user, pwd, db_lake, port=port, version="2")
+            db_loader.load_datalake(df)
+            db_loader.close()
         except Exception as e:
-            logger.error("[LOAD ERROR] Error cargando en Base v1 (MySQL): %s", e)
-            raise
-
-        # Cargar Base 2 (PostgreSQL)
-        try:
-            logger.info("[LOAD] Conectando y cargando a Base v2 (PostgreSQL)...")
-            db_loader2 = connection_db(host2, user2, pwd2, db_lake2, port=port2, version="2")
-            cargado_v2 = db_loader2.load_datalake(df)
-            db_loader2.close()
-        except Exception as e:
-            logger.error("[LOAD ERROR] Error cargando en Base v2 (PostgreSQL): %s", e)
+            logger.error("[LOAD ERROR] Error cargando en PostgreSQL: %s", e)
             raise
 
         # La entrega tiene estado propio: también recupera meses previamente fallidos.

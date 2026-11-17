@@ -22,7 +22,7 @@ def main():
         if prefix == 'DBB2':
             return f"postgresql+psycopg2://{user}:{pw}@{host}:{port}/{db}"
         else:
-            return f"mysql+pymysql://{user}:{pw}@{host}:{port}/{db}"
+            raise ValueError("Solo se admite PostgreSQL (DBB2): la base MySQL fue retirada")
 
     engine_v2 = create_engine(get_url('DBB2'))
     

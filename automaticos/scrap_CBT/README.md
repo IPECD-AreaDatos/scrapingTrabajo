@@ -38,7 +38,7 @@ scrap_CBT/
 3. **VALIDATE:**
    * Realiza validaciones automáticas de calidad: coherencia temporal, tipos numéricos, no duplicación, y coherencia CBA < CBT.
 4. **LOAD:**
-   * Conecta a la base de datos MySQL (`datalake_sociodemografico`) o PostgreSQL (`datalake_economico`) según la variable `DB_VERSION`.
+   * Conecta a PostgreSQL (`datalake_economico`). La base MySQL anterior (`datalake_sociodemografico`) fue retirada y ya no se escribe.
    * **Control inteligente de cambios:** Compara la última fecha de registro y la **suma total histórica de los importes del NEA** (`SUM`). Si hay registros nuevos o se corrigió algún dato del pasado, la tabla se actualiza por completo de forma automática.
 
 5. **ECV y EPH:**
@@ -55,7 +55,7 @@ scrap_CBT/
 ### Requisitos previos
 El script requiere Python 3.8+ y las siguientes librerías instaladas:
 ```bash
-pip install pandas numpy sqlalchemy pymysql psycopg2 cryptography selenium requests google-auth google-api-python-client python-dotenv
+pip install pandas numpy sqlalchemy psycopg2 cryptography selenium requests google-auth google-api-python-client python-dotenv
 ```
 *Es necesario tener instalado Google Chrome y su respectivo ChromeDriver compatible.*
 
@@ -63,22 +63,12 @@ pip install pandas numpy sqlalchemy pymysql psycopg2 cryptography selenium reque
 En el directorio raíz del proyecto debe existir un archivo `.env` configurado con las bases de datos correspondientes y la credencial de cuenta de servicio de Google:
 
 ```env
-# Configuración Base 1 (MySQL)
-HOST_DBB1=tu_host
-USER_DBB1=tu_usuario
-PASSWORD_DBB1=tu_contraseña
-PORT_DBB1=3306
-NAME_DBB_DATALAKE_SOCIO=datalake_sociodemografico
-
-# Configuración Base 2 (PostgreSQL)
+# Configuración de la base (PostgreSQL)
 HOST_DBB2=tu_host
 USER_DBB2=tu_usuario
 PASSWORD_DBB2=tu_contraseña
 PORT_DBB2=5432
 NAME_DBB_DATALAKE_ECONOMICO=datalake_economico
-
-# Selección de Base de Datos (1 o 2)
-DB_VERSION=1
 
 # Clave de API / Cuenta de servicio de Google Sheets (en una línea)
 GOOGLE_SHEETS_API_KEY={"type": "service_account", "project_id": "ipicorr", ...}
@@ -88,7 +78,6 @@ GOOGLE_SHEETS_API_KEY={"type": "service_account", "project_id": "ipicorr", ...}
 ```bash
 python main.py
 ```
-*Para cambiar de base de datos de destino, modifica el valor de `DB_VERSION` en el `.env` o en la variable de entorno del sistema.*
 
 ---
 
