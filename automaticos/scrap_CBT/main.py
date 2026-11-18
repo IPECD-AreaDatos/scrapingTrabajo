@@ -10,7 +10,6 @@ from dotenv import load_dotenv
 
 from etl import ExtractorCBT, TransformerCBTCBA, connection_db, DataValidator
 from utils.logger import setup_logger
-from etl.api_sync import sync_api
 
 
 def main():
@@ -62,10 +61,6 @@ def main():
         except Exception as e:
             logger.error("[LOAD ERROR] Error cargando en PostgreSQL: %s", e)
             raise
-
-        # La entrega tiene estado propio: también recupera meses previamente fallidos.
-        logger.info("5. [API] Sincronizando ECV y EPH...")
-        sync_api(df)
 
         logger.info("=== COMPLETADO - Duración: %s ===", datetime.now() - inicio)
 

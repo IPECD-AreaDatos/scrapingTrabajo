@@ -41,12 +41,7 @@ scrap_CBT/
    * Conecta a PostgreSQL (`datalake_economico`). La base MySQL anterior (`datalake_sociodemografico`) fue retirada y ya no se escribe.
    * **Control inteligente de cambios:** Compara la última fecha de registro y la **suma total histórica de los importes del NEA** (`SUM`). Si hay registros nuevos o se corrigió algún dato del pasado, la tabla se actualiza por completo de forma automática.
 
-5. **ECV y EPH:**
-   * La entrega se registra por mes en `files/data/envios_ecv.sqlite3`; conservar este archivo entre despliegues para evitar envíos duplicados.
-   * Se recuperan desde agosto de 2026, primer mes cuyo envío falló por el certificado TLS. Julio fue confirmado por la API.
-   * La conexión mantiene la verificación TLS y agrega el certificado intermedio de Sectigo faltante en el servidor remoto.
-   * Un error TLS queda pendiente para la próxima ejecución. Una interrupción, timeout o respuesta no confirmada queda en `revision`: verificar ambos destinos antes de decidir un reintento.
-   * HTTP 200 o 201 se consideran confirmados cuando la respuesta indica inserción en ambos destinos.
+> **Nota (18/11/2026):** se retiró el envío de los valores a ECV y EPH (`https://ecv.corrientes.gob.ar/api/create_cbt`). La API quedó disponible solo desde la red interna y ya no es accesible desde DonWeb. El ETL termina en la carga a PostgreSQL. El código anterior está en el historial de git (`etl/api_sync.py`); el último envío confirmado fue el de septiembre de 2026 y octubre quedó sin enviar.
 
 ---
 
